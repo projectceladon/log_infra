@@ -686,7 +686,7 @@ int main(int argc, char **argv)
 	if (stat(PANIC_CONSOLE_NAME, &info) == 0) {
 
 		time(&t);
-		strftime(date_tmp, 32, "%Y%m%d%H%M%S ",
+		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
 			 localtime((const time_t *)&t));
 		date_tmp[31] = '\0';
 		dir = find_crash_dir(files);
