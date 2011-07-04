@@ -1,4 +1,4 @@
-#!/sbin/sh
+#!/sbin/ash
 
 if [ $# -le 1 ] ; then
         if [ $# -eq 0 ]; then

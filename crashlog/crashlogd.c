@@ -18,13 +18,14 @@
 #include <linux/android_alarm.h>
 #include "cutils/log.h"
 #include <sys/inotify.h>
+#include <cutils/properties.h>
 
 #define KERNEL_CRASH "IPANIC"
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
 #define TOMB_CRASH "TOMBSTONE"
 #define MODEM_CRASH "MPANIC"
-#define CURRENT_UPTIME "CURRUPTIME"
+#define CURRENT_UPTIME "CURRENTUPTIME"
 #define PER_UPTIME "UPTIME"
 #define SYS_REBOOT "REBOOT"
 
@@ -34,7 +35,8 @@
 #define SAVEDLINES  1
 #define MAX_RECORDS 5000
 #define HISTORY_FILE_DIR  "/data/logs"
-#define APLOG_FILE        "/data/logs/aplog"
+#define APLOG_FILE_0        "/data/logs/aplog"
+#define APLOG_FILE_1    "/data/logs/aplog.1"
 #define CRASH_DIR "/data/logs/crashlog"
 #define CURRENT_LOG "/data/logs/currentcrashlog"
 #define HISTORY_FILE  "/data/logs/history_event"
@@ -47,24 +49,20 @@
 
 static int do_mv(char *src, char *des)
 {
-	const char *dest;
 	struct stat st;
-	int i;
 
 	/* check if destination exists */
-	dest = des;
-	if (stat(dest, &st)) {
+	if (stat(des, &st)) {
 		/* an error, unless the destination was missing */
 		if (errno != ENOENT) {
-			LOGE("failed on %s - %s\n", dest, strerror(errno));
+			LOGE("failed on %s - %s\n", des, strerror(errno));
 			return -1;
 		}
 	}
-	const char *source = src;
 
 	/* attempt to move it */
-	if (rename(source, dest)) {
-		LOGE("failed on '%s' - %s\n", source, strerror(errno));
+	if (rename(src, des)) {
+		LOGE("failed on '%s' - %s\n", src, strerror(errno));
 		return -1;
 	}
 
@@ -73,14 +71,14 @@ static int do_mv(char *src, char *des)
 
 static int do_copy(char *src, char *des)
 {
-	char *buffer = NULL;
+	int buflen = 4*1024;
+	char buffer[4*1024];
 	int rc = 0;
 	int fd1 = -1, fd2 = -1;
 	struct stat info;
 	int brtw, brtr;
 	char *p;
 	int filelen,tmp;
-	int buflen = 1*1024*1024;
 
 	if (stat(src, &info) < 0)
 		return -1;
@@ -92,10 +90,6 @@ static int do_copy(char *src, char *des)
 		goto out_err;
 
 	filelen = info.st_size;
-	buffer = malloc(buflen);
-	if(!buffer)
-		goto out_err;
-
 
 	while(filelen){
 		p = buffer;
@@ -131,8 +125,6 @@ static int do_copy(char *src, char *des)
 out_err:
 	rc = -1;
 out:
-	if (buffer)
-		free(buffer);
 	if (fd1 >= 0)
 		close(fd1);
 	if (fd2 >= 0)
@@ -583,8 +575,17 @@ static int do_crashlogd(unsigned int files)
 							snprintf(destion,sizeof(destion),CRASH_DIR"%d/%s",dir,event->name);
 							do_copy(path, destion);
 							history_file_write(wd_array[i].eventname,destion, 0);
-							snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE,'/')+1,wd_array[i].eventname,date_tmp);
-							do_copy(APLOG_FILE,destion);
+							snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_0,'/')+1,wd_array[i].eventname,date_tmp);
+							usleep(20*1000);
+							do_copy(APLOG_FILE_0,destion);
+							if(stat(APLOG_FILE_0, &info) == 0){
+								if(info.st_size < 1*1024*1024){
+									if(stat(APLOG_FILE_1, &info) == 0){
+										snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_1,'/')+1,wd_array[i].eventname,date_tmp);
+										do_copy(APLOG_FILE_1,destion);
+									}
+								}
+							}
 							del_file_more_lines(HISTORY_FILE);
 						}
 						break;
@@ -628,6 +629,7 @@ int main(int argc, char **argv)
 	FILE *to;
 	int fd;
 	pthread_t thread;
+	char value[PROPERTY_VALUE_MAX];
 
 	if (argc > 2) {
 		LOGE("USAGE: %s [number] \n", argv[0]);
@@ -673,15 +675,13 @@ int main(int argc, char **argv)
 			fseek(to, 0, SEEK_END);
 			fprintf(to, "%-16s%-24s\n", name, uptime);
 			fclose(to);
-
 		}
 
 	}
 
-	vinfo = get_version_info(SYS_PROP, BUILD_FIELD);
-	history_file_write(SYS_REBOOT, NULL, vinfo);
-	if (vinfo != 0)
-		free(vinfo);
+	value[0] = '\0';
+	property_get(BUILD_FIELD, value, "");
+	history_file_write(SYS_REBOOT, NULL, value);
 
 	if (stat(PANIC_CONSOLE_NAME, &info) == 0) {
 
@@ -692,7 +692,7 @@ int main(int argc, char **argv)
 		dir = find_crash_dir(files);
 
 		destion[0] = '\0';
-		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s", dir,
+		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s.txt", dir,
 			 THREAD_NAME, date_tmp);
 		do_copy(SAVED_THREAD_NAME, destion);
 		history_file_write(KERNEL_CRASH, destion, 0);
@@ -700,11 +700,13 @@ int main(int argc, char **argv)
 		do_chown(destion, "root", "log");
 
 		destion[0] = '\0';
-		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s", dir,
+		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s.txt", dir,
 			 CONSOLE_NAME, date_tmp);
 		do_copy(SAVED_CONSOLE_NAME, destion);
 		do_chown(destion, "root", "log");
 		do_chown(destion, "root", "log");
+
+		write_file(PANIC_CONSOLE_NAME, "1");
 	}
 
 	fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
@@ -714,22 +716,12 @@ int main(int argc, char **argv)
 		}
 	close(fd);
 
-	pid = fork();
-	switch (pid) {
-	case -1:
-		LOGE("fork error");
-		return -1;
-	case 0:
 		ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
 		if (ret < 0) {
 			LOGE("pthread_create error");
 			return -1;
 		}
 		do_crashlogd(files);
-		break;
-	default:
-		break;
-	}
 
 	return 0;
 

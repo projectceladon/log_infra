@@ -1,4 +1,4 @@
-#!/sbin/sh
+#!/sbin/ash
 
 if [ $# -eq 1 ] ; then
         dir="/data/logs/crashlog"
