@@ -1,3 +1,20 @@
+/*
+* Copyright (C) Intel 2010
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,7 +45,10 @@
 #define CURRENT_UPTIME "CURRENTUPTIME"
 #define PER_UPTIME "UPTIME"
 #define SYS_REBOOT "REBOOT"
+#define AP_INI_M_RST "APIMR"
+#define M_RST_WN_COREDUMP "MRESET"
 
+#define FILESIZE_MAX  (10*1024*1024)
 #define PATHMAX 512
 #define BUILD_FIELD "ro.build.version.incremental"
 #define SYS_PROP "/system/build.prop"
@@ -37,6 +57,8 @@
 #define HISTORY_FILE_DIR  "/data/logs"
 #define APLOG_FILE_0        "/data/logs/aplog"
 #define APLOG_FILE_1    "/data/logs/aplog.1"
+#define BPLOG    "/data/logs/bplog/bplog"
+
 #define CRASH_DIR "/data/logs/crashlog"
 #define CURRENT_LOG "/data/logs/currentcrashlog"
 #define HISTORY_FILE  "/data/logs/history_event"
@@ -69,7 +91,7 @@ static int do_mv(char *src, char *des)
 	return 0;
 }
 
-static int do_copy(char *src, char *des)
+static int do_copy(char *src, char *des, int limit)
 {
 	int buflen = 4*1024;
 	char buffer[4*1024];
@@ -89,7 +111,12 @@ static int do_copy(char *src, char *des)
 	if ((fd2 = open(des, O_WRONLY | O_CREAT | O_TRUNC, 0660)) < 0)
 		goto out_err;
 
-	filelen = info.st_size;
+	if ( (limit == 0) || (limit >= info.st_size) )
+		filelen = info.st_size;
+	else{
+		filelen = limit;
+		lseek(fd1, info.st_size-limit, SEEK_SET);
+		}
 
 	while(filelen){
 		p = buffer;
@@ -130,6 +157,23 @@ out:
 	if (fd2 >= 0)
 		close(fd2);
 	return rc;
+}
+
+static void do_aplog_copy(char *mode, int dir, char* ts)
+{
+	char destion[PATHMAX];
+	struct stat info;
+	snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_0,'/')+1,mode,ts);
+	do_copy(APLOG_FILE_0,destion, FILESIZE_MAX);
+	if(stat(APLOG_FILE_0, &info) == 0){
+		if(info.st_size < 1*1024*1024){
+			if(stat(APLOG_FILE_1, &info) == 0){
+				snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_1,'/')+1,mode,ts);
+				do_copy(APLOG_FILE_1,destion, FILESIZE_MAX);
+			}
+		}
+	}
+	return ;
 }
 
 static unsigned int android_name_to_id(const char *name)
@@ -487,8 +531,11 @@ struct wd_name wd_array[] = {
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
-	{0, IN_CLOSE, CURRENT_UPTIME, "/data/logs/uptime", "uptime"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", ".tar.gz"},/*for modem crash */
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
+/* -------------------------above is dir, below is file---------------------------------------------------------------- */
+	{0, IN_CLOSE_WRITE, CURRENT_UPTIME, "/data/logs/uptime", ""},
 };
 
 #define WDCOUNT ((int)(sizeof(wd_array)/sizeof(struct wd_name)))
@@ -507,8 +554,9 @@ static int do_crashlogd(unsigned int files)
 	char date_tmp[32];
 	struct stat info;
 	unsigned int dir;
-	int time;
+	int hours;
 	int seconds, minutes;
+	time_t t;
 
 	fd = inotify_init();
 	if (fd < 0) {
@@ -531,7 +579,8 @@ static int do_crashlogd(unsigned int files)
 		offset = buffer;
 		event = (struct inotify_event *)buffer;
 		while (((char *)event - buffer) < len) {
-			if((event->mask & IN_DELETE_SELF) ||(event->mask & IN_MOVE_SELF))
+			/* for dir to be delete */
+			if((event->mask & IN_DELETE_SELF) ||(event->mask & IN_MOVE_SELF)){
 				for (i = 0; i < WDCOUNT; i++) {
 					if (event->wd != wd_array[i].wd)
 						continue;
@@ -544,51 +593,70 @@ static int do_crashlogd(unsigned int files)
 					wd_array[i].wd = wd;
 					LOGE("%s has been deleted or moved, we watch it again.\n", wd_array[i].filename);
 					}
+			}
 			if (!(event->mask & IN_ISDIR)) {
 				for (i = 0; i < WDCOUNT; i++) {
 					if (event->wd != wd_array[i].wd)
 						continue;
-					if (!memcmp(wd_array[i].filename,HISTORY_UPTIME,strlen(HISTORY_UPTIME))) {
-						if (!get_uptime(&time)) {
-							seconds = time % 60;
-							time /= 60;
-							minutes = time % 60;
-							time /= 60;
-							snprintf(date_tmp,sizeof(date_tmp),"%04d:%02d:%02d",time, minutes,seconds);
-							snprintf(destion,sizeof(destion),"%-16s%-24s\n",wd_array[i].eventname,date_tmp);
-
-							fd1 = open(HISTORY_FILE,O_RDWR);
-							if (fd1 > 0) {
-								write(fd1,destion,strlen(destion));
-								close(fd1);
+					if(!event->len){
+						/* for file */
+						if (!memcmp(wd_array[i].filename,HISTORY_UPTIME,strlen(HISTORY_UPTIME))) {
+							if (!get_uptime(&hours)) {
+								seconds = hours % 60; hours /= 60;
+								minutes = hours % 60; hours /= 60;
+								snprintf(date_tmp,sizeof(date_tmp),"%04d:%02d:%02d",hours, minutes,seconds);
+								snprintf(destion,sizeof(destion),"%-16s%-24s\n",wd_array[i].eventname,date_tmp);
+								fd1 = open(HISTORY_FILE,O_RDWR);
+								if (fd1 > 0) {
+									write(fd1,destion,strlen(destion));
+									close(fd1);
+								}
 							}
-
 						}
 						break;
 					}
-					if (strstr(event->name, wd_array[i].cmp)) {
-						dir = find_crash_dir(files);
-						snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
-						if (stat(path, &info) == 0) {
-							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
-							date_tmp[31] = 0;
-							snprintf(destion,sizeof(destion),CRASH_DIR"%d/%s",dir,event->name);
-							do_copy(path, destion);
-							history_file_write(wd_array[i].eventname,destion, 0);
-							snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_0,'/')+1,wd_array[i].eventname,date_tmp);
-							usleep(20*1000);
-							do_copy(APLOG_FILE_0,destion);
-							if(stat(APLOG_FILE_0, &info) == 0){
-								if(info.st_size < 1*1024*1024){
-									if(stat(APLOG_FILE_1, &info) == 0){
-										snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_1,'/')+1,wd_array[i].eventname,date_tmp);
-										do_copy(APLOG_FILE_1,destion);
-									}
-								}
+					else{
+						/* for modem reset */
+						if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "apimr.txt" ) ||strstr(event->name, "mreset.txt" ) )){
+							dir = find_crash_dir(files);
+							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+							if((stat(path, &info) == 0) && (info.st_size != 0)){
+								snprintf(destion,sizeof(destion),CRASH_DIR"%d/%s",dir,event->name);
+								do_copy(path, destion, FILESIZE_MAX);
+								history_file_write(wd_array[i].eventname,destion, 0);
 							}
+							else{
+								snprintf(destion,sizeof(destion),CRASH_DIR"%d/",dir);
+								history_file_write(wd_array[i].eventname,destion, 0);
+							}
+
+							time(&t);
+							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&t));
+							date_tmp[31] = 0;
+							usleep(20*1000);
+							do_aplog_copy(wd_array[i].eventname,dir,date_tmp);
+
 							del_file_more_lines(HISTORY_FILE);
+							snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s%s", dir,strrchr(BPLOG,'/')+1,wd_array[i].eventname,date_tmp,".istp");
+							do_copy(BPLOG,destion, FILESIZE_MAX);
+							break;
 						}
-						break;
+						/* for other case */
+						else if (strstr(event->name, wd_array[i].cmp)) {
+							dir = find_crash_dir(files);
+							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+							if (stat(path, &info) == 0) {
+								strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
+								date_tmp[31] = 0;
+								snprintf(destion,sizeof(destion),CRASH_DIR"%d/%s",dir,event->name);
+								do_copy(path, destion, FILESIZE_MAX);
+								history_file_write(wd_array[i].eventname,destion, 0);
+								usleep(20*1000);
+								do_aplog_copy(wd_array[i].eventname,dir,date_tmp);
+								del_file_more_lines(HISTORY_FILE);
+							}
+							break;
+						}
 					}
 				}
 			}
@@ -694,7 +762,7 @@ int main(int argc, char **argv)
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s.txt", dir,
 			 THREAD_NAME, date_tmp);
-		do_copy(SAVED_THREAD_NAME, destion);
+		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
 		history_file_write(KERNEL_CRASH, destion, 0);
 		do_chown(destion, "root", "log");
 		do_chown(destion, "root", "log");
@@ -702,7 +770,7 @@ int main(int argc, char **argv)
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s.txt", dir,
 			 CONSOLE_NAME, date_tmp);
-		do_copy(SAVED_CONSOLE_NAME, destion);
+		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
 		do_chown(destion, "root", "log");
 		do_chown(destion, "root", "log");
 
@@ -716,12 +784,12 @@ int main(int argc, char **argv)
 		}
 	close(fd);
 
-		ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
-		if (ret < 0) {
-			LOGE("pthread_create error");
-			return -1;
-		}
-		do_crashlogd(files);
+	ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
+	if (ret < 0) {
+		LOGE("pthread_create error");
+		return -1;
+	}
+	do_crashlogd(files);
 
 	return 0;
 
