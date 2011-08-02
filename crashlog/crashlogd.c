@@ -51,15 +51,19 @@
 #define FILESIZE_MAX  (10*1024*1024)
 #define PATHMAX 512
 #define BUILD_FIELD "ro.build.version.incremental"
+#define PROP_CRASH "persist.service.crashlog.enable"
 #define SYS_PROP "/system/build.prop"
 #define SAVEDLINES  1
 #define MAX_RECORDS 5000
 #define HISTORY_FILE_DIR  "/data/logs"
 #define APLOG_FILE_0        "/data/logs/aplog"
 #define APLOG_FILE_1    "/data/logs/aplog.1"
-#define BPLOG    "/data/logs/bplog/bplog"
-
-#define CRASH_DIR "/data/logs/crashlog"
+#define BPLOG_FILE_0    "/data/logs/bplog"
+#define BPLOG_FILE_1    "/data/logs/bplog.1"
+#define APLOG_TYPE       0
+#define BPLOG_TYPE       1
+#define SDCARD_CRASH_DIR "/mnt/sdcard/data/logs/crashlog"
+#define EMMC_CRASH_DIR "/data/logs/crashlog"
 #define CURRENT_LOG "/data/logs/currentcrashlog"
 #define HISTORY_FILE  "/data/logs/history_event"
 #define HISTORY_UPTIME "/data/logs/uptime"
@@ -68,6 +72,8 @@
 #define SAVED_THREAD_NAME "/data/dontpanic/emmc_ipanic_threads"
 #define CONSOLE_NAME "emmc_ipanic_console"
 #define THREAD_NAME "emmc_ipanic_threads"
+
+char *CRASH_DIR = NULL;
 
 static int do_mv(char *src, char *des)
 {
@@ -159,17 +165,32 @@ out:
 	return rc;
 }
 
-static void do_aplog_copy(char *mode, int dir, char* ts)
+static void do_log_copy(char *mode, int dir, char* ts, int type)
 {
 	char destion[PATHMAX];
 	struct stat info;
-	snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_0,'/')+1,mode,ts);
-	do_copy(APLOG_FILE_0,destion, FILESIZE_MAX);
-	if(stat(APLOG_FILE_0, &info) == 0){
-		if(info.st_size < 1*1024*1024){
-			if(stat(APLOG_FILE_1, &info) == 0){
-				snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s", dir,strrchr(APLOG_FILE_1,'/')+1,mode,ts);
-				do_copy(APLOG_FILE_1,destion, FILESIZE_MAX);
+
+	if(type == APLOG_TYPE){
+		if(stat(APLOG_FILE_0, &info) == 0){
+			snprintf(destion,sizeof(destion), "%s%d/%s_%s_%s", CRASH_DIR, dir,strrchr(APLOG_FILE_0,'/')+1,mode,ts);
+			do_copy(APLOG_FILE_0,destion, FILESIZE_MAX);
+			if(info.st_size < 1*1024*1024){
+				if(stat(APLOG_FILE_1, &info) == 0){
+					snprintf(destion,sizeof(destion), "%s%d/%s_%s_%s", CRASH_DIR, dir,strrchr(APLOG_FILE_1,'/')+1,mode,ts);
+					do_copy(APLOG_FILE_1,destion, FILESIZE_MAX);
+				}
+			}
+		}
+	}
+	if(type == BPLOG_TYPE){
+		if(stat(BPLOG_FILE_0, &info) == 0){
+			snprintf(destion,sizeof(destion), "%s%d/%s_%s_%s%s", CRASH_DIR, dir,strrchr(BPLOG_FILE_0,'/')+1,mode,ts,".istp");
+			do_copy(BPLOG_FILE_0,destion, FILESIZE_MAX);
+			if(info.st_size < 1*1024*1024){
+				if(stat(BPLOG_FILE_1, &info) == 0){
+					snprintf(destion,sizeof(destion), "%s%d/%s_%s_%s%s", CRASH_DIR, dir,strrchr(BPLOG_FILE_1,'/')+1,mode,ts,".istp");
+					do_copy(BPLOG_FILE_1,destion, FILESIZE_MAX);
+				}
 			}
 		}
 	}
@@ -471,6 +492,23 @@ static int del_file_more_lines(char *fn)
 	return 0;
 }
 
+static void sdcard_exist(void)
+{
+	struct stat info;
+
+	if (stat("/mnt/sdcard/data/logs", &info) == 0)
+		CRASH_DIR = SDCARD_CRASH_DIR;
+	else{
+		mkdir("/mnt/sdcard/data/", 0777);
+		mkdir("/mnt/sdcard/data/logs", 0777);
+		if (stat("/mnt/sdcard/data/logs", &info) == 0)
+			CRASH_DIR = SDCARD_CRASH_DIR;
+		else
+			CRASH_DIR = EMMC_CRASH_DIR;
+	}
+	return;
+}
+
 static unsigned int find_crash_dir(unsigned int max)
 {
 	struct stat sb;
@@ -479,6 +517,9 @@ static unsigned int find_crash_dir(unsigned int max)
 	FILE *fd;
 	DIR *d;
 	struct dirent *de;
+	struct stat st;
+
+	sdcard_exist();
 
 	snprintf(path, sizeof(path), CURRENT_LOG);
 	if ((!stat(path, &sb))) {
@@ -498,23 +539,30 @@ static unsigned int find_crash_dir(unsigned int max)
 	}
 
 	/* we didn't find an available file, so we clobber the oldest one */
-	snprintf(path, sizeof(path), CRASH_DIR "%d", oldest);
-	mkdir(path, 0777);
-	d = opendir(path);
-	if (d == 0) {
-		LOGE("opendir failed, %s\n", strerror(errno));
-		return -1;
+	snprintf(path, sizeof(path),  "%s%d", CRASH_DIR, oldest);
+	if (stat(path, &st) < 0)
+		mkdir(path, 0777);
+	else{
+		d = opendir(path);
+		if (d == 0) {
+			LOGE("opendir failed, %s\n", strerror(errno));
+			return -1;
+		}
+		while ((de = readdir(d)) != 0) {
+			if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+				continue;
+			snprintf(path, sizeof(path),  "%s%d/%s", CRASH_DIR, oldest,
+				 de->d_name);
+			remove(path);
+		}
+		if (closedir(d) < 0){
+			LOGE("closedir failed, %s\n", strerror(errno));
+			return -1;
+		}
+		rmdir(path);
+		snprintf(path, sizeof(path),  "%s%d", CRASH_DIR, oldest);
+		mkdir(path, 0777);
 	}
-	while ((de = readdir(d)) != 0) {
-		if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
-			continue;
-		path[0] = 0;
-		snprintf(path, sizeof(path), CRASH_DIR "%d/%s", oldest,
-			 de->d_name);
-		remove(path);
-
-	}
-	closedir(d);
 
 	return oldest;
 }
@@ -621,12 +669,12 @@ static int do_crashlogd(unsigned int files)
 							dir = find_crash_dir(files);
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							if((stat(path, &info) == 0) && (info.st_size != 0)){
-								snprintf(destion,sizeof(destion),CRASH_DIR"%d/%s",dir,event->name);
+								snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
 								do_copy(path, destion, FILESIZE_MAX);
 								history_file_write(wd_array[i].eventname,destion, 0);
 							}
 							else{
-								snprintf(destion,sizeof(destion),CRASH_DIR"%d/",dir);
+								snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
 								history_file_write(wd_array[i].eventname,destion, 0);
 							}
 
@@ -634,11 +682,10 @@ static int do_crashlogd(unsigned int files)
 							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&t));
 							date_tmp[31] = 0;
 							usleep(20*1000);
-							do_aplog_copy(wd_array[i].eventname,dir,date_tmp);
+							do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
 
 							del_file_more_lines(HISTORY_FILE);
-							snprintf(destion,sizeof(destion),CRASH_DIR "%d/%s_%s_%s%s", dir,strrchr(BPLOG,'/')+1,wd_array[i].eventname,date_tmp,".istp");
-							do_copy(BPLOG,destion, FILESIZE_MAX);
+							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
 							break;
 						}
 						/* for other case */
@@ -648,11 +695,11 @@ static int do_crashlogd(unsigned int files)
 							if (stat(path, &info) == 0) {
 								strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
 								date_tmp[31] = 0;
-								snprintf(destion,sizeof(destion),CRASH_DIR"%d/%s",dir,event->name);
+								snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
 								do_copy(path, destion, FILESIZE_MAX);
 								history_file_write(wd_array[i].eventname,destion, 0);
 								usleep(20*1000);
-								do_aplog_copy(wd_array[i].eventname,dir,date_tmp);
+								do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
 								del_file_more_lines(HISTORY_FILE);
 							}
 							break;
@@ -715,11 +762,17 @@ int main(int argc, char **argv)
 
 	}
 
+	property_get(PROP_CRASH, value, "");
+	if (strncmp(value, "1", 1))
+		return -1;
+
 /* mkdir -p HISTORY_FILE_DIR */
 	if (mkdir(HISTORY_FILE_DIR, 0777) < 0) {
 		if (errno != EEXIST)
 			return errno;
 	}
+
+	sdcard_exist();
 
 /* uptime record */
 	if (stat(HISTORY_FILE, &info) != 0) {
@@ -760,7 +813,7 @@ int main(int argc, char **argv)
 		dir = find_crash_dir(files);
 
 		destion[0] = '\0';
-		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s.txt", dir,
+		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 THREAD_NAME, date_tmp);
 		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
 		history_file_write(KERNEL_CRASH, destion, 0);
@@ -768,7 +821,7 @@ int main(int argc, char **argv)
 		do_chown(destion, "root", "log");
 
 		destion[0] = '\0';
-		snprintf(destion, sizeof(destion), CRASH_DIR "%d/%s_%s.txt", dir,
+		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 CONSOLE_NAME, date_tmp);
 		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
 		do_chown(destion, "root", "log");
