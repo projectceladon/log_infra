@@ -52,6 +52,7 @@
 #define PATHMAX 512
 #define BUILD_FIELD "ro.build.version.incremental"
 #define PROP_CRASH "persist.service.crashlog.enable"
+#define PROP_PROFILE "persist.service.profile.enable"
 #define SYS_PROP "/system/build.prop"
 #define SAVEDLINES  1
 #define MAX_RECORDS 5000
@@ -567,6 +568,27 @@ static unsigned int find_crash_dir(unsigned int max)
 	return oldest;
 }
 
+static void restart_profile_srv(void)
+{
+	char value[PROPERTY_VALUE_MAX];
+
+	property_get(PROP_PROFILE, value, "");
+	if (!strncmp(value, "1", 1)){
+		property_set("ctl.start", "profile_svc_rest");
+	}
+}
+
+static void init_profile_srv(void)
+{
+	char value[PROPERTY_VALUE_MAX];
+
+	property_get(PROP_PROFILE, value, "");
+	if (!strncmp(value, "1", 1)){
+		property_set("ctl.start", "profile_svc_init");
+	}
+}
+
+
 struct wd_name {
 	int wd;
 	int mask;
@@ -690,6 +712,11 @@ static int do_crashlogd(unsigned int files)
 						}
 						/* for other case */
 						else if (strstr(event->name, wd_array[i].cmp)) {
+							/* for restart profile anr */
+							if (strstr(event->name, "anr")){
+								restart_profile_srv();
+							}
+
 							dir = find_crash_dir(files);
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							if (stat(path, &info) == 0) {
@@ -765,6 +792,8 @@ int main(int argc, char **argv)
 	property_get(PROP_CRASH, value, "");
 	if (strncmp(value, "1", 1))
 		return -1;
+
+	init_profile_srv();
 
 /* mkdir -p HISTORY_FILE_DIR */
 	if (mkdir(HISTORY_FILE_DIR, 0777) < 0) {
