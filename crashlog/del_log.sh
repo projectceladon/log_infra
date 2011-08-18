@@ -18,12 +18,22 @@
 #
 
 if [ $# -eq 1 ] ; then
-        dir="/data/logs/crashlog"
-        num=$1
-        tmp=$dir$num
-        echo $tmp
-        cd /data/logs
-        rm -r $tmp
+
+  diremmc="/data/logs"
+  dirsd="/mnt/sdcard/data/logs"
+  num=$1
+
+  tmp=$diremmc"/crashlog"$num
+  if [ -d $tmp ]; then
+    cd $diremmc
+    rm -r $tmp
+  fi
+
+  tmp=$dirsd"/crashlog"$num
+  if [ -d $tmp ]; then
+    cd $dirsd
+    rm -r $tmp
+  fi
 
 else
 
