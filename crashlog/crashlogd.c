@@ -790,10 +790,13 @@ int main(int argc, char **argv)
 	}
 
 	property_get(PROP_CRASH, value, "");
-	if (strncmp(value, "1", 1))
+	if (strncmp(value, "1", 1)){
+		if (stat(PANIC_CONSOLE_NAME, &info) == 0){
+			write_file(PANIC_CONSOLE_NAME, "1");
+		}
 		return -1;
+	}
 
-	init_profile_srv();
 
 /* mkdir -p HISTORY_FILE_DIR */
 	if (mkdir(HISTORY_FILE_DIR, 0777) < 0) {
