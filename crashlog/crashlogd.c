@@ -47,6 +47,7 @@
 #define SYS_REBOOT "REBOOT"
 #define AP_INI_M_RST "APIMR"
 #define M_RST_WN_COREDUMP "MRESET"
+#define FABRIC_ERROR "FABRICERR"
 
 #define FILESIZE_MAX  (10*1024*1024)
 #define PATHMAX 512
@@ -69,10 +70,13 @@
 #define HISTORY_FILE  "/data/logs/history_event"
 #define HISTORY_UPTIME "/data/logs/uptime"
 #define PANIC_CONSOLE_NAME "/proc/emmc_ipanic_console"
+#define PROC_FABRIC_ERROR_NAME "/proc/ipanic_fabric_err"
 #define SAVED_CONSOLE_NAME "/data/dontpanic/emmc_ipanic_console"
 #define SAVED_THREAD_NAME "/data/dontpanic/emmc_ipanic_threads"
+#define SAVED_FABRIC_ERROR_NAME "/data/dontpanic/ipanic_fabric_err"
 #define CONSOLE_NAME "emmc_ipanic_console"
 #define THREAD_NAME "emmc_ipanic_threads"
+#define FABRIC_ERROR_NAME "ipanic_fabric_err"
 
 char *CRASH_DIR = NULL;
 
@@ -755,6 +759,68 @@ void do_timeup()
 	}
 }
 
+static void crashlog_check_fabric(unsigned int files)
+{
+	char date_tmp[32];
+	struct stat info;
+	time_t t;
+	char destion[PATHMAX];
+	unsigned int dir;
+
+	if (stat(PROC_FABRIC_ERROR_NAME, &info) == 0) {
+
+		time(&t);
+		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
+			 localtime((const time_t *)&t));
+		date_tmp[31] = '\0';
+		dir = find_crash_dir(files);
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
+			 FABRIC_ERROR_NAME, date_tmp);
+		do_copy(SAVED_FABRIC_ERROR_NAME, destion, FILESIZE_MAX);
+		history_file_write(FABRIC_ERROR, destion, 0);
+		do_log_copy(FABRIC_ERROR,dir,date_tmp,APLOG_TYPE);
+	}
+	return;
+}
+
+static void crashlog_check_panic(unsigned int files)
+{
+	char date_tmp[32];
+	struct stat info;
+	time_t t;
+	char destion[PATHMAX];
+	unsigned int dir;
+
+	if (stat(PANIC_CONSOLE_NAME, &info) == 0) {
+
+		time(&t);
+		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
+			 localtime((const time_t *)&t));
+		date_tmp[31] = '\0';
+		dir = find_crash_dir(files);
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
+			 THREAD_NAME, date_tmp);
+		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
+		history_file_write(KERNEL_CRASH, destion, 0);
+		do_chown(destion, "root", "log");
+		do_chown(destion, "root", "log");
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
+			 CONSOLE_NAME, date_tmp);
+		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
+		do_chown(destion, "root", "log");
+		do_chown(destion, "root", "log");
+
+		write_file(PANIC_CONSOLE_NAME, "1");
+	}
+	return;
+}
+
 int main(int argc, char **argv)
 {
 
@@ -797,7 +863,6 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-
 /* mkdir -p HISTORY_FILE_DIR */
 	if (mkdir(HISTORY_FILE_DIR, 0777) < 0) {
 		if (errno != EEXIST)
@@ -836,31 +901,8 @@ int main(int argc, char **argv)
 	property_get(BUILD_FIELD, value, "");
 	history_file_write(SYS_REBOOT, NULL, value);
 
-	if (stat(PANIC_CONSOLE_NAME, &info) == 0) {
-
-		time(&t);
-		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
-			 localtime((const time_t *)&t));
-		date_tmp[31] = '\0';
-		dir = find_crash_dir(files);
-
-		destion[0] = '\0';
-		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
-			 THREAD_NAME, date_tmp);
-		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
-		history_file_write(KERNEL_CRASH, destion, 0);
-		do_chown(destion, "root", "log");
-		do_chown(destion, "root", "log");
-
-		destion[0] = '\0';
-		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
-			 CONSOLE_NAME, date_tmp);
-		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
-		do_chown(destion, "root", "log");
-		do_chown(destion, "root", "log");
-
-		write_file(PANIC_CONSOLE_NAME, "1");
-	}
+	crashlog_check_fabric(files);
+	crashlog_check_panic(files);
 
 	fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
 	if (fd < 0){
