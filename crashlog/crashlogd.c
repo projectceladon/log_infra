@@ -73,9 +73,11 @@
 #define PROC_FABRIC_ERROR_NAME "/proc/ipanic_fabric_err"
 #define SAVED_CONSOLE_NAME "/data/dontpanic/emmc_ipanic_console"
 #define SAVED_THREAD_NAME "/data/dontpanic/emmc_ipanic_threads"
+#define SAVED_LOGCAT_NAME "/data/dontpanic/emmc_ipanic_logcat"
 #define SAVED_FABRIC_ERROR_NAME "/data/dontpanic/ipanic_fabric_err"
 #define CONSOLE_NAME "emmc_ipanic_console"
 #define THREAD_NAME "emmc_ipanic_threads"
+#define LOGCAT_NAME "emmc_ipanic_logcat"
 #define FABRIC_ERROR_NAME "ipanic_fabric_err"
 
 char *CRASH_DIR = NULL;
@@ -813,6 +815,13 @@ static void crashlog_check_panic(unsigned int files)
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 CONSOLE_NAME, date_tmp);
 		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
+		do_chown(destion, "root", "log");
+		do_chown(destion, "root", "log");
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
+			 LOGCAT_NAME, date_tmp);
+		do_copy(SAVED_LOGCAT_NAME, destion, FILESIZE_MAX);
 		do_chown(destion, "root", "log");
 		do_chown(destion, "root", "log");
 
