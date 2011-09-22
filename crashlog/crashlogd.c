@@ -69,8 +69,11 @@
 #define CURRENT_LOG "/data/logs/currentcrashlog"
 #define HISTORY_FILE  "/data/logs/history_event"
 #define HISTORY_UPTIME "/data/logs/uptime"
+#define LOG_UUID                "/data/logs/uuid.txt"
 #define PANIC_CONSOLE_NAME "/proc/emmc_ipanic_console"
 #define PROC_FABRIC_ERROR_NAME "/proc/ipanic_fabric_err"
+#define PROC_UUID  "/proc/emmc0_id_entry"
+
 #define SAVED_CONSOLE_NAME "/data/dontpanic/emmc_ipanic_console"
 #define SAVED_THREAD_NAME "/data/dontpanic/emmc_ipanic_threads"
 #define SAVED_LOGCAT_NAME "/data/dontpanic/emmc_ipanic_logcat"
@@ -879,6 +882,15 @@ int main(int argc, char **argv)
 	}
 
 	sdcard_exist();
+
+	if (stat(LOG_UUID, &info) != 0) {
+		if ( stat(PROC_UUID, &info) == 0 )
+			do_copy(PROC_UUID, LOG_UUID, FILESIZE_MAX);
+		else{
+			LOGE("PROC_UUID error\n");
+			return -1;
+		}
+	}
 
 /* uptime record */
 	if (stat(HISTORY_FILE, &info) != 0) {
