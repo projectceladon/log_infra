@@ -30,5 +30,6 @@ LOCAL_STATIC_LIBRARIES:= libc libcutils
 include $(BUILD_EXECUTABLE)
 
 PRODUCT_COPY_FILES += \
+        $(LOCAL_PATH)/analyze_crash:system/bin/analyze_crash \
         $(LOCAL_PATH)/del_hist.sh:system/bin/del_hist.sh \
         $(LOCAL_PATH)/del_log.sh:system/bin/del_log.sh

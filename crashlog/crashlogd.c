@@ -37,6 +37,9 @@
 #include <sys/inotify.h>
 #include <cutils/properties.h>
 
+#include <sha1.h>
+
+#define CRASHEVENT "CRASH"
 #define KERNEL_CRASH "IPANIC"
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
@@ -52,6 +55,8 @@
 #define FILESIZE_MAX  (10*1024*1024)
 #define PATHMAX 512
 #define BUILD_FIELD "ro.build.version.incremental"
+#define BOARD_FIELD "ro.boardid"
+#define MODEM_FIELD "gsm.version.baseband"
 #define PROP_CRASH "persist.service.crashlog.enable"
 #define PROP_PROFILE "persist.service.profile.enable"
 #define SYS_PROP "/system/build.prop"
@@ -69,7 +74,9 @@
 #define CURRENT_LOG "/data/logs/currentcrashlog"
 #define HISTORY_FILE  "/data/logs/history_event"
 #define HISTORY_UPTIME "/data/logs/uptime"
-#define LOG_UUID                "/data/logs/uuid.txt"
+#define LOG_UUID "/data/logs/uuid.txt"
+#define KERNEL_CMDLINE "/proc/cmdline"
+#define STARTUP_STR "androidboot.mode="
 #define PANIC_CONSOLE_NAME "/proc/emmc_ipanic_console"
 #define PROC_FABRIC_ERROR_NAME "/proc/ipanic_fabric_err"
 #define PROC_UUID  "/proc/emmc0_id_entry"
@@ -84,6 +91,10 @@
 #define FABRIC_ERROR_NAME "ipanic_fabric_err"
 
 char *CRASH_DIR = NULL;
+
+char buildVersion[PROPERTY_VALUE_MAX];
+char boardVersion[PROPERTY_VALUE_MAX];
+char uuid[256];
 
 static int do_mv(char *src, char *des)
 {
@@ -358,7 +369,7 @@ oops:
 
 }
 
-static int get_uptime(int *time)
+static int get_uptime(long long *time_ns)
 {
 	struct timespec ts;
 	int fd, result;
@@ -371,30 +382,76 @@ static int get_uptime(int *time)
 	    ioctl(fd,
 		  ANDROID_ALARM_GET_TIME(ANDROID_ALARM_ELAPSED_REALTIME), &ts);
 	close(fd);
-	*time = ts.tv_sec;
+	*time_ns = (((long long) ts.tv_sec) * 1000000000LL) + ((long long) ts.tv_nsec);
 	return 0;
 }
 
-static int history_file_write(char *type, char *log, char *reason)
+static void compute_key(char* key, char *event, char *type)
+{
+	SHA1_CTX sha;
+	char buf[256] = { '\0', };
+	long long time_ns=0;
+	char *tmp_key = key;
+        unsigned char results[SHA1_DIGEST_LENGTH];
+	int i;
+
+	get_uptime(&time_ns);
+	snprintf(buf, 256, "%s%s%s%s%lld", buildVersion, uuid, event, type, time_ns);
+
+	SHA1Init(&sha);
+	SHA1Update(&sha, (unsigned char*) buf, strlen(buf));
+	SHA1Final(results, &sha);
+	for (i = 0; i < SHA1_DIGEST_LENGTH/2; i++)
+	{
+	  sprintf(tmp_key, "%02x", results[i]);
+	  tmp_key+=2;
+	}
+	*tmp_key=0;
+}
+
+static void run_command(char* cmd)
+{
+	int status = system(cmd);
+	if (status != 0)
+		LOGE("error command %d.\n", status);
+}
+
+static void analyze_crash(char* type, char* path, char* key, char* uptime)
+{
+	char cmd[512] = { '\0', };
+
+	snprintf(cmd, 512, "/system/bin/analyze_crash %s %s %s %s %s mfld_pr2", type, path, key, uptime, buildVersion);
+	run_command(cmd);
+}
+
+static void history_file_write(char *event, char *type, char *log, char* lastuptime)
 {
 	char date_tmp[32];
+	char uptime[32];
 	struct stat info;
+	long long tm=0;
 	time_t t;
+	int hours, seconds, minutes;
 	FILE *to;
 	char tmp[PATHMAX];
+	char key[SHA1_DIGEST_LENGTH+1];
 	char * p;
-	int tm=0;
-	int seconds, minutes;
+
+	// compute uptime
+	get_uptime(&tm);
+	hours = (int) (tm / 1000000000LL);
+	seconds = hours % 60;
+	hours /= 60;
+	minutes = hours % 60;
+	hours /= 60;
+	snprintf(uptime,sizeof(uptime),"%04d:%02d:%02d",hours, minutes,seconds);
+	//compute ID
+	compute_key(key, event, type);
 
 	if (stat(HISTORY_FILE, &info) != 0) {
-		get_uptime(&tm);
-		seconds = tm % 60;
-		tm /= 60;
-		minutes = tm % 60;
-		tm /= 60;
-		snprintf(date_tmp,sizeof(date_tmp),"%04d:%02d:%02d",tm, minutes,seconds);
 		to = fopen(HISTORY_FILE, "w");
-		fprintf(to, "%-16s%-24s\n", CURRENT_UPTIME, date_tmp);
+		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, uptime);
+		fprintf(to, "#EVENT  ID                    DATE                 TYPE\n");
 		fclose(to);
 	}
 
@@ -403,24 +460,26 @@ static int history_file_write(char *type, char *log, char *reason)
 		if((p = strrchr(tmp,'/'))){
 			p[0] = '\0';
 		}
-		strftime(date_tmp, 32, "%Y-%m-%d %H:%M:%S  ",
+		strftime(date_tmp, 32, "%Y-%m-%d/%H:%M:%S  ",
 			 localtime((const time_t *)&info.st_mtime));
 		date_tmp[31] = 0;
 		to = fopen(HISTORY_FILE, "a");
-		fprintf(to, "%-16s%-24s%s\n", type, date_tmp, tmp);
+		fprintf(to, "%-8s%-22s%-20s%s %s\n", event, key, date_tmp, type, tmp);
 		fclose(to);
-		LOGE("%-16s%-24s%s\n", type, date_tmp, log);
+		LOGE("%-8s%-22s%-20s%s %s\n", event, key, date_tmp, type, tmp);
+		analyze_crash(type, tmp, key, uptime);
 	} else {
 		time(&t);
-		strftime(date_tmp, 32, "%Y-%m-%d %H:%M:%S  ",
+		strftime(date_tmp, 32, "%Y-%m-%d/%H:%M:%S  ",
 			 localtime((const time_t *)&t));
 		date_tmp[31] = 0;
+
 		to = fopen(HISTORY_FILE, "a");
-		fprintf(to, "%-16s%-24s%s\n", type, date_tmp, reason);
+		fprintf(to, "%-8s%-22s%-20s%-16s %s\n", event, key, date_tmp, type, lastuptime);
 		fclose(to);
-		LOGE("%-16s%-24s%s\n", type, date_tmp, reason);
+		LOGE("%-8s%-22s%-20s%s\n", event, key, date_tmp, type);
 	}
-	return 0;
+	return;
 }
 
 static int del_file_more_lines(char *fn)
@@ -598,6 +657,7 @@ static void init_profile_srv(void)
 }
 
 
+
 struct wd_name {
 	int wd;
 	int mask;
@@ -633,8 +693,8 @@ static int do_crashlogd(unsigned int files)
 	char date_tmp[32];
 	struct stat info;
 	unsigned int dir;
-	int hours;
-	int seconds, minutes;
+	long long tm;
+	int hours, seconds, minutes;
 	time_t t;
 
 	fd = inotify_init();
@@ -680,11 +740,12 @@ static int do_crashlogd(unsigned int files)
 					if(!event->len){
 						/* for file */
 						if (!memcmp(wd_array[i].filename,HISTORY_UPTIME,strlen(HISTORY_UPTIME))) {
-							if (!get_uptime(&hours)) {
+							if (!get_uptime(&tm)) {
+								hours = (int) (tm / 1000000000LL);
 								seconds = hours % 60; hours /= 60;
 								minutes = hours % 60; hours /= 60;
 								snprintf(date_tmp,sizeof(date_tmp),"%04d:%02d:%02d",hours, minutes,seconds);
-								snprintf(destion,sizeof(destion),"%-16s%-24s\n",wd_array[i].eventname,date_tmp);
+								snprintf(destion,sizeof(destion),"#V1.0 %-16s%-24s",wd_array[i].eventname,date_tmp);
 								fd1 = open(HISTORY_FILE,O_RDWR);
 								if (fd1 > 0) {
 									write(fd1,destion,strlen(destion));
@@ -702,11 +763,12 @@ static int do_crashlogd(unsigned int files)
 							if((stat(path, &info) == 0) && (info.st_size != 0)){
 								snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
 								do_copy(path, destion, FILESIZE_MAX);
-								history_file_write(wd_array[i].eventname,destion, 0);
+								snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
+								history_file_write(CRASHEVENT, wd_array[i].eventname,destion, NULL);
 							}
 							else{
 								snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-								history_file_write(wd_array[i].eventname,destion, 0);
+								history_file_write(CRASHEVENT, wd_array[i].eventname,destion, NULL);
 							}
 
 							time(&t);
@@ -721,22 +783,24 @@ static int do_crashlogd(unsigned int files)
 						}
 						/* for other case */
 						else if (strstr(event->name, wd_array[i].cmp)) {
-							/* for restart profile anr */
-							if (strstr(event->name, "anr")){
-								restart_profile_srv();
-							}
-
 							dir = find_crash_dir(files);
+
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							if (stat(path, &info) == 0) {
 								strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
 								date_tmp[31] = 0;
 								snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
 								do_copy(path, destion, FILESIZE_MAX);
-								history_file_write(wd_array[i].eventname,destion, 0);
+								snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+								history_file_write(CRASHEVENT, wd_array[i].eventname,destion, NULL);
 								usleep(20*1000);
 								do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
 								del_file_more_lines(HISTORY_FILE);
+							}
+
+							/* for restart profile anr */
+							if (strstr(event->name, "anr")){
+								restart_profile_srv();
 							}
 							break;
 						}
@@ -764,7 +828,7 @@ void do_timeup()
 	}
 }
 
-static void crashlog_check_fabric(unsigned int files)
+static void crashlog_check_fabric(char *reason, unsigned int files)
 {
 	char date_tmp[32];
 	struct stat info;
@@ -784,13 +848,14 @@ static void crashlog_check_fabric(unsigned int files)
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 FABRIC_ERROR_NAME, date_tmp);
 		do_copy(SAVED_FABRIC_ERROR_NAME, destion, FILESIZE_MAX);
-		history_file_write(FABRIC_ERROR, destion, 0);
+		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+		history_file_write(CRASHEVENT, FABRIC_ERROR, destion, NULL);
 		do_log_copy(FABRIC_ERROR,dir,date_tmp,APLOG_TYPE);
 	}
 	return;
 }
 
-static void crashlog_check_panic(unsigned int files)
+static void crashlog_check_panic(char *reason, unsigned int files)
 {
 	char date_tmp[32];
 	struct stat info;
@@ -810,7 +875,7 @@ static void crashlog_check_panic(unsigned int files)
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 THREAD_NAME, date_tmp);
 		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
-		history_file_write(KERNEL_CRASH, destion, 0);
+		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 		do_chown(destion, "root", "log");
 		do_chown(destion, "root", "log");
 
@@ -829,8 +894,78 @@ static void crashlog_check_panic(unsigned int files)
 		do_chown(destion, "root", "log");
 
 		write_file(PANIC_CONSOLE_NAME, "1");
+		history_file_write(CRASHEVENT, KERNEL_CRASH, destion, NULL);
 	}
 	return;
+}
+
+static void crashlog_check_startupreason(char *reason, unsigned int files)
+{
+	char date_tmp[32];
+	time_t t;
+	char destion[PATHMAX];
+	unsigned int dir;
+
+	if (strstr(reason, "WDT_RESET")) {
+
+		time(&t);
+		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
+			 localtime((const time_t *)&t));
+		date_tmp[31] = '\0';
+		dir = find_crash_dir(files);
+
+		do_log_copy("WDT",dir,date_tmp,APLOG_TYPE);
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
+		history_file_write(CRASHEVENT, "WDT", destion, NULL);
+	}
+	return;
+}
+
+
+static void read_uuid(void)
+{
+	struct stat info;
+	FILE *fd;
+
+	if (stat(LOG_UUID, &info) != 0) {
+		if ( stat(PROC_UUID, &info) == 0 )
+			do_copy(PROC_UUID, LOG_UUID, FILESIZE_MAX);
+		else{
+			LOGE("PROC_UUID error\n");
+			return;
+		}
+	}
+	if (stat(LOG_UUID, &info) == 0) {
+		fd = fopen(LOG_UUID, "r");
+		fscanf(fd, "%s", uuid);
+		fclose(fd);
+	}
+}
+
+static void read_startupreason(char *startupreason)
+{
+	char cmdline[512] = { '\0', };
+	char *p;
+	unsigned int reason;
+	char *bootmode_reason[] = {"BATT_INSERT", "PWR_BUTTON_PRESS", "RTC_TIMER", "USB_CHRG_INSERT", "LOWBAT_THRESHOLD", "COLD_RESET", "COLD_BOOT", "UNKNOWN", "SWWDT_RESET", "HWWDT_RESET"};
+	struct stat info;
+	FILE *fd;
+
+	strcpy(startupreason, bootmode_reason[7]);
+
+	if (stat(KERNEL_CMDLINE, &info) == 0) {
+		fd = fopen(KERNEL_CMDLINE, "r");
+		fread(cmdline, sizeof(cmdline), 512, fd);
+		fclose(fd);
+		p = strstr(cmdline, STARTUP_STR);
+		if(p) {
+			reason=atoi(p+strlen(STARTUP_STR));
+			if (reason <= sizeof(bootmode_reason))
+				strcpy(startupreason, bootmode_reason[reason]);
+		}
+	}
 }
 
 int main(int argc, char **argv)
@@ -840,6 +975,7 @@ int main(int argc, char **argv)
 	int ret = 0;
 	unsigned int files = 0xFFFFFFFF;
 	char date_tmp[32];
+	char lastuptime[32];
 	struct stat info;
 	time_t t;
 	char destion[PATHMAX];
@@ -875,6 +1011,10 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	property_get(BUILD_FIELD, buildVersion, "");
+	property_get(BOARD_FIELD, boardVersion, "");
+	read_uuid();
+
 /* mkdir -p HISTORY_FILE_DIR */
 	if (mkdir(HISTORY_FILE_DIR, 0777) < 0) {
 		if (errno != EEXIST)
@@ -883,54 +1023,59 @@ int main(int argc, char **argv)
 
 	sdcard_exist();
 
-	if (stat(LOG_UUID, &info) != 0) {
-		if ( stat(PROC_UUID, &info) == 0 )
-			do_copy(PROC_UUID, LOG_UUID, FILESIZE_MAX);
-		else{
-			LOGE("PROC_UUID error\n");
-			return -1;
-		}
-	}
 
 /* uptime record */
+	strcpy(lastuptime, "0000:00:00");
 	if (stat(HISTORY_FILE, &info) != 0) {
 
 		to = fopen(HISTORY_FILE, "w");
-		fprintf(to, "%-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
+		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
+		fprintf(to, "#EVENT  ID                    DATE                 TYPE\n");
 		fclose(to);
 
 	} else {
 		char name[32];
-		char uptime[32];
+		char date_tmp[32];
+
 		to = fopen(HISTORY_FILE, "r");
-		fscanf(to, "%16s%24s\n", name, uptime);
+		fscanf(to, "#V1.0 %16s%24s\n", name, lastuptime);
 		fclose(to);
 		if (!memcmp(name, CURRENT_UPTIME, sizeof(CURRENT_UPTIME))) {
 
 			to = fopen(HISTORY_FILE, "r+");
-			fprintf(to, "%-16s%-24s\n", CURRENT_UPTIME,
-				"0000:00:00");
+			fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
 			strcpy(name, PER_UPTIME);
 			fseek(to, 0, SEEK_END);
-			fprintf(to, "%-16s%-24s\n", name, uptime);
+			strftime(date_tmp, 32, "%Y-%m-%d/%H:%M:%S  ", localtime((const time_t *)&info.st_mtime));
+			date_tmp[31] = 0;
+			fprintf(to, "%-8s00000000000000000000  %-20s%s\n", name, date_tmp, lastuptime);
 			fclose(to);
 		}
 
 	}
 
-	value[0] = '\0';
-	property_get(BUILD_FIELD, value, "");
-	history_file_write(SYS_REBOOT, NULL, value);
+	// read command line to check startup reason
+	char startupreason[16] = { '\0', };
+	struct stat st;
 
-	crashlog_check_fabric(files);
-	crashlog_check_panic(files);
-
-	fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
-	if (fd < 0){
-		LOGE("open HISTORY_UPTIME error\n");
-		return -1;
+	/* check if uptime file exists */
+	if (stat(HISTORY_UPTIME, &st) == 0)
+		read_startupreason(startupreason);
+	else {
+		fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
+		if (fd < 0){
+			LOGE("open HISTORY_UPTIME error\n");
+			return -1;
 		}
-	close(fd);
+		strcpy(startupreason,"SWUPDATE");
+		close(fd);
+	}
+
+	crashlog_check_fabric(startupreason, files);
+	crashlog_check_panic(startupreason, files);
+	crashlog_check_startupreason(startupreason, files);
+
+	history_file_write(SYS_REBOOT, startupreason, NULL, lastuptime);
 
 	ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
 	if (ret < 0) {

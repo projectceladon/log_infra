@@ -1,0 +1,117 @@
+#!/sbin/ash
+
+help()
+{
+  echo "analyze_crash <tag> <path> [<crashid> <uptime> <build> <modem version> <board>]"
+}
+
+prepare_crashfile()
+{
+  echo "EVENT=CRASH" > $2
+  echo "ID=$3" >> $2
+  echo "SN=`cat /data/logs/uuid.txt`" >> $2
+  now=`date +%y-%m-%d-%H-%M-%S`
+  echo "DATE=$now" >> $2
+  echo "UPTIME=$4" >> $2
+  echo "BUILD=$5" >> $2
+  echo "BOARD=$6" >> $2
+  echo "TYPE=$1" >> $2
+}
+
+finish_crashfile()
+{
+  echo "_END" >> $1
+  sed "s/ //" $1 > $1.tmp
+  mv $1.tmp $1
+}
+
+anr()
+{
+  anr=`ls $1 | grep "system_app_anr.*txt.gz" | wc -l`
+  if [ $anr == 1 ] ; then
+    pid=`gunzip -c $1/system_app_anr*.txt.gz | grep "Process:" | awk -F":" '{print $2}'`
+    type=`gunzip -c $1/system_app_anr*.txt.gz | grep "Subject:" | awk -F":" '{print $2}'`
+    data=`gunzip -c $1/system_app_anr*.txt.gz | grep -m 1 -o "  at.*(" | awk -F"(" '{print $1}' | awk -F" " '{print $2}'`
+
+    echo "DATA0=$pid" >> $2
+    echo "DATA1=$type" >> $2
+    echo "DATA2=$data" >> $2
+  fi
+}
+
+javacrash()
+{
+  javacrash=`ls $1 | grep "system_app_crash.*.txt.gz" | wc -l`
+  if [ $javacrash == 1 ] ; then
+    pid=`gunzip -c $1/system_app_crash*.txt.gz | grep "Process:" | awk -F":" '{print $2}'`
+    exception=`gunzip -c $1/system_app_crash*.txt.gz | grep -m1 -o "java.lang.*"`
+    flag=`gunzip -c $1/system_app_crash*.txt.gz | grep -m1 -o "Flags: .*" | awk -F" " '{print $2}'`
+    stack=`gunzip -c $1/system_app_crash*.txt.gz | grep -A1 -m1 -o "java.lang.*" | sed -e "N;s/\n/ /" | awk -F" " '{print $3}'`
+
+    echo "DATA0=$pid" >> $2
+    echo "DATA1=$exception" >> $2
+    echo "DATA2=$flag" >> $2
+    echo "DATA3=$stack" >> $2
+  fi
+}
+
+ipanic()
+{
+  ipanic=`ls $1 | grep "ipanic_console" | wc -l`
+  if [ $ipanic == 1 ] ; then
+    data=`grep -o "EIP:.*SS:ESP" $1/emmc_ipanic_console* | awk -F" " '{print $3}'`
+    comm=`grep -o -m1 "comm: .*" $1/emmc_ipanic_console* | awk -F" " '{print $2}'`
+
+    echo "DATA0=$data" >> $2
+    echo "DATA1=$comm" >> $2
+    echo "DATA2=" >> $2
+
+  fi
+}
+
+tombstone()
+{
+  tombstone=`ls $1 | grep "tombstone_" | wc -l`
+  if [ $tombstone == 1 ] ; then
+    process=`grep ">>>" $1/tombstone_* | awk -F">>>" '{print $2}' | awk -F"<" '{print $1}'`
+    signal=`grep "signal" $1/tombstone_* | awk -F"(" '{print $3}' | awk -F")" '{print $1}'`
+    flag=`grep -m1 -o "flags .*" $1/tombstone_* | awk -F" " '{print $2}'`
+
+    echo "DATA0=$process" >> $2
+    echo "DATA1=$signal" >> $2
+    echo "DATA2=$flag" >> $2
+  fi
+}
+
+if [ $# -ge 3 ] ; then
+  tag=$1
+  output=$2
+  crashid=$3
+  uptime=$4
+  build=$5
+  board=$6
+  crashfilename=$output/"crashfile"
+
+  if [ -d "$output" ] ; then
+    prepare_crashfile $tag $crashfilename $crashid $uptime $build $board
+
+    if [ "$tag" == "IPANIC" ] ; then
+      ipanic $output $crashfilename
+    fi
+    if [ "$tag" == "JAVACRASH" ] ; then
+      javacrash $output $crashfilename
+    fi
+    if [ "$tag" == "ANR" ] ; then
+      anr $output $crashfilename
+    fi
+    if [ "$tag" == "TOMBSTONE" ] ; then
+      tombstone $output $crashfilename
+    fi
+    if [ "$tag" == "FABRICERR" ] ; then
+      fabricerr $output $crashfilename
+    fi
+    finish_crashfile $crashfilename
+  fi
+else
+   help
+fi
