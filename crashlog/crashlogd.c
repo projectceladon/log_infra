@@ -54,6 +54,9 @@
 
 #define FILESIZE_MAX  (10*1024*1024)
 #define PATHMAX 512
+#define UPTIME_FREQUENCY (5 * 60)
+#define UPTIME_EVENT_FREQUENCY (12 * 60 * 60)
+#define UPTIME_LOOP_COUNT (UPTIME_EVENT_FREQUENCY / UPTIME_FREQUENCY)
 #define BUILD_FIELD "ro.build.version.incremental"
 #define BOARD_FIELD "ro.boardid"
 #define MODEM_FIELD "gsm.version.baseband"
@@ -95,6 +98,7 @@ char *CRASH_DIR = NULL;
 char buildVersion[PROPERTY_VALUE_MAX];
 char boardVersion[PROPERTY_VALUE_MAX];
 char uuid[256];
+int loop_uptime_event = 0;
 
 static int do_mv(char *src, char *des)
 {
@@ -751,6 +755,12 @@ static int do_crashlogd(unsigned int files)
 									write(fd1,destion,strlen(destion));
 									close(fd1);
 								}
+								/*Update event every 12 hours*/
+								loop_uptime_event++;
+								if (loop_uptime_event == UPTIME_LOOP_COUNT) {
+									history_file_write(PER_UPTIME, "UPTIME", NULL, date_tmp);
+									loop_uptime_event = 0;
+								}
 							}
 						}
 						break;
@@ -822,7 +832,7 @@ void do_timeup()
 	int fd;
 
 	while (1) {
-		sleep(5 * 60);
+		sleep(UPTIME_FREQUENCY);
 		fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
 		close(fd);
 	}
