@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/mts_button"
+        android:layout_width="match_parent"
+        android:layout_height="100px"
+        android:text="@string/modem_trace_server_button" />
+
+    <View
+        android:id="@+id/View01"
+        android:layout_width="wrap_content"
+        android:layout_height="4px"
+        android:background="#C0C0C0" />
+
+    <Button
+        android:id="@+id/usb_button"
+        android:layout_width="match_parent"
+        android:layout_height="100px"
+        android:text="@string/usbswitch_button" />
+
+    <View
+        android:id="@+id/View02"
+        android:layout_width="wrap_content"
+        android:layout_height="4px"
+        android:background="#C0C0C0" />
+
+    <Button
+        android:id="@+id/toggle_button"
+        android:layout_width="match_parent"
+        android:layout_height="100px"
+        android:text="@string/toggle_pin_button" />
+
+</LinearLayout>
