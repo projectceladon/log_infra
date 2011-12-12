@@ -178,8 +178,8 @@ public class Activate_trace_modemActivity extends Activity {
                     button_persistent.setEnabled(true);
 
                     ((CompoundButton) button_emmc).setChecked(true);
-                    ((CompoundButton) button_100mb).setChecked(true);
-                    ((CompoundButton) button_oneshot).setChecked(true);
+                    ((CompoundButton) button_800mb).setChecked(true);
+                    ((CompoundButton) button_persistent).setChecked(true);
 
                     button_disable_save_activate.setEnabled(false);
                     button_disable_data_activate.setEnabled(false);
@@ -223,11 +223,12 @@ public class Activate_trace_modemActivity extends Activity {
                     button_persistent.setEnabled(false);
                 } else {
                     button_100mb.setEnabled(true);
-                    ((CompoundButton) button_100mb).setChecked(true);
                     button_800mb.setEnabled(true);
+                    ((CompoundButton) button_800mb).setChecked(true);
                     button_max_data.setEnabled(false);
                     button_oneshot.setEnabled(true);
                     button_persistent.setEnabled(true);
+                    ((CompoundButton) button_persistent).setChecked(true);
                 }
             }
         });

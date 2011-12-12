@@ -3,7 +3,7 @@
     package="com.intel.amtl"
     android:versionCode="1"
     android:versionName="1.0"
-    android:sharedUserId="android.uid.system">
+    android:sharedUserId="android.uid.system" >
 
     <uses-sdk android:minSdkVersion="10" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />

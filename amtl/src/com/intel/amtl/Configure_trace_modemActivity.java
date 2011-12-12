@@ -106,7 +106,7 @@ public class Configure_trace_modemActivity extends Activity {
                     button_disable_trace.setEnabled(false);
 
                     ((CompoundButton) button_speed_78).setChecked(true);
-                    ((CompoundButton) button_trace_bb).setChecked(true);
+                    ((CompoundButton) button_trace_bb_3g).setChecked(true);
                 } else {
                     button_speed_78.setEnabled(false);
                     button_speed_156.setEnabled(false);
