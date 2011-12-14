@@ -55,4 +55,10 @@
     <string name="apply_usb_switch_button">Apply USB switch</string>
     <string name="apply_toggle_on1_button">Apply Toggle ON1</string>
     <string name="trace_bb_3g_digrf_button_configure_trace_modem">bb_sw/3G_sw/digrf</string>
+    <string name="trace_coredump_button">Traces in Coredump</string>
+    <string name="trace_in_coredump_txt">Choose the level trace in coredump</string>
+    <string name="apply_trace_coredump_button">Apply level trace</string>
+    <string name="trace_ma_artemis_digrf_coredump_button">Traces MA/Artemis/Digrf</string>
+    <string name="trace_ma_artemis_coredump_button">Traces MA/Artemis</string>
+    <string name="disable_all_traces_coredump_button">Disable all traces</string>
 </resources>

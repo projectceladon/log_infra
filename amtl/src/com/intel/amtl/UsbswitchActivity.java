@@ -19,18 +19,19 @@ package com.intel.amtl;
 import java.io.IOException;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
-import android.widget.Toast;
 
 public class UsbswitchActivity extends Activity {
 
     private Button usb_modem_button;
     private Button button_usb_switch;
+    private ProgressDialog progressDialog;
     Runtime rtm=java.lang.Runtime.getRuntime();
 
     @Override
@@ -49,23 +50,29 @@ public class UsbswitchActivity extends Activity {
         button_usb_switch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                try {
-                    if (((CompoundButton) usb_modem_button).isChecked()) {
-                        /*USB ape to modem*/
-                        rtm.exec("stop usb_to_ape");
-                        rtm.exec("start usb_to_modem");
-                        Toast toast=Toast.makeText(UsbswitchActivity.this, "Usbswitch ape to modem DONE", Toast.LENGTH_LONG);
-                        toast.show();
-                    } else {
-                        /*USB modem to ape*/
-                        rtm.exec("stop usb_to_modem");
-                        rtm.exec("start usb_to_ape");
-                        Toast toast=Toast.makeText(UsbswitchActivity.this, "Usbswitch modem to ape DONE", Toast.LENGTH_LONG);
-                        toast.show();
+
+                progressDialog = ProgressDialog.show(UsbswitchActivity.this, "Please wait....", "USB switch in Progress");
+
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (((CompoundButton) usb_modem_button).isChecked()) {
+                                /*USB ape to modem*/
+                                rtm.exec("stop usb_to_ape");
+                                rtm.exec("start usb_to_modem");
+                            } else {
+                                /*USB modem to ape*/
+                                rtm.exec("stop usb_to_modem");
+                                rtm.exec("start usb_to_ape");
+                            }
+                            android.os.SystemClock.sleep(1000);
+                            progressDialog.dismiss();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                }).start();
                 Save_status_usbswitch();
             }
         });

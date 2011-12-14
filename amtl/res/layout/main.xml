@@ -34,4 +34,16 @@
         android:layout_height="100px"
         android:text="@string/toggle_pin_button" />
 
+    <View
+        android:id="@+id/View03"
+        android:layout_width="wrap_content"
+        android:layout_height="4px"
+        android:background="#C0C0C0" />
+
+    <Button
+        android:id="@+id/coredump_button"
+        android:layout_width="match_parent"
+        android:layout_height="100px"
+        android:text="@string/trace_coredump_button" />
+
 </LinearLayout>

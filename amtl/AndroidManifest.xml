@@ -26,6 +26,7 @@
         <activity android:name=".Activate_trace_modemActivity" android:label="mts : activate trace modem"/>
         <activity android:name=".UsbswitchActivity" android:label="Usbswitch"/>
         <activity android:name=".Toggle_pinActivity" android:label="Toggle pin on1"/>
+        <activity android:name=".Trace_in_coredumpActivity" android:label="Traces in coredump"/>
     </application>
 
 </manifest>

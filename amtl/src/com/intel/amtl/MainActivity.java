@@ -27,6 +27,7 @@ public class MainActivity extends Activity {
     private Button button_mts;
     private Button button_usb;
     private Button button_toggle;
+    private Button button_coredump;
 
     /** Called when the activity is first created. */
     @Override
@@ -37,6 +38,7 @@ public class MainActivity extends Activity {
         button_mts = (Button) findViewById(R.id.mts_button);
         button_usb = (Button) findViewById(R.id.usb_button);
         button_toggle = (Button) findViewById(R.id.toggle_button);
+        button_coredump = (Button) findViewById(R.id.coredump_button);
 
         /*Listener for modem trace server*/
         button_mts.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +63,15 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View arg0) {
                 Intent i = new Intent(MainActivity.this, Toggle_pinActivity.class);
+                startActivity(i);
+            }
+        });
+
+        /*Listener for trace in coredump*/
+        button_coredump.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                Intent i = new Intent(MainActivity.this, Trace_in_coredumpActivity.class);
                 startActivity(i);
             }
         });

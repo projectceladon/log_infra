@@ -123,7 +123,6 @@ public class Configure_trace_modemActivity extends Activity {
             }
         });
 
-
         /*Listener for apply button*/
         Button button_apply_configure = (Button) findViewById(R.id.apply_configure_button);
         button_apply_configure.setOnClickListener(new OnClickListener() {

@@ -208,7 +208,6 @@ public class Activate_trace_modemActivity extends Activity {
             }
         });
 
-
         /*Listener on button_usb, button_max_data and button_oneshot checked by default*/
         ((CompoundButton) button_usb).setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override
