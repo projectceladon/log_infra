@@ -44,6 +44,7 @@
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
 #define TOMB_CRASH "TOMBSTONE"
+#define AP_COREDUMP "APCOREDUMP"
 #define MODEM_CRASH "MPANIC"
 #define CURRENT_UPTIME "CURRENTUPTIME"
 #define PER_UPTIME "UPTIME"
@@ -420,6 +421,16 @@ static void run_command(char* cmd)
 		LOGE("error command %d.\n", status);
 }
 
+static void backup_apcoredump(unsigned int dir, char* name, char* path)
+{
+	char cmd[512] = { '\0', };
+
+	snprintf(cmd, sizeof(cmd), "tar zcf %s%d/\"%s.tar.gz\" \"%s\"", CRASH_DIR, dir, name, path);
+	run_command(cmd);
+	snprintf(cmd, sizeof(cmd), "rm \"%s\"", path);
+	run_command(cmd);
+}
+
 static void analyze_crash(char* type, char* path, char* key, char* uptime)
 {
 	char cmd[512] = { '\0', };
@@ -677,6 +688,7 @@ struct wd_name wd_array[] = {
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", ".tar.gz"},/*for modem crash */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_COREDUMP ,"/data/logs/core", ".core"},
 /* -------------------------above is dir, below is file---------------------------------------------------------------- */
 	{0, IN_CLOSE_WRITE, CURRENT_UPTIME, "/data/logs/uptime", ""},
 };
@@ -799,8 +811,13 @@ static int do_crashlogd(unsigned int files)
 							if (stat(path, &info) == 0) {
 								strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
 								date_tmp[31] = 0;
-								snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
-								do_copy(path, destion, FILESIZE_MAX);
+								if (strstr(event->name, ".core" ))
+									backup_apcoredump(dir, event->name, path);
+								else
+								{
+									snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
+									do_copy(path, destion, FILESIZE_MAX);
+								}
 								snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 								history_file_write(CRASHEVENT, wd_array[i].eventname,destion, NULL);
 								usleep(20*1000);
