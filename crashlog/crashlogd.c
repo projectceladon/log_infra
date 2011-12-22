@@ -957,9 +957,17 @@ static void read_uuid(void)
 	FILE *fd;
 
 	if (stat(LOG_UUID, &info) != 0) {
-		if ( stat(PROC_UUID, &info) == 0 )
-			do_copy(PROC_UUID, LOG_UUID, FILESIZE_MAX);
-		else{
+		if ( stat(PROC_UUID, &info) == 0 ) {
+			fd = fopen(PROC_UUID, "r");
+			fscanf(fd, "%s", uuid);
+			fclose(fd);
+			fd = fopen(LOG_UUID, "w");
+			fprintf(fd, "%s", uuid);
+			fclose(fd);
+			do_chown(LOG_UUID, "root", "log");
+		}
+		else {
+			strcpy(uuid, "Medfield");
 			LOGE("PROC_UUID error\n");
 			return;
 		}
