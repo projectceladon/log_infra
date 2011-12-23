@@ -44,6 +44,7 @@
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
 #define TOMB_CRASH "TOMBSTONE"
+#define LOST "LOST_DROPBOX"
 #define AP_COREDUMP "APCOREDUMP"
 #define MODEM_CRASH "MPANIC"
 #define CURRENT_UPTIME "CURRENTUPTIME"
@@ -63,10 +64,12 @@
 #define IMEI_FIELD "persist.radio.device.imei"
 #define PROP_CRASH "persist.service.crashlog.enable"
 #define PROP_PROFILE "persist.service.profile.enable"
+#define PROP_COREDUMP "persist.core.enabled"
 #define SYS_PROP "/system/build.prop"
 #define SAVEDLINES  1
 #define MAX_RECORDS 5000
 #define HISTORY_FILE_DIR  "/data/logs"
+#define HISTORY_CORE_DIR  "/data/logs/core"
 #define APLOG_FILE_0        "/data/logs/aplog"
 #define APLOG_FILE_1    "/data/logs/aplog.1"
 #define BPLOG_FILE_0    "/data/logs/bplog"
@@ -418,7 +421,7 @@ static void run_command(char* cmd)
 {
 	int status = system(cmd);
 	if (status != 0)
-		LOGE("error command %d.\n", status);
+		LOGI("command: %20s the status: %d.\n",cmd, status);
 }
 
 static void backup_apcoredump(unsigned int dir, char* name, char* path)
@@ -706,9 +709,10 @@ struct wd_name {
 };
 
 struct wd_name wd_array[] = {
-	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
+	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, LOST ,"/data/system/dropbox", ".lost"}, /* for full dropbox */
+	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
+	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
-	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", ".tar.gz"},/*for modem crash */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
@@ -751,7 +755,7 @@ static int do_crashlogd(unsigned int files)
 			return -1;
 		}
 		wd_array[i].wd = wd;
-		LOGE("%s has been snooped\n", wd_array[i].filename);
+		LOGW("%s has been snooped\n", wd_array[i].filename);
 	}
 
 	while ((len = read(fd, buffer, sizeof(buffer)))) {
@@ -770,7 +774,7 @@ static int do_crashlogd(unsigned int files)
 						return -1;
 						}
 					wd_array[i].wd = wd;
-					LOGE("%s has been deleted or moved, we watch it again.\n", wd_array[i].filename);
+					LOGW("%s has been deleted or moved, we watch it again.\n", wd_array[i].filename);
 					}
 			}
 			if (!(event->mask & IN_ISDIR)) {
@@ -824,6 +828,27 @@ static int do_crashlogd(unsigned int files)
 
 							del_file_more_lines(HISTORY_FILE);
 							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+							break;
+						}
+						/* for full dropbox */
+						else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, ".lost" ))){
+							char lostevent[32] = { '\0', };
+							char lostevent_subtype[32] = { '\0', };
+							if (strstr(event->name, "anr"))
+								strcpy(lostevent, ANR_CRASH);
+							else if (strstr(event->name, "crash"))
+								strcpy(lostevent, JAVA_CRASH);
+							else
+								break;
+							snprintf(lostevent_subtype, sizeof(lostevent_subtype), "%s_%s", LOST, lostevent);
+							dir = find_crash_dir(files);
+							snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
+							date_tmp[31] = 0;
+							history_file_write(CRASHEVENT, lostevent, lostevent_subtype, destion, NULL);
+							usleep(20*1000);
+							do_log_copy(lostevent,dir,date_tmp,APLOG_TYPE);
+							del_file_more_lines(HISTORY_FILE);
 							break;
 						}
 						/* for other case */
@@ -1071,6 +1096,16 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
+	property_get(PROP_COREDUMP, value, "");
+        if (!strncmp(value, "1", 1)){
+		chmod(HISTORY_FILE_DIR,0777);
+		chmod(HISTORY_CORE_DIR,0777);
+        }
+	else
+	{
+		chmod(HISTORY_FILE_DIR,0750);
+                chmod(HISTORY_CORE_DIR,0750);
+	}
 	property_get(BUILD_FIELD, buildVersion, "");
 	property_get(BOARD_FIELD, boardVersion, "");
 	read_uuid();

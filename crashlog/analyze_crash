@@ -19,6 +19,11 @@ prepare_crashfile()
   echo "TYPE=$1" >> $2
 }
 
+fulldropbox()
+{
+  echo "DATA0=full dropbox" >> $1
+}
+
 finish_crashfile()
 {
   echo "_END" >> $1
@@ -163,14 +168,25 @@ if [ $# -ge 3 ] ; then
       tag="WDT"
       wdt="KernelWatchdog"
   fi
-
   if [ "$tag" == "HWWDT_RESET" ] ; then
       tag="WDT"
       wdt="SecureWatchdog"
   fi
+  if [ "$tag" == "LOST_DROPBOX_JAVACRASH" ] ; then
+      tag="JAVACRASH"
+      dropbox="full"
+  fi
+  if [ "$tag" == "LOST_DROPBOX_ANR" ] ; then
+      tag="ANR"
+      dropbox="full"
+  fi
 
   if [ -d "$output" ] ; then
     prepare_crashfile $tag $crashfilename $crashid $uptime $build $board $imei
+
+    if [ "$dropbox" == "full" ] ; then
+      fulldropbox $crashfilename
+    fi
 
     if [ "$tag" == "WDT" ] ; then
       iwdt $crashfilename $wdt
