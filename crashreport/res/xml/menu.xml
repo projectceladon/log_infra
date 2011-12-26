@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+  xmlns:android="http://schemas.android.com/apk/res/android">
+
+  	<PreferenceCategory android:title="Actions">
+		<PreferenceScreen
+  			android:key="checkCrashAction"
+			android:summary=""
+			android:title="Check for available events">
+  			<intent android:action="com.intel.crashreport.intent.START_SERVICE"/>
+  		</PreferenceScreen>
+  	</PreferenceCategory>
+
+  	<PreferenceCategory
+    	android:title="General Settings">
+    	 <ListPreference
+			android:title="Report Management"
+			android:summary="How application react to new events"
+			android:key="uploadStatePref"
+			android:defaultValue="askForUpload"
+			android:entries="@array/uploadStateMenuText"
+			android:entryValues="@array/uploadStateMenuValues" />
+		<EditTextPreference
+			android:key="serverAddressPref"
+			android:defaultValue="crashtool.dtdns.net"
+			android:summary="Upload server URL"
+			android:title="Server Address" />
+		<EditTextPreference
+			android:key="serverPortPref"
+			android:defaultValue="4001"
+			android:summary="Upload server port"
+			android:title="Server Port" />
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Internal WiFi settings">
+		<CheckBoxPreference
+			android:title="Upload WiFi only"
+			android:defaultValue="false"
+			android:summary="Upload through WiFi only"
+			android:key="uploadWifiOnlyPref" />
+		<EditTextPreference
+			android:key="wifiSsidPref"
+			android:defaultValue="AndroidAP7403"
+			android:summary="Internal Wifi SSID name"
+			android:title="Wifi SSID" />
+		<EditTextPreference
+			android:key="wifiPassPref"
+			android:password="true"
+			android:defaultValue="test1234"
+			android:summary="Internal Wifi password"
+			android:title="Wifi Password"/>
+	</PreferenceCategory>
+
+</PreferenceScreen>

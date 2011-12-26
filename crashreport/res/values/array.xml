@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="uploadStateMenuText">
+		<item>Ask before reporting</item>
+		<item>Always report</item>
+		<item>Postpone report</item>
+		<item>Never report</item>
+	</string-array>
+	<string-array name="uploadStateMenuValues">
+		<item>askForUpload</item>
+		<item>uploadImmediately</item>
+		<item>uploadReported</item>
+		<item>uploadDisabled</item>
+	</string-array>
+
+	<string-array name="uploadStateDialogText">
+		<item>Now</item>
+		<item>Postpone</item>
+		<item>Never</item>
+	</string-array>
+</resources>

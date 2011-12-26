@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.intel.crashreport"
+	android:sharedUserId="android.uid.log">
+
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
+	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
+	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"></uses-permission>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
+
+	<application
+		android:icon="@drawable/icon"
+		android:label="@string/app_name"
+		android:name="CrashReport"
+		android:enabled="true">
+
+		<activity
+			android:name=".CrashReportActivity"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+		<receiver
+			android:name=".NotificationReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED"></action>
+			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.CRASH_NOTIFY" />
+				<category android:name="android.intent.category.ALTERNATIVE" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.ALARM_NOTIFY" />
+			</intent-filter>
+		</receiver>
+
+		<receiver
+			android:name="NetworkStateReceiver" android:enabled="false">
+			<intent-filter>
+				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"></action>
+			</intent-filter>
+		</receiver>
+
+		<service android:name="CrashReportService">
+			<intent-filter>
+				<action android:name="com.intel.crashreport.CrashReportService"></action>
+			</intent-filter>
+		</service>
+
+		<activity android:name="StartServiceActivity">
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.START_SERVICE"></action>
+				<category android:name="android.intent.category.DEFAULT"></category>
+			</intent-filter>
+		</activity>
+
+	</application>
+</manifest>
