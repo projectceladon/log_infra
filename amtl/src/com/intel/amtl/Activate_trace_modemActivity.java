@@ -1,5 +1,6 @@
-/*
- * Copyright (C) 2009 The Android Open Source Project
+/* Android Modem Traces and Logs
+ *
+ * Copyright (C) Intel 2012
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Author: Tony Goubert <tonyx.goubert@intel.com>
  */
 
 package com.intel.amtl;
@@ -50,6 +53,9 @@ public class Activate_trace_modemActivity extends Activity {
     private ProgressDialog progressDialog;
     private TextView activate_text;
     private int service_enabled;
+    private Button button_apply_activate;
+    public static final String PREFS_NAME = "Configure_trace_modemActivity";
+    private boolean configure_status;
     Runtime rtm=java.lang.Runtime.getRuntime();
 
     private void writeSimple(String iout,String ival) throws IOException {
@@ -58,6 +64,7 @@ public class Activate_trace_modemActivity extends Activity {
         f.close();
     }
 
+    /*Create repository in sdcard*/
     private void useSdDirLog() {
         File f=new File("/mnt/sdcard/data/logs/");
         f.mkdirs();
@@ -67,6 +74,13 @@ public class Activate_trace_modemActivity extends Activity {
     private void service_unavailable() {
         activate_text.setVisibility(View.VISIBLE);
         activate_text.setText("Sorry mts is already running, please stop it before");
+    }
+
+    /*configure_trace_modem not enabled*/
+    private void EnableMessage() {
+        button_apply_activate.setEnabled(false);
+        activate_text.setVisibility(View.VISIBLE);
+        activate_text.setText("Sorry ENABLE configure_trace_modem FIRST");
     }
 
     /*Find the service selected*/
@@ -132,6 +146,7 @@ public class Activate_trace_modemActivity extends Activity {
         button_oneshot = (RadioButton) findViewById(R.id.oneshot_button);
         button_persistent = (RadioButton) findViewById(R.id.persistent_button);
         activate_text=(TextView) findViewById(R.id.text_activate);
+        button_apply_activate = (Button) findViewById(R.id.apply_activate_button);
 
         /*Get the between instance stored values*/
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
@@ -151,6 +166,10 @@ public class Activate_trace_modemActivity extends Activity {
         ((CompoundButton) button_disable_mux).setChecked(preferences.getBoolean("button_disable_mux_value", true));
         ((CompoundButton) button_enable_mux).setChecked(preferences.getBoolean("button_enable_mux_value", false));
         service_enabled = preferences.getInt("service_enabled", service_enabled);
+
+        /* Get the value of the button_enable_value of configure_trace_modem */
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        configure_status = settings.getBoolean("button_enable_value", false);
 
         /*Disable others button if disable_button is checked during the loading of preferences*/
         if (((CompoundButton) button_disable_activate).isChecked()) {
@@ -176,15 +195,14 @@ public class Activate_trace_modemActivity extends Activity {
                     button_800mb.setEnabled(true);
                     button_oneshot.setEnabled(true);
                     button_persistent.setEnabled(true);
-
                     ((CompoundButton) button_emmc).setChecked(true);
                     ((CompoundButton) button_800mb).setChecked(true);
                     ((CompoundButton) button_persistent).setChecked(true);
-
                     button_disable_save_activate.setEnabled(false);
                     button_disable_data_activate.setEnabled(false);
                     button_disable_repeat_activate.setEnabled(false);
                     button_max_data.setEnabled(false);
+                    activate_text.setVisibility(View.GONE);
                 } else {
                     button_emmc.setEnabled(false);
                     button_sdcard.setEnabled(false);
@@ -193,17 +211,15 @@ public class Activate_trace_modemActivity extends Activity {
                     button_800mb.setEnabled(false);
                     button_oneshot.setEnabled(false);
                     button_persistent.setEnabled(false);
-
                     ((CompoundButton) button_disable_save_activate).setChecked(true);
                     ((CompoundButton) button_disable_data_activate).setChecked(true);
                     ((CompoundButton) button_disable_repeat_activate).setChecked(true);
-
                     button_disable_save_activate.setEnabled(true);
                     button_disable_data_activate.setEnabled(true);
                     button_disable_repeat_activate.setEnabled(true);
                     button_max_data.setEnabled(false);
-
-                    activate_text.setVisibility(View.INVISIBLE);
+                    button_apply_activate.setEnabled(true);
+                    activate_text.setVisibility(View.GONE);
                 }
             }
         });
@@ -237,7 +253,10 @@ public class Activate_trace_modemActivity extends Activity {
         button_apply_activate.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (service_enabled!=0 && (((CompoundButton) button_enable_activate).isChecked())) {
+                if (!configure_status) { /*configure_trace_modem not enabled ?*/
+                    EnableMessage();
+                } else if (service_enabled!=0 && (((CompoundButton) button_enable_activate).isChecked())) {
+                    /*mts already running*/
                     service_unavailable();
                 } else {
                     progressDialog = ProgressDialog.show(Activate_trace_modemActivity.this, "Please wait....", "Apply activate configuration in Progress");
@@ -340,7 +359,7 @@ public class Activate_trace_modemActivity extends Activity {
             }
         });
 
-        /*/Listener for apply mux configuration button*/
+        /*Listener for apply mux configuration button*/
         Button button_apply_mux = (Button) findViewById(R.id.apply_mux_button);
         button_apply_mux.setOnClickListener(new OnClickListener() {
             @Override

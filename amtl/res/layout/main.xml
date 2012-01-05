@@ -44,6 +44,6 @@
         android:id="@+id/coredump_button"
         android:layout_width="match_parent"
         android:layout_height="100px"
-        android:text="@string/trace_coredump_button" />
+        android:text="@string/traces_coredump_button" />
 
 </LinearLayout>
