@@ -35,6 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal" >
+
         <RadioButton
             android:id="@+id/disable_activate_button"
             android:layout_width="wrap_content"
@@ -129,6 +130,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal" >
+
                 <RadioButton
                     android:id="@+id/disable_data_activate_button"
                     android:layout_width="wrap_content"
@@ -149,6 +151,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/mb_800_activate_trace_modem" />
+
                 <RadioButton
                     android:id="@+id/max_data_activate"
                     android:layout_width="wrap_content"
@@ -187,6 +190,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal" >
+
                 <RadioButton
                     android:id="@+id/disable_repeat_activate_button"
                     android:layout_width="wrap_content"
@@ -210,6 +214,52 @@
             </RadioGroup>
         </TableRow>
     </TableLayout>
+
+    <View
+        android:id="@+id/View02"
+        android:layout_width="wrap_content"
+        android:layout_height="2px"
+        android:background="#C0C0C0" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/trace_level_mts"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <RadioGroup
+        android:id="@+id/mts_trace_level"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <RadioButton
+            android:id="@+id/disable_trace_conf"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:text="@string/disable_trace_mts"
+            android:visibility="gone" />
+
+        <RadioButton
+            android:id="@+id/trace_bb_sw_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trace_bb_sw_mts" />
+
+        <RadioButton
+            android:id="@+id/trace_bb_sw_3g_sw_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trace_bb_sw_3g_sw_mts" />
+
+        <RadioButton
+            android:id="@+id/trace_bb_sw_3g_sw_digrf_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trace_bb_3g_digrf_button_mts" />
+    </RadioGroup>
 
     <Button
         android:id="@+id/apply_activate_button"

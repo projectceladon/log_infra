@@ -39,27 +39,26 @@ public class Configure_trace_modemActivity extends Activity {
     private Button button_speed_78;
     private Button button_speed_156;
     private Button button_disable_speed;
-    private Button button_trace_bb;
-    private Button button_trace_bb_3g;
-    private Button button_trace_bb_3g_digrf;
-    private Button button_disable_trace;
     private Button button_apply_configure;
     private ProgressDialog progressDialog;
     private TextView configure_text;
     public static final String PREFS_NAME = "Activate_trace_modemActivity";
     private int activate_status;
 
+    /*Send command to the modem*/
     void writeSimple(String iout,String ival) throws IOException {
         RandomAccessFile f = new RandomAccessFile(iout, "rws");
         f.writeBytes(ival);
         f.close();
     }
 
+    /*Print a RebootMessage*/
     private void RebootMessage() {
         configure_text.setVisibility(View.VISIBLE);
         configure_text.setText("Your board need a HARDWARE reboot");
     }
 
+    /*Print message if activate_trace_modem is running*/
     private void DisableMessage() {
         button_apply_configure.setEnabled(false);
         configure_text.setVisibility(View.VISIBLE);
@@ -76,10 +75,6 @@ public class Configure_trace_modemActivity extends Activity {
         button_speed_78 = (RadioButton) findViewById(R.id.speed_78mhz_button);
         button_speed_156 = (RadioButton) findViewById(R.id.speed_156mhz_button);
         button_disable_speed = (RadioButton) findViewById(R.id.disable_speed_conf_button);
-        button_trace_bb= (RadioButton) findViewById(R.id.trace_bb_sw_button);
-        button_trace_bb_3g = (RadioButton) findViewById(R.id.trace_bb_sw_3g_sw_button);
-        button_trace_bb_3g_digrf = (RadioButton) findViewById(R.id.trace_bb_sw_3g_sw_digrf_button);
-        button_disable_trace = (RadioButton) findViewById(R.id.disable_trace_conf);
         button_apply_configure = (Button) findViewById(R.id.apply_configure_button);
         configure_text=(TextView) findViewById(R.id.text_configure);
 
@@ -90,10 +85,6 @@ public class Configure_trace_modemActivity extends Activity {
         ((CompoundButton) button_speed_78).setChecked(preferences.getBoolean("button_speed_78_value", false));
         ((CompoundButton) button_speed_156).setChecked(preferences.getBoolean("button_speed_156_value", false));
         ((CompoundButton) button_disable_speed).setChecked(preferences.getBoolean("button_disable_speed_value", true));
-        ((CompoundButton) button_trace_bb).setChecked(preferences.getBoolean("button_trace_bb_value", false));
-        ((CompoundButton) button_trace_bb_3g).setChecked(preferences.getBoolean("button_trace_bb_3g_value", false));
-        ((CompoundButton) button_trace_bb_3g_digrf).setChecked(preferences.getBoolean("button_trace_bb_3g_digrf_value", false));
-        ((CompoundButton) button_disable_trace).setChecked(preferences.getBoolean("button_disable_trace_value", true));
 
         /* Get the value of the button_disable_activate_value of activate_trace_modem */
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
@@ -103,9 +94,6 @@ public class Configure_trace_modemActivity extends Activity {
         if (((CompoundButton) button_disable).isChecked()) {
             button_speed_78.setEnabled(false);
             button_speed_156.setEnabled(false);
-            button_trace_bb.setEnabled(false);
-            button_trace_bb_3g.setEnabled(false);
-            button_trace_bb_3g_digrf.setEnabled(false);
         }
 
         /*Listener on button_enable*/
@@ -116,27 +104,17 @@ public class Configure_trace_modemActivity extends Activity {
                     button_speed_78.setEnabled(true);
                     button_speed_156.setEnabled(true);
                     button_disable_speed.setEnabled(false);
-                    button_trace_bb.setEnabled(true);
-                    button_trace_bb_3g.setEnabled(true);
-                    button_trace_bb_3g_digrf.setEnabled(true);
-                    button_disable_trace.setEnabled(false);
                     ((CompoundButton) button_speed_78).setChecked(true);
-                    ((CompoundButton) button_trace_bb_3g).setChecked(true);
                 } else {
                     button_speed_78.setEnabled(false);
                     button_speed_156.setEnabled(false);
                     button_disable_speed.setEnabled(true);
-                    button_trace_bb.setEnabled(false);
-                    button_trace_bb_3g.setEnabled(false);
-                    button_trace_bb_3g_digrf.setEnabled(false);
-                    button_disable_trace.setEnabled(true);
                     ((CompoundButton) button_disable_speed).setChecked(true);
-                    ((CompoundButton) button_disable_trace).setChecked(true);
                 }
             }
         });
 
-        /*Listener for apply button*/
+        /*Listener for button_apply_configure*/
         button_apply_configure.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -155,50 +133,15 @@ public class Configure_trace_modemActivity extends Activity {
                                         /*Enable hsi 78MHz*/
                                         writeSimple("/dev/gsmtty1","at+xsio=4\r\n");
                                         android.os.SystemClock.sleep(1000);
-                                        writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
-                                        android.os.SystemClock.sleep(1000);
-
-                                        if (((CompoundButton) button_trace_bb).isChecked()) {
-                                            /*Enable first level trace*/
-                                            writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1\",,\"oct=4\"\r\n");
-                                            android.os.SystemClock.sleep(2000);
-                                        } else if (((CompoundButton) button_trace_bb_3g).isChecked()) {
-                                            /*Enable second level trace*/
-                                            writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
-                                            android.os.SystemClock.sleep(2000);
-                                        } else {
-                                            /*Enable third level trace*/
-                                            writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
-                                            android.os.SystemClock.sleep(2000);
-                                        }
                                     } else if (((CompoundButton) button_speed_156).isChecked()) {
+                                        /*Enable hsi 156MHz*/
                                         writeSimple("/dev/gsmtty1","at+xsio=5\r\n");
                                         android.os.SystemClock.sleep(1000);
-                                        writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
-                                        android.os.SystemClock.sleep(1000);
-                                        if (((CompoundButton) button_trace_bb).isChecked()) {
-                                            /*Enable first level trace*/
-                                            writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1\",,\"oct=4\"\r\n");
-                                            android.os.SystemClock.sleep(2000);
-                                        } else if (((CompoundButton) button_trace_bb_3g).isChecked()) {
-                                            /*Enable second level trace*/
-                                            writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
-                                            android.os.SystemClock.sleep(2000);
-                                        } else {
-                                            /*Enable third level trace*/
-                                            writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
-                                            android.os.SystemClock.sleep(2000);
-                                        }
                                     }
                                 } else {
                                     /*Disable hsi logs*/
                                     writeSimple("/dev/gsmtty1","at+xsio=0\r\n");
                                     android.os.SystemClock.sleep(1000);
-                                    /*Disable trace*/
-                                    writeSimple("/dev/gsmtty1","at+trace=0\"\r\n");
-                                    android.os.SystemClock.sleep(1000);
-                                    writeSimple("/dev/gsmtty1","at+xsystrace=0\"\r\n");
-                                    android.os.SystemClock.sleep(2000);
                                 }
                                 progressDialog.dismiss();
                             } catch (IOException e) {
@@ -224,10 +167,6 @@ public class Configure_trace_modemActivity extends Activity {
         boolean button_speed_78_value = ((CompoundButton) button_speed_78).isChecked();
         boolean button_speed_156_value = ((CompoundButton) button_speed_156).isChecked();
         boolean button_disable_speed_value = ((CompoundButton) button_disable_speed).isChecked();
-        boolean button_trace_bb_value = ((CompoundButton) button_trace_bb).isChecked();
-        boolean button_trace_bb_3g_value = ((CompoundButton) button_trace_bb_3g).isChecked();
-        boolean button_trace_bb_3g_digrf_value = ((CompoundButton) button_trace_bb_3g_digrf).isChecked();
-        boolean button_disable_trace_value = ((CompoundButton) button_disable_trace).isChecked();
 
         /*Value to store*/
         editor.putBoolean("button_enable_value", button_enable_value);
@@ -235,10 +174,6 @@ public class Configure_trace_modemActivity extends Activity {
         editor.putBoolean("button_speed_78_value", button_speed_78_value);
         editor.putBoolean("button_speed_156_value", button_speed_156_value);
         editor.putBoolean("button_disable_speed_value", button_disable_speed_value);
-        editor.putBoolean("button_trace_bb_value", button_trace_bb_value);
-        editor.putBoolean("button_trace_bb_3g_value", button_trace_bb_3g_value);
-        editor.putBoolean("button_trace_bb_3g_digrf_value", button_trace_bb_3g_digrf_value);
-        editor.putBoolean("button_disable_trace_value", button_disable_trace_value);
 
         /*Commit to storage*/
         editor.commit();

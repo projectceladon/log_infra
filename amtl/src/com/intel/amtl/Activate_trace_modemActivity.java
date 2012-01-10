@@ -50,6 +50,10 @@ public class Activate_trace_modemActivity extends Activity {
     private Button button_800mb;
     private Button button_oneshot;
     private Button button_persistent;
+    private Button button_trace_bb;
+    private Button button_trace_bb_3g;
+    private Button button_trace_bb_3g_digrf;
+    private Button button_disable_trace;
     private ProgressDialog progressDialog;
     private TextView activate_text;
     private int service_enabled;
@@ -58,6 +62,7 @@ public class Activate_trace_modemActivity extends Activity {
     private boolean configure_status;
     Runtime rtm=java.lang.Runtime.getRuntime();
 
+    /*Send command to the modem*/
     private void writeSimple(String iout,String ival) throws IOException {
         RandomAccessFile f = new RandomAccessFile(iout, "rws");
         f.writeBytes(ival);
@@ -125,6 +130,45 @@ public class Activate_trace_modemActivity extends Activity {
         } else return 9;
     }
 
+    /*Enable trace and xsystrace*/
+    private void enable_trace_level() {
+        try {
+            /*Enable trace*/
+            writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
+            android.os.SystemClock.sleep(1000);
+
+            if (((CompoundButton) button_trace_bb).isChecked()) {
+                /*Enable first level trace*/
+                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1\",,\"oct=4\"\r\n");
+                android.os.SystemClock.sleep(2000);
+            } else if (((CompoundButton) button_trace_bb_3g).isChecked()) {
+                /*Enable second level trace*/
+                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
+                android.os.SystemClock.sleep(2000);
+            } else {
+                /*Enable third level trace*/
+                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
+                android.os.SystemClock.sleep(2000);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*Disable trace and xsystrace*/
+    private void disable_trace_level() {
+        try {
+            /*Disable trace*/
+            writeSimple("/dev/gsmtty1","at+trace=0,115200,\"st=0,pr=0,bt=0,ap=0,db=0,lt=0,li=0,ga=0,ae=0\"\r\n");
+            android.os.SystemClock.sleep(1000);
+            /*Disable xsystrace*/
+            writeSimple("/dev/gsmtty1","at+xsystrace=0\"\r\n");
+            android.os.SystemClock.sleep(2000);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,6 +189,10 @@ public class Activate_trace_modemActivity extends Activity {
         button_800mb = (RadioButton) findViewById(R.id.mb_800_activate_button);
         button_oneshot = (RadioButton) findViewById(R.id.oneshot_button);
         button_persistent = (RadioButton) findViewById(R.id.persistent_button);
+        button_trace_bb= (RadioButton) findViewById(R.id.trace_bb_sw_button);
+        button_trace_bb_3g = (RadioButton) findViewById(R.id.trace_bb_sw_3g_sw_button);
+        button_trace_bb_3g_digrf = (RadioButton) findViewById(R.id.trace_bb_sw_3g_sw_digrf_button);
+        button_disable_trace = (RadioButton) findViewById(R.id.disable_trace_conf);
         activate_text=(TextView) findViewById(R.id.text_activate);
         button_apply_activate = (Button) findViewById(R.id.apply_activate_button);
 
@@ -163,6 +211,10 @@ public class Activate_trace_modemActivity extends Activity {
         ((CompoundButton) button_max_data).setChecked(preferences.getBoolean("button_max_data_value", false));
         ((CompoundButton) button_oneshot).setChecked(preferences.getBoolean("button_oneshot_value", false));
         ((CompoundButton) button_persistent).setChecked(preferences.getBoolean("button_persistent_value", false));
+        ((CompoundButton) button_trace_bb).setChecked(preferences.getBoolean("button_trace_bb_value", false));
+        ((CompoundButton) button_trace_bb_3g).setChecked(preferences.getBoolean("button_trace_bb_3g_value", false));
+        ((CompoundButton) button_trace_bb_3g_digrf).setChecked(preferences.getBoolean("button_trace_bb_3g_digrf_value", false));
+        ((CompoundButton) button_disable_trace).setChecked(preferences.getBoolean("button_disable_trace_value", true));
         ((CompoundButton) button_disable_mux).setChecked(preferences.getBoolean("button_disable_mux_value", true));
         ((CompoundButton) button_enable_mux).setChecked(preferences.getBoolean("button_enable_mux_value", false));
         service_enabled = preferences.getInt("service_enabled", service_enabled);
@@ -180,6 +232,9 @@ public class Activate_trace_modemActivity extends Activity {
             button_800mb.setEnabled(false);
             button_oneshot.setEnabled(false);
             button_persistent.setEnabled(false);
+            button_trace_bb.setEnabled(false);
+            button_trace_bb_3g.setEnabled(false);
+            button_trace_bb_3g_digrf.setEnabled(false);
             button_max_data.setEnabled(false);
         }
 
@@ -195,9 +250,14 @@ public class Activate_trace_modemActivity extends Activity {
                     button_800mb.setEnabled(true);
                     button_oneshot.setEnabled(true);
                     button_persistent.setEnabled(true);
+                    button_trace_bb.setEnabled(true);
+                    button_trace_bb_3g.setEnabled(true);
+                    button_trace_bb_3g_digrf.setEnabled(true);
+                    button_disable_trace.setEnabled(false);
                     ((CompoundButton) button_emmc).setChecked(true);
                     ((CompoundButton) button_800mb).setChecked(true);
                     ((CompoundButton) button_persistent).setChecked(true);
+                    ((CompoundButton) button_trace_bb_3g).setChecked(true);
                     button_disable_save_activate.setEnabled(false);
                     button_disable_data_activate.setEnabled(false);
                     button_disable_repeat_activate.setEnabled(false);
@@ -211,9 +271,14 @@ public class Activate_trace_modemActivity extends Activity {
                     button_800mb.setEnabled(false);
                     button_oneshot.setEnabled(false);
                     button_persistent.setEnabled(false);
+                    button_trace_bb.setEnabled(false);
+                    button_trace_bb_3g.setEnabled(false);
+                    button_trace_bb_3g_digrf.setEnabled(false);
+                    button_disable_trace.setEnabled(true);
                     ((CompoundButton) button_disable_save_activate).setChecked(true);
                     ((CompoundButton) button_disable_data_activate).setChecked(true);
                     ((CompoundButton) button_disable_repeat_activate).setChecked(true);
+                    ((CompoundButton) button_disable_trace).setChecked(true);
                     button_disable_save_activate.setEnabled(true);
                     button_disable_data_activate.setEnabled(true);
                     button_disable_repeat_activate.setEnabled(true);
@@ -244,11 +309,28 @@ public class Activate_trace_modemActivity extends Activity {
                     button_oneshot.setEnabled(true);
                     button_persistent.setEnabled(true);
                     ((CompoundButton) button_persistent).setChecked(true);
+                    ((CompoundButton) button_trace_bb_3g).setChecked(true);
                 }
             }
         });
 
-        /*Listener for apply mux configuration button*/
+        /*Listener on button_trace_bb_3g_digrf, only available in oneshot repeat*/
+        ((CompoundButton) button_trace_bb_3g_digrf).setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
+                if(isChecked) {
+                    button_persistent.setEnabled(false);
+                    button_oneshot.setEnabled(true);
+                    ((CompoundButton) button_oneshot).setChecked(true);
+                } else {
+                    button_persistent.setEnabled(true);
+                    button_oneshot.setEnabled(true);
+                    ((CompoundButton) button_persistent).setChecked(true);
+                }
+            }
+        });
+
+        /*Listener for apply_activate_button button*/
         Button button_apply_activate = (Button) findViewById(R.id.apply_activate_button);
         button_apply_activate.setOnClickListener(new OnClickListener() {
             @Override
@@ -308,9 +390,14 @@ public class Activate_trace_modemActivity extends Activity {
                                     default:
                                         service_enabled=0;
                                     }
+                                    /*Disable trace and xsystrace*/
+                                    disable_trace_level();
                                     android.os.SystemClock.sleep(1000);
                                     Save_status_activate();
                                 } else {
+                                    /*Enable trace and xsystrace*/
+                                    enable_trace_level();
+
                                     /*Update value of service_enabled*/
                                     service_enabled=service_selected();
 
@@ -372,9 +459,11 @@ public class Activate_trace_modemActivity extends Activity {
                     public void run() {
                         try {
                             if (((CompoundButton) button_enable_mux).isChecked()) {
+                                /*Enable Channel 0 to 17*/
                                 writeSimple("/dev/gsmtty1","at+xmux=1,3,262143\r\n");
                                 android.os.SystemClock.sleep(1000);
                             } else {
+                                /*Disable all channels*/
                                 writeSimple("/dev/gsmtty1","at+xmux=1,0\r\n");
                                 android.os.SystemClock.sleep(1000);
                             }
@@ -408,6 +497,10 @@ public class Activate_trace_modemActivity extends Activity {
         boolean button_max_data_value = ((CompoundButton) button_max_data).isChecked();
         boolean button_oneshot_value = ((CompoundButton) button_oneshot).isChecked();
         boolean button_persistent_value = ((CompoundButton) button_persistent).isChecked();
+        boolean button_trace_bb_value = ((CompoundButton) button_trace_bb).isChecked();
+        boolean button_trace_bb_3g_value = ((CompoundButton) button_trace_bb_3g).isChecked();
+        boolean button_trace_bb_3g_digrf_value = ((CompoundButton) button_trace_bb_3g_digrf).isChecked();
+        boolean button_disable_trace_value = ((CompoundButton) button_disable_trace).isChecked();
         boolean button_disable_mux_value = ((CompoundButton) button_disable_mux).isChecked();
         boolean button_enable_mux_value = ((CompoundButton) button_enable_mux).isChecked();
 
@@ -425,6 +518,10 @@ public class Activate_trace_modemActivity extends Activity {
         editor.putBoolean("button_max_data_value", button_max_data_value);
         editor.putBoolean("button_oneshot_value", button_oneshot_value);
         editor.putBoolean("button_persistent_value", button_persistent_value);
+        editor.putBoolean("button_trace_bb_value", button_trace_bb_value);
+        editor.putBoolean("button_trace_bb_3g_value", button_trace_bb_3g_value);
+        editor.putBoolean("button_trace_bb_3g_digrf_value", button_trace_bb_3g_digrf_value);
+        editor.putBoolean("button_disable_trace_value", button_disable_trace_value);
         editor.putBoolean("button_disable_mux_value", button_disable_mux_value);
         editor.putBoolean("button_enable_mux_value", button_enable_mux_value);
         editor.putInt("service_enabled", service_enabled);

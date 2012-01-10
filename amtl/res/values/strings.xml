@@ -9,13 +9,13 @@
     <string name="menu_configure_trace_modem">Menu configure_trace_modem</string>
     <string name="menu_activate_trace_modem">Menu activate_trace_modem</string>
     <string name="speed_configure_trace_modem">Speed</string>
-    <string name="trace_level_configure_trace_modem">Trace level</string>
+    <string name="trace_level_mts">Trace level</string>
     <string name="disable_configure_trace_modem">Disable trace</string>
     <string name="apply_configure_trace_modem">Apply</string>
     <string name="speed_78mhz_configure_trace_modem">78MHz</string>
     <string name="speed_156mhz_configure_trace_modem">156MHz</string>
-    <string name="trace_bb_sw_configure_trace_modem">bb_sw</string>
-    <string name="trace_bb_sw_3g_sw_configure_trace_modem">bb_sw/3g_sw</string>
+    <string name="trace_bb_sw_mts">bb_sw</string>
+    <string name="trace_bb_sw_3g_sw_mts">bb_sw/3g_sw</string>
     <string name="off_configure_trace_modem">Off</string>
     <string name="save_in_activate_trace_modem">Save in</string>
     <string name="repeat_active_trace_modem">Repeat</string>
@@ -38,7 +38,7 @@
     <string name="enable_disable_configure_trace_modem">Enable/Disable</string>
     <string name="Max_data_max_activate">Max</string>
     <string name="disable_speed_configure">Disable</string>
-    <string name="disable_trace_configure">Disable</string>
+    <string name="disable_trace_mts">Disable</string>
     <string name="enable_configure">Enable</string>
     <string name="disable_configure">Disable</string>
     <string name="disable_activate">Disable</string>
@@ -54,7 +54,7 @@
     <string name="toggle_on1_txt">Toggle ON1</string>
     <string name="apply_usb_switch_button">Apply USB switch</string>
     <string name="apply_toggle_on1_button">Apply Toggle ON1</string>
-    <string name="trace_bb_3g_digrf_button_configure_trace_modem">bb_sw/3G_sw/digrf</string>
+    <string name="trace_bb_3g_digrf_button_mts">bb_sw/3G_sw/digrf</string>
     <string name="traces_in_coredump_txt">Traces in Coredump</string>
     <string name="ma_artemis_coredump_txt">MA+Artemis traces</string>
     <string name="ma_artemis_digrf_coredump_txt">MA+Artemis+Digrf</string>
