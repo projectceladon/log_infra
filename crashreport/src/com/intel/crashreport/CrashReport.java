@@ -1,6 +1,7 @@
 package com.intel.crashreport;
 
 import android.app.Application;
+import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
 
@@ -8,6 +9,11 @@ public class CrashReport extends Application {
 	private Boolean tryingToConnect = false;
 	private Boolean activityBounded = false;
 	private Boolean wifiOnly = false;
+
+	public void onCreate() {
+		super.onCreate();
+		PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.menu, false);
+	}
 
 	public boolean isServiceStarted(){
 		return serviceStarted;

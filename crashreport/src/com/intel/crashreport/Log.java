@@ -14,31 +14,65 @@ public class Log {
 	static public void d(String msg) {
 		if (android.util.Log.isLoggable(TAG, android.util.Log.DEBUG)) {
 			android.util.Log.d(TAG, msg);
-	    }
+		}
+	}
+
+	static public void d(String msg, Throwable tr) {
+		if (android.util.Log.isLoggable(TAG, android.util.Log.DEBUG)) {
+			android.util.Log.d(TAG, msg, tr);
+		}
 	}
 
 	static public void e(String msg) {
 		if (android.util.Log.isLoggable(TAG, android.util.Log.ERROR)) {
 			android.util.Log.e(TAG, msg);
-	    }
+		}
+	}
+
+	static public void e(String msg, Throwable tr) {
+		if (android.util.Log.isLoggable(TAG, android.util.Log.ERROR)) {
+			android.util.Log.e(TAG, msg, tr);
+		}
 	}
 
 	static public void i(String msg) {
 		if (android.util.Log.isLoggable(TAG, android.util.Log.INFO)) {
 			android.util.Log.i(TAG, msg);
-	    }
+		}
+	}
+
+	static public void i(String msg, Throwable tr) {
+		if (android.util.Log.isLoggable(TAG, android.util.Log.INFO)) {
+			android.util.Log.i(TAG, msg, tr);
+		}
 	}
 
 	static public void v(String msg) {
 		if (android.util.Log.isLoggable(TAG, android.util.Log.VERBOSE)) {
 			android.util.Log.v(TAG, msg);
-	    }
+		}
+	}
+
+	static public void v(String msg, Throwable tr) {
+		if (android.util.Log.isLoggable(TAG, android.util.Log.VERBOSE)) {
+			android.util.Log.v(TAG, msg, tr);
+		}
 	}
 
 	static public void w(String msg) {
 		if (android.util.Log.isLoggable(TAG, android.util.Log.WARN)) {
 			android.util.Log.w(TAG, msg);
-	    }
+		}
+	}
+
+	static public void w(String msg, Throwable tr) {
+		if (android.util.Log.isLoggable(TAG, android.util.Log.WARN)) {
+			android.util.Log.w(TAG, msg, tr);
+		}
+	}
+
+	public static String getStackTraceString(Throwable tr) {
+		return android.util.Log.getStackTraceString(tr);
 	}
 
 }

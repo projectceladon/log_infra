@@ -74,18 +74,30 @@ public class Connector {
 	public void setupServerConnection() throws UnknownHostException, IOException, InterruptedIOException {
 		String serverAddress = PreferenceManager.getDefaultSharedPreferences(mCtx).getString("serverAddressPref", "");
 		String serverPortStr = PreferenceManager.getDefaultSharedPreferences(mCtx).getString("serverPortPref", "4001");
-		int serverPort = Integer.parseInt(serverPortStr);
+		int serverPort;
+		try {
+			serverPort = Integer.parseInt(serverPortStr);
+		} catch (NumberFormatException e) {
+			serverPort = 4001;
+		}
 		mSocket = new Socket();
+		if (mSocket == null)
+			throw new IOException("mSocket == null");
 		mSocket.setSoTimeout(SERVER_CONNECTION_TIME_OUT);
 		InetSocketAddress serverAddressPort = new InetSocketAddress(serverAddress, serverPort);
 		mSocket.connect(serverAddressPort, SERVER_CONNECTION_TIME_OUT);
 		mInputStream = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
+		if (mInputStream == null)
+			throw new IOException("mInputStream == null");
 		mOutputStream = new PrintWriter(mSocket.getOutputStream());
+		if (mOutputStream == null)
+			throw new IOException("mOutputStream == null");
 		mObjectOutputStream = new ObjectOutputStream(mSocket.getOutputStream());
-		if (mSocket == null || mInputStream == null || mOutputStream == null || !mInputStream.readLine().equals("ACK")) {
-			throw new IOException();
-		}
-		Log.d("Connector: Connected to server");
+		String readAck = mInputStream.readLine();
+		if ((readAck != null) && readAck.contentEquals("ACK"))
+			Log.d("Connector: Connected to server");
+		else
+			throw new IOException("Server doesn't respond ACK");
 	}
 
 	public void closeServerConnection() throws IOException {
@@ -103,7 +115,7 @@ public class Connector {
 		if (cm.getBackgroundDataSetting()) {
 			NetworkInfo net = cm.getActiveNetworkInfo();
 			if (net != null) {
-				if (net.isConnectedOrConnecting())
+				if (net.isConnected())
 					return true;
 			}
 		}

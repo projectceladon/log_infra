@@ -174,7 +174,11 @@ public class StartServiceActivity extends Activity {
 
 		switch (value) {
 		case DIALOG_REP_NOW:
-			showDialog(DIALOG_ASK_UPLOAD_SAVE_ID);
+			String uploadStatePref = appPrefs.getUploadState();
+			if (uploadStatePref.contentEquals("uploadImmediately"))
+				mService.sendMessage(ServiceMsg.uploadImmadiately);
+			else
+				showDialog(DIALOG_ASK_UPLOAD_SAVE_ID);
 			break;
 		case DIALOG_REP_POSTPONE:
 			appPrefs.setUploadStateToReport();

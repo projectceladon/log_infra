@@ -120,11 +120,11 @@ public class CrashReportService extends Service {
 	private Runnable getUploadState = new Runnable() {
 		public void run() {
 			String uploadState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("uploadStatePref", "askForUpload");
-			if (uploadState.equals("uploadImmediately"))
+			if (uploadState.contentEquals("uploadImmediately"))
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadImmadiately);
-			else if (uploadState.equals("uploadReported"))
+			else if (uploadState.contentEquals("uploadReported"))
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadReported);
-			else if (uploadState.equals("uploadDisabled"))
+			else if (uploadState.contentEquals("uploadDisabled"))
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 			else
 				serviceHandler.sendEmptyMessage(ServiceMsg.askForUpload);
@@ -148,13 +148,10 @@ public class CrashReportService extends Service {
 						serviceHandler.sendEmptyMessage(ServiceMsg.noEventToUpload);
 				} else {
 					if (db.isThereEventToUpload()) {
-						Boolean reboot = db.isThereRebootToUpload();
 						Message msg = Message.obtain();
 						msg.what = ServiceMsg.eventToUpload;
-						if (reboot)
-							msg.arg1 = 1;
-						else
-							msg.arg1 = 0;
+						msg.arg1 = db.getNewRebootNumber();
+						msg.arg2 = db.getNewCrashNumber();
 						serviceHandler.sendMessage(msg);
 					} else
 						serviceHandler.sendEmptyMessage(ServiceMsg.noEventToUpload);
@@ -237,7 +234,16 @@ public class CrashReportService extends Service {
 
 	private void notifyEventToUpload() {
 		NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
-		nMgr.notifyEventToUpload();
+		EventDB db = new EventDB(getApplicationContext());
+		try {
+			db.open();
+			int crashNumber = db.getNewCrashNumber();
+			int uptimeNumber = db.getNewUptimeNumber();
+			nMgr.notifyEventToUpload(crashNumber, uptimeNumber);
+		} catch (SQLException e) {
+			Log.w("Service:notifyEventToUpload : Fail to access DB", e);
+		}
+		db.close();
 	}
 
 	private void registerNetworkStateReceiver() {
@@ -308,27 +314,27 @@ public class CrashReportService extends Service {
 				cursor.close();
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
 			} catch (SQLException e) {
-				Log.w("Service:uploadEvent : Fail to access DB");
+				Log.w("Service:uploadEvent : Fail to access DB", e);
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
 			} catch (ProtocolException e) {
-				Log.w("Service:uploadEvent:ProtocolException");
+				Log.w("Service:uploadEvent:ProtocolException", e);
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 			} catch (UnknownHostException e) {
-				Log.w("Service:uploadEvent:UnknownHostException");
+				Log.w("Service:uploadEvent:UnknownHostException", e);
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 			} catch (InterruptedIOException e) {
-				Log.w("Service:uploadEvent:InterruptedIOException");
+				Log.w("Service:uploadEvent:InterruptedIOException", e);
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 			} catch (IOException e) {
-				Log.w("Service:uploadEvent:IOException");
+				Log.w("Service:uploadEvent:IOException", e);
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 			} finally {
 				try {
 					con.closeServerConnection();
 				} catch (IOException e) {
-					Log.w("Service: close connection exception");
+					Log.w("Service: close connection exception", e);
 				} catch (NullPointerException e) {
-					Log.w("Service: close connection exception");
+					Log.w("Service: close connection exception", e);
 				}
 				db.close();
 			}
@@ -429,10 +435,20 @@ public class CrashReportService extends Service {
 			case ServiceMsg.eventToUpload: {
 				if (serviceState == ServiceState.WaitForEventToUpload) {
 					Log.i("ServiceHandler: eventToUpload");
-					if (msg.arg1 == 1)
-						sendMsgToActivity("There are events to report : Uptime and Crashes");
+					int uptimeNumber = msg.arg1;
+					int crashNumber = msg.arg2;
+					if ((crashNumber == 0) && (uptimeNumber != 0))
+						sendMsgToActivity("There is Uptime event to report");
+					else if ((crashNumber == 1) && (uptimeNumber == 0))
+						sendMsgToActivity("There is 1 Crash event to report");
+					else if ((crashNumber == 1) && (uptimeNumber != 0))
+						sendMsgToActivity("There are Uptime and 1 Crash events to report");
+					else if ((crashNumber > 1) && (uptimeNumber == 0))
+						sendMsgToActivity("There are "+crashNumber+" Crash events to report");
+					else if ((crashNumber > 1) && (uptimeNumber != 0))
+						sendMsgToActivity("There are Uptime and "+crashNumber+" Crash events to report");
 					else
-						sendMsgToActivity("There are Crashes to report");
+						sendMsgToActivity("There are events to report");
 					serviceState = ServiceState.IsBoundedToActivity;
 					this.post(isServiceBoundedToActivity);
 				} else

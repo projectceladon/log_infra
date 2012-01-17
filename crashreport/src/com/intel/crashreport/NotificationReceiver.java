@@ -27,7 +27,9 @@ public class NotificationReceiver extends BroadcastReceiver {
 		} else if (intent.getAction().equals(alarmNotificationIntent)) {
 			Log.d("NotificationReceiver: alarmNotificationIntent");
 			ApplicationPreferences prefs = new ApplicationPreferences(context);
-			prefs.setUploadStateToAsk();
+			String uploadState = prefs.getUploadState();
+			if ((uploadState != null) && uploadState.contentEquals("uploadReported"))
+				prefs.setUploadStateToAsk();
 			context.startService(crashReportStartServiceIntent);
 		}
 

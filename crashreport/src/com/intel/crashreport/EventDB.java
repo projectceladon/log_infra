@@ -218,6 +218,36 @@ public class EventDB {
 		return false;
 	}
 
+	public int getNewCrashNumber() {
+		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='CRASH'");
+	}
+
+	public int getNewUptimeNumber() {
+		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='UPTIME'");
+	}
+
+	public int getNewRebootNumber() {
+		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='REBOOT'");
+	}
+
+	private int getNumberFromWhereQuery(String whereQuery) {
+		Cursor mCursor;
+		int count;
+		try {
+			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
+					whereQuery, null,
+					null, null, null, null);
+			if (mCursor != null) {
+				count = mCursor.getCount();
+				mCursor.close();
+				return count;
+			}
+		} catch (SQLException e) {
+			return 0;
+		}
+		return 0;
+	}
+
 	public boolean updateEventToUploaded(String eventId) {
 		ContentValues args = new ContentValues();
 

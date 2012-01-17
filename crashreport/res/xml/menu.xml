@@ -17,7 +17,7 @@
 			android:title="Report Management"
 			android:summary="How application react to new events"
 			android:key="uploadStatePref"
-			android:defaultValue="askForUpload"
+			android:defaultValue="uploadImmediately"
 			android:entries="@array/uploadStateMenuText"
 			android:entryValues="@array/uploadStateMenuValues" />
 		<EditTextPreference
