@@ -709,19 +709,20 @@ struct wd_name {
 };
 
 struct wd_name wd_array[] = {
-	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, LOST ,"/data/system/dropbox", ".lost"}, /* for full dropbox */
-	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
-	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
-	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
+	{0, IN_CLOSE_WRITE, CURRENT_UPTIME, "/data/logs/uptime", ""},
+/* -------------------------above is file, below is dir---------------------------------------------------------------- */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", ".tar.gz"},/*for modem crash */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
+/* -------------------------above is modem, below is AP---------------------------------------------------------------- */
+	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
+	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_COREDUMP ,"/data/logs/core", ".core"},
-/* -------------------------above is dir, below is file---------------------------------------------------------------- */
-	{0, IN_CLOSE_WRITE, CURRENT_UPTIME, "/data/logs/uptime", ""},
+	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, LOST ,"/data/system/dropbox", ".lost"}, /* for full dropbox */
 };
 
-#define WDCOUNT ((int)(sizeof(wd_array)/sizeof(struct wd_name)))
+int WDCOUNT = ((int)(sizeof(wd_array)/sizeof(struct wd_name)));
 
 static int do_crashlogd(unsigned int files)
 {
@@ -1078,14 +1079,19 @@ int main(int argc, char **argv)
 	}
 
 	if (argc == 2) {
-		errno = 0;
-		files = (unsigned int)strtoul(argv[1], 0, 0);
-
-		if (errno) {
-			LOGE(" saved files number must be digital \n");
-			return -1;
+		if(!memcmp(argv[1], "-modem", 6)){
+			WDCOUNT=4;
+			LOGI(" crashlogd only snoop modem \n");
 		}
+		else{
+			errno = 0;
+			files = (unsigned int)strtoul(argv[1], 0, 0);
 
+			if (errno) {
+				LOGE(" saved files number must be digital \n");
+				return -1;
+			}
+		}
 	}
 
 	property_get(PROP_CRASH, value, "");
