@@ -19,7 +19,10 @@
 
 package com.intel.crashreport;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
@@ -50,6 +53,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 
 import com.intel.crashreport.CrashReportService.ServiceMsg;
+import com.intel.crashtoolserver.bean.FileInfo;
 
 public class Connector {
 
@@ -120,9 +124,9 @@ public class Connector {
 	}
 
 	public void closeServerConnection() throws IOException {
-		if (mOutputStream != null) {
-			mOutputStream.println("END");
-			mOutputStream.flush();
+		if ((mOutputStream != null) && !mSocket.isOutputShutdown()) {
+			mObjectOutputStream.writeObject("END");
+			mObjectOutputStream.flush();
 		}
 		if (mSocket != null)
 			mSocket.close();
@@ -542,27 +546,7 @@ public class Connector {
 	};
 
 	private Boolean sendEventSocket(Event event) {
-		SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
-		SimpleDateFormat EVENT_DF_OLD = new SimpleDateFormat("yy-MM-dd-HH-mm-ss");
-		Date date = null;
-		try {
-			date = EVENT_DF.parse(event.getDate());
-		} catch (ParseException e) {
-			try {
-				date = EVENT_DF_OLD.parse(event.getDate());
-			} catch (ParseException e1) {
-				date = new Date();
-			}
-		}
-
-		long uptime = 0;
-		String uptimeSplited[] = event.getUptime().split(":");
-		if (uptimeSplited.length == 3) {
-			long hours = Long.parseLong(uptimeSplited[0]);
-			long minutes = Long.parseLong(uptimeSplited[1]);
-			long seconds = Long.parseLong(uptimeSplited[2]);
-			uptime = seconds + (60 * minutes) + (3600 * hours);
-		}
+		long uptime = Event.convertUptime(event.getUptime());
 
 		com.intel.crashtoolserver.bean.Event sEvent = new com.intel.crashtoolserver.bean.Event(
 				event.getEventId(),
@@ -574,7 +558,7 @@ public class Connector {
 				event.getData3(),
 				event.getData4(),
 				event.getData5(),
-				date,
+				event.getDate(),
 				event.getBuildId(),
 				event.getDeviceId(),
 				event.getImei(),
@@ -590,6 +574,34 @@ public class Connector {
 			return false;
 		}
 
+		return false;
+	}
+
+	public Boolean sendLogsFile(FileInfo fileInfo) {
+		String serverMsg;
+		try {
+			mObjectOutputStream.writeObject(fileInfo);
+
+			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileInfo.getPath()));
+			BufferedOutputStream bos = new BufferedOutputStream(mSocket.getOutputStream());
+
+			byte data[] = new byte[1024];
+			int count;
+			while ((count = bis.read(data)) != -1) {
+				bos.write(data, 0, count);
+			}
+			bis.close();
+			bos.flush();
+
+			if (!mSocket.isClosed() && !mSocket.isInputShutdown()) {
+				serverMsg = mInputStream.readLine();
+				if (checkAck(serverMsg))
+					return true;
+			}
+		} catch (IOException e) {
+			Log.w(Log.getStackTraceString(e));
+			return false;
+		}
 		return false;
 	}
 

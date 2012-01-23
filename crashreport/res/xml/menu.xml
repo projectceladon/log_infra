@@ -29,6 +29,23 @@
   		</PreferenceScreen>
   	</PreferenceCategory>
 
+	<PreferenceCategory android:title="Log settings">
+	    <CheckBoxPreference
+	        android:key="enableCrashLogReport"
+			android:title="Crash logs report"
+			android:summary="Enable crash logs upload"
+			android:defaultValue="true" />
+		<com.intel.crashreport.CrashLogsListPrefs
+			android:key="setReportCrashLogType"
+			android:dependency="enableCrashLogReport"
+			android:title="Crash logs type"
+			android:summary="Set the crash logs type to report"
+			android:dialogTitle="Crash logs type"
+			android:entries="@array/reportCrashLogsTypeText"
+			android:entryValues="@array/reportCrashLogsTypeValues"
+			android:defaultValue="JAVACRASH,TOMBSTONE,ANR,MPANIC,APIMR,MRESET,WDT,IPANIC,FABRICERR" />
+	</PreferenceCategory>
+
   	<PreferenceCategory
     	android:title="General Settings">
     	 <ListPreference

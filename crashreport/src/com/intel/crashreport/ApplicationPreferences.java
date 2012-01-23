@@ -86,4 +86,12 @@ public class ApplicationPreferences {
 		//TODO setUploadStateToNeverButNotify
 		setUploadStateToAsk();
 	}
+
+	public Boolean isCrashLogsUploadEnable() {
+		return appSharedPrefs.getBoolean("enableCrashLogReport", false);
+	}
+
+	public String[] getCrashLogsUploadTypes() {
+		return CrashLogsListPrefs.parseStoredValue(appSharedPrefs.getString("setReportCrashLogType", ""));
+	}
 }

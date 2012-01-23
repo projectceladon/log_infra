@@ -19,11 +19,14 @@
 
 package com.intel.crashreport;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ProtocolException;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -38,9 +41,11 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
 import android.preference.PreferenceManager;
 
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
+import com.intel.crashtoolserver.bean.FileInfo;
 
 public class CrashReportService extends Service {
 
@@ -50,6 +55,7 @@ public class CrashReportService extends Service {
 	private ServiceState serviceState;
 	private final IBinder mBinder = new LocalBinder();
 	private Logger logger = new Logger();
+	private static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
 
 	public void onCreate() {
 		super.onCreate();
@@ -171,7 +177,10 @@ public class CrashReportService extends Service {
 					else
 						serviceHandler.sendEmptyMessage(ServiceMsg.noEventToUpload);
 				} else {
-					if (db.isThereEventToUpload()) {
+					String crashTypes[] = null;
+					if (prefs.isCrashLogsUploadEnable())
+						crashTypes = prefs.getCrashLogsUploadTypes();
+					if (db.isThereEventToUpload(crashTypes)) {
 						Message msg = Message.obtain();
 						msg.what = ServiceMsg.eventToUpload;
 						msg.arg1 = db.getNewRebootNumber();
@@ -312,30 +321,78 @@ public class CrashReportService extends Service {
 	}
 
 	private Runnable uploadEvent = new Runnable(){
+		Context context;
+		PowerManager pm = null;
+		PowerManager.WakeLock wakeLock = null;
+		ApplicationPreferences prefs;
+		NotificationMgr nMgr;
 		EventDB db;
 		Cursor cursor;
 		Connector con;
 		Event event;
+		FileInfo fileInfo;
+		File crashLogs;
+		String dayDate;
 
 		public void run() {
-			db = new EventDB(getApplicationContext());
-			con = new Connector(getApplicationContext(), serviceHandler);
+			context = getApplicationContext();
+			prefs = new ApplicationPreferences(context);
+			db = new EventDB(context);
+			con = new Connector(context, serviceHandler);
 			try {
+				pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+				wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CrashReport");
+				wakeLock.acquire();
 				db.open();
 				con.setupServerConnection();
+
+				//upload Events
 				cursor = db.fetchNotUploadedEvents();
-				while (!cursor.isAfterLast()) {
-					event = db.fillEventFromCursor(cursor);
-					if (con.sendEvent(event)) {
-						db.updateEventToUploaded(event.getEventId());
-						Log.d("Service:uploadEvent : Success upload of " + event);
-						cursor.moveToNext();
-					} else {
-						Log.w("Service:uploadEvent : Fail upload of " + event);
-						throw new ProtocolException();
+				if (cursor != null) {
+					while (!cursor.isAfterLast()) {
+						event = db.fillEventFromCursor(cursor);
+						if (con.sendEvent(event)) {
+							db.updateEventToUploaded(event.getEventId());
+							Log.d("Service:uploadEvent : Success upload of " + event);
+							cursor.moveToNext();
+						} else {
+							Log.w("Service:uploadEvent : Fail upload of " + event);
+							throw new ProtocolException();
+						}
+					}
+					cursor.close();
+				}
+
+				//upload logs
+				String crashTypes[] = null;
+				if (prefs.isCrashLogsUploadEnable()) {
+					crashTypes = prefs.getCrashLogsUploadTypes();
+					cursor = db.fetchNotUploadedLogs(crashTypes);
+					if (cursor != null) {
+						nMgr = new NotificationMgr(context);
+						nMgr.notifyUploadingLogs(cursor.getCount());
+						while (!cursor.isAfterLast()) {
+							event = db.fillEventFromCursor(cursor);
+							crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
+							if (crashLogs != null) {
+								dayDate = DAY_DF.format(event.getDate());
+								fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
+								if (con.sendLogsFile(fileInfo)) {
+									db.updateEventLogToUploaded(event.getEventId());
+									Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
+									crashLogs.delete();
+									cursor.moveToNext();
+								} else {
+									Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
+									throw new ProtocolException();
+								}
+							} else
+								cursor.moveToNext();
+						}
+						cursor.close();
+						nMgr.cancelNotifUploadingLogs();
 					}
 				}
-				cursor.close();
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
 			} catch (SQLException e) {
 				Log.w("Service:uploadEvent : Fail to access DB", e);
@@ -353,14 +410,24 @@ public class CrashReportService extends Service {
 				Log.w("Service:uploadEvent:IOException", e);
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 			} finally {
+				CrashLogs.deleteCrashLogsZipFiles(context);
+				if (nMgr != null)
+					nMgr.cancelNotifUploadingLogs();
+				if (cursor != null)
+					cursor.close();
 				try {
-					con.closeServerConnection();
+					if (con != null)
+						con.closeServerConnection();
 				} catch (IOException e) {
 					Log.w("Service: close connection exception", e);
 				} catch (NullPointerException e) {
 					Log.w("Service: close connection exception", e);
 				}
 				db.close();
+				if (wakeLock != null) {
+					wakeLock.release();
+					wakeLock = null;
+				}
 			}
 			uploadProgressStop();
 		}

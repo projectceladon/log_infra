@@ -68,12 +68,6 @@ public class StartServiceActivity extends Activity {
 			else
 				text.setText("");
 		}
-		if (!app.isServiceStarted()) {
-			needToStartService = true;
-			startService();
-		}
-		if (!app.isActivityBounded())
-			doBindService();
 	}
 
 	protected void onSaveInstanceState(Bundle outState) {
@@ -81,10 +75,20 @@ public class StartServiceActivity extends Activity {
 		super.onSaveInstanceState(outState);
 	}
 
-	protected void onDestroy() {
-		super.onDestroy();
-		Log.d("StartServiceActivity: onDestroy");
+	protected void onResume() {
+		if (!app.isServiceStarted()) {
+			needToStartService = true;
+			startService();
+		}
+		if (!app.isActivityBounded())
+			doBindService();
+		super.onResume();
+	}
+
+	protected void onPause() {
+		Log.d("StartServiceActivity: onPause");
 		doUnbindService();
+		super.onPause();
 	}
 
 	public void onBackPressed() {

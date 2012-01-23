@@ -29,6 +29,7 @@ public class NotificationMgr {
 
 	private Context context;
 	private static final int NOTIF_EVENT_ID = 1;
+	private static final int NOTIF_UPLOAD_ID = 2;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
@@ -66,6 +67,25 @@ public class NotificationMgr {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
 		mNotificationManager.notify(NOTIF_EVENT_ID, notification);
+	}
+
+	public void notifyUploadingLogs(int logNumber) {
+		CharSequence tickerText = "Start uploading crash logs";
+		CharSequence contentTitle = "Crash Report";
+		CharSequence contentText = "Uploading "+logNumber+" crash logs";
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.icon;
+		long when = System.currentTimeMillis();
+		Notification notification = new Notification(icon, tickerText, when);
+		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		mNotificationManager.notify(NOTIF_UPLOAD_ID, notification);
+	}
+
+	public void cancelNotifUploadingLogs() {
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NOTIF_UPLOAD_ID);
 	}
 
 }

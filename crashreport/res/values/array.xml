@@ -36,4 +36,31 @@
 		<item>Postpone</item>
 		<item>Never</item>
 	</string-array>
+
+	<string-array name="reportCrashLogsTypeText">
+		<item>JAVACRASH</item>
+		<item>TOMBSTONE</item>
+		<item>APCOREDUMP !!! 20 MB !!!</item>
+		<item>ANR</item>
+		<item>MPANIC</item>
+		<item>APIMR</item>
+		<item>MRESET</item>
+		<item>WDT</item>
+		<item>IPANIC</item>
+		<item>FABRICERR</item>
+	</string-array>
+
+	<string-array name="reportCrashLogsTypeValues">
+		<item>JAVACRASH</item>
+		<item>TOMBSTONE</item>
+		<item>APCOREDUMP</item>
+		<item>ANR</item>
+		<item>MPANIC</item>
+		<item>APIMR</item>
+		<item>MRESET</item>
+		<item>WDT</item>
+		<item>IPANIC</item>
+		<item>FABRICERR</item>
+	</string-array>
+
 </resources>
