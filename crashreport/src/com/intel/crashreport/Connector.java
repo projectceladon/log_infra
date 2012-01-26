@@ -1,3 +1,22 @@
+/* Crash Report (CLOTA)
+ *
+ * Copyright (C) Intel 2012
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Jeremy Rocher <jeremyx.rocher@intel.com>
+ */
+
 package com.intel.crashreport;
 
 import java.io.BufferedReader;
@@ -273,35 +292,28 @@ public class Connector {
 		wfc.status = WifiConfiguration.Status.ENABLED;
 		wfc.priority = 40;
 
+		wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+		wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+		wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+		wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+
 		if (wifiSecurity.equals("OPEN")) {
 			wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-			wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-			wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
 			wfc.allowedAuthAlgorithms.clear();
-			wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-			wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
 		} else if (wifiSecurity.equals("WEP")) {
 			wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-			wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-			wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
 			wfc.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
 			wfc.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.SHARED);
-			wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-			wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
 			wfc.wepKeys[0] = "\"".concat(wifiPass).concat("\"");
 			wfc.wepTxKeyIndex = 0;
 		} else if (wifiSecurity.equals("WPA")) {
-			wfc.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-			wfc.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
 			wfc.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-			wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-			wfc.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
 			wfc.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
 			wfc.preSharedKey = "\"".concat(wifiPass).concat("\"");

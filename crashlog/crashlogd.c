@@ -82,6 +82,7 @@
 #define HISTORY_FILE  "/data/logs/history_event"
 #define HISTORY_UPTIME "/data/logs/uptime"
 #define LOG_UUID "/data/logs/uuid.txt"
+#define LOG_BUILDID "/data/logs/buildid.txt"
 #define KERNEL_CMDLINE "/proc/cmdline"
 #define STARTUP_STR "androidboot.mode="
 #define PANIC_CONSOLE_NAME "/proc/emmc_ipanic_console"
@@ -988,13 +989,15 @@ static void crashlog_check_startupreason(char *reason, unsigned int files)
 		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
 			 localtime((const time_t *)&t));
 		date_tmp[31] = '\0';
+
 		dir = find_crash_dir(files);
-
-		do_log_copy("WDT",dir,date_tmp,APLOG_TYPE);
-
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
+
 		history_file_write(CRASHEVENT, "WDT", reason, destion, NULL);
+
+		usleep(20*1000);
+		do_log_copy("WDT", dir, date_tmp, APLOG_TYPE);
 	}
 	return;
 }
@@ -1030,6 +1033,92 @@ static void read_uuid(void)
 	}
 }
 
+static int swupdated(char *buildname)
+{
+	struct stat info;
+	FILE *fd;
+	char currentbuild[PROPERTY_VALUE_MAX];
+
+	if (stat(LOG_BUILDID, &info) == 0) {
+		fd = fopen(LOG_BUILDID, "r");
+		fscanf(fd, "%s", currentbuild);
+		fclose(fd);
+
+		if (strcmp(currentbuild, buildname)) {
+			fd = fopen(LOG_BUILDID, "w");
+			do_chown(LOG_BUILDID, "root", "log");
+			fprintf(fd, "%s", buildname);
+			fclose(fd);
+			LOGI("Reset history after build update -> %s\n", buildname);
+			return 1;
+		}
+	} else {
+		fd = fopen(LOG_BUILDID, "w");
+		do_chown(LOG_BUILDID, "root", "log");
+		fprintf(fd, "%s", buildname);
+		fclose(fd);
+		LOGI("Reset history after blank device update -> %s\n", buildname);
+		return 1;
+
+	}
+	return 0;
+}
+
+
+static void reset_history(void)
+{
+	FILE *to;
+	int fd;
+
+	to = fopen(HISTORY_FILE, "w");
+	do_chown(HISTORY_FILE, "root", "log");
+	fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
+	fprintf(to, "#EVENT  ID                    DATE                 TYPE\n");
+	fclose(to);
+
+	fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
+	if (fd < 0){
+		LOGE("open HISTORY_UPTIME error\n");
+	}
+	close(fd);
+}
+
+static void reset_crashlog(void)
+{
+	char path[PATHMAX];
+	FILE *fd;
+
+	snprintf(path, sizeof(path), CURRENT_LOG);
+	fd = fopen(path, "w");
+	fprintf(fd, "%d", 0);
+	fclose(fd);
+}
+
+static void uptime_history(char *lastuptime)
+{
+	FILE *to;
+	int fd;
+	struct stat info;
+
+	char name[32];
+	char date_tmp[32];
+
+	to = fopen(HISTORY_FILE, "r");
+	fscanf(to, "#V1.0 %16s%24s\n", name, lastuptime);
+	fclose(to);
+	if (!memcmp(name, CURRENT_UPTIME, sizeof(CURRENT_UPTIME))) {
+
+		to = fopen(HISTORY_FILE, "r+");
+		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
+		strcpy(name, PER_UPTIME);
+		fseek(to, 0, SEEK_END);
+		strftime(date_tmp, 32, "%Y-%m-%d/%H:%M:%S  ", localtime((const time_t *)&info.st_mtime));
+		date_tmp[31] = 0;
+		fprintf(to, "%-8s00000000000000000000  %-20s%s\n", name, date_tmp, lastuptime);
+		fclose(to);
+	}
+}
+
 static void read_startupreason(char *startupreason)
 {
 	char cmdline[512] = { '\0', };
@@ -1061,15 +1150,13 @@ int main(int argc, char **argv)
 	int ret = 0;
 	unsigned int files = 0xFFFFFFFF;
 	char date_tmp[32];
-	char lastuptime[32];
 	struct stat info;
 	time_t t;
 	char destion[PATHMAX];
 	char *vinfo;
 	pid_t pid;
 	unsigned int dir;
-	FILE *to;
-	int fd;
+
 	pthread_t thread;
 	char value[PROPERTY_VALUE_MAX];
 
@@ -1079,19 +1166,14 @@ int main(int argc, char **argv)
 	}
 
 	if (argc == 2) {
-		if(!memcmp(argv[1], "-modem", 6)){
-			WDCOUNT=4;
-			LOGI(" crashlogd only snoop modem \n");
-		}
-		else{
-			errno = 0;
-			files = (unsigned int)strtoul(argv[1], 0, 0);
+		errno = 0;
+		files = (unsigned int)strtoul(argv[1], 0, 0);
 
-			if (errno) {
-				LOGE(" saved files number must be digital \n");
-				return -1;
-			}
+		if (errno) {
+			LOGE(" saved files number must be digital \n");
+			return -1;
 		}
+
 	}
 
 	property_get(PROP_CRASH, value, "");
@@ -1124,53 +1206,20 @@ int main(int argc, char **argv)
 
 	sdcard_exist();
 
-
-/* uptime record */
-	strcpy(lastuptime, "0000:00:00");
-	if (stat(HISTORY_FILE, &info) != 0) {
-
-		to = fopen(HISTORY_FILE, "w");
-		do_chown(HISTORY_FILE, "root", "log");
-		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
-		fprintf(to, "#EVENT  ID                    DATE                 TYPE\n");
-		fclose(to);
-
-	} else {
-		char name[32];
-		char date_tmp[32];
-
-		to = fopen(HISTORY_FILE, "r");
-		fscanf(to, "#V1.0 %16s%24s\n", name, lastuptime);
-		fclose(to);
-		if (!memcmp(name, CURRENT_UPTIME, sizeof(CURRENT_UPTIME))) {
-
-			to = fopen(HISTORY_FILE, "r+");
-			fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
-			strcpy(name, PER_UPTIME);
-			fseek(to, 0, SEEK_END);
-			strftime(date_tmp, 32, "%Y-%m-%d/%H:%M:%S  ", localtime((const time_t *)&info.st_mtime));
-			date_tmp[31] = 0;
-			fprintf(to, "%-8s00000000000000000000  %-20s%s\n", name, date_tmp, lastuptime);
-			fclose(to);
-		}
-
-	}
-
-	// read command line to check startup reason
+	// check startup reason and sw update
 	char startupreason[16] = { '\0', };
 	struct stat st;
+	char lastuptime[32];
 
-	/* check if uptime file exists */
-	if (stat(HISTORY_UPTIME, &st) == 0)
-		read_startupreason(startupreason);
-	else {
-		fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
-		if (fd < 0){
-			LOGE("open HISTORY_UPTIME error\n");
-			return -1;
-		}
+	if (swupdated(buildVersion)) {
+		strcpy(lastuptime, "0000:00:00");
 		strcpy(startupreason,"SWUPDATE");
-		close(fd);
+		reset_crashlog();
+		reset_history();
+	}
+	else {
+		read_startupreason(startupreason);
+		uptime_history(lastuptime);
 	}
 
 	crashlog_check_fabric(startupreason, files);
