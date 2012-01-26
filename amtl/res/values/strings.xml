@@ -55,16 +55,11 @@
     <string name="apply_usb_switch_button">Apply USB switch</string>
     <string name="apply_toggle_on1_button">Apply Toggle ON1</string>
     <string name="trace_bb_3g_digrf_button_mts">bb_sw/3G_sw/digrf</string>
-    <string name="traces_in_coredump_txt">Traces in Coredump</string>
-    <string name="ma_artemis_coredump_txt">MA+Artemis traces</string>
-    <string name="ma_artemis_digrf_coredump_txt">MA+Artemis+Digrf</string>
-    <string name="disable_ma_artemis_coredump_trace_button">Disable</string>
-    <string name="enable_ma_artemis_coredump_trace_button">Enable</string>
-    <string name="disable_ma_artemis_digrf_coredump_trace_button">Disable</string>
-    <string name="enable_ma_artemis_digrf_coredump_trace_button">Enable</string>
-    <string name="apply_ma_artemis_coredump_trace_button">Apply MA &amp; Artemis traces</string>
-    <string name="apply_configure_modem_coredump_trace_button">Apply</string>
-    <string name="apply_activate_coredump_trace_button">Activate traces</string>
-    <string name="active_trace_coredump_txt">Active traces AFTER reboot</string>
     <string name="traces_coredump_button">Traces in Coredump</string>
+    <string name="traces_in_coredump_txt">Traces in Coredump</string>
+    <string name="trace_ma_coredump">MA</string>
+    <string name="trace_ma_artemis_coredump">MA &amp; Artemis</string>
+    <string name="trace_ma_artemis_digrf_coredump">MA &amp; Artemis &amp; Digrf</string>
+    <string name="trace_none_coredump">None</string>
+    <string name="apply_trace_coredump">Apply Traces</string>
 </resources>

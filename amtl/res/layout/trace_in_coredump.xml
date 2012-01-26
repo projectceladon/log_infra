@@ -17,94 +17,43 @@
         android:layout_height="4px"
         android:background="#C0C0C0" />
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ma_artemis_coredump_txt"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
     <RadioGroup
-        android:id="@+id/ma_artemis_coredump_button"
+        android:id="@+id/configure_trace_coredump"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:orientation="vertical" >
+
         <RadioButton
-            android:id="@+id/disable_ma_artemis_coredump_button"
+            android:id="@+id/trace_ma_coredump_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trace_ma_coredump" />
+
+        <RadioButton
+            android:id="@+id/trace_ma_artemis_coredump_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trace_ma_artemis_coredump" />
+
+        <RadioButton
+            android:id="@+id/trace_ma_artemis_digrf_coredump_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/trace_ma_artemis_digrf_coredump" />
+
+        <RadioButton
+            android:id="@+id/trace_none_coredump_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:checked="true"
-            android:text="@string/disable_ma_artemis_coredump_trace_button" />
-        <RadioButton
-            android:id="@+id/enable_ma_artemis_coredump_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/enable_ma_artemis_coredump_trace_button" />
+            android:text="@string/trace_none_coredump" />
     </RadioGroup>
 
     <Button
-        android:id="@+id/apply_ma_artemis_coredump_button"
+        android:id="@+id/apply_trace_coredump_button"
         android:layout_width="match_parent"
         android:layout_height="100px"
-        android:text="@string/apply_ma_artemis_coredump_trace_button" />
-
-    <View
-        android:id="@+id/View01"
-        android:layout_width="wrap_content"
-        android:layout_height="8px"
-        android:background="#FF0000" />
-
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ma_artemis_digrf_coredump_txt"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <RadioGroup
-        android:id="@+id/ma_artemis_digrf_coredump_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <RadioButton
-            android:id="@+id/disable_ma_artemis_digrf_coredump_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="@string/disable_ma_artemis_digrf_coredump_trace_button" />
-
-        <RadioButton
-            android:id="@+id/enable_ma_artemis_digrf_coredump_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/enable_ma_artemis_digrf_coredump_trace_button" />
-    </RadioGroup>
-
-    <Button
-        android:id="@+id/apply_ma_artemis_digrf_coredump_button"
-        android:layout_width="match_parent"
-        android:layout_height="100px"
-        android:text="@string/apply_configure_modem_coredump_trace_button" />
-
-    <View
-        android:id="@+id/View02"
-        android:layout_width="wrap_content"
-        android:layout_height="4px"
-        android:background="#C0C0C0" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/active_trace_coredump_txt"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <Button
-        android:id="@+id/apply_activate_coredump_button"
-        android:layout_width="match_parent"
-        android:layout_height="100px"
-        android:text="@string/apply_activate_coredump_trace_button" />
+        android:text="@string/apply_trace_coredump" />
 
     <EditText
         android:id="@+id/text_coredump"
@@ -112,6 +61,9 @@
         android:layout_height="wrap_content"
         android:background="#ffff0f"
         android:enabled="false"
-        android:visibility="invisible" />
+        android:visibility="invisible" >
+
+        <requestFocus />
+    </EditText>
 
 </LinearLayout>
