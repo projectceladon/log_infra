@@ -127,6 +127,46 @@ static int do_mv(char *src, char *des)
 	return 0;
 }
 
+static unsigned int android_name_to_id(const char *name)
+{
+	const struct android_id_info *info = android_ids;
+	unsigned int n;
+
+	for (n = 0; n < android_id_count; n++) {
+		if (!strcmp(info[n].name, name))
+			return info[n].aid;
+	}
+
+	return -1U;
+}
+
+static unsigned int decode_uid(const char *s)
+{
+	unsigned int v;
+
+	if (!s || *s == '\0')
+		return -1U;
+	if (isalpha(s[0]))
+		return android_name_to_id(s);
+
+	errno = 0;
+	v = (unsigned int)strtoul(s, 0, 0);
+	if (errno)
+		return -1U;
+	return v;
+}
+
+static int do_chown(char *file, char *uid, char *gid)
+{
+	if (strstr(file, SDCARD_CRASH_DIR))
+		return 0;
+
+	if (chown(file, decode_uid(uid), decode_uid(gid)))
+		return -errno;
+
+	return 0;
+}
+
 static int do_copy(char *src, char *des, int limit)
 {
 	int buflen = 4*1024;
@@ -192,6 +232,8 @@ out:
 		close(fd1);
 	if (fd2 >= 0)
 		close(fd2);
+
+	do_chown(des, "root", "log");
 	return rc;
 }
 
@@ -225,44 +267,6 @@ static void do_log_copy(char *mode, int dir, char* ts, int type)
 		}
 	}
 	return ;
-}
-
-static unsigned int android_name_to_id(const char *name)
-{
-	const struct android_id_info *info = android_ids;
-	unsigned int n;
-
-	for (n = 0; n < android_id_count; n++) {
-		if (!strcmp(info[n].name, name))
-			return info[n].aid;
-	}
-
-	return -1U;
-}
-
-static unsigned int decode_uid(const char *s)
-{
-	unsigned int v;
-
-	if (!s || *s == '\0')
-		return -1U;
-	if (isalpha(s[0]))
-		return android_name_to_id(s);
-
-	errno = 0;
-	v = (unsigned int)strtoul(s, 0, 0);
-	if (errno)
-		return -1U;
-	return v;
-}
-
-static int do_chown(char *file, char *uid, char *gid)
-{
-
-	if (chown(file, decode_uid(uid), decode_uid(gid)))
-		return -errno;
-
-	return 0;
 }
 
 static mode_t get_mode(const char *s)
@@ -521,7 +525,6 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 		fclose(to);
 		LOGE("%-8s%-22s%-20s%s\n", event, key, date_tmp, lastuptime);
 	}
-	notify_crashreport();
 	return;
 }
 
@@ -802,6 +805,7 @@ static int do_crashlogd(unsigned int files)
 								if ((hours / UPTIME_HOUR_FREQUENCY) >= loop_uptime_event) {
 									history_file_write(PER_UPTIME, NULL, NULL, NULL, date_tmp);
 									loop_uptime_event = (hours / UPTIME_HOUR_FREQUENCY) + 1;
+									notify_crashreport();
 								}
 							}
 						}
@@ -831,6 +835,7 @@ static int do_crashlogd(unsigned int files)
 
 							del_file_more_lines(HISTORY_FILE);
 							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+							notify_crashreport();
 							break;
 						}
 						/* for modem crash */
@@ -874,6 +879,7 @@ static int do_crashlogd(unsigned int files)
 							usleep(20*1000);
 							do_log_copy(lostevent,dir,date_tmp,APLOG_TYPE);
 							del_file_more_lines(HISTORY_FILE);
+							notify_crashreport();
 							break;
 						}
 						/* for other case */
@@ -896,6 +902,7 @@ static int do_crashlogd(unsigned int files)
 								usleep(20*1000);
 								do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
 								del_file_more_lines(HISTORY_FILE);
+								notify_crashreport();
 							}
 
 							/* for restart profile anr */
@@ -950,7 +957,6 @@ static void crashlog_check_fabric(char *reason, unsigned int files)
 		do_copy(SAVED_FABRIC_ERROR_NAME, destion, FILESIZE_MAX);
 		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 		history_file_write(CRASHEVENT, FABRIC_ERROR, NULL, destion, NULL);
-		do_log_copy(FABRIC_ERROR,dir,date_tmp,APLOG_TYPE);
 	}
 	return;
 }
@@ -976,22 +982,16 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 			 THREAD_NAME, date_tmp);
 		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
 		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
-		do_chown(destion, "root", "log");
-		do_chown(destion, "root", "log");
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 CONSOLE_NAME, date_tmp);
 		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
-		do_chown(destion, "root", "log");
-		do_chown(destion, "root", "log");
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 LOGCAT_NAME, date_tmp);
 		do_copy(SAVED_LOGCAT_NAME, destion, FILESIZE_MAX);
-		do_chown(destion, "root", "log");
-		do_chown(destion, "root", "log");
 
 		write_file(PANIC_CONSOLE_NAME, "1");
 		history_file_write(CRASHEVENT, KERNEL_CRASH, NULL, destion, NULL);
@@ -1265,6 +1265,7 @@ int main(int argc, char **argv)
 	crashlog_check_startupreason(startupreason, files);
 
 	history_file_write(SYS_REBOOT, startupreason, NULL, NULL, lastuptime);
+	notify_crashreport();
 
 	ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
 	if (ret < 0) {
