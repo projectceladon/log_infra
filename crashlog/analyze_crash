@@ -154,6 +154,14 @@ tombstone()
   fi
 }
 
+modemcrash()
+{
+  modemcrash=`ls $1 | grep "mpanic" | wc -l`
+  if [ $modemcrash == 1 ] ; then
+    echo "DATA0=`cat $1/mpanic.txt`" >> $2
+  fi
+}
+
 if [ $# -ge 3 ] ; then
   tag=$1
   output=$2
@@ -205,6 +213,9 @@ if [ $# -ge 3 ] ; then
     fi
     if [ "$tag" == "FABRICERR" ] ; then
       fabricerr $output $crashfilename
+    fi
+    if [ "$tag" == "MPANIC" ] ; then
+      modemcrash $output $crashfilename
     fi
     finish_crashfile $crashfilename
   fi

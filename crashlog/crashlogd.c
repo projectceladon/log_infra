@@ -712,7 +712,7 @@ struct wd_name {
 struct wd_name wd_array[] = {
 	{0, IN_CLOSE_WRITE, CURRENT_UPTIME, "/data/logs/uptime", ""},
 /* -------------------------above is file, below is dir---------------------------------------------------------------- */
-	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", ".tar.gz"},/*for modem crash */
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", "mpanic.txt"},/*for modem crash */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
 /* -------------------------above is modem, below is AP---------------------------------------------------------------- */
@@ -742,6 +742,7 @@ static int do_crashlogd(unsigned int files)
 	long long tm;
 	int hours, seconds, minutes;
 	time_t t;
+	char cmd[512] = { '\0', };
 
 	fd = inotify_init();
 	if (fd < 0) {
@@ -821,6 +822,28 @@ static int do_crashlogd(unsigned int files)
 								snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
 								history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
 							}
+
+							time(&t);
+							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&t));
+							date_tmp[31] = 0;
+							usleep(20*1000);
+							do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
+
+							del_file_more_lines(HISTORY_FILE);
+							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+							break;
+						}
+						/* for modem crash */
+						else if(strstr(event->name, wd_array[i].cmp) && strstr(event->name, "mpanic.txt" )){
+							dir = find_crash_dir(files);
+							snprintf(destion,sizeof(destion),"%s%d", CRASH_DIR,dir);
+							snprintf(cmd, sizeof(cmd),"cp %s/cd*.tar.gz %s/ && rm %s/cd*.tar.gz",wd_array[i].filename,destion,wd_array[i].filename);
+							run_command(cmd);
+							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+							snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
+							do_copy(path, destion, 0);
+							snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
+							history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
 
 							time(&t);
 							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&t));
