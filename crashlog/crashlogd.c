@@ -1025,35 +1025,51 @@ static void crashlog_check_startupreason(char *reason, unsigned int files)
 	return;
 }
 
-
-static void read_uuid(void)
+static int file_read_value(const char *path, char *value, const char *default_value)
 {
 	struct stat info;
 	FILE *fd;
+	int ret = -1;
 
-	if (stat(LOG_UUID, &info) != 0) {
-		if ( stat(PROC_UUID, &info) == 0 ) {
-			fd = fopen(PROC_UUID, "r");
-			fscanf(fd, "%s", uuid);
-			fclose(fd);
-			fd = fopen(LOG_UUID, "w");
-			fprintf(fd, "%s", uuid);
-			fclose(fd);
-			do_chown(LOG_UUID, "root", "log");
-		}
-		else {
-			strcpy(uuid, "Medfield");
-			LOGE("PROC_UUID error\n");
-			return;
-		}
-	}
-	if (stat(LOG_UUID, &info) == 0) {
-		fd = fopen(LOG_UUID, "r");
-		fscanf(fd, "%s", uuid);
+	if ( stat(path, &info) == 0 ) {
+		fd = fopen(path, "r");
+		ret = fscanf(fd, "%s", value);
 		fclose(fd);
-	} else {
-		strcpy(uuid, "Medfield");
+		if (ret == 1)
+			return 0;
 	}
+	if (default_value) {
+		strcpy(value, default_value);
+		return ret;
+	} else {
+		return ret;
+	}
+}
+
+static void write_uuid(char *uuid_value)
+{
+	FILE *fd;
+
+	fd = fopen(LOG_UUID, "w");
+	fprintf(fd, "%s", uuid_value);
+	fclose(fd);
+	do_chown(LOG_UUID, "root", "log");
+}
+
+static void read_uuid(void)
+{
+	char temp_uuid[256];
+	struct stat info;
+	FILE *fd;
+
+	if (file_read_value(PROC_UUID, uuid, "Medfield") != 0) {
+		write_uuid(uuid);
+		LOGE("PROC_UUID error\n");
+		return;
+	}
+	file_read_value(LOG_UUID, temp_uuid, "");
+	if (strcmp(uuid, temp_uuid) != 0)
+		write_uuid(uuid);
 }
 
 static int swupdated(char *buildname)
@@ -1225,12 +1241,6 @@ int main(int argc, char **argv)
 	property_get(BUILD_FIELD, buildVersion, "");
 	property_get(BOARD_FIELD, boardVersion, "");
 	read_uuid();
-
-/* mkdir -p HISTORY_FILE_DIR */
-	if (mkdir(HISTORY_FILE_DIR, 0777) < 0) {
-		if (errno != EEXIST)
-			return errno;
-	}
 
 	sdcard_exist();
 
