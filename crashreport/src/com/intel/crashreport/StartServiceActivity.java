@@ -32,6 +32,10 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewStub;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.intel.crashreport.CrashReportService.LocalBinder;
@@ -44,17 +48,17 @@ public class StartServiceActivity extends Activity {
 	private CrashReportService mService = null;
 	private static final int DIALOG_ASK_UPLOAD_ID = 0;
 	private static final int DIALOG_ASK_UPLOAD_SAVE_ID = 1;
-	private static final int DIALOG_UPLOAD_PROGRESS_ID = 2;
 	private static final int DIALOG_REP_NOW = 0;
 	private static final int DIALOG_REP_POSTPONE = 1;
 	private static final int DIALOG_REP_NEVER = 2;
 	private static final int DIALOG_REP_ABORT = 3;
 	private static final int DIALOG_REP_READ = 4;
-	private static ProgressDialog uploadProgress;
 	private static Boolean needToStartService = false;
 	private ApplicationPreferences appPrefs;
 	private int dialog_value = 0;
 	private TextView text;
+	private Button cancelButton;
+	private ViewStub waitStub;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -68,6 +72,14 @@ public class StartServiceActivity extends Activity {
 			else
 				text.setText("");
 		}
+		cancelButton = (Button) findViewById(R.id.buttonCancel);
+		cancelButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				if (mService.isServiceUploading())
+					mService.cancelDownload();
+			}
+		});
+		waitStub = (ViewStub) findViewById(R.id.waitStub);
 	}
 
 	protected void onSaveInstanceState(Bundle outState) {
@@ -76,18 +88,20 @@ public class StartServiceActivity extends Activity {
 	}
 
 	protected void onResume() {
+		super.onResume();
 		if (!app.isServiceStarted()) {
 			needToStartService = true;
 			startService();
 		}
 		if (!app.isActivityBounded())
 			doBindService();
-		super.onResume();
 	}
 
 	protected void onPause() {
 		Log.d("StartServiceActivity: onPause");
 		doUnbindService();
+		cancelButton.setEnabled(false);
+		hidePleaseWait();
 		super.onPause();
 	}
 
@@ -116,6 +130,16 @@ public class StartServiceActivity extends Activity {
 		}
 	}
 
+	private void showPleaseWait() {
+		if (waitStub != null)
+			waitStub.setVisibility(View.VISIBLE);
+	}
+
+	private void hidePleaseWait() {
+		if (waitStub != null)
+			waitStub.setVisibility(View.GONE);
+	}
+
 	protected Dialog onCreateDialog(int id) {
 		Dialog dialog;
 		switch(id) {
@@ -124,9 +148,6 @@ public class StartServiceActivity extends Activity {
 			break;
 		case DIALOG_ASK_UPLOAD_SAVE_ID:
 			dialog = createAskForUploadSaveDialog();
-			break;
-		case DIALOG_UPLOAD_PROGRESS_ID:
-			dialog = createUploadProgress();
 			break;
 		default:
 			dialog = null;
@@ -184,12 +205,6 @@ public class StartServiceActivity extends Activity {
 		return builder.create();
 	}
 
-	private Dialog createUploadProgress() {
-		uploadProgress = new ProgressDialog(this);
-		uploadProgress.setMessage("Uploading report. Please wait...");
-		return uploadProgress;
-	}
-
 	private void doActionAfterSelectUploadState(int response) {
 		int value;
 		if (response == DIALOG_REP_READ)
@@ -243,11 +258,12 @@ public class StartServiceActivity extends Activity {
 				text.setText(mService.getLogger().getLog());
 			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadStarted)) {
 				Log.d("StartServiceActivity:msgReceiver: uploadStarted");
-				showDialog(DIALOG_UPLOAD_PROGRESS_ID);
+				showPleaseWait();
+				cancelButton.setEnabled(true);
 			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadFinished)) {
 				Log.d("StartServiceActivity:msgReceiver: uploadFinish");
-				if ((uploadProgress != null) && uploadProgress.isShowing())
-					uploadProgress.dismiss();
+				hidePleaseWait();
+				cancelButton.setEnabled(false);
 			}
 		}
 	};
@@ -265,6 +281,10 @@ public class StartServiceActivity extends Activity {
 				needToStartService = false;
 				mService.sendMessage(ServiceMsg.startProcessEvents);
 			}
+			if (mService.isServiceUploading()) {
+				cancelButton.setEnabled(true);
+				showPleaseWait();
+			}
 		}
 
 		public void onServiceDisconnected(ComponentName name) {
@@ -273,6 +293,8 @@ public class StartServiceActivity extends Activity {
 			unregisterMsgReceiver();
 			if (app.isActivityBounded())
 				app.setActivityBounded(false);
+			cancelButton.setEnabled(false);
+			hidePleaseWait();
 		}
 
 	};

@@ -32,10 +32,29 @@
         <TextView
 			android:id="@+id/logTextView"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content">
-        </TextView>
+			android:layout_height="wrap_content" />
+
+		<ViewStub
+		    android:id="@+id/waitStub"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout="@layout/please_wait"
+		    android:visibility="gone" />
+
+		<TextView
+			android:id="@+id/emptyText"
+			android:layout_weight="1.0"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content" />
+
+		<Button
+			android:id="@+id/buttonCancel"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:enabled="false"
+			android:layout_gravity="center"
+			android:text="@string/start_service_activity_cancel_report" />
 
     </LinearLayout>
 
 </LinearLayout>
-

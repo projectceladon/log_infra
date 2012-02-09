@@ -577,7 +577,7 @@ public class Connector {
 		return false;
 	}
 
-	public Boolean sendLogsFile(FileInfo fileInfo) {
+	public Boolean sendLogsFile(FileInfo fileInfo, Thread t) throws InterruptedException {
 		String serverMsg;
 		try {
 			mObjectOutputStream.writeObject(fileInfo);
@@ -589,6 +589,8 @@ public class Connector {
 			int count;
 			while ((count = bis.read(data)) != -1) {
 				bos.write(data, 0, count);
+				if (t.isInterrupted())
+					throw new InterruptedException();
 			}
 			bis.close();
 			bos.flush();

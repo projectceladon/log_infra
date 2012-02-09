@@ -25,4 +25,6 @@
     <string name="alert_dialog_yes">Yes</string>
     <string name="alert_dialog_no">No</string>
     <string name="alert_dialog_upload_save">"Always report ?"</string>
+    <string name="start_service_activity_cancel_report">Cancel Report</string>
+    <string name="start_service_activity_please_wait">Please wait</string>
 </resources>

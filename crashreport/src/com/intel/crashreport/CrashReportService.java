@@ -51,6 +51,7 @@ public class CrashReportService extends Service {
 
 	private CrashReport app;
 	private HandlerThread handlerThread;
+	private Thread runThread;
 	private ServiceHandler serviceHandler;
 	private ServiceState serviceState;
 	private final IBinder mBinder = new LocalBinder();
@@ -103,6 +104,17 @@ public class CrashReportService extends Service {
 		app.setServiceStarted(false);
 		handlerThread.quit();
 		stopSelf();
+	}
+
+	public Boolean isServiceUploading() {
+		return (serviceState == ServiceState.UploadEvent);
+	}
+
+	public void cancelDownload() {
+		if (serviceState == ServiceState.UploadEvent) {
+			if ((runThread != null) && runThread.isAlive())
+				runThread.interrupt();
+		}
 	}
 
 	private Runnable processEvent = new Runnable(){
@@ -339,95 +351,114 @@ public class CrashReportService extends Service {
 			prefs = new ApplicationPreferences(context);
 			db = new EventDB(context);
 			con = new Connector(context, serviceHandler);
-			try {
-				pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-				wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CrashReport");
-				wakeLock.acquire();
-				db.open();
-				con.setupServerConnection();
+			pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+			wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CrashReport");
+			wakeLock.acquire();
 
-				//upload Events
-				cursor = db.fetchNotUploadedEvents();
-				if (cursor != null) {
-					while (!cursor.isAfterLast()) {
-						event = db.fillEventFromCursor(cursor);
-						if (con.sendEvent(event)) {
-							db.updateEventToUploaded(event.getEventId());
-							Log.d("Service:uploadEvent : Success upload of " + event);
-							cursor.moveToNext();
-						} else {
-							Log.w("Service:uploadEvent : Fail upload of " + event);
-							throw new ProtocolException();
-						}
-					}
-					cursor.close();
-				}
+			Runnable uploadExec = new Runnable(){
+				public void run() {
+					try {
+						db.open();
+						con.setupServerConnection();
 
-				//upload logs
-				String crashTypes[] = null;
-				if (prefs.isCrashLogsUploadEnable()) {
-					crashTypes = prefs.getCrashLogsUploadTypes();
-					cursor = db.fetchNotUploadedLogs(crashTypes);
-					if (cursor != null) {
-						nMgr = new NotificationMgr(context);
-						nMgr.notifyUploadingLogs(cursor.getCount());
-						while (!cursor.isAfterLast()) {
-							event = db.fillEventFromCursor(cursor);
-							crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
-							if (crashLogs != null) {
-								dayDate = DAY_DF.format(event.getDate());
-								fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-								if (con.sendLogsFile(fileInfo)) {
-									db.updateEventLogToUploaded(event.getEventId());
-									Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
-									crashLogs.delete();
+						//upload Events
+						cursor = db.fetchNotUploadedEvents();
+						if (cursor != null) {
+							while (!cursor.isAfterLast()) {
+								if (runThread.isInterrupted())
+									throw new InterruptedException();
+								event = db.fillEventFromCursor(cursor);
+								if (con.sendEvent(event)) {
+									db.updateEventToUploaded(event.getEventId());
+									Log.d("Service:uploadEvent : Success upload of " + event);
 									cursor.moveToNext();
 								} else {
-									Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
+									Log.w("Service:uploadEvent : Fail upload of " + event);
 									throw new ProtocolException();
 								}
-							} else
-								cursor.moveToNext();
+							}
+							cursor.close();
 						}
-						cursor.close();
-						nMgr.cancelNotifUploadingLogs();
+
+						//upload logs
+						String crashTypes[] = null;
+						if (prefs.isCrashLogsUploadEnable()) {
+							crashTypes = prefs.getCrashLogsUploadTypes();
+							cursor = db.fetchNotUploadedLogs(crashTypes);
+							if (cursor != null) {
+								nMgr = new NotificationMgr(context);
+								nMgr.notifyUploadingLogs(cursor.getCount());
+								while (!cursor.isAfterLast()) {
+									if (runThread.isInterrupted())
+										throw new InterruptedException();
+									event = db.fillEventFromCursor(cursor);
+									crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
+									if (crashLogs != null) {
+										dayDate = DAY_DF.format(event.getDate());
+										fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
+										if (con.sendLogsFile(fileInfo, runThread)) {
+											db.updateEventLogToUploaded(event.getEventId());
+											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
+											crashLogs.delete();
+											cursor.moveToNext();
+										} else {
+											Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
+											throw new ProtocolException();
+										}
+									} else
+										cursor.moveToNext();
+								}
+								cursor.close();
+								nMgr.cancelNotifUploadingLogs();
+							}
+						}
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
+					} catch (InterruptedException e) {
+						Log.i("Service:uploadEvent : upload interrupted");
+						serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
+					} catch (SQLException e) {
+						Log.w("Service:uploadEvent : Fail to access DB", e);
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
+					} catch (ProtocolException e) {
+						Log.w("Service:uploadEvent:ProtocolException", e);
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
+					} catch (UnknownHostException e) {
+						Log.w("Service:uploadEvent:UnknownHostException", e);
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
+					} catch (InterruptedIOException e) {
+						Log.w("Service:uploadEvent:InterruptedIOException", e);
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
+					} catch (IOException e) {
+						Log.w("Service:uploadEvent:IOException", e);
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 					}
 				}
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
-			} catch (SQLException e) {
-				Log.w("Service:uploadEvent : Fail to access DB", e);
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
-			} catch (ProtocolException e) {
-				Log.w("Service:uploadEvent:ProtocolException", e);
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-			} catch (UnknownHostException e) {
-				Log.w("Service:uploadEvent:UnknownHostException", e);
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-			} catch (InterruptedIOException e) {
-				Log.w("Service:uploadEvent:InterruptedIOException", e);
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
+			};
+			runThread = new Thread(uploadExec, "UploadThread");
+			runThread.start();
+			try {
+				runThread.join();
+			} catch (InterruptedException e) {
+				serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
+			}
+
+			CrashLogs.deleteCrashLogsZipFiles(context);
+			if (nMgr != null)
+				nMgr.cancelNotifUploadingLogs();
+			if (cursor != null)
+				cursor.close();
+			try {
+				if (con != null)
+					con.closeServerConnection();
 			} catch (IOException e) {
-				Log.w("Service:uploadEvent:IOException", e);
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-			} finally {
-				CrashLogs.deleteCrashLogsZipFiles(context);
-				if (nMgr != null)
-					nMgr.cancelNotifUploadingLogs();
-				if (cursor != null)
-					cursor.close();
-				try {
-					if (con != null)
-						con.closeServerConnection();
-				} catch (IOException e) {
-					Log.w("Service: close connection exception", e);
-				} catch (NullPointerException e) {
-					Log.w("Service: close connection exception", e);
-				}
-				db.close();
-				if (wakeLock != null) {
-					wakeLock.release();
-					wakeLock = null;
-				}
+				Log.w("Service: close connection exception", e);
+			} catch (NullPointerException e) {
+				Log.w("Service: close connection exception", e);
+			}
+			db.close();
+			if (wakeLock != null) {
+				wakeLock.release();
+				wakeLock = null;
 			}
 			uploadProgressStop();
 		}
@@ -481,6 +512,7 @@ public class CrashReportService extends Service {
 		public static final int noWifiOnly = 25;
 		public static final int dataConnectionAvailable = 26;
 		public static final int dataConnectionNotAvailable = 27;
+		public static final int cancelUpload = 28;
 	}
 
 	protected void sendMessage(int msg) {
@@ -777,7 +809,7 @@ public class CrashReportService extends Service {
 					uploadProgressStart();
 					sendMsgToActivity("Uploading report");
 					serviceState = ServiceState.UploadEvent;
-					this.post(uploadEvent);
+					this.postDelayed(uploadEvent, 200);
 				} else
 					unsuportedMsg(msg);
 				break;
@@ -793,6 +825,21 @@ public class CrashReportService extends Service {
 					serviceState = ServiceState.Exit;
 					registerNetworkStateReceiver();
 					stopService();
+				} else
+					unsuportedMsg(msg);
+				break;
+			}
+			case ServiceMsg.cancelUpload: {
+				if (serviceState == ServiceState.UploadEvent) {
+					Log.i("ServiceHandler: cancelUpload");
+					sendMsgToActivity("Report canceled");
+					if (app.isWifiOnly()) {
+						serviceState = ServiceState.Disconnecting;
+						this.post(disconnectToNetwork);
+					} else {
+						serviceState = ServiceState.Exit;
+						stopService();
+					}
 				} else
 					unsuportedMsg(msg);
 				break;
