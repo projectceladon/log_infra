@@ -1189,14 +1189,19 @@ int main(int argc, char **argv)
 	}
 
 	if (argc == 2) {
-		errno = 0;
-		files = (unsigned int)strtoul(argv[1], 0, 0);
-
-		if (errno) {
-			LOGE(" saved files number must be digital \n");
-			return -1;
+		if(!memcmp(argv[1], "-modem", 6)){
+			WDCOUNT=4;
+			LOGI(" crashlogd only snoop modem \n");
 		}
+		else{
+			errno = 0;
+			files = (unsigned int)strtoul(argv[1], 0, 0);
 
+			if (errno) {
+				LOGE(" saved files number must be digital \n");
+				return -1;
+			}
+		}
 	}
 
 	property_get(PROP_CRASH, value, "");
