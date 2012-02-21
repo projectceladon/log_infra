@@ -133,21 +133,26 @@ public class Activate_trace_modemActivity extends Activity {
     /*Enable trace and xsystrace*/
     private void enable_trace_level() {
         try {
-            /*Enable trace*/
-            writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
-            android.os.SystemClock.sleep(1000);
-
             if (((CompoundButton) button_trace_bb).isChecked()) {
+                /*Enable trace*/
+                writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
+                android.os.SystemClock.sleep(1000);
                 /*Enable first level trace*/
-                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1\",,\"oct=4\"\r\n");
+                writeSimple("/dev/gsmtty1","at+xsystrace=0,\"bb_sw=1\",,\"oct=4\"\r\n");
                 android.os.SystemClock.sleep(2000);
             } else if (((CompoundButton) button_trace_bb_3g).isChecked()) {
+                /*Enable trace*/
+                writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
+                android.os.SystemClock.sleep(1000);
                 /*Enable second level trace*/
-                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
+                writeSimple("/dev/gsmtty1","at+xsystrace=0,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
                 android.os.SystemClock.sleep(2000);
             } else {
+                /*Enable trace*/
+                writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
+                android.os.SystemClock.sleep(1000);
                 /*Enable third level trace*/
-                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
+                writeSimple("/dev/gsmtty1","at+xsystrace=0,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
                 android.os.SystemClock.sleep(2000);
             }
         } catch (IOException e) {

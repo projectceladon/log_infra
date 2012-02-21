@@ -93,7 +93,7 @@ public class Trace_in_coredumpActivity extends Activity {
                                 /*Enable MA traces*/
                                 writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
                                 android.os.SystemClock.sleep(1000);
-                                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=0;bb_sw=1;3g_sw=0\",\"digrf=0x00\",\"oct=4\"\r\n");
+                                writeSimple("/dev/gsmtty1","at+xsystrace=0,\"digrf=0;bb_sw=1;3g_sw=0\",\"digrf=0x00\",\"oct=4\"\r\n");
                                 android.os.SystemClock.sleep(2000);
                             }  else if (((CompoundButton) button_trace_ma_artemis_coredump).isChecked()) {
                                 /*Enable OCT port*/
@@ -105,7 +105,7 @@ public class Trace_in_coredumpActivity extends Activity {
                                 /*Enable MA and Artemis traces*/
                                 writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
                                 android.os.SystemClock.sleep(1000);
-                                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=0;bb_sw=1;3g_sw=1\",\"digrf=0x00\",\"oct=4\"\r\n");
+                                writeSimple("/dev/gsmtty1","at+xsystrace=0,\"digrf=0;bb_sw=1;3g_sw=1\",\"digrf=0x00\",\"oct=4\"\r\n");
                                 android.os.SystemClock.sleep(2000);
                             } else if (((CompoundButton) button_trace_ma_artemis_digrf_coredump).isChecked()) {
                                 /*Enable OCT port*/
@@ -117,7 +117,7 @@ public class Trace_in_coredumpActivity extends Activity {
                                 /*Enable MA and Artemis traces*/
                                 writeSimple("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
                                 android.os.SystemClock.sleep(1000);
-                                writeSimple("/dev/gsmtty1","at+xsystrace=1,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
+                                writeSimple("/dev/gsmtty1","at+xsystrace=0,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
                                 android.os.SystemClock.sleep(2000);
                             }  else { /*Button None checked*/
                                 /*Enable usb port*/
