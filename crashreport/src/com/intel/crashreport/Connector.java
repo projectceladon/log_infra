@@ -249,13 +249,17 @@ public class Connector {
 				if (wifiWaitForConnect) {
 					Log.d("Connector: Supplicant state Changed");
 					SupplicantState supState =  intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
-					if (supState.equals(SupplicantState.COMPLETED)) {
-						Log.d("Connector: Supplicant state OK :" + supState.toString());
-						serviceHandler.removeCallbacks(checkWifiStateToConnect);
-						serviceHandler.postDelayed(checkWifiStateToConnect, 500);
-						wifiWaitForConnect = false;
+					if (supState != null) {
+						if (supState.equals(SupplicantState.COMPLETED)) {
+							Log.d("Connector: Supplicant state OK :" + supState.toString());
+							serviceHandler.removeCallbacks(checkWifiStateToConnect);
+							serviceHandler.postDelayed(checkWifiStateToConnect, 500);
+							wifiWaitForConnect = false;
+						} else {
+							Log.d("Connector: Supplicant state :" + supState.toString());
+						}
 					} else {
-						Log.d("Connector: Supplicant state :" + supState.toString());
+						Log.w("Connector: supState = NULL");
 					}
 				}
 			}
@@ -343,35 +347,37 @@ public class Connector {
 				Log.d("Connector:checkWifiState: WIFI_STATE_ENABLED");
 				setTryingToConnect(true);
 				NetworkInfo nInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-				NetworkInfo.State nState = nInfo.getState();
-				if (nState == NetworkInfo.State.CONNECTED) {
-					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTED");
-					setTryingToConnect(false);
-					scanInProgress = false;
-					wifiWaitForConnect = false;
-					mCtx.unregisterReceiver(wifiStateReceiver);
-					mTimer.cancel();
-					serviceHandler.sendEmptyMessage(ServiceMsg.wifiConnectedInternal);
-				} else if (nState == NetworkInfo.State.CONNECTING) {
-					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTING");
-					scanInProgress = true;
-					serviceHandler.postDelayed(checkWifiStateToConnect, 10);
-				} else if (nState == NetworkInfo.State.DISCONNECTED) {
-					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTED");
-					scanInProgress = true;
-					wm.startScan();
-				} else if (nState == NetworkInfo.State.DISCONNECTING) {
-					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTING");
-					scanInProgress = true;
-					wm.startScan();
-				} else if (nState == NetworkInfo.State.SUSPENDED) {
-					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE SUSPENDED");
-					scanInProgress = true;
-					wm.startScan();
-				} else if (nState == NetworkInfo.State.UNKNOWN) {
-					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE UNKNOWN");
-					scanInProgress = true;
-					wm.startScan();
+				if (nInfo != null) {
+					NetworkInfo.State nState = nInfo.getState();
+					if (nState == NetworkInfo.State.CONNECTED) {
+						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTED");
+						setTryingToConnect(false);
+						scanInProgress = false;
+						wifiWaitForConnect = false;
+						mCtx.unregisterReceiver(wifiStateReceiver);
+						mTimer.cancel();
+						serviceHandler.sendEmptyMessage(ServiceMsg.wifiConnectedInternal);
+					} else if (nState == NetworkInfo.State.CONNECTING) {
+						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTING");
+						scanInProgress = true;
+						serviceHandler.postDelayed(checkWifiStateToConnect, 10);
+					} else if (nState == NetworkInfo.State.DISCONNECTED) {
+						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTED");
+						scanInProgress = true;
+						wm.startScan();
+					} else if (nState == NetworkInfo.State.DISCONNECTING) {
+						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTING");
+						scanInProgress = true;
+						wm.startScan();
+					} else if (nState == NetworkInfo.State.SUSPENDED) {
+						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE SUSPENDED");
+						scanInProgress = true;
+						wm.startScan();
+					} else if (nState == NetworkInfo.State.UNKNOWN) {
+						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE UNKNOWN");
+						scanInProgress = true;
+						wm.startScan();
+					}
 				}
 				break;
 			}
@@ -494,9 +500,11 @@ public class Connector {
 	private WifiConfiguration getWifiConfigFromConfiguredNetworks(String wifiSsid) {
 		wifiSsid = "\"".concat(wifiSsid).concat("\"");
 		List<WifiConfiguration> mWifiConfigs = wm.getConfiguredNetworks();
-		for (WifiConfiguration config : mWifiConfigs) {
-			if (config.SSID.equals(wifiSsid)) {
-				return config;
+		if (mWifiConfigs != null) {
+			for (WifiConfiguration config : mWifiConfigs) {
+				if (config.SSID.equals(wifiSsid)) {
+					return config;
+				}
 			}
 		}
 		return null;

@@ -42,7 +42,7 @@ public class HistoryEventFile {
 
 		while(scanner.hasNext()){
 			line = scanner.nextLine();
-			if (line.charAt(0) != '#') {
+			if ((line != null) && (line.charAt(0) != '#')) {
 				return line;
 			}
 		}

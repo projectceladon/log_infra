@@ -67,12 +67,17 @@ public class CrashReportService extends Service {
 			handlerThread = new HandlerThread("CrashReportService_Thread");
 			handlerThread.start();
 			while(!handlerThread.isAlive()) {};
-			serviceHandler = new ServiceHandler(handlerThread.getLooper());
-			app.setServiceStarted(true);
-			this.serviceState = ServiceState.Init;
-			logger.clearLog();
-			if (!intent.getBooleanExtra("fromActivity", false))
-				this.serviceHandler.sendEmptyMessageDelayed(ServiceMsg.startProcessEvents, 100);
+			Looper handlerThreadLooper = handlerThread.getLooper();
+			if (handlerThreadLooper != null) {
+				serviceHandler = new ServiceHandler(handlerThreadLooper);
+				app.setServiceStarted(true);
+				this.serviceState = ServiceState.Init;
+				logger.clearLog();
+				if (!intent.getBooleanExtra("fromActivity", false))
+					this.serviceHandler.sendEmptyMessageDelayed(ServiceMsg.startProcessEvents, 100);
+			} else {
+				stopService();
+			}
 		}
 		return START_NOT_STICKY;
 	}

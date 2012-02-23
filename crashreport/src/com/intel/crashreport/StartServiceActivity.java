@@ -62,10 +62,12 @@ public class StartServiceActivity extends Activity {
 		app = (CrashReport)getApplicationContext();
 		appPrefs = new ApplicationPreferences(getApplicationContext());
 		text = (TextView) findViewById(R.id.logTextView);
-		if (savedInstanceState != null)
-			text.setText(savedInstanceState.getString("textLogger"));
-		else
-			text.setText("");
+		if (text != null) {
+			if (savedInstanceState != null)
+				text.setText(savedInstanceState.getString("textLogger"));
+			else
+				text.setText("");
+		}
 		if (!app.isServiceStarted()) {
 			needToStartService = true;
 			startService();

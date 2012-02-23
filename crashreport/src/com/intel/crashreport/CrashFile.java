@@ -56,8 +56,11 @@ public class CrashFile {
 
 	private void fillCrashFile(File crashFile) throws FileNotFoundException {
 		Scanner scan = new Scanner(crashFile);
+		String field;
 		while(scan.hasNext()) {
-			fillField(scan.nextLine());
+			field = scan.nextLine();
+			if (field != null)
+				fillField(field);
 		}
 	}
 
