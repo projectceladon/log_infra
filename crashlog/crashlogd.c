@@ -68,6 +68,7 @@
 #define SYS_PROP "/system/build.prop"
 #define SAVEDLINES  1
 #define MAX_RECORDS 5000
+#define MAX_DIR 1000
 #define HISTORY_FILE_DIR  "/data/logs"
 #define HISTORY_CORE_DIR  "/data/logs/core"
 #define APLOG_FILE_0        "/data/logs/aplog"
@@ -422,21 +423,14 @@ static void compute_key(char* key, char *event, char *type)
 	*tmp_key=0;
 }
 
-static void run_command(char* cmd)
-{
-	int status = system(cmd);
-	if (status != 0)
-		LOGI("command: %20s the status: %d.\n",cmd, status);
-}
-
 static void backup_apcoredump(unsigned int dir, char* name, char* path)
 {
 	char cmd[512] = { '\0', };
 
-	snprintf(cmd, sizeof(cmd), "tar zcf %s%d/\"%s.tar.gz\" \"%s\"", CRASH_DIR, dir, name, path);
-	run_command(cmd);
-	snprintf(cmd, sizeof(cmd), "rm \"%s\"", path);
-	run_command(cmd);
+	snprintf(cmd, sizeof(cmd)-1, "tar zcf %s%d/\"%s.tar.gz\" \"%s\" && rm \"%s\"", CRASH_DIR, dir, name, path, path);
+	int status = system(cmd);
+	if (status != 0)
+		LOGE("backup ap core dump status: %d.\n",status);
 }
 
 static void analyze_crash(char* type, char* path, char* key, char* uptime)
@@ -446,13 +440,17 @@ static void analyze_crash(char* type, char* path, char* key, char* uptime)
 
 	property_get(IMEI_FIELD, imei, "");
 
-	snprintf(cmd, sizeof(cmd), "/system/bin/analyze_crash %s %s %s %s %s mfld_pr2 %s", type, path, key, uptime, buildVersion, imei);
-	run_command(cmd);
+	snprintf(cmd, sizeof(cmd)-1, "/system/bin/analyze_crash %s %s %s %s %s mfld_pr2 %s", type, path, key, uptime, buildVersion, imei);
+	int status = system(cmd);
+	if (status != 0)
+		LOGE("analyze crash status: %d.\n", status);
 }
 
 static void notify_crashreport()
 {
-	run_command("am broadcast -n com.intel.crashreport/.NotificationReceiver -a com.intel.crashreport.intent.CRASH_NOTIFY -c android.intent.category.ALTERNATIVE");
+	int status = system("am broadcast -n com.intel.crashreport/.NotificationReceiver -a com.intel.crashreport.intent.CRASH_NOTIFY -c android.intent.category.ALTERNATIVE");
+	if (status != 0)
+		LOGI("notify crashreport status: %d.\n", status);
 }
 
 static void history_file_write(char *event, char *type, char *subtype, char *log, char* lastuptime)
@@ -639,8 +637,11 @@ static unsigned int find_crash_dir(unsigned int max)
 	snprintf(path, sizeof(path), CURRENT_LOG);
 	if ((!stat(path, &sb))) {
 		fd = fopen(path, "r");
-		fscanf(fd, "%d", &i);
+		if (fscanf(fd, "%d", &i)==EOF) {
+			i = 0;
+		}
 		fclose(fd);
+		i = i % MAX_DIR;
 		oldest = i++;
 		fd = fopen(path, "w");
 		fprintf(fd, "%d", (i % max));
@@ -842,8 +843,10 @@ static int do_crashlogd(unsigned int files)
 						else if(strstr(event->name, wd_array[i].cmp) && strstr(event->name, "mpanic.txt" )){
 							dir = find_crash_dir(files);
 							snprintf(destion,sizeof(destion),"%s%d", CRASH_DIR,dir);
-							snprintf(cmd, sizeof(cmd),"cp %s/cd*.tar.gz %s/ && rm %s/cd*.tar.gz",wd_array[i].filename,destion,wd_array[i].filename);
-							run_command(cmd);
+							snprintf(cmd, sizeof(cmd)-1,"cp %s/cd*.tar.gz %s/ && rm %s/cd*.tar.gz",wd_array[i].filename,destion,wd_array[i].filename);
+							int status = system(cmd);
+							if (status != 0)
+								LOGE("backup modem core dump status: %d.\n", status);
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
 							do_copy(path, destion, 0);
@@ -1171,12 +1174,12 @@ static void read_startupreason(char *startupreason)
 
 	if (stat(KERNEL_CMDLINE, &info) == 0) {
 		fd = fopen(KERNEL_CMDLINE, "r");
-		fread(cmdline, sizeof(cmdline), 512, fd);
+		fread(cmdline, 1, sizeof(cmdline)-1, fd);
 		fclose(fd);
 		p = strstr(cmdline, STARTUP_STR);
 		if(p) {
 			reason=atoi(p+strlen(STARTUP_STR));
-			if (reason <= sizeof(bootmode_reason))
+			if (reason < (sizeof(bootmode_reason)/sizeof(char*)))
 				strcpy(startupreason, bootmode_reason[reason]);
 		}
 	}
