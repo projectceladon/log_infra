@@ -24,7 +24,10 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * Bean Event
+ * Bean Event, used to transmit event data between a client and a server
+ *
+ * Be aware that bean is used by CLOTA and MPTA, do not rename package and class
+ * name for down ward.
  *
  * @author mauretx
  *
@@ -33,6 +36,11 @@ public class Event implements Serializable {
 
 	private static final long serialVersionUID = -1516767267932884874L;
 
+	public enum Origin {
+		CLOTA, MPTA
+	}
+
+	private Long id;
 	private String eventId;
 	private String event;
 	private String type;
@@ -43,6 +51,7 @@ public class Event implements Serializable {
 	private String data4;
 	private String data5;
 	private Date date;
+	@Deprecated
 	private String buildId;
 	private String deviceId;
 	private String testId;
@@ -50,7 +59,274 @@ public class Event implements Serializable {
 	private String logFileName;
 	private File logFile;
 	private String imei;
+	private String origin;
+	private String fileOrigin;
+	private Date insertedEventDate;
+	private Date insertedFileDate;
 
+	private Build build;
+	private Device device;
+	private Uptime uptimeObj;
+
+	public Event() {
+		super();
+	}
+
+	/**
+	 * Constructor used for CLOTA without IMEI
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param date
+	 * @param buildId
+	 * @param deviceId
+	 * @param uptime
+	 */
+	@Deprecated
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, Date date, String buildId,
+			String deviceId, long uptime) {
+
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null);
+	}
+
+	/**
+	 * Instantiate an event used by CLOTA with IMEI and data3-5
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param buildId
+	 * @param deviceId
+	 * @param imei
+	 * @param uptime
+	 */
+	@Deprecated
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3,
+			String data4, String data5, Date date, String buildId,
+			String deviceId, String imei, long uptime) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null);
+	}
+
+	/**
+	 * Instantiate an event used by CLOTA with IMEI and data3-5 and buildObject
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param deviceId
+	 * @param imei
+	 * @param uptime
+	 * @param build
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3,
+			String data4, String data5, Date date,
+			String deviceId, String imei, long uptime, Build build) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build);
+	}
+
+	/**
+	 * Instantiate an event used by MPTA 2.4
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param date
+	 * @param buildId
+	 * @param deviceId
+	 * @param uptime
+	 * @param logFile
+	 */
+	@Deprecated
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, Date date, String buildId,
+			String deviceId, long uptime, File logFile) {
+
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null);
+	}
+
+	/**
+	 * Instantiate an event used by MPTA 2.4.1
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param buildId
+	 * @param deviceId
+	 * @param uptime
+	 * @param logFile
+	 */
+	@Deprecated
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date, String buildId, String deviceId,
+			long uptime, File logFile) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null);
+	}
+
+	/**
+	 * Instantiate an event used by MPTA 2.4.1 to 2.4.3
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param buildId
+	 * @param deviceId
+	 * @param imei
+	 * @param uptime
+	 * @param logFile
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date, String buildId, String deviceId, String imei,
+			long uptime, File logFile) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null);
+	}
+
+	/**
+	 * Instantiate an event used by MPTA above 2.4.4
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param deviceId
+	 * @param imei
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date, String deviceId, String imei,
+			long uptime, File logFile, Build build) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build);
+	}
+
+	/**
+	 * Instantiate an event
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param buildId
+	 * @param deviceId
+	 * @param imei
+	 * @param testId
+	 * @param uptime
+	 * @param logFile
+	 */
+	private Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date, String buildId, String deviceId, String imei,
+			String testId, long uptime, File logFile, Build build) {
+
+		this.eventId = eventId;
+		this.event = event;
+		this.type = type;
+		this.data0 = data0;
+		this.data1 = data1;
+		this.data2 = data2;
+		this.date = date;
+		this.buildId = buildId;
+		this.deviceId = deviceId;
+		this.imei = imei;
+		this.uptime = uptime;
+		this.logFile = logFile;
+
+		if (this.logFile != null) {
+			this.logFileName = logFile.getName();
+		}
+
+		this.data3 = data3;
+		this.data4 = data4;
+		this.data5 = data5;
+		this.testId = testId;
+		this.build = build;
+	}
+
+	/**
+	 * @return the id
+	 */
+	public Long getId() {
+		return id;
+	}
+
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	/**
+	 * @return the origin
+	 */
+	public String getOrigin() {
+		return origin;
+	}
+
+	/**
+	 * @param origin the origin to set
+	 */
+	public void setOrigin(Origin value) {
+		this.origin = value.name();
+	}
 
 	public String getImei() {
 		return imei;
@@ -151,10 +427,20 @@ public class Event implements Serializable {
 		this.date = date;
 	}
 
+	/**
+	 * deprecated, should use getBuild().getBuildId() instead
+	 * @return
+	 */
+	@Deprecated
 	public String getBuildId() {
 		return buildId;
 	}
 
+	/**
+	 * deprecated, should use getBuild().setBuildId() instead
+	 * @return
+	 */
+	@Deprecated
 	public void setBuildId(String buildId) {
 		this.buildId = buildId;
 	}
@@ -183,9 +469,7 @@ public class Event implements Serializable {
 		this.logFileName = logFileName;
 	}
 
-	public Event() {
-		super();
-	}
+
 
 	public String getTestId() {
 		return testId;
@@ -195,186 +479,126 @@ public class Event implements Serializable {
 		this.testId = testId;
 	}
 
+	/**
+	 * @return the fileOrigin
+	 */
+	public String getFileOrigin() {
+		return fileOrigin;
+	}
+
+	/**
+	 * @param fileOrigin the fileOrigin to set
+	 */
+	public void setFileOrigin(Origin fileOrigin) {
+		this.fileOrigin = fileOrigin.name();
+	}
+
+	/**
+	 * @return the insertedEventDate
+	 */
+	public Date getInsertedEventDate() {
+		return insertedEventDate;
+	}
+
+	/**
+	 * @param insertedEventDate the insertedEventDate to set
+	 */
+	public void setInsertedEventDate(Date insertedEventDate) {
+		this.insertedEventDate = insertedEventDate;
+	}
+
+	/**
+	 * @return the insertedFileDate
+	 */
+	public Date getInsertedFileDate() {
+		return insertedFileDate;
+	}
+
+	/**
+	 * @param insertedFileDate the insertedFileDate to set
+	 */
+	public void setInsertedFileDate(Date insertedFileDate) {
+		this.insertedFileDate = insertedFileDate;
+	}
+
+
+	/**
+	 * @param origin the origin to set
+	 */
+	public void setOrigin(String origin) {
+		this.origin = origin;
+	}
+
+	/**
+	 * @param fileOrigin the fileOrigin to set
+	 */
+	public void setFileOrigin(String fileOrigin) {
+		this.fileOrigin = fileOrigin;
+	}
+
+	/**
+	 * @return the build
+	 */
+	public Build getBuild() {
+		// used for backwork compatibility
+		if (build == null) {
+			build = new Build(this.getBuildId());
+		}
+		return build;
+	}
+
+	/**
+	 * @param build the build to set
+	 */
+	public void setBuild(Build build) {
+		this.build = build;
+	}
+
+	/**
+	 * @return the device
+	 */
+	public Device getDevice() {
+
+		// used for backwork compatibility
+		if (device == null) {
+			device = new Device(this.getDeviceId(), this.getImei());
+		}
+		return device;
+	}
+
+	/**
+	 * @param device the device to set
+	 */
+	public void setDevice(Device device) {
+		this.device = device;
+	}
+
+	/**
+	 * @return the uptimeObj
+	 */
+	public Uptime getUptimeObj() {
+		return uptimeObj;
+	}
+
+	/**
+	 * @param uptimeObj the uptimeObj to set
+	 */
+	public void setUptimeObj(Uptime uptimeObj) {
+		this.uptimeObj = uptimeObj;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	@Override
 	public String toString() {
-		return "Event [eventId=" + eventId + ", event=" + event + ", type="
-				+ type + ", data0=" + data0 + ", data1=" + data1 + ", data2="
-				+ data2 + ", data3=" + data3 + ", data4=" + data4 + ", data5="
-				+ data5 + ", date=" + date + ", buildId=" + buildId
-				+ ", deviceId=" + deviceId + ", testId=" + testId + ", uptime="
-				+ uptime + ", logFileName=" + logFileName + ", logFile="
-				+ logFile + ", imei=" + imei + "]";
-	}
-
-	/**
-	 * Constructor used for CLOTA without imei
-	 * @param eventId
-	 * @param event
-	 * @param type
-	 * @param data0
-	 * @param data1
-	 * @param data2
-	 * @param date
-	 * @param buildId
-	 * @param deviceId
-	 * @param uptime
-	 */
-	@Deprecated
-	public Event(String eventId, String event, String type, String data0,
-			String data1, String data2, Date date, String buildId,
-			String deviceId, long uptime) {
-
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null);
-	}
-
-	/**
-	 * Constructor used for CLOTA with imei and data3-5
-	 *
-	 * @param eventId
-	 * @param event
-	 * @param type
-	 * @param data0
-	 * @param data1
-	 * @param data2
-	 * @param data3
-	 * @param data4
-	 * @param data5
-	 * @param date
-	 * @param buildId
-	 * @param deviceId
-	 * @param imei
-	 * @param uptime
-	 */
-	public Event(String eventId, String event, String type, String data0,
-			String data1, String data2, String data3,
-			String data4, String data5, Date date, String buildId,
-			String deviceId, String imei, long uptime) {
-
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null);
-	}
-
-	/**
-	 * Constructor used for MPTA 2.4
-	 *
-	 * @param eventId
-	 * @param event
-	 * @param type
-	 * @param data0
-	 * @param data1
-	 * @param data2
-	 * @param date
-	 * @param buildId
-	 * @param deviceId
-	 * @param uptime
-	 * @param logFile
-	 */
-	@Deprecated
-	public Event(String eventId, String event, String type, String data0,
-			String data1, String data2, Date date, String buildId,
-			String deviceId, long uptime, File logFile) {
-
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile);
-	}
-
-	/**
-	 * Constructor used for MPTA 2.4.1
-	 *
-	 * @param eventId
-	 * @param event
-	 * @param type
-	 * @param data0
-	 * @param data1
-	 * @param data2
-	 * @param data3
-	 * @param data4
-	 * @param data5
-	 * @param date
-	 * @param buildId
-	 * @param deviceId
-	 * @param uptime
-	 * @param logFile
-	 */
-	@Deprecated
-	public Event(String eventId, String event, String type, String data0,
-			String data1, String data2, String data3, String data4,
-			String data5, Date date, String buildId, String deviceId,
-			long uptime, File logFile) {
-
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile);
-	}
-
-	/**
-	 * Constructor used for MPTA above 2.4.1
-	 *
-	 * @param eventId
-	 * @param event
-	 * @param type
-	 * @param data0
-	 * @param data1
-	 * @param data2
-	 * @param data3
-	 * @param data4
-	 * @param data5
-	 * @param date
-	 * @param buildId
-	 * @param deviceId
-	 * @param imei
-	 * @param uptime
-	 * @param logFile
-	 */
-	public Event(String eventId, String event, String type, String data0,
-			String data1, String data2, String data3, String data4,
-			String data5, Date date, String buildId, String deviceId, String imei,
-			long uptime, File logFile) {
-
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile);
-	}
-
-	/**
-	 * Constructor used for ACS
-	 *
-	 * @param eventId
-	 * @param event
-	 * @param type
-	 * @param data0
-	 * @param data1
-	 * @param data2
-	 * @param data3
-	 * @param data4
-	 * @param data5
-	 * @param date
-	 * @param buildId
-	 * @param deviceId
-	 * @param imei
-	 * @param testId
-	 * @param uptime
-	 * @param logFile
-	 */
-	public Event(String eventId, String event, String type, String data0,
-			String data1, String data2, String data3, String data4,
-			String data5, Date date, String buildId, String deviceId, String imei,
-			String testId, long uptime, File logFile) {
-
-		this.eventId = eventId;
-		this.event = event;
-		this.type = type;
-		this.data0 = data0;
-		this.data1 = data1;
-		this.data2 = data2;
-		this.date = date;
-		this.buildId = buildId;
-		this.deviceId = deviceId;
-		this.imei = imei;
-		this.uptime = uptime;
-		this.logFile = logFile;
-
-		if (this.logFile != null) {
-			this.logFileName = logFile.getName();
-		}
-
-		this.data3 = data3;
-		this.data4 = data4;
-		this.data5 = data5;
-		this.testId = testId;
+		return "Event [eventId=" + eventId + ", event=" + event + ", type=" + type + ", data0="
+				+ data0 + ", data1=" + data1 + ", data2=" + data2 + ", data3=" + data3 + ", data4="
+				+ data4 + ", data5=" + data5 + ", date=" + date + ", buildId=" + buildId
+				+ ", deviceId=" + deviceId + ", testId=" + testId + ", uptime=" + uptime
+				+ ", logFileName=" + logFileName + ", logFile=" + logFile + ", imei=" + imei
+				+ ", origin=" + origin + ", fileOrigin=" + fileOrigin + ", insertedEventDate="
+				+ insertedEventDate + ", insertedFileDate=" + insertedFileDate + ", build=" + build
+				+ "]";
 	}
 }

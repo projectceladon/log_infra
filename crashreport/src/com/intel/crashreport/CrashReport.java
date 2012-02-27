@@ -30,6 +30,7 @@ public class CrashReport extends Application {
 	private Boolean tryingToConnect = false;
 	private Boolean activityBounded = false;
 	private Boolean wifiOnly = false;
+	private Build myBuild;
 
 	public void onCreate() {
 		super.onCreate();
@@ -71,5 +72,12 @@ public class CrashReport extends Application {
 	}
 	public void setWifiOnly(Boolean s) {
 		wifiOnly = s;
+	}
+
+	public void setMyBuild(Build myBuild) {
+		this.myBuild = myBuild;
+	}
+	public Build getMyBuild() {
+		return myBuild;
 	}
 }

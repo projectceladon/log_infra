@@ -80,6 +80,9 @@ public class CrashReportService extends Service {
 				app.setServiceStarted(true);
 				this.serviceState = ServiceState.Init;
 				logger.clearLog();
+				Build myBuild = new Build();
+				myBuild.fillBuildWithSystem();
+				app.setMyBuild(myBuild);
 				if (!intent.getBooleanExtra("fromActivity", false))
 					this.serviceHandler.sendEmptyMessageDelayed(ServiceMsg.startProcessEvents, 100);
 			} else {
@@ -121,9 +124,11 @@ public class CrashReportService extends Service {
 		HistoryEventFile histFile;
 		String histEventLine;
 		EventDB db;
+		String myBuild;
 
 		public void run() {
 			db = new EventDB(getApplicationContext());
+			myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
 			try {
 				db.open();
 				histFile = new HistoryEventFile();
@@ -132,7 +137,7 @@ public class CrashReportService extends Service {
 					if (histEventLine.length() != 0) {
 						HistoryEvent histEvent = new HistoryEvent(histEventLine);
 						if (histEvent.getEventId().replaceAll("0", "").length() != 0) {
-							Event event = new Event(histEvent);
+							Event event = new Event(histEvent, myBuild);
 							if (!db.isEventInDb(event.getEventId())) {
 								long ret = db.addEvent(event);
 								if (ret == -1)
@@ -345,9 +350,11 @@ public class CrashReportService extends Service {
 		FileInfo fileInfo;
 		File crashLogs;
 		String dayDate;
+		Build myBuild;
 
 		public void run() {
 			context = getApplicationContext();
+			myBuild = ((CrashReport) context).getMyBuild();
 			prefs = new ApplicationPreferences(context);
 			db = new EventDB(context);
 			con = new Connector(context, serviceHandler);
@@ -368,7 +375,8 @@ public class CrashReportService extends Service {
 								if (runThread.isInterrupted())
 									throw new InterruptedException();
 								event = db.fillEventFromCursor(cursor);
-								if (con.sendEvent(event)) {
+								com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild);
+								if (con.sendEvent(sEvent)) {
 									db.updateEventToUploaded(event.getEventId());
 									Log.d("Service:uploadEvent : Success upload of " + event);
 									cursor.moveToNext();
@@ -385,7 +393,7 @@ public class CrashReportService extends Service {
 						if (prefs.isCrashLogsUploadEnable()) {
 							crashTypes = prefs.getCrashLogsUploadTypes();
 							cursor = db.fetchNotUploadedLogs(crashTypes);
-							if (cursor != null) {
+							if ((cursor != null) && (cursor.getCount() != 0)) {
 								nMgr = new NotificationMgr(context);
 								nMgr.notifyUploadingLogs(cursor.getCount());
 								while (!cursor.isAfterLast()) {

@@ -92,20 +92,20 @@ public class Event {
 		this.crashDir = crashDir;
 	}
 
-	public Event(HistoryEvent histEvent) {
-		fillEvent(histEvent);
+	public Event(HistoryEvent histEvent, String myBuild) {
+		fillEvent(histEvent, myBuild);
 	}
 
-	private void fillEvent(HistoryEvent histEvent) {
+	private void fillEvent(HistoryEvent histEvent, String myBuild) {
 		if (histEvent.getEventName().equals("CRASH"))
-			fillCrashEvent(histEvent);
+			fillCrashEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("REBOOT"))
-			fillRebootEvent(histEvent);
+			fillRebootEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("UPTIME"))
-			fillUptimeEvent(histEvent);
+			fillUptimeEvent(histEvent, myBuild);
 	}
 
-	private void fillCrashEvent(HistoryEvent histevent) {
+	private void fillCrashEvent(HistoryEvent histevent, String myBuild) {
 		crashDir = histevent.getOption();
 		try {
 			CrashFile crashFile = new CrashFile(crashDir);
@@ -119,7 +119,7 @@ public class Event {
 			data4 = crashFile.getData4();
 			data5 = crashFile.getData5();
 			date = convertDate(histevent.getDate());
-			buildId = crashFile.getBuildId();
+			buildId = myBuild;
 			deviceId = crashFile.getSn();
 			setImei(crashFile.getImei());
 			uptime = crashFile.getUptime();
@@ -128,32 +128,50 @@ public class Event {
 			eventName = histevent.getEventName();
 			type = histevent.getType();
 			date = convertDate(histevent.getDate());
-			buildId = android.os.Build.VERSION.INCREMENTAL;
+			buildId = myBuild.toString();
 			readDeviceIdFromFile();
 			imei = readImeiFromSystem();
 			Log.w(toString() + ", Crashfile not found, path: " + crashDir);
 		}
 	}
 
-	private void fillRebootEvent(HistoryEvent histevent) {
+	private void fillRebootEvent(HistoryEvent histevent, String myBuild) {
 		eventId = histevent.getEventId();
 		eventName = histevent.getEventName();
 		type = histevent.getType();
 		date = convertDate(histevent.getDate());
-		buildId = android.os.Build.VERSION.INCREMENTAL;
+		buildId = myBuild;
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
 		uptime = histevent.getOption();
 	}
 
-	private void fillUptimeEvent(HistoryEvent histevent) {
+	private void fillUptimeEvent(HistoryEvent histevent, String myBuild) {
 		eventId = histevent.getEventId();
 		eventName = histevent.getEventName();
 		date = convertDate(histevent.getDate());
-		buildId = android.os.Build.VERSION.INCREMENTAL;
+		buildId = myBuild;
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
 		uptime = histevent.getType();
+	}
+
+	public com.intel.crashtoolserver.bean.Event getEventForServer(Build build) {
+		com.intel.crashtoolserver.bean.Event event;
+		long sUptime = convertUptime(this.uptime);
+		Build mBuild;
+		if (this.buildId.contentEquals(build.toString()))
+			mBuild = build;
+		else {
+			mBuild = new Build(this.buildId);
+			if (mBuild.getBuildId().contentEquals(""))
+				mBuild = build;
+		}
+		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
+		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
+				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
+				this.date, this.deviceId, this.imei, sUptime, sBuild);
+		return event;
 	}
 
 	public String toString() {

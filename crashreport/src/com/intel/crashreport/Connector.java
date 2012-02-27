@@ -31,9 +31,6 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,6 +50,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 
 import com.intel.crashreport.CrashReportService.ServiceMsg;
+import com.intel.crashtoolserver.bean.Event;
 import com.intel.crashtoolserver.bean.FileInfo;
 
 public class Connector {
@@ -546,27 +544,9 @@ public class Connector {
 	};
 
 	private Boolean sendEventSocket(Event event) {
-		long uptime = Event.convertUptime(event.getUptime());
-
-		com.intel.crashtoolserver.bean.Event sEvent = new com.intel.crashtoolserver.bean.Event(
-				event.getEventId(),
-				event.getEventName(),
-				event.getType(),
-				event.getData0(),
-				event.getData1(),
-				event.getData2(),
-				event.getData3(),
-				event.getData4(),
-				event.getData5(),
-				event.getDate(),
-				event.getBuildId(),
-				event.getDeviceId(),
-				event.getImei(),
-				uptime);
-
 		String serverMsg;
 		try {
-			mObjectOutputStream.writeObject(sEvent);
+			mObjectOutputStream.writeObject(event);
 			serverMsg = mInputStream.readLine();
 			if (checkAck(serverMsg))
 				return true;
