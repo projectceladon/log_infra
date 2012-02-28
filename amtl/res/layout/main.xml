@@ -4,46 +4,39 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/mts_button"
+    <ToggleButton
+        android:id="@+id/modem_coredump_btn"
         android:layout_width="match_parent"
-        android:layout_height="100px"
-        android:text="@string/modem_trace_server_button" />
+        android:layout_marginTop="40px"
+        android:layout_height="200px"
+        android:paddingBottom="50px"
+        android:textColor="#000000"
+        android:textOn="@string/main_coredump_button"
+        android:textOff="@string/main_coredump_button"
+        android:background="@drawable/coredump_btn"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <View
-        android:id="@+id/View01"
-        android:layout_width="wrap_content"
-        android:layout_height="4px"
-        android:background="#C0C0C0" />
-
-    <Button
-        android:id="@+id/usb_button"
+    <ToggleButton
+        android:id="@+id/ape_log_file_btn"
         android:layout_width="match_parent"
-        android:layout_height="100px"
-        android:text="@string/usbswitch_button" />
+        android:layout_marginTop="40px"
+        android:layout_height="200px"
+        android:paddingBottom="50px"
+        android:textColor="#000000"
+        android:textOn="@string/main_ape_log_file_button"
+        android:textOff="@string/main_ape_log_file_button"
+        android:background="@drawable/ape_log_btn"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <View
-        android:id="@+id/View02"
-        android:layout_width="wrap_content"
-        android:layout_height="4px"
-        android:background="#C0C0C0" />
-
-    <Button
-        android:id="@+id/toggle_button"
+    <ToggleButton
+        android:id="@+id/disable_modem_trace_btn"
         android:layout_width="match_parent"
-        android:layout_height="100px"
-        android:text="@string/toggle_pin_button" />
-
-    <View
-        android:id="@+id/View03"
-        android:layout_width="wrap_content"
-        android:layout_height="4px"
-        android:background="#C0C0C0" />
-
-    <Button
-        android:id="@+id/coredump_button"
-        android:layout_width="match_parent"
-        android:layout_height="100px"
-        android:text="@string/traces_coredump_button" />
-
+        android:layout_marginTop="40px"
+        android:layout_height="200px"
+        android:paddingBottom="50px"
+        android:textColor="#000000"
+        android:textOn="@string/main_disable_button"
+        android:textOff="@string/main_disable_button"
+        android:background="@drawable/no_trace_btn"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 </LinearLayout>

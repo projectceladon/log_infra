@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:fillViewport="true" >
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_trace_location_txt"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+        <RadioGroup
+            android:id="@+id/trace_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150px"
+            android:orientation="vertical" >
+            <RadioButton
+                android:id="@+id/settings_location_emmc_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_location_emmc_button" />
+            <RadioButton
+                android:id="@+id/settings_location_sdcard_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_location_sdcard_button" />
+            <RadioButton
+                android:id="@+id/settings_location_coredump_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_location_coredump_button" />
+            <RadioButton
+                android:id="@+id/settings_location_usb_ape_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_location_usb_ape_button" />
+            <RadioButton
+                android:id="@+id/settings_location_usb_modem_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_location_usb_modem_button" />
+            <RadioButton
+                android:id="@+id/settings_location_not_enable_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:visibility="gone" />
+        </RadioGroup>
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="wrap_content"
+            android:layout_height="2px"
+            android:background="#C0C0C0" />
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_trace_level_txt"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+        <RadioGroup
+            android:id="@+id/trace_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150px"
+            android:orientation="vertical" >
+            <RadioButton
+                android:id="@+id/settings_level_bb_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_level_bb_button" />
+            <RadioButton
+                android:id="@+id/settings_level_bb_3g_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_level_bb_3g_button" />
+            <RadioButton
+                android:id="@+id/settings_level_bb_3g_digrf_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_level_bb_3g_digrf_button" />
+            <RadioButton
+                android:id="@+id/settings_level_no_trace_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:visibility="gone" />
+        </RadioGroup>
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="wrap_content"
+            android:layout_height="2px"
+            android:background="#C0C0C0" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_trace_size_txt"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+        <RadioGroup
+            android:id="@+id/trace_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150px"
+            android:orientation="vertical" >
+            <RadioButton
+                android:id="@+id/settings_trace_size_100_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_trace_size_100_button" />
+            <RadioButton
+                android:id="@+id/settings_trace_size_800_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_trace_size_800_button" />
+            <RadioButton
+                android:id="@+id/settings_trace_size_disable_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:visibility="gone" />
+        </RadioGroup>
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="wrap_content"
+            android:layout_height="2px"
+            android:background="#C0C0C0" />
+
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_hsi_frequencies_txt"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+        <RadioGroup
+            android:id="@+id/hsi_frequencies"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="150px"
+            android:orientation="vertical" >
+            <RadioButton
+                android:id="@+id/settings_hsi_frequencies_78_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_hsi_frequencies_78_button" />
+            <RadioButton
+                android:id="@+id/settings_hsi_frequencies_156_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_hsi_frequencies_156_button" />
+            <RadioButton
+                android:id="@+id/settings_hsi_frequencies_coredump_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:visibility="gone" />
+            <RadioButton
+                android:id="@+id/settings_hsi_frequencies_disable_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:enabled="false"
+                android:visibility="gone" />
+        </RadioGroup>
+
+        <TableLayout
+            android:id="@+id/TableLayoutActivate"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20px"
+            android:stretchColumns="0" >
+            <TableRow
+                android:id="@+id/TableRowActivate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/textView5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_activate_txt"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+                <CheckBox
+                    android:id="@+id/activate_checkBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </TableRow>
+        </TableLayout>
+
+        <View
+            android:id="@+id/view1"
+            android:layout_width="wrap_content"
+            android:layout_height="4px"
+            android:layout_marginTop="20px"
+            android:layout_marginBottom="20px"
+            android:background="#C0C0C0" />
+        <TableLayout
+            android:id="@+id/TableLayoutMux"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="0" >
+            <TableRow
+                android:id="@+id/TableRowMux"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/textView6"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_mux_txt"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
+                <CheckBox
+                    android:id="@+id/mux_checkBox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </TableRow>
+        </TableLayout>
+    </LinearLayout>
+</ScrollView>
