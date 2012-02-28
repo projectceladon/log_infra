@@ -58,8 +58,18 @@
 #define PATHMAX 512
 #define UPTIME_FREQUENCY (5 * 60)
 #define UPTIME_HOUR_FREQUENCY 12
+#define SIZE_FOOTPRINT_MAX (PROPERTY_VALUE_MAX + 1) * 11
 #define BUILD_FIELD "ro.build.version.incremental"
-#define BOARD_FIELD "ro.boardid"
+#define BOARD_FIELD "ro.product.model"
+#define FINGERPRINT_FIELD "ro.build.fingerprint"
+#define KERNEL_FIELD "sys.kernel.version"
+#define USER_FIELD "ro.build.user"
+#define HOST_FIELD "ro.build.host"
+#define IFWI_FIELD "sys.ifwi.version"
+#define SCUFW_VERSION "sys.scu.version"
+#define PUNIT_VERSION "sys.punit.version"
+#define IAFW_VERSION "sys.ia32.version"
+#define VALHOOKS_VERSION "sys.valhooks.version"
 #define MODEM_FIELD "gsm.version.baseband"
 #define IMEI_FIELD "persist.radio.device.imei"
 #define PROP_CRASH "persist.service.crashlog.enable"
@@ -433,14 +443,75 @@ static void backup_apcoredump(unsigned int dir, char* name, char* path)
 		LOGE("backup ap core dump status: %d.\n",status);
 }
 
+static void build_footprint(char *id)
+{
+	char prop[PROPERTY_VALUE_MAX];
+
+	/* footprint contains:
+	* buildId
+	* fingerPrint
+	* kernelVersion
+	* buildUserHostname
+	* modemVersion
+	* ifwiVersion
+	* iafwVersion
+	* scufwVersion
+	* punitVersion
+	* valhooksVersion */
+
+	snprintf(id, SIZE_FOOTPRINT_MAX, "%s,", buildVersion);
+
+	property_get(FINGERPRINT_FIELD, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(KERNEL_FIELD, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(USER_FIELD, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, "@", SIZE_FOOTPRINT_MAX);
+
+	property_get(HOST_FIELD, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(MODEM_FIELD, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(IFWI_FIELD, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(IAFW_VERSION, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(SCUFW_VERSION, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(PUNIT_VERSION, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+	strncat(id, ",", SIZE_FOOTPRINT_MAX);
+
+	property_get(VALHOOKS_VERSION, prop, "");
+	strncat(id, prop, SIZE_FOOTPRINT_MAX);
+}
+
 static void analyze_crash(char* type, char* path, char* key, char* uptime)
 {
 	char cmd[512] = { '\0', };
+	char footprint[SIZE_FOOTPRINT_MAX] = { '\0', };
 	char imei[PROPERTY_VALUE_MAX];
 
 	property_get(IMEI_FIELD, imei, "");
 
-	snprintf(cmd, sizeof(cmd)-1, "/system/bin/analyze_crash %s %s %s %s %s mfld_pr2 %s", type, path, key, uptime, buildVersion, imei);
+	build_footprint(footprint);
+
+	snprintf(cmd, sizeof(cmd)-1, "/system/bin/analyze_crash %s %s %s %s %s %s %s", type, path, key, uptime, footprint, boardVersion, imei);
 	int status = system(cmd);
 	if (status != 0)
 		LOGE("analyze crash status: %d.\n", status);
