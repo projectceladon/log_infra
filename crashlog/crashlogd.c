@@ -805,6 +805,7 @@ static int do_crashlogd(unsigned int files)
 								/*Update event every 12 hours*/
 								if ((hours / UPTIME_HOUR_FREQUENCY) >= loop_uptime_event) {
 									history_file_write(PER_UPTIME, NULL, NULL, NULL, date_tmp);
+									del_file_more_lines(HISTORY_FILE);
 									loop_uptime_event = (hours / UPTIME_HOUR_FREQUENCY) + 1;
 									notify_crashreport();
 								}
@@ -820,22 +821,16 @@ static int do_crashlogd(unsigned int files)
 							if((stat(path, &info) == 0) && (info.st_size != 0)){
 								snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
 								do_copy(path, destion, FILESIZE_MAX);
-								snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-								history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
 							}
-							else{
-								snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-								history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
-							}
-
+							snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
 							time(&t);
 							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&t));
 							date_tmp[31] = 0;
 							usleep(20*1000);
 							do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
-
-							del_file_more_lines(HISTORY_FILE);
 							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+							history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
+							del_file_more_lines(HISTORY_FILE);
 							notify_crashreport();
 							break;
 						}
@@ -851,16 +846,16 @@ static int do_crashlogd(unsigned int files)
 							snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
 							do_copy(path, destion, 0);
 							snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-							history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
 
 							time(&t);
 							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&t));
 							date_tmp[31] = 0;
 							usleep(20*1000);
 							do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
-
-							del_file_more_lines(HISTORY_FILE);
 							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+							history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
+							del_file_more_lines(HISTORY_FILE);
+							notify_crashreport();
 							break;
 						}
 						/* for full dropbox */
@@ -878,9 +873,9 @@ static int do_crashlogd(unsigned int files)
 							snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
 							date_tmp[31] = 0;
-							history_file_write(CRASHEVENT, lostevent, lostevent_subtype, destion, NULL);
 							usleep(20*1000);
 							do_log_copy(lostevent,dir,date_tmp,APLOG_TYPE);
+							history_file_write(CRASHEVENT, lostevent, lostevent_subtype, destion, NULL);
 							del_file_more_lines(HISTORY_FILE);
 							notify_crashreport();
 							break;
@@ -901,9 +896,9 @@ static int do_crashlogd(unsigned int files)
 									do_copy(path, destion, FILESIZE_MAX);
 								}
 								snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
-								history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
 								usleep(20*1000);
 								do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
+								history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL);
 								del_file_more_lines(HISTORY_FILE);
 								notify_crashreport();
 							}
@@ -959,7 +954,9 @@ static void crashlog_check_fabric(char *reason, unsigned int files)
 			 FABRIC_ERROR_NAME, date_tmp);
 		do_copy(SAVED_FABRIC_ERROR_NAME, destion, FILESIZE_MAX);
 		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+
 		history_file_write(CRASHEVENT, FABRIC_ERROR, NULL, destion, NULL);
+		del_file_more_lines(HISTORY_FILE);
 	}
 	return;
 }
@@ -998,6 +995,7 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 
 		write_file(PANIC_CONSOLE_NAME, "1");
 		history_file_write(CRASHEVENT, KERNEL_CRASH, NULL, destion, NULL);
+		del_file_more_lines(HISTORY_FILE);
 	}
 	return;
 }
@@ -1020,10 +1018,10 @@ static void crashlog_check_startupreason(char *reason, unsigned int files)
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
 
-		history_file_write(CRASHEVENT, "WDT", reason, destion, NULL);
-
 		usleep(20*1000);
 		do_log_copy("WDT", dir, date_tmp, APLOG_TYPE);
+		history_file_write(CRASHEVENT, "WDT", reason, destion, NULL);
+		del_file_more_lines(HISTORY_FILE);
 	}
 	return;
 }
@@ -1268,6 +1266,7 @@ int main(int argc, char **argv)
 	crashlog_check_startupreason(startupreason, files);
 
 	history_file_write(SYS_REBOOT, startupreason, NULL, NULL, lastuptime);
+	del_file_more_lines(HISTORY_FILE);
 	notify_crashreport();
 
 	ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
