@@ -112,9 +112,15 @@ fabricerr()
 {
   ifabric=`ls $1 | grep "ipanic_fabric_err" | wc -l`
   if [ $ifabric == 1 ] ; then
+    forced_fabric=`grep "SCU error summary" $1/ipanic_fabric_err* | wc -l`
     data0=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | grep -m1 ".*" | awk -F"[" '{print $1}'`
-    data1=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | grep -m2 ".*" | tail -1 | awk -F"(" '{print $1}'`
-    data2=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | tail -n +3 | grep -m4 ".*" | sed  -e "N;s/\n/ /" | sed -e "N;s/\n/ /"`
+    if [ $forced_fabric == 1 ] ; then
+	data1=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | tail -n 11 | grep -m10 ".*" | sed  -e "N;s/\n/ /" | sed -e "N;s/\n/ /" | sed -e "N;s/\n/ /"`
+	data2=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | tail -n 4 | grep -m4 ".*" | sed  -e "N;s/\n/ /" | sed -e "N;s/\n/ /"`
+    else
+	data1=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | grep -m2 ".*" | tail -1 | awk -F"(" '{print $1}'`
+	data2=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | tail -n +3 | grep -m4 ".*" | sed  -e "N;s/\n/ /" | sed -e "N;s/\n/ /"`
+    fi
     echo "DATA0=$data0" >> $2
     echo "DATA1=$data1" >> $2
     echo "DATA2=$data2" >> $2
