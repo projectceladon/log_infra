@@ -95,7 +95,8 @@
 #define LOG_UUID "/data/logs/uuid.txt"
 #define LOG_BUILDID "/data/logs/buildid.txt"
 #define KERNEL_CMDLINE "/proc/cmdline"
-#define STARTUP_STR "androidboot.mode="
+#define STARTUP_STR "androidboot.wakesrc="
+#define STARTUP_STR_OLD "androidboot.mode="
 #define PANIC_CONSOLE_NAME "/proc/emmc_ipanic_console"
 #define PROC_FABRIC_ERROR_NAME "/proc/ipanic_fabric_err"
 #define PROC_UUID  "/proc/emmc0_id_entry"
@@ -1235,7 +1236,7 @@ static void read_startupreason(char *startupreason)
 	char cmdline[512] = { '\0', };
 	char *p;
 	unsigned int reason;
-	char *bootmode_reason[] = {"BATT_INSERT", "PWR_BUTTON_PRESS", "RTC_TIMER", "USB_CHRG_INSERT", "LOWBAT_THRESHOLD", "COLD_RESET", "COLD_BOOT", "UNKNOWN", "SWWDT_RESET", "HWWDT_RESET"};
+	char *bootmode_reason[] = {"BATT_INSERT", "PWR_BUTTON_PRESS", "RTC_TIMER", "USB_CHRG_INSERT", "Reserved", "COLD_RESET", "COLD_BOOT", "UNKNOWN", "SWWDT_RESET", "HWWDT_RESET"};
 	struct stat info;
 	FILE *fd;
 
@@ -1250,6 +1251,13 @@ static void read_startupreason(char *startupreason)
 			reason=atoi(p+strlen(STARTUP_STR));
 			if (reason < (sizeof(bootmode_reason)/sizeof(char*)))
 				strcpy(startupreason, bootmode_reason[reason]);
+		} else {
+			p = strstr(cmdline, STARTUP_STR_OLD);
+			if(p) {
+				reason=atoi(p+strlen(STARTUP_STR_OLD));
+				if (reason < (sizeof(bootmode_reason)/sizeof(char*)))
+					strcpy(startupreason, bootmode_reason[reason]);
+			}
 		}
 	}
 }
