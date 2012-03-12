@@ -40,6 +40,8 @@
 #include <sha1.h>
 
 #define CRASHEVENT "CRASH"
+#define STATSEVENT "STATS"
+#define STATSTRIGGER "STTRIG"
 #define KERNEL_CRASH "IPANIC"
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
@@ -89,7 +91,10 @@
 #define BPLOG_TYPE       1
 #define SDCARD_CRASH_DIR "/mnt/sdcard/data/logs/crashlog"
 #define EMMC_CRASH_DIR "/data/logs/crashlog"
-#define CURRENT_LOG "/data/logs/currentcrashlog"
+#define SDCARD_STATS_DIR "/mnt/sdcard/data/logs/stats"
+#define EMMC_STATS_DIR "/data/logs/stats"
+#define CRASH_CURRENT_LOG "/data/logs/currentcrashlog"
+#define STATS_CURRENT_LOG "/data/logs/currentstatslog"
 #define HISTORY_FILE  "/data/logs/history_event"
 #define HISTORY_UPTIME "/data/logs/uptime"
 #define LOG_UUID "/data/logs/uuid.txt"
@@ -111,6 +116,7 @@
 #define FABRIC_ERROR_NAME "ipanic_fabric_err"
 
 char *CRASH_DIR = NULL;
+char *STATS_DIR = NULL;
 
 char buildVersion[PROPERTY_VALUE_MAX];
 char boardVersion[PROPERTY_VALUE_MAX];
@@ -436,12 +442,15 @@ static void compute_key(char* key, char *event, char *type)
 
 static void backup_apcoredump(unsigned int dir, char* name, char* path)
 {
-	char cmd[512] = { '\0', };
-
-	snprintf(cmd, sizeof(cmd)-1, "tar zcf %s%d/\"%s.tar.gz\" \"%s\" && rm \"%s\"", CRASH_DIR, dir, name, path, path);
-	int status = system(cmd);
+	char src[512] = { '\0', };
+	char des[512] = { '\0', };
+	snprintf(src, sizeof(src), "%s", path);
+	snprintf(des, sizeof(des), "%s%d/%s", CRASH_DIR, dir, name);
+	int status = do_copy(src, des, 0);
 	if (status != 0)
 		LOGE("backup ap core dump status: %d.\n",status);
+	else
+		remove(path);
 }
 
 static void build_footprint(char *id)
@@ -573,7 +582,8 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 		fprintf(to, "%-8s%-22s%-20s%s %s\n", event, key, date_tmp, type, tmp);
 		fclose(to);
 		LOGE("%-8s%-22s%-20s%s %s\n", event, key, date_tmp, type, tmp);
-		analyze_crash(subtype, tmp, key, uptime);
+		if (!strncmp(event, CRASHEVENT, sizeof(CRASHEVENT)))
+			analyze_crash(subtype, tmp, key, uptime);
 	} else if (type != NULL) {
 		time(&t);
 		strftime(date_tmp, 32, "%Y-%m-%d/%H:%M:%S  ",
@@ -681,20 +691,26 @@ static void sdcard_exist(void)
 {
 	struct stat info;
 
-	if (stat("/mnt/sdcard/data/logs", &info) == 0)
+	if (stat("/mnt/sdcard/data/logs", &info) == 0){
 		CRASH_DIR = SDCARD_CRASH_DIR;
-	else{
+		STATS_DIR = SDCARD_STATS_DIR;
+	} else {
 		mkdir("/mnt/sdcard/data/", 0777);
 		mkdir("/mnt/sdcard/data/logs", 0777);
-		if (stat("/mnt/sdcard/data/logs", &info) == 0)
+		if (stat("/mnt/sdcard/data/logs", &info) == 0){
 			CRASH_DIR = SDCARD_CRASH_DIR;
-		else
+			STATS_DIR = SDCARD_STATS_DIR;
+		} else {
 			CRASH_DIR = EMMC_CRASH_DIR;
+			STATS_DIR = EMMC_STATS_DIR;
+		}
 	}
 	return;
 }
 
-static unsigned int find_crash_dir(unsigned int max)
+#define CRASH_MODE 0
+#define STATS_MODE 1
+static unsigned int find_dir(unsigned int max, int mode)
 {
 	struct stat sb;
 	char path[PATHMAX];
@@ -703,10 +719,14 @@ static unsigned int find_crash_dir(unsigned int max)
 	DIR *d;
 	struct dirent *de;
 	struct stat st;
+	char *dir;
 
 	sdcard_exist();
 
-	snprintf(path, sizeof(path), CURRENT_LOG);
+	if(mode == CRASH_MODE)
+		snprintf(path, sizeof(path), CRASH_CURRENT_LOG);
+	else
+		snprintf(path, sizeof(path), STATS_CURRENT_LOG);
 	if ((!stat(path, &sb))) {
 		fd = fopen(path, "r");
 		if (fscanf(fd, "%d", &i)==EOF) {
@@ -727,7 +747,11 @@ static unsigned int find_crash_dir(unsigned int max)
 	}
 
 	/* we didn't find an available file, so we clobber the oldest one */
-	snprintf(path, sizeof(path),  "%s%d", CRASH_DIR, oldest);
+	if(mode == CRASH_MODE)
+		dir = CRASH_DIR;
+	else
+		dir = STATS_DIR;
+	snprintf(path, sizeof(path),  "%s%d", dir, oldest);
 	if (stat(path, &st) < 0)
 		mkdir(path, 0777);
 	else{
@@ -739,7 +763,7 @@ static unsigned int find_crash_dir(unsigned int max)
 		while ((de = readdir(d)) != 0) {
 			if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
 				continue;
-			snprintf(path, sizeof(path),  "%s%d/%s", CRASH_DIR, oldest,
+			snprintf(path, sizeof(path),  "%s%d/%s", dir, oldest,
 				 de->d_name);
 			remove(path);
 		}
@@ -748,7 +772,7 @@ static unsigned int find_crash_dir(unsigned int max)
 			return -1;
 		}
 		rmdir(path);
-		snprintf(path, sizeof(path),  "%s%d", CRASH_DIR, oldest);
+		snprintf(path, sizeof(path),  "%s%d", dir, oldest);
 		mkdir(path, 0777);
 	}
 
@@ -775,7 +799,42 @@ static void init_profile_srv(void)
 	}
 }
 
+static int mv_modem_crash(char *spath, char *dpath)
+{
 
+	char src[512] = { '\0', };
+	char des[512] = { '\0', };
+	struct stat st;
+	DIR *d;
+	struct dirent *de;
+
+	if (stat(spath, &st))
+		return -1;
+	if (stat(dpath, &st))
+		return -1;
+
+	d = opendir(spath);
+	if (d == 0) {
+		LOGE("opendir failed, %s\n", strerror(errno));
+		return -1;
+	}
+	while ((de = readdir(d)) != 0) {
+		if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
+			continue;
+		if (strstr(de->d_name, "cd") && strstr(de->d_name, ".tar.gz")){
+			snprintf(src, sizeof(src), "%s/%s", spath, de->d_name);
+			snprintf(des, sizeof(des), "%s/%s", dpath, de->d_name);
+			do_copy(src, des, 0);
+			remove(src);
+		}
+	}
+	if (closedir(d) < 0){
+		LOGE("closedir failed, %s\n", strerror(errno));
+		return -1;
+	}
+	return 0;
+
+}
 
 struct wd_name {
 	int wd;
@@ -797,6 +856,7 @@ struct wd_name wd_array[] = {
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_COREDUMP ,"/data/logs/core", ".core"},
 	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, LOST ,"/data/system/dropbox", ".lost"}, /* for full dropbox */
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, STATSTRIGGER, "/data/logs/stats", "trigger"},
 };
 
 int WDCOUNT = ((int)(sizeof(wd_array)/sizeof(struct wd_name)));
@@ -888,7 +948,7 @@ static int do_crashlogd(unsigned int files)
 					else{
 						/* for modem reset */
 						if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "apimr.txt" ) ||strstr(event->name, "mreset.txt" ) )){
-							dir = find_crash_dir(files);
+							dir = find_dir(files,CRASH_MODE);
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							if((stat(path, &info) == 0) && (info.st_size != 0)){
 								snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
@@ -908,10 +968,9 @@ static int do_crashlogd(unsigned int files)
 						}
 						/* for modem crash */
 						else if(strstr(event->name, wd_array[i].cmp) && strstr(event->name, "mpanic.txt" )){
-							dir = find_crash_dir(files);
+							dir = find_dir(files,CRASH_MODE);
 							snprintf(destion,sizeof(destion),"%s%d", CRASH_DIR,dir);
-							snprintf(cmd, sizeof(cmd)-1,"cp %s/cd*.tar.gz %s/ && rm %s/cd*.tar.gz",wd_array[i].filename,destion,wd_array[i].filename);
-							int status = system(cmd);
+							int status = mv_modem_crash(wd_array[i].filename, destion);
 							if (status != 0)
 								LOGE("backup modem core dump status: %d.\n", status);
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
@@ -941,7 +1000,7 @@ static int do_crashlogd(unsigned int files)
 							else
 								break;
 							snprintf(lostevent_subtype, sizeof(lostevent_subtype), "%s_%s", LOST, lostevent);
-							dir = find_crash_dir(files);
+							dir = find_dir(files,CRASH_MODE);
 							snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 							strftime(date_tmp, 32,"%Y%m%d%H%M%S",localtime((const time_t *)&info.st_mtime));
 							date_tmp[31] = 0;
@@ -952,9 +1011,35 @@ static int do_crashlogd(unsigned int files)
 							notify_crashreport();
 							break;
 						}
+						/*for stat trigger*/
+						else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "trigger" ))){
+							char *p;
+							char tmp[16];
+							dir = find_dir(files,STATS_MODE);
+							/*copy data file*/
+							snprintf(tmp,sizeof(tmp),"%s",event->name);
+                                                        p = strstr(tmp,"trigger");
+							if ( p ){
+								strcpy(p,"data");
+								snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,tmp);
+								snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,tmp);
+								do_copy(path, destion, 0);
+								remove(path);
+							}
+							/*copy trigger file*/
+							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+							snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,event->name);
+							do_copy(path, destion, 0);
+							remove(path);
+							snprintf(destion,sizeof(destion),"%s%d/", STATS_DIR,dir);
+							history_file_write(STATSEVENT, tmp, NULL, destion, NULL);
+							del_file_more_lines(HISTORY_FILE);
+							notify_crashreport();
+							break;
+						}
 						/* for other case */
 						else if (strstr(event->name, wd_array[i].cmp)) {
-							dir = find_crash_dir(files);
+							dir = find_dir(files,CRASH_MODE);
 
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							if (stat(path, &info) == 0) {
@@ -1019,7 +1104,7 @@ static void crashlog_check_fabric(char *reason, unsigned int files)
 		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
 			 localtime((const time_t *)&t));
 		date_tmp[31] = '\0';
-		dir = find_crash_dir(files);
+		dir = find_dir(files,CRASH_MODE);
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
@@ -1047,7 +1132,7 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
 			 localtime((const time_t *)&t));
 		date_tmp[31] = '\0';
-		dir = find_crash_dir(files);
+		dir = find_dir(files,CRASH_MODE);
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
@@ -1086,7 +1171,7 @@ static void crashlog_check_startupreason(char *reason, unsigned int files)
 			 localtime((const time_t *)&t));
 		date_tmp[31] = '\0';
 
-		dir = find_crash_dir(files);
+		dir = find_dir(files,CRASH_MODE);
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
 
@@ -1200,7 +1285,16 @@ static void reset_crashlog(void)
 	char path[PATHMAX];
 	FILE *fd;
 
-	snprintf(path, sizeof(path), CURRENT_LOG);
+	snprintf(path, sizeof(path), CRASH_CURRENT_LOG);
+	fd = fopen(path, "w");
+	fprintf(fd, "%d", 0);
+	fclose(fd);
+}
+static void reset_statslog(void)
+{
+	char path[PATHMAX];
+	FILE *fd;
+	snprintf(path, sizeof(path), STATS_CURRENT_LOG);
 	fd = fopen(path, "w");
 	fprintf(fd, "%d", 0);
 	fclose(fd);
@@ -1333,6 +1427,7 @@ int main(int argc, char **argv)
 		strcpy(lastuptime, "0000:00:00");
 		strcpy(startupreason,"SWUPDATE");
 		reset_crashlog();
+		reset_statslog();
 		reset_history();
 	}
 	else {
