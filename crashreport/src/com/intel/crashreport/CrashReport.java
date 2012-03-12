@@ -20,6 +20,8 @@
 package com.intel.crashreport;
 
 import android.app.Application;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -31,7 +33,16 @@ public class CrashReport extends Application {
 
 	public void onCreate() {
 		super.onCreate();
-		PreferenceManager.setDefaultValues(getApplicationContext(), R.xml.menu, false);
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		String version = this.getString(R.string.app_version);
+		if (!privatePrefs.getVersion().contentEquals(version)) {
+			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+			Editor editor = sharedPrefs.edit();
+			editor.clear();
+			editor.commit();
+			PreferenceManager.setDefaultValues(this, R.xml.menu, true);
+			privatePrefs.setVersion(version);
+		}
 	}
 
 	public boolean isServiceStarted(){

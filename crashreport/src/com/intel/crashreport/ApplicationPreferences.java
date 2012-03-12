@@ -94,4 +94,13 @@ public class ApplicationPreferences {
 	public String[] getCrashLogsUploadTypes() {
 		return CrashLogsListPrefs.parseStoredValue(appSharedPrefs.getString("setReportCrashLogType", ""));
 	}
+
+	public String getVersion() {
+		return appPrivatePrefs.getString("version", "0");
+	}
+
+	public void setVersion(String version) {
+		privatePrefsEditor.putString("version", version);
+		privatePrefsEditor.commit();
+	}
 }
