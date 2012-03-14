@@ -17,12 +17,31 @@
  * Author: Tony Goubert <tonyx.goubert@intel.com>
  */
 
-package com.intel.amtl;
+#ifndef __OPENGSMTTY_JNI_H__
+#define __OPENGSMTTY_JNI_H__
 
-import android.app.Application;
+#include <jni.h>
 
-public class Modem_Application extends Application {
-    /*Share global variable between Main_Activity and Settings_Activity*/
-    protected int modem_status;
-    protected int port_fd;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ * Class:     com_intel_amtl_SynchronizeSTMD
+ * Method:    OpenSerial
+ * Signature: (Ljava/lang/String;I)I;
+ */
+
+JNIEXPORT jint JNICALL Java_com_intel_amtl_SynchronizeSTMD_OpenSerial(JNIEnv *, jobject, jstring, jint);
+/*
+ * Class:     com_intel_amtl_SynchronizeSTMD
+ * Method:    CloseSerial
+ * Signature: (I)I;
+ */
+JNIEXPORT jint JNICALL Java_com_intel_amtl_SynchronizeSTMD_CloseSerial(JNIEnv *, jobject, jint);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif //__OPENGSMTTY_JNI_H_

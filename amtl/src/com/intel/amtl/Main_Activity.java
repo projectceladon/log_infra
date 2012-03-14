@@ -51,7 +51,7 @@ public class Main_Activity extends Activity {
     private Services services;
     private Main_Activity main_activity;
     private Modem_Configuration modem_configuration;
-    private Synchronize_STMD synchronize_stmd;
+    private SynchronizeSTMD synchronizestmd;
     protected Modem_Application modem_application;
     Runtime rtm = java.lang.Runtime.getRuntime();
 
@@ -121,17 +121,17 @@ public class Main_Activity extends Activity {
             FileOutputStream usbswitch = openFileOutput(output_file, Context.MODE_APPEND);
             usbswitch.close();
         } catch (IOException e1) {
-            Log.e("amtl", "Main_Activity can't create the file usbswitch.conf");
+            Log.e(Modem_Configuration.TAG, "Main_Activity can't create the file usbswitch.conf");
             e1.printStackTrace();
         }
 
-        /*Update the value of usbswich in /data/data/com.intel.amtl/file/usbswitch.conf
+        /*Update the value of usbswitch in /data/data/com.intel.amtl/file/usbswitch.conf
          * 0: usb ape
          * 1: usb modem */
         try {
             rtm.exec("start usbswitch_status");
         } catch (IOException e1) {
-            Log.e("amtl", "Main_Activity can't start the service usbswitch_status");
+            Log.e(Modem_Configuration.TAG, "Main_Activity can't start the service usbswitch_status");
             e1.printStackTrace();
         }
     }
@@ -151,8 +151,8 @@ public class Main_Activity extends Activity {
 
                         /*Recover the current configuration*/
                         service_value = services.service_status();
-                        trace_level_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xsystrace=10\r\n","R");
-                        xsio_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xsio?\r\n", "R");
+                        trace_level_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsystrace=10\r\n");
+                        xsio_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio?\r\n");
 
                         /*Recover the modem reboot information*/
                         info_modem_reboot = modem_configuration.modem_reboot_status(xsio_value);
@@ -170,10 +170,10 @@ public class Main_Activity extends Activity {
                             }
                         });
                     } catch (IOException e2) {
-                        Log.e("AMTL", "Main_Activity can't update the current menu");
+                        Log.e(Modem_Configuration.TAG, "Main_Activity can't update the current menu");
                         e2.printStackTrace();
                     } catch (NullPointerException e) {
-                        Log.v("AMTL", "Main_Activity current menu : null pointer");
+                        Log.v(Modem_Configuration.TAG, "Main_Activity current menu : null pointer");
                     }
                     progressDialog.dismiss();
                 }
@@ -220,7 +220,7 @@ public class Main_Activity extends Activity {
                 @Override
                 public void run() {
                     try {
-                        modem_configuration.read_write_modem("/dev/gsmtty1","at+xsio=0\r\n", "W");
+                        modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio=0\r\n");
                         modem_configuration.enable_trace_level(Modem_Configuration.trace_disable);
 
                         /*Check the status of services and stops it if necessary*/
@@ -235,10 +235,10 @@ public class Main_Activity extends Activity {
                         });
                         progressDialog.dismiss();
                     } catch (IOException e) {
-                        Log.e("AMTL", "Main_Activity can't apply disable configuration");
+                        Log.e(Modem_Configuration.TAG, "Main_Activity can't apply disable configuration");
                         e.printStackTrace();
                     } catch (NullPointerException e) {
-                        Log.v("AMTL", "Main_Activity disable configuration: null pointer");
+                        Log.v(Modem_Configuration.TAG, "Main_Activity disable configuration: null pointer");
                     }
                 }
             }).start();
@@ -250,10 +250,10 @@ public class Main_Activity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         modem_application = (Modem_Application) getApplicationContext();
-        synchronize_stmd = new Synchronize_STMD(modem_application);
+        synchronizestmd = new SynchronizeSTMD(modem_application);
 
         /*Start Synchronize between AMTL and STMD*/
-        synchronize_stmd.start();
+        synchronizestmd.start();
 
         modem_configuration = new Modem_Configuration();
         services = new Services();
@@ -282,7 +282,7 @@ public class Main_Activity extends Activity {
                             @Override
                             public void run() {
                                 try {
-                                    modem_configuration.read_write_modem("/dev/gsmtty1","at+xsio=2\r\n", "W");
+                                    modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio=2\r\n");
                                     modem_configuration.enable_trace_level(Modem_Configuration.trace_bb_3g);
 
                                     /*Check the status of services and stops it if necessary*/
@@ -297,10 +297,10 @@ public class Main_Activity extends Activity {
                                     });
                                     progressDialog.dismiss();
                                 } catch (IOException e) {
-                                    Log.e("AMTL", "Main_Activity can't apply the modem coredump configuration");
+                                    Log.e(Modem_Configuration.TAG, "Main_Activity can't apply the modem coredump configuration");
                                     e.printStackTrace();
                                 } catch (NullPointerException e) {
-                                    Log.v("AMTL", "Main_Activity modem coredump configuration: null pointer");
+                                    Log.v(Modem_Configuration.TAG, "Main_Activity modem coredump configuration: null pointer");
                                 }
                             }
                         }).start();
@@ -334,7 +334,7 @@ public class Main_Activity extends Activity {
                                     /*Check the status of services and stops it if necessary*/
                                     services.stop_service(services.service_status());
 
-                                    modem_configuration.read_write_modem("/dev/gsmtty1","at+xsio=4\r\n", "W");
+                                    modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio=4\r\n");
                                     modem_configuration.enable_trace_level(Modem_Configuration.trace_bb_3g);
 
                                     /*Enable mtsextfs persistent*/
@@ -349,10 +349,10 @@ public class Main_Activity extends Activity {
                                     });
                                     progressDialog.dismiss();
                                 } catch (IOException e) {
-                                    Log.e("AMTL", "Main_Activity can't apply the ape_log_file configuration");
+                                    Log.e(Modem_Configuration.TAG, "Main_Activity can't apply the ape_log_file configuration");
                                     e.printStackTrace();
                                 } catch (NullPointerException e) {
-                                    Log.v("AMTL", "Main_Activity ape_log_file configuration: null pointer");
+                                    Log.v(Modem_Configuration.TAG, "Main_Activity ape_log_file configuration: null pointer");
                                 }
                             }
                         }).start();
@@ -389,18 +389,20 @@ public class Main_Activity extends Activity {
     }
 
     @Override
-    protected void onPause() {
-        Log.d("AMTL", "onPause() call");
-        super.onPause();
-        synchronize_stmd.flag = false;
-        if (synchronize_stmd.mSocket != null) {
+    protected void onDestroy() {
+        Log.d(Modem_Configuration.TAG, "onDestroy() call");
+        super.onDestroy();
+
+        synchronizestmd.flag = false;
+        if (synchronizestmd.mSocket != null) {
+            synchronizestmd.close_gsmtty();
             try {
-                Log.d("AMTL", "onPause() msocket !=null");
-                synchronize_stmd.mSocket.close();
+                Log.d(Modem_Configuration.TAG, "onDestroy() msocket !=null");
+                synchronizestmd.mSocket.close();
             } catch (IOException ex) {
                 /*ignore failure to close socket*/
             }
-            synchronize_stmd.mSocket = null;
+            synchronizestmd.mSocket = null;
         }
     }
 }

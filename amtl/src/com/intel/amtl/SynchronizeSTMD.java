@@ -28,7 +28,14 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class Synchronize_STMD extends Thread {
+public class SynchronizeSTMD extends Thread {
+    /*Load jni library*/
+    static {
+        System.loadLibrary("amtl_jni");
+    }
+    public native int OpenSerial(String jtty_name, int baudrate);
+    public native int CloseSerial(int fd);
+
     private static final int SOCKET_OPEN = 0;
     private static final int GET_MSG = 1;
 
@@ -47,8 +54,30 @@ public class Synchronize_STMD extends Thread {
 
     protected Modem_Application modem_application;
 
-    public Synchronize_STMD(Modem_Application modem_application) {
+    public SynchronizeSTMD(Modem_Application modem_application) {
         this.modem_application = modem_application;
+        modem_application.port_fd = -1;
+    }
+
+    protected void open_gsmtty() {
+        /*Check if /dev/gsmtty19 is already open*/
+        if (modem_application.port_fd < 0) {
+            /*Not open -> open it*/
+            modem_application.port_fd = this.OpenSerial(Modem_Configuration.gsmtty_port, Modem_Configuration.gsmtty_baudrate);
+            if (modem_application.port_fd < 0)
+            {
+                Log.e(Modem_Configuration.TAG, "open_gsmtty() can't open port_fd");
+            } else {
+                Log.d(Modem_Configuration.TAG, "open_gsmtty() opens port_fd "+modem_application.port_fd);
+            }
+        } else {
+            Log.d(Modem_Configuration.TAG, "open_gsmtty() port_fd already opens "+modem_application.port_fd);
+        }
+    }
+
+    protected void close_gsmtty() {
+            this.CloseSerial(modem_application.port_fd);
+            modem_application.port_fd = -1;
     }
 
     /*method: Log state and process socket messages*/
@@ -57,13 +86,13 @@ public class Synchronize_STMD extends Thread {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case SOCKET_OPEN:
-                Log.d("AMTL", "handler socket open");
+                Log.d(Modem_Configuration.TAG, "handler socket open");
                 break;
             case GET_MSG:
-                Log.d("AMTL", "handler get_msg");
+                Log.d(Modem_Configuration.TAG, "handler get_msg");
                 break;
             default:
-                Log.d("AMTL", "handler default");
+                Log.d(Modem_Configuration.TAG, "handler default");
                 break;
             }
         };
@@ -87,12 +116,12 @@ public class Synchronize_STMD extends Thread {
                             LocalSocketAddress.Namespace.RESERVED);
                     s.connect(l);
                 } catch (IOException ex) {
-                    Log.d("AMTL", "open socket fail: ", ex);
+                    Log.d(Modem_Configuration.TAG, "open socket fail: ", ex);
 
                     /*connect fail*/
                     try {
                         if (s != null) {
-                            Log.d("AMTL", "connect fail");
+                            Log.d(Modem_Configuration.TAG, "connect fail");
                             s.close();
                         }
                     } catch (IOException ex2) {
@@ -100,21 +129,21 @@ public class Synchronize_STMD extends Thread {
                     }
                     /*Don't print an error message after the the first time or after the 8th time */
                     if (retryCount == 8) {
-                        Log.d("AMTL", "Couldn't find '" + MODEM_SOCKET_NAME
+                        Log.d(Modem_Configuration.TAG, "Couldn't find '" + MODEM_SOCKET_NAME
                                 + "' socket after " + retryCount
                                 + " times, continuing to retry silently");
                     } else if (retryCount > 0 && retryCount < 8) {
-                        Log.d("AMTL", "Couldn't find '" + MODEM_SOCKET_NAME
+                        Log.d(Modem_Configuration.TAG, "Couldn't find '" + MODEM_SOCKET_NAME
                                 + "' socket; retrying after timeout");
                     }
 
                     try {
                         /*Retry with 20 minutes maximum*/
-                        Log.d("AMTL", "retry delay");
+                        Log.d(Modem_Configuration.TAG, "retry delay");
                         if (retryDelay < 1200000)
                             retryDelay *= 2;
                         Thread.sleep(retryDelay);
-                        Log.d("AMTL", "sleep");
+                        Log.d(Modem_Configuration.TAG, "sleep");
                     } catch (InterruptedException er) {
                     }
 
@@ -138,34 +167,35 @@ public class Synchronize_STMD extends Thread {
                             switch(data[0]) {
                             case MODEM_DOWN:
                                 modem_application.modem_status = 0;
-                                Log.d("AMTL","MODEM DOWN.");
+                                Log.d(Modem_Configuration.TAG,"MODEM DOWN.");
                                 break;
                             case MODEM_UP:
                                 modem_application.modem_status = 1;
-                                Log.d("AMTL","MODEM UP.");
+                                Log.d(Modem_Configuration.TAG,"MODEM UP.");
+                                open_gsmtty();
                                 break;
                             case PLATFORM_SHUTDOWN:
                                 modem_application.modem_status = 2;
-                                Log.d("AMTL","PLATFORM_SHUTDOWN.");
+                                Log.d(Modem_Configuration.TAG,"PLATFORM_SHUTDOWN.");
                                 break;
                             case MODEM_COLD_RESET:
                                 modem_application.modem_status = 4;
-                                Log.d("AMTL","MODEM_COLD_RESET.");
+                                Log.d(Modem_Configuration.TAG,"MODEM_COLD_RESET.");
                                 break;
                             default :
-                                Log.d("AMTL","Command unknown.");
+                                Log.d(Modem_Configuration.TAG,"Command unknown.");
                             }
                         }
                     }
 
                 } catch (java.io.IOException ex) {
-                    Log.d("AMTL", "'" + MODEM_SOCKET_NAME + "' socket closed",
+                    Log.d(Modem_Configuration.TAG, "'" + MODEM_SOCKET_NAME + "' socket closed",
                             ex);
                 } catch (Throwable tr) {
-                    Log.e("AMTL", "Uncaught exception read length=" + length
+                    Log.e(Modem_Configuration.TAG, "Uncaught exception read length=" + length
                             + "Exception:" + tr.toString());
                 }
-                Log.d("AMTL", "Disconnected from '" + MODEM_SOCKET_NAME
+                Log.d(Modem_Configuration.TAG, "Disconnected from '" + MODEM_SOCKET_NAME
                         + "' socket");
                 try {
                     mSocket.close();
@@ -175,7 +205,7 @@ public class Synchronize_STMD extends Thread {
                 mSocket = null;
             }
         } catch (Throwable tr) {
-            Log.e("AMTL", "Uncaught exception", tr);
+            Log.e(Modem_Configuration.TAG, "Uncaught exception", tr);
         }
     }
 }

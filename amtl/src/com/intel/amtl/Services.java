@@ -58,7 +58,7 @@ public class Services {
                 /*Nothing to do*/
             }
         } catch (IOException e) {
-            Log.e("AMTL", "Can't start the service");
+            Log.e(Modem_Configuration.TAG, "Can't start the service");
             e.printStackTrace();
         }
     }
@@ -118,7 +118,7 @@ public class Services {
                 /*Nothing to do*/
             }
         } catch (IOException e) {
-            Log.e("AMTL", "ModemTraceServer can't stop the current service");
+            Log.e(Modem_Configuration.TAG, "ModemTraceServer can't stop the current service");
             e.printStackTrace();
         }
     }

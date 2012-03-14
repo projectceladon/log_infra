@@ -26,6 +26,9 @@ import java.io.RandomAccessFile;
 
 public class Modem_Configuration {
     private int read_write_modem_status;
+    protected static String gsmtty_port = "/dev/gsmtty19";
+    protected static int gsmtty_baudrate = 115200;
+    protected static String TAG = "AMTL";
     protected final static int xsio_00 = 0;
     protected final static int xsio_20 = 1;
     protected final static int xsio_22 = 2;
@@ -100,15 +103,31 @@ public class Modem_Configuration {
     }
 
     /*Send command to the modem and read the response*/
-    protected int read_write_modem(String iout,String ival, String RW) throws IOException {
+    protected int read_write_modem(String iout,String ival) throws IOException {
+        byte rsp_byte_tmp[] = new byte[1024];
+        int bRead = 0;
+        int bCount = 0;
         byte rsp_byte[] = new byte[1024];
         byte ok_byte[] = new byte[1024];
         String modem_value;
 
-        RandomAccessFile f = new RandomAccessFile(iout, "rw");
+        for(int i = 0;i < ok_byte.length;i++) {
+            rsp_byte[i] = 0;
+        }
+
+        RandomAccessFile f = new RandomAccessFile(iout, "rwd");
         f.writeBytes(ival);
-        if (RW == "R") {
-            f.read(rsp_byte);
+
+        do {
+            bRead = f.read(rsp_byte_tmp);
+            for (int i = 0;i < bRead;i++) {
+                rsp_byte[i+bCount] = rsp_byte_tmp[i];
+            }
+            bCount += bRead;
+        }
+        /*find "OK\r\n" at reponse end*/
+        while (rsp_byte[bCount-4] != 0x4f || rsp_byte[bCount-3] != 0x4b || rsp_byte[bCount-2] != 0x0d || rsp_byte[bCount-1] != 0x0a);
+
             modem_value = new String(rsp_byte);
 
             if (ival == "at+xsio?\r\n") {
@@ -163,9 +182,9 @@ public class Modem_Configuration {
                 } else {
                     read_write_modem_status = mux_disable;
                 }
+            } else {
+                Log.d(TAG, "Command unknown");
             }
-        }
-        f.read(ok_byte); /*Read ok response from the modem and continue*/
         f.close();
         return read_write_modem_status;
     }
@@ -175,22 +194,22 @@ public class Modem_Configuration {
         try {
             if (xsio == xsio4) {
                 /*Enable frequency78*/
-                read_write_modem("/dev/gsmtty1","at+xsio=4\r\n","W");
+                read_write_modem(gsmtty_port,"at+xsio=4\r\n");
             } else if (xsio == xsio5) {
                 /*Enable frequency156*/
-                read_write_modem("/dev/gsmtty1","at+xsio=5\r\n","W");
+                read_write_modem(gsmtty_port,"at+xsio=5\r\n");
             } else if (xsio == xsio2) {
                 /*Enable coredump*/
-                read_write_modem("/dev/gsmtty1","at+xsio=2\r\n","W");
+                read_write_modem(gsmtty_port,"at+xsio=2\r\n");
             } else {
                 /*Disable*/
-                read_write_modem("/dev/gsmtty1","at+xsio=0\r\n","W");
+                read_write_modem(gsmtty_port,"at+xsio=0\r\n");
             }
         } catch (IOException e) {
-            Log.e("AMTL", "Modem_Configuration can't enable_frequency");
+            Log.e(TAG, "Modem_Configuration can't enable_frequency");
             e.printStackTrace();
         } catch (NullPointerException e) {
-            Log.v("AMTL", "Modem_Configuration can't enable_frequency : null pointer");
+            Log.v(TAG, "Modem_Configuration can't enable_frequency : null pointer");
         }
     }
 
@@ -199,23 +218,23 @@ public class Modem_Configuration {
         try {
             if (levelvalue == trace_bb) {
                 /*MA traces*/
-                read_write_modem("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n","W");
-                read_write_modem("/dev/gsmtty1","at+xsystrace=0,\"bb_sw=1\",,\"oct=4\"\r\n","W");
+                read_write_modem(gsmtty_port,"at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
+                read_write_modem(gsmtty_port,"at+xsystrace=0,\"bb_sw=1\",,\"oct=4\"\r\n");
             } else if (levelvalue == trace_bb_3g) {
                 /*MA & Artemis traces*/
-                read_write_modem("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n","W");
-                read_write_modem("/dev/gsmtty1","at+xsystrace=0,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n","W");
+                read_write_modem(gsmtty_port,"at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
+                read_write_modem(gsmtty_port,"at+xsystrace=0,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
             } else if (levelvalue == trace_bb_3g_digrf) {
                 /*MA & Artemis & Digrf traces*/
-                read_write_modem("/dev/gsmtty1","at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n","W");
-                read_write_modem("/dev/gsmtty1","at+xsystrace=0,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n","W");
+                read_write_modem(gsmtty_port,"at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
+                read_write_modem(gsmtty_port,"at+xsystrace=0,\"digrf=1;bb_sw=1;3g_sw=1\",\"digrf=0x84\",\"oct=4\"\r\n");
             } else {
                 /*Disable trace*/
-                read_write_modem("/dev/gsmtty1","at+trace=0,115200,\"st=0,pr=0,bt=0,ap=0,db=0,lt=0,li=0,ga=0,ae=0\"\r\n","W");
-                read_write_modem("/dev/gsmtty1","at+xsystrace=0\r\n","W");
+                read_write_modem(gsmtty_port,"at+trace=0,115200,\"st=0,pr=0,bt=0,ap=0,db=0,lt=0,li=0,ga=0,ae=0\"\r\n");
+                read_write_modem(gsmtty_port,"at+xsystrace=0\r\n");
             }
         } catch (IOException e) {
-            Log.e("AMTL", "ModemTraceServer can't enable_trace_level");
+            Log.e(TAG, "ModemTraceServer can't enable_trace_level");
             e.printStackTrace();
         }
     }
@@ -225,13 +244,13 @@ public class Modem_Configuration {
         try {
             if (muxvalue == mux_enable) {
                 /*Enable Mux traces*/
-                read_write_modem("/dev/gsmtty1","at+xmux=1,3,262143\r\n","W");
+                read_write_modem(gsmtty_port,"at+xmux=1,3,262143\r\n");
             } else {
                 /*Disable Mux traces*/
-                read_write_modem("/dev/gsmtty1","at+xmux=1,1,0\r\n","W");
+                read_write_modem(gsmtty_port,"at+xmux=1,1,0\r\n");
             }
         } catch (IOException e) {
-            Log.e("AMTL", "Modem_Configuration can't enable_mux_trace");
+            Log.e(TAG, "Modem_Configuration can't enable_mux_trace");
             e.printStackTrace();
         }
     }

@@ -62,7 +62,6 @@ public class Settings_Activity extends Activity {
     private ProgressDialog progressDialog;
     private Modem_Configuration modem_configuration;
     private Settings_Activity settings_activity;
-    private Synchronize_STMD synchronize_stmd;
     private Services services;
     protected Modem_Application modem_application;
 
@@ -256,9 +255,9 @@ public class Settings_Activity extends Activity {
                     try {
                         /*Recover the value of each parameters*/
                         current_service_value = services.service_status();
-                        current_trace_level_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xsystrace=10\r\n","R");
-                        current_xsio_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xsio?\r\n", "R");
-                        current_mux_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xmux?\r\n","R");
+                        current_trace_level_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsystrace=10\r\n");
+                        current_xsio_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio?\r\n");
+                        current_mux_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xmux?\r\n");
 
                         /*If mux traces were enabled, we need to set only the checkbox without sending command to the modem*/
                         if (current_mux_value == modem_configuration.mux_enable) {
@@ -296,10 +295,10 @@ public class Settings_Activity extends Activity {
                             }
                         });
                     } catch (IOException e2) {
-                        Log.e("AMTL", "The ACTIVATE checkbox can't download the default configuration");
+                        Log.e(Modem_Configuration.TAG, "The ACTIVATE checkbox can't download the default configuration");
                         e2.printStackTrace();
                     } catch (NullPointerException e) {
-                        Log.v("AMTL", "The ACTIVATE checkbox can't download the default configuration : null pointer");
+                        Log.v(Modem_Configuration.TAG, "The ACTIVATE checkbox can't download the default configuration : null pointer");
                     }
                     progressDialog.dismiss();
                 }
@@ -326,11 +325,6 @@ public class Settings_Activity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings);
         modem_application = (Modem_Application) getApplicationContext();
-
-        synchronize_stmd = new Synchronize_STMD(modem_application);
-
-        /*Start Synchronize between AMTL and STMD*/
-        synchronize_stmd.start();
 
         modem_configuration = new Modem_Configuration();
         services = new Services();
@@ -441,8 +435,8 @@ public class Settings_Activity extends Activity {
                                 modem_configuration.enable_trace_level(trace_level_selected());
                             } else { /*user unchecks ACTIVATE checkbox, download factory settings*/
                                 try {
-                                    int xsio_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xsio?\r\n", "R");
-                                    int trace_level_value = modem_configuration.read_write_modem("/dev/gsmtty1","at+xsystrace=10\r\n","R");
+                                    int xsio_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio?\r\n");
+                                    int trace_level_value = modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsystrace=10\r\n");
                                     int service_value = services.service_status();
 
                                     /*Download default configuration of xsio => xsio=0*/
@@ -463,10 +457,10 @@ public class Settings_Activity extends Activity {
                                         service_value = Modem_Configuration.mts_disable;
                                     }
                                 } catch (IOException e2) {
-                                    Log.e("AMTL", "The ACTIVATE checkbox can't download the default configuration");
+                                    Log.e(Modem_Configuration.TAG, "The ACTIVATE checkbox can't download the default configuration");
                                     e2.printStackTrace();
                                 } catch (NullPointerException e) {
-                                    Log.v("AMTL", "The ACTIVATE checkbox can't download the default configuration : null pointer");
+                                    Log.v(Modem_Configuration.TAG, "The ACTIVATE checkbox can't download the default configuration : null pointer");
                                 }
                             }
 
@@ -527,21 +521,5 @@ public class Settings_Activity extends Activity {
         super.onResume();
         /*Update trace location, level, file size, HSI frequency, ACTIVATE and MUX checkbox*/
         update_menu_advanced();
-    }
-
-    @Override
-    protected void onPause() {
-        Log.d("AMTL", "onPause() call");
-        super.onPause();
-        synchronize_stmd.flag = false;
-        if (synchronize_stmd.mSocket != null) {
-            try {
-                Log.d("AMTL", "onPause() msocket !=null");
-                synchronize_stmd.mSocket.close();
-            } catch (IOException ex) {
-                /*ignore failure to close socket*/
-            }
-            synchronize_stmd.mSocket = null;
-        }
     }
 }

@@ -70,7 +70,7 @@ public class Additional_Features_Activity extends Activity {
             isr.close();
         } catch (Exception e1) {
             e1.printStackTrace();
-            Log.e("amtl", "Additional_Features_Activity can't read the file usbswitch.conf");
+            Log.e(Modem_Configuration.TAG, "Additional_Features_Activity can't read the file usbswitch.conf");
         }
 
         /*Listener on button_usb_modem : USB ape to modem*/
@@ -87,10 +87,10 @@ public class Additional_Features_Activity extends Activity {
                                 android.os.SystemClock.sleep(1000);
                                 progressDialog.dismiss();
                             } catch (IOException e) {
-                                Log.e("AMTL", "Additional_Features_Activity can't enable usbswitch MODEM");
+                                Log.e(Modem_Configuration.TAG, "Additional_Features_Activity can't enable usbswitch MODEM");
                                 e.printStackTrace();
                             } catch (NullPointerException e) {
-                                Log.v("AMTL", "Additional_Features_Activity usbswitch MODEM listener: null pointer");
+                                Log.v(Modem_Configuration.TAG, "Additional_Features_Activity usbswitch MODEM listener: null pointer");
                             }
                         }
                     }).start();
@@ -112,10 +112,10 @@ public class Additional_Features_Activity extends Activity {
                                 android.os.SystemClock.sleep(1000);
                                 progressDialog.dismiss();
                             } catch (IOException e) {
-                                Log.e("AMTL", "Additional_Features_Activity can't enable usbswitch APE");
+                                Log.e(Modem_Configuration.TAG, "Additional_Features_Activity can't enable usbswitch APE");
                                 e.printStackTrace();
                             } catch (NullPointerException e) {
-                                Log.v("AMTL", "Additional_Features_Activity usbswitch APE listener: null pointer");
+                                Log.v(Modem_Configuration.TAG, "Additional_Features_Activity usbswitch APE listener: null pointer");
                             }
                         }
                     }).start();
@@ -132,7 +132,7 @@ public class Additional_Features_Activity extends Activity {
                     Toast toast = Toast.makeText(Additional_Features_Activity.this, "Toggle pin on1 DONE", Toast.LENGTH_LONG);
                     toast.show();
                 } catch (IOException e) {
-                    Log.e("AMTL", "Toggle_pin can't apply");
+                    Log.e(Modem_Configuration.TAG, "Toggle_pin can't apply");
                     e.printStackTrace();
                 }
             }

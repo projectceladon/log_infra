@@ -10,6 +10,10 @@ LOCAL_PACKAGE_NAME := Amtl
 
 LOCAL_CERTIFICATE := platform
 
+LOCAL_JNI_SHARED_LIBRARIES := libamtl_jni
+
+LOCAL_PROGUARD_ENABLED := disabled
+
 include $(BUILD_PACKAGE)
 
 # Use the following include to make our test apk.
