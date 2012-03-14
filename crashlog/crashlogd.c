@@ -45,6 +45,7 @@
 #define KERNEL_CRASH "IPANIC"
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
+#define WTF_CRASH "WTF"
 #define TOMB_CRASH "TOMBSTONE"
 #define LOST "LOST_DROPBOX"
 #define AP_COREDUMP "APCOREDUMP"
@@ -854,6 +855,7 @@ struct wd_name wd_array[] = {
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
+	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, WTF_CRASH, "/data/system/dropbox", "wtf"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_COREDUMP ,"/data/logs/core", ".core"},
 	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, LOST ,"/data/system/dropbox", ".lost"}, /* for full dropbox */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, STATSTRIGGER, "/data/logs/stats", "trigger"},
@@ -997,6 +999,8 @@ static int do_crashlogd(unsigned int files)
 								strcpy(lostevent, ANR_CRASH);
 							else if (strstr(event->name, "crash"))
 								strcpy(lostevent, JAVA_CRASH);
+							else if (strstr(event->name, "wtf"))
+								strcpy(lostevent, WTF_CRASH);
 							else
 								break;
 							snprintf(lostevent_subtype, sizeof(lostevent_subtype), "%s_%s", LOST, lostevent);

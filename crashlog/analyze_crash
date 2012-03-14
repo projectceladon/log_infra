@@ -62,6 +62,27 @@ anr()
   fi
 }
 
+wtf()
+{
+  wtf=`ls $1 | grep "wtf.*.gz" | wc -l`
+  if [ $wtf == 1 ] ; then
+    pid=`gunzip -c $1/*_wtf*.gz | grep "Process:" | awk -F":" '{print $2}'`
+    type=`gunzip -c $1/*_wtf*.gz | grep "Subject:" | awk -F":" '{print $2}'`
+
+    echo "DATA0=$pid" >> $2
+    echo "DATA1=$type" >> $2
+  else
+    wtf=`ls $1 | grep "wtf.*.txt" | wc -l`
+    if [ $wtf == 1 ] ; then
+      pid=`grep "Process:" $1/*_wtf*.txt | awk -F":" '{print $2}'`
+      type=`grep "Subject:" $1/*_wtf*.txt | awk -F":" '{print $2}'`
+
+      echo "DATA0=$pid" >> $2
+      echo "DATA1=$type" >> $2
+    fi
+  fi
+}
+
 javacrash()
 {
   javacrash=`ls $1 | grep "system_app_crash.*.txt.gz" | wc -l`
@@ -195,6 +216,11 @@ if [ $# -ge 3 ] ; then
       dropbox="full"
   fi
 
+  if [ "$tag" == "LOST_DROPBOX_WTF" ] ; then
+      tag="WTF"
+      dropbox="full"
+  fi
+
   if [ -d "$output" ] ; then
     prepare_crashfile $tag $crashfilename $crashid $uptime $build $board $imei
 
@@ -213,6 +239,9 @@ if [ $# -ge 3 ] ; then
     fi
     if [ "$tag" == "ANR" ] ; then
       anr $output $crashfilename
+    fi
+	if [ "$tag" == "WTF" ] ; then
+      wtf $output $crashfilename
     fi
     if [ "$tag" == "TOMBSTONE" ] ; then
       tombstone $output $crashfilename
