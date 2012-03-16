@@ -112,7 +112,8 @@ public class EventDB {
 	}
 
 	public void close() {
-		mDbHelper.close();
+		if (mDbHelper != null)
+			mDbHelper.close();
 	}
 
 	public long addEvent(String eventId, String eventName, String type,

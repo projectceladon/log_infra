@@ -62,10 +62,10 @@ public class Connector {
 
 	private CrashReport app;
 	private Context mCtx;
-	private Socket mSocket;
+	private Socket mSocket = null;
 	private BufferedReader mInputStream = null;
 	private PrintWriter mOutputStream = null;
-	private ObjectOutputStream mObjectOutputStream;
+	private ObjectOutputStream mObjectOutputStream = null;
 	private Handler serviceHandler;
 	private Timer mTimer;
 	private Boolean scanInProgress = false;
@@ -122,7 +122,7 @@ public class Connector {
 	}
 
 	public void closeServerConnection() throws IOException {
-		if ((mOutputStream != null) && !mSocket.isOutputShutdown()) {
+		if ((mObjectOutputStream != null) && (mSocket != null) && !mSocket.isOutputShutdown()) {
 			mObjectOutputStream.writeObject("END");
 			mObjectOutputStream.flush();
 		}

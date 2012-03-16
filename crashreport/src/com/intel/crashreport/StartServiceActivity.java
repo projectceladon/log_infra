@@ -73,12 +73,13 @@ public class StartServiceActivity extends Activity {
 				text.setText("");
 		}
 		cancelButton = (Button) findViewById(R.id.buttonCancel);
-		cancelButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				if (mService.isServiceUploading())
-					mService.cancelDownload();
-			}
-		});
+		if (cancelButton != null)
+			cancelButton.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					if (mService.isServiceUploading())
+						mService.cancelDownload();
+				}
+			});
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
 	}
 

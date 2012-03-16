@@ -214,7 +214,8 @@ public class Event {
 					cDate = new Date();
 				}
 			}
-		}
+		} else
+			cDate = new Date();
 		return cDate;
 	}
 

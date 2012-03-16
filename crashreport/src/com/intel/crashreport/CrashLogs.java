@@ -56,24 +56,34 @@ public class CrashLogs {
 			File crashDir = new File(crashDirPath);
 			if ((crashDir != null) && crashDir.exists() && crashDir.isDirectory()) {
 				File fileList[] = crashDir.listFiles();
-				File crashLogsFile = new File(outDir, fileName);
-				BufferedInputStream origin = null;
-				ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
-				byte data[] = new byte[BUFFER_SIZE];
+				if (fileList != null) {
+					File crashLogsFile = new File(outDir, fileName);
+					BufferedInputStream origin = null;
+					ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
+					if (out != null) {
+						byte data[] = new byte[BUFFER_SIZE];
 
-				for(int i=0; i < fileList.length; i++) {
-					Log.d("Compress Adding: " + fileList[i].getName());
-					FileInputStream fi = new FileInputStream(fileList[i]);
-					origin = new BufferedInputStream(fi, BUFFER_SIZE);
-					ZipEntry entry = new ZipEntry(fileList[i].getName());
-					out.putNextEntry(entry);
-					int count;
-					while ((count = origin.read(data)) != -1)
-						out.write(data, 0, count);
-					origin.close();
+						for(int i=0; i < fileList.length; i++) {
+							Log.d("Compress Adding: " + fileList[i].getName());
+							FileInputStream fi = new FileInputStream(fileList[i]);
+							origin = new BufferedInputStream(fi, BUFFER_SIZE);
+							ZipEntry entry = new ZipEntry(fileList[i].getName());
+							out.putNextEntry(entry);
+							int count;
+							while ((count = origin.read(data)) != -1)
+								out.write(data, 0, count);
+							origin.close();
+						}
+						out.close();
+						return crashLogsFile;
+					} else {
+						Log.w("CrashLogs: Can't create zip file : "+crashLogsFile);
+						return null;
+					}
+				} else {
+					Log.w("CrashLogs: No files in : "+crashDirPath);
+					return null;
 				}
-				out.close();
-				return crashLogsFile;
 			} else {
 				Log.w("CrashLogs: Error when creating zip of : "+crashDirPath);
 				return null;

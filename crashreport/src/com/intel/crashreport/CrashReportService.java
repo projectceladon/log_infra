@@ -463,7 +463,8 @@ public class CrashReportService extends Service {
 			} catch (NullPointerException e) {
 				Log.w("Service: close connection exception", e);
 			}
-			db.close();
+			if (db != null)
+				db.close();
 			if (wakeLock != null) {
 				wakeLock.release();
 				wakeLock = null;
