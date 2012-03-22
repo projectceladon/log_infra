@@ -50,6 +50,7 @@
 #define LOST "LOST_DROPBOX"
 #define AP_COREDUMP "APCOREDUMP"
 #define MODEM_CRASH "MPANIC"
+#define MODEM_SHUTDOWN "MSHUTDOWN"
 #define CURRENT_UPTIME "CURRENTUPTIME"
 #define PER_UPTIME "UPTIME"
 #define SYS_REBOOT "REBOOT"
@@ -115,6 +116,8 @@
 #define THREAD_NAME "emmc_ipanic_threads"
 #define LOGCAT_NAME "emmc_ipanic_logcat"
 #define FABRIC_ERROR_NAME "ipanic_fabric_err"
+
+#define MODEM_SHUTDOWN_TRIGGER "/data/logs/modemcrash/mshutdown.txt"
 
 char *CRASH_DIR = NULL;
 char *STATS_DIR = NULL;
@@ -1158,6 +1161,33 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 	return;
 }
 
+static void crashlog_check_modem_shutdown(char *reason, unsigned int files)
+{
+	char date_tmp[32];
+	struct stat info;
+	time_t t;
+	char destion[PATHMAX];
+	unsigned int dir;
+
+	if (stat(MODEM_SHUTDOWN_TRIGGER, &info) == 0) {
+
+		time(&t);
+		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
+			 localtime((const time_t *)&t));
+		date_tmp[31] = '\0';
+		dir = find_dir(files,CRASH_MODE);
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
+
+		do_log_copy(MODEM_SHUTDOWN, dir, date_tmp, APLOG_TYPE);
+		history_file_write(CRASHEVENT, MODEM_SHUTDOWN, NULL, destion, NULL);
+		del_file_more_lines(HISTORY_FILE);
+		remove(MODEM_SHUTDOWN_TRIGGER);
+	}
+	return;
+}
+
 static void crashlog_check_startupreason(char *reason, unsigned int files)
 {
 	char date_tmp[32];
@@ -1438,6 +1468,7 @@ int main(int argc, char **argv)
 
 	crashlog_check_fabric(startupreason, files);
 	crashlog_check_panic(startupreason, files);
+	crashlog_check_modem_shutdown(startupreason, files);
 	crashlog_check_startupreason(startupreason, files);
 
 	history_file_write(SYS_REBOOT, startupreason, NULL, NULL, lastuptime);
