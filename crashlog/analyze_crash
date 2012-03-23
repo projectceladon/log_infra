@@ -231,7 +231,7 @@ if [ $# -ge 3 ] ; then
     if [ "$tag" == "WDT" ] ; then
       iwdt $crashfilename $wdt
     fi
-    if [ "$tag" == "IPANIC" ] ; then
+    if [ "$tag" == "IPANIC" -o "$tag" == "IPANIC_FORCED" ] ; then
       ipanic $output $crashfilename
     fi
     if [ "$tag" == "JAVACRASH" ] ; then
@@ -246,7 +246,7 @@ if [ $# -ge 3 ] ; then
     if [ "$tag" == "TOMBSTONE" ] ; then
       tombstone $output $crashfilename
     fi
-    if [ "$tag" == "FABRICERR" ] ; then
+    if [ "$tag" == "FABRICERR" -o "$tag" == "MEMERR" -o "$tag" == "INSTERR" -o "$tag" == "SRAMECCERR" -o "$tag" == "HWWDTLOGERR" ] ; then
       fabricerr $output $crashfilename
     fi
     if [ "$tag" == "MPANIC" ] ; then

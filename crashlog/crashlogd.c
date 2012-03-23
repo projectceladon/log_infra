@@ -44,6 +44,7 @@
 #define STATSTRIGGER "STTRIG"
 #define KERNEL_CRASH "IPANIC"
 #define SYSSERVER_WDT "UIWDT"
+#define KERNEL_FORCE_CRASH "IPANIC_FORCED"
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
 #define WTF_CRASH "WTF"
@@ -127,6 +128,7 @@ char buildVersion[PROPERTY_VALUE_MAX];
 char boardVersion[PROPERTY_VALUE_MAX];
 char uuid[256];
 int loop_uptime_event = 1;
+int test_flag = 0;
 
 static int do_mv(char *src, char *des)
 {
@@ -1096,6 +1098,66 @@ void do_timeup()
 	}
 }
 
+static int find_str_in_file(char *file, char *keyword, char *tail)
+{
+	char buffer[4*1024];
+	int rc = 0;
+	FILE *fd1;
+	struct stat info;
+	int brtw, brtr;
+	char *p;
+	int filelen,tmp,stringlen,buflen;
+
+	if (stat(file, &info) < 0)
+		return -1;
+
+	if (keyword == NULL)
+		return -1;
+
+	fd1 = fopen(file,"r");
+	if(fd1 == NULL)
+		goto out_err;
+
+	while(!feof(fd1)){
+		if (fgets(buffer, sizeof(buffer), fd1) != NULL){
+			if (keyword && strstr(buffer,keyword)){
+				if (!tail){
+					rc = 0;
+					goto out;
+				} else{
+					int buflen = strlen(buffer);
+					int str2len = strlen(tail);
+					if ((buflen > str2len) && (!strncmp(&(buffer[buflen-str2len-1]), tail, strlen(tail)))){
+						rc = 0;
+						goto out;
+					}
+				}
+			}
+		}
+	}
+
+out_err:
+	rc = -1;
+out:
+	if (fd1 != NULL)
+		fclose(fd1);
+
+	return rc;
+}
+
+struct fabric_type {
+	char *keyword;
+	char *tail;
+	char *name;
+};
+
+struct fabric_type ft_array[] = {
+	{"DW0:", "f501", "MEMERR"},
+	{"DW0:", "f502", "INSTERR"},
+	{"DW0:", "f504", "SRAMECCERR"},
+	{"DW0:",   "dd", "HWWDTLOGERR"},
+};
+
 static void crashlog_check_fabric(char *reason, unsigned int files)
 {
 	char date_tmp[32];
@@ -1103,8 +1165,9 @@ static void crashlog_check_fabric(char *reason, unsigned int files)
 	time_t t;
 	char destion[PATHMAX];
 	unsigned int dir;
+	unsigned int i = 0;
 
-	if (stat(PROC_FABRIC_ERROR_NAME, &info) == 0) {
+	if ((stat(PROC_FABRIC_ERROR_NAME, &info) == 0)  || (test_flag == 1)) {
 
 		time(&t);
 		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
@@ -1116,9 +1179,19 @@ static void crashlog_check_fabric(char *reason, unsigned int files)
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
 			 FABRIC_ERROR_NAME, date_tmp);
 		do_copy(SAVED_FABRIC_ERROR_NAME, destion, FILESIZE_MAX);
-		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 
-		history_file_write(CRASHEVENT, FABRIC_ERROR, NULL, destion, NULL);
+		for (i = 0; i < sizeof(ft_array)/sizeof(struct fabric_type); i++){
+			if (!find_str_in_file(destion, ft_array[i].keyword, ft_array[i].tail)){
+				snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+				history_file_write(CRASHEVENT, ft_array[i].name, NULL, destion, NULL);
+				break;
+			}
+		}
+		if (i == sizeof(ft_array)/sizeof(struct fabric_type)){
+			snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+			history_file_write(CRASHEVENT, FABRIC_ERROR, NULL, destion, NULL);
+		}
+
 		del_file_more_lines(HISTORY_FILE);
 	}
 	return;
@@ -1132,7 +1205,7 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 	char destion[PATHMAX];
 	unsigned int dir;
 
-	if (stat(PANIC_CONSOLE_NAME, &info) == 0) {
+	if ((stat(PANIC_CONSOLE_NAME, &info) == 0) || (test_flag == 1)) {
 
 		time(&t);
 		strftime(date_tmp, 32, "%Y%m%d%H%M%S",
@@ -1157,7 +1230,10 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 		do_copy(SAVED_LOGCAT_NAME, destion, FILESIZE_MAX);
 
 		write_file(PANIC_CONSOLE_NAME, "1");
-		history_file_write(CRASHEVENT, KERNEL_CRASH, NULL, destion, NULL);
+		if (!find_str_in_file(SAVED_CONSOLE_NAME, "Kernel panic - not syncing: Kernel Watchdog", NULL))
+			history_file_write(CRASHEVENT, KERNEL_FORCE_CRASH, NULL, destion, NULL);
+		else
+			history_file_write(CRASHEVENT, KERNEL_CRASH, NULL, destion, NULL);
 		del_file_more_lines(HISTORY_FILE);
 	}
 	return;
@@ -1415,6 +1491,9 @@ int main(int argc, char **argv)
 		if(!memcmp(argv[1], "-modem", 6)){
 			WDCOUNT=4;
 			LOGI(" crashlogd only snoop modem \n");
+		}
+		else if(!memcmp(argv[1], "-test", 5)){
+			test_flag = 1;
 		}
 		else{
 			errno = 0;
