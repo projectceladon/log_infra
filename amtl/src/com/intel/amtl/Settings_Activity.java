@@ -83,7 +83,6 @@ public class Settings_Activity extends Activity {
         button_trace_size_800.setEnabled(true);
         ((CompoundButton) button_trace_size_800).setChecked(true);
         button_hsi_frequencies_78.setEnabled(true);
-        button_hsi_frequencies_156.setEnabled(true);
         if (((CompoundButton) button_hsi_frequencies_disable).isChecked() || ((CompoundButton) button_hsi_frequencies_coredump).isChecked()) {
             ((CompoundButton) button_hsi_frequencies_78).setChecked(true);
         }

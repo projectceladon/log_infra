@@ -158,6 +158,7 @@
                 android:id="@+id/settings_hsi_frequencies_156_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:enabled="false"
                 android:text="@string/settings_hsi_frequencies_156_button" />
             <RadioButton
                 android:id="@+id/settings_hsi_frequencies_coredump_btn"
