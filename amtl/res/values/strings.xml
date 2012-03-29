@@ -25,5 +25,5 @@
     <string name="settings_hsi_frequencies_78_button">78MHz</string>
     <string name="settings_hsi_frequencies_156_button">156MHz</string>
     <string name="settings_activate_txt">ACTIVATE</string>
-    <string name="settings_mux_txt">ENABLE MUX</string>
+    <string name="settings_mux_txt">Enable MUX traces</string>
 </resources>
