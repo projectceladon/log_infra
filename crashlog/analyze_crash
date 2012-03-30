@@ -2,7 +2,7 @@
 
 help()
 {
-  echo "analyze_crash <tag> <path> [<crashid> <uptime> <build> <modem version> <board> <imei>]"
+  echo "analyze_crash <tag> <path> [<crashid> <uptime> <build> <modem version> <board> <date> <imei>]"
 }
 
 prepare_crashfile()
@@ -10,12 +10,11 @@ prepare_crashfile()
   echo "EVENT=CRASH" > $2
   echo "ID=$3" >> $2
   echo "SN=`cat /data/logs/uuid.txt`" >> $2
-  now=`date +%y-%m-%d-%H-%M-%S`
-  echo "DATE=$now" >> $2
+  echo "DATE=$7" >> $2
   echo "UPTIME=$4" >> $2
   echo "BUILD=$5" >> $2
   echo "BOARD=$6" >> $2
-  echo "IMEI=$7" >> $2
+  echo "IMEI=$8" >> $2
   echo "TYPE=$1" >> $2
 }
 
@@ -196,7 +195,8 @@ if [ $# -ge 3 ] ; then
   uptime=$4
   build=$5
   board=$6
-  imei=$7
+  date=$7
+  imei=$8
   crashfilename=$output/"crashfile"
 
   if [ "$tag" == "SWWDT_RESET" ] ; then
@@ -222,7 +222,7 @@ if [ $# -ge 3 ] ; then
   fi
 
   if [ -d "$output" ] ; then
-    prepare_crashfile $tag $crashfilename $crashid $uptime $build $board $imei
+    prepare_crashfile $tag $crashfilename $crashid $uptime $build $board $date $imei
 
     if [ "$dropbox" == "full" ] ; then
       fulldropbox $crashfilename
