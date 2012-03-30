@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Amtl</string>
-    <string name="main_coredump_button">Enable Modem Trace in Modem Core Dump</string>
-    <string name="main_ape_log_file_button">Enable Modem Trace in APE Log File</string>
-    <string name="main_disable_button">Disable Modem Trace</string>
+    <string name="main_coredump_button">Enable BP traces in modem coredump</string>
+    <string name="main_ape_log_file_button">Enable offline BP logging</string>
+    <string name="main_disable_button">Disable BP logging</string>
     <string name="settings_trace_location_txt">Trace location</string>
     <string name="additional_features_usbswitch_txt">Usbswitch</string>
     <string name="additional_features_ape_button">APE</string>
