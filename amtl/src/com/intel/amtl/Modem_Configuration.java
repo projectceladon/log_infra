@@ -177,7 +177,7 @@ public class Modem_Configuration {
                     read_write_modem_status = trace_disable;
                 }
             } else if (ival == "at+xmux?\r\n") {
-                if ((modem_value.contains("1,3,262143"))) {
+                if ((modem_value.contains("1,3,-1"))) {
                     read_write_modem_status = mux_enable;
                 } else {
                     read_write_modem_status = mux_disable;
@@ -244,7 +244,7 @@ public class Modem_Configuration {
         try {
             if (muxvalue == mux_enable) {
                 /*Enable Mux traces*/
-                read_write_modem(gsmtty_port,"at+xmux=1,3,262143\r\n");
+                read_write_modem(gsmtty_port,"at+xmux=1,3,-1\r\n");
             } else {
                 /*Disable Mux traces*/
                 read_write_modem(gsmtty_port,"at+xmux=1,1,0\r\n");
