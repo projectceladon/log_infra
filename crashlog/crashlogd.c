@@ -43,6 +43,7 @@
 #define STATSEVENT "STATS"
 #define STATSTRIGGER "STTRIG"
 #define KERNEL_CRASH "IPANIC"
+#define SYSSERVER_WDT "UIWDT"
 #define ANR_CRASH "ANR"
 #define JAVA_CRASH "JAVACRASH"
 #define WTF_CRASH "WTF"
@@ -855,6 +856,7 @@ struct wd_name wd_array[] = {
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
 /* -------------------------above is modem, below is AP---------------------------------------------------------------- */
+	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, SYSSERVER_WDT, "/data/system/dropbox", "system_server_watchdog"},
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
