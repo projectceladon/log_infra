@@ -43,6 +43,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.os.SystemProperties;
 
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 import com.intel.crashtoolserver.bean.FileInfo;
@@ -167,14 +168,20 @@ public class CrashReportService extends Service {
 	private Runnable getUploadState = new Runnable() {
 		public void run() {
 			String uploadState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("uploadStatePref", "askForUpload");
-			if (uploadState.contentEquals("uploadImmediately"))
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadImmadiately);
-			else if (uploadState.contentEquals("uploadReported"))
-				serviceHandler.sendEmptyMessage(ServiceMsg.uploadReported);
-			else if (uploadState.contentEquals("uploadDisabled"))
+			if ( SystemProperties.get("persist.crashreport.disabled", "0").equals("1")) {
+				Log.d("Service: Property persist.crashreport.disabled set to 1");
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
-			else
-				serviceHandler.sendEmptyMessage(ServiceMsg.askForUpload);
+			}
+			else{
+				if (uploadState.contentEquals("uploadImmediately"))
+					serviceHandler.sendEmptyMessage(ServiceMsg.uploadImmadiately);
+				else if (uploadState.contentEquals("uploadReported"))
+					serviceHandler.sendEmptyMessage(ServiceMsg.uploadReported);
+				else if (uploadState.contentEquals("uploadDisabled"))
+					serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
+				else
+					serviceHandler.sendEmptyMessage(ServiceMsg.askForUpload);
+			}
 		}
 	};
 
@@ -261,6 +268,9 @@ public class CrashReportService extends Service {
 			if (app.isActivityBounded()) {
 				Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
 				getApplicationContext().sendBroadcast(askForUploadIntent);
+				if( SystemProperties.get("persist.crashreport.disabled", "0").equals("1") ) {
+					sendMsgToActivity("Warning : Background Upload is disabled due to property persist.crashreport.disabled set to 1");
+				}
 			} else {
 				Log.w("R:askForUpload: Activity not bounded to service");
 			}
