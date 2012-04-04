@@ -38,12 +38,12 @@
 		<com.intel.crashreport.CrashLogsListPrefs
 			android:key="setReportCrashLogType"
 			android:dependency="enableCrashLogReport"
-			android:title="Crash logs type"
-			android:summary="Set the crash logs type to report"
-			android:dialogTitle="Crash logs type"
+			android:title="Crash logs type excluded"
+			android:summary="Set the crash logs type excluded from report"
+			android:dialogTitle="Crash logs type to exclude"
 			android:entries="@array/reportCrashLogsTypeText"
 			android:entryValues="@array/reportCrashLogsTypeValues"
-			android:defaultValue="JAVACRASH,TOMBSTONE,ANR,MPANIC,APIMR,MRESET,WDT,IPANIC,FABRICERR" />
+			android:defaultValue="APCOREDUMP" />
 	</PreferenceCategory>
 
   	<PreferenceCategory
