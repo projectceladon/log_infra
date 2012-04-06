@@ -389,6 +389,7 @@ public class CrashReportService extends Service {
 								if (con.sendEvent(sEvent)) {
 									db.updateEventToUploaded(event.getEventId());
 									Log.d("Service:uploadEvent : Success upload of " + event);
+									Log.i("Service:uploadEvent : Success upload of " + event);
 									cursor.moveToNext();
 								} else {
 									Log.w("Service:uploadEvent : Fail upload of " + event);
@@ -414,6 +415,7 @@ public class CrashReportService extends Service {
 									if (crashLogs != null) {
 										dayDate = DAY_DF.format(event.getDate());
 										fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
+										Log.i("Service:uploadEvent : Upload of "+event);
 										if (con.sendLogsFile(fileInfo, runThread)) {
 											db.updateEventLogToUploaded(event.getEventId());
 											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
@@ -428,6 +430,7 @@ public class CrashReportService extends Service {
 								}
 								cursor.close();
 								nMgr.cancelNotifUploadingLogs();
+								Log.i("Service:uploadEvent : Upload files finished");
 							}
 						}
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
