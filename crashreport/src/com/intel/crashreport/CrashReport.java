@@ -22,6 +22,7 @@ package com.intel.crashreport;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.SQLException;
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -43,6 +44,23 @@ public class CrashReport extends Application {
 			editor.commit();
 			PreferenceManager.setDefaultValues(this, R.xml.menu, true);
 			privatePrefs.setVersion(version);
+
+			EventDB db = new EventDB(this.getApplicationContext());
+
+			try {
+				db.open();
+				db.deleteAllCriticalTypes();
+
+				for (String type : getResources().getStringArray(R.array.reportCrashLogsTypeValues)) {
+					db.addCriticalType(type);
+				}
+				for (String type : privatePrefs.getCriticalCrashTypes()) {
+					db.updateCriticalType(type, true);
+				}
+				db.close();
+			} catch (SQLException e) {
+				Log.w("CrashReport: update of critical crash db failed");
+			}
 		}
 	}
 

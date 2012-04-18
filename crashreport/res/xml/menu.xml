@@ -48,7 +48,7 @@
 
   	<PreferenceCategory
     	android:title="General Settings">
-    	 <ListPreference
+		<ListPreference
 			android:title="Report Management"
 			android:summary="How application react to new events"
 			android:key="uploadStatePref"
@@ -65,6 +65,7 @@
 			android:defaultValue="4001"
 			android:summary="Upload server port"
 			android:title="Server Port" />
+
 	</PreferenceCategory>
 
 	<PreferenceCategory android:title="Internal WiFi settings">

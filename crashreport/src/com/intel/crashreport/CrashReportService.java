@@ -28,6 +28,7 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -126,14 +127,22 @@ public class CrashReportService extends Service {
 		String histEventLine;
 		EventDB db;
 		String myBuild;
+		ApplicationPreferences prefs;
+		Cursor cursor;
+		Event event;
+		NotificationMgr nMgr;
 
 		public void run() {
 			db = new EventDB(getApplicationContext());
 			myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
+			nMgr = new NotificationMgr(getApplicationContext());
+
 			try {
 				db.open();
 				histFile = new HistoryEventFile();
-				while(histFile.hasNext()) {
+				prefs = new ApplicationPreferences(getApplicationContext());
+
+				while (histFile.hasNext()) {
 					histEventLine = histFile.getNextEvent();
 					if (histEventLine.length() != 0) {
 						HistoryEvent histEvent = new HistoryEvent(histEventLine);
@@ -150,6 +159,10 @@ public class CrashReportService extends Service {
 						} else
 							Log.d("Service: Event ignored ID:" + histEvent.getEventId());
 					}
+				}
+
+				if (db.isThereEventToNotified()) {
+					nMgr.notifyCriticalEvent(db.getCriticalEventsNumber());
 				}
 
 				db.close();

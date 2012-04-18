@@ -30,6 +30,7 @@ public class NotificationMgr {
 	private Context context;
 	private static final int NOTIF_EVENT_ID = 1;
 	private static final int NOTIF_UPLOAD_ID = 2;
+	private static final int NOTIF_CRITICAL_EVENT_ID = 3;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
@@ -86,6 +87,28 @@ public class NotificationMgr {
 	public void cancelNotifUploadingLogs() {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.cancel(NOTIF_UPLOAD_ID);
+	}
+
+	public void cancelNotifCriticalEvent(){
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NOTIF_CRITICAL_EVENT_ID);
+	}
+
+	public void notifyCriticalEvent(int crashNumber){
+		CharSequence tickerText = "Critical events occured";
+		CharSequence contentTitle = "Crash Report";
+		CharSequence contentText ;
+		if( crashNumber > 1)
+			contentText = crashNumber+" critical events occured";
+		else contentText = crashNumber+" critical event occured";
+		int icon = R.drawable.icon;
+		long when = System.currentTimeMillis();
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		Notification notification = new Notification(icon, tickerText, when);
+		Intent notificationIntent = new Intent(context, NotifyEventActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		mNotificationManager.notify(NOTIF_CRITICAL_EVENT_ID, notification);
 	}
 
 }
