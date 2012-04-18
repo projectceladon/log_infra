@@ -1,3 +1,5 @@
+ifeq ($(strip $(BOARD_HAVE_IFX6160)),true)
+
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -18,3 +20,5 @@ include $(BUILD_PACKAGE)
 
 # Use the following include to make our test apk.
 include $(call all-makefiles-under,$(LOCAL_PATH))
+
+endif
