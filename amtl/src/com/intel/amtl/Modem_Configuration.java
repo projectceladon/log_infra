@@ -116,6 +116,10 @@ public class Modem_Configuration {
             rsp_byte[i] = 0;
         }
 
+        if (ival.startsWith("at+") || ival.startsWith("AT+")) {
+            Log.d(TAG, ival);
+        }
+
         RandomAccessFile f = new RandomAccessFile(iout, "rwd");
         f.writeBytes(ival);
 
@@ -183,8 +187,6 @@ public class Modem_Configuration {
                 } else {
                     read_write_modem_status = mux_disable;
                 }
-            } else {
-                Log.d(TAG, "Command unknown");
             }
         f.close();
         return read_write_modem_status;
