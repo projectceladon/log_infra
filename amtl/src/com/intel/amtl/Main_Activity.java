@@ -40,6 +40,7 @@ import java.io.IOException;
 public class Main_Activity extends Activity {
     private ToggleButton button_modem_coredump;
     private ToggleButton button_ape_log_file;
+    private ToggleButton button_online_bp_log;
     private ToggleButton button_disable_modem_trace;
     private int service_value;
     private int trace_level_value;
@@ -54,10 +55,11 @@ public class Main_Activity extends Activity {
     private SynchronizeSTMD synchronizestmd;
     protected Modem_Application modem_application;
     Runtime rtm = java.lang.Runtime.getRuntime();
+    private AlertDialog alertDialog;
 
     /*Print pop-up message with ok and cancel buttons*/
     private void message_warning(String title, String message) {
-        new AlertDialog.Builder(this)
+        alertDialog = new AlertDialog.Builder(this)
         .setTitle(title)
         .setMessage(message)
         .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -183,29 +185,31 @@ public class Main_Activity extends Activity {
 
     /*Set all button according the current configuration during the update*/
     private void set_main_buttons(int xsio_val, int service_val, int trace_level_val) {
+        /* Uncheck all first */
+        (button_modem_coredump).setChecked(false);
+        (button_ape_log_file).setChecked(false);
+        (button_disable_modem_trace).setChecked(false);
+        (button_online_bp_log).setChecked(false);
+
+        /* Check the right one */
         if (((xsio_val == Modem_Configuration.reboot_ok2) || (xsio_val == Modem_Configuration.reboot_ko2))
                 && (service_val == Modem_Configuration.mts_disable) && (trace_level_val == Modem_Configuration.trace_bb_3g)) {
             /*Trace in coredump enabled*/
             (button_modem_coredump).setChecked(true);
-            (button_ape_log_file).setChecked(false);
-            (button_disable_modem_trace).setChecked(false);
         } else if (((xsio_val == Modem_Configuration.reboot_ok4) || (xsio_val == Modem_Configuration.reboot_ko4))
                 && (service_val == Modem_Configuration.mtsextfs_persistent) && (trace_level_val == Modem_Configuration.trace_bb_3g)) {
             /*Trace in APE log file enabled*/
-            (button_modem_coredump).setChecked(false);
             (button_ape_log_file).setChecked(true);
-            (button_disable_modem_trace).setChecked(false);
+        } else if (((xsio_val == Modem_Configuration.reboot_ok0) || (xsio_val == Modem_Configuration.reboot_ko0))
+                && (service_val == Modem_Configuration.online_bp_logging_persistent) && (trace_level_val == Modem_Configuration.trace_bb_3g)) {
+            /* Online BP logging */
+            (button_online_bp_log).setChecked(true);
         } else if (((xsio_val == Modem_Configuration.reboot_ok0) || (xsio_val == Modem_Configuration.reboot_ko0))
                 && (service_val == Modem_Configuration.mts_disable) && (trace_level_val == Modem_Configuration.trace_disable)) {
             /*Trace disabled*/
-            (button_modem_coredump).setChecked(false);
-            (button_ape_log_file).setChecked(false);
             (button_disable_modem_trace).setChecked(true);
-        } else {
+        }else {
             /*Other configuration not available in standard mode*/
-            (button_modem_coredump).setChecked(false);
-            (button_ape_log_file).setChecked(false);
-            (button_disable_modem_trace).setChecked(false);
             message_pop_up("WARNING","Please use Advanced Menu to know your current configuration");
         }
     }
@@ -262,6 +266,7 @@ public class Main_Activity extends Activity {
         button_modem_coredump = (ToggleButton) findViewById(R.id.modem_coredump_btn);
         button_ape_log_file = (ToggleButton) findViewById(R.id.ape_log_file_btn);
         button_disable_modem_trace = (ToggleButton) findViewById(R.id.disable_modem_trace_btn);
+        button_online_bp_log = (ToggleButton) findViewById(R.id.online_bp_log_btn);
 
         /*On start, print a warning message*/
         message_warning("WARNING","This is a R&D Application. Please do not use unless you are asked to!");
@@ -273,6 +278,7 @@ public class Main_Activity extends Activity {
                 if (button_modem_coredump.isChecked()) {
                     (button_ape_log_file).setChecked(false);
                     (button_disable_modem_trace).setChecked(false);
+                    (button_online_bp_log).setChecked(false);
 
                     if (modem_application.modem_status != 1) {
                         message_pop_up("SORRY", "Modem is not ready. Please Try again");
@@ -321,6 +327,7 @@ public class Main_Activity extends Activity {
                 if (button_ape_log_file.isChecked()) {
                     (button_modem_coredump).setChecked(false);
                     (button_disable_modem_trace).setChecked(false);
+                    (button_online_bp_log).setChecked(false);
 
                     if (modem_application.modem_status != 1) {
                         message_pop_up("SORRY", "Modem is not ready. Please Try again");
@@ -366,6 +373,60 @@ public class Main_Activity extends Activity {
             }
         });
 
+        /* Listener on online BP logging  button */
+        button_online_bp_log.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (button_online_bp_log.isChecked()) {
+                    (button_modem_coredump).setChecked(false);
+                    (button_disable_modem_trace).setChecked(false);
+                    (button_ape_log_file).setChecked(false);
+
+                    if (modem_application.modem_status != 1) {
+                        message_pop_up("SORRY", "Modem is not ready. Please Try again");
+                    } else {
+                        progressDialog = ProgressDialog.show(Main_Activity.this, "Please wait....", "Traces will be routed to USB");
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+
+                                    /* Stop current service */
+                                    services.stop_service(services.service_status());
+
+                                    /* Configure modem logs */
+                                    modem_configuration.read_write_modem(Modem_Configuration.gsmtty_port,"at+xsio=0\r\n");
+                                    modem_configuration.enable_trace_level(Modem_Configuration.trace_bb_3g);
+
+                                    /* Disable MTS => Enable mts_disable service */
+                                    services.enable_service(Modem_Configuration.online_bp_logging_persistent);
+
+                                    /*Print a pop-up message, user must reboot*/
+                                    main_activity.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            message_pop_up("WARNING", "Your board need a HARDWARE REBOOT");
+                                        }
+                                    });
+                                    progressDialog.dismiss();
+                                } catch (IOException e) {
+                                    Log.e(Modem_Configuration.TAG, "Main_Activity can't apply the online BP logging configuration");
+                                    e.printStackTrace();
+                                } catch (NullPointerException e) {
+                                    Log.v(Modem_Configuration.TAG, "Main_Activity online BP logging configuration: null pointer");
+                                }
+                            }
+                        }).start();
+                    }
+                } else {
+                    /*If user presses again on button_ape_log_file, traces are stopped*/
+                    (button_online_bp_log).setChecked(false);
+                    (button_disable_modem_trace).setChecked(true);
+                    disable_modem_trace();
+                }
+            }
+        });
+
         /*Listener on Disable button*/
         button_disable_modem_trace.setOnClickListener(new OnClickListener() {
             @Override
@@ -373,6 +434,7 @@ public class Main_Activity extends Activity {
                 if (button_disable_modem_trace.isChecked()) {
                     (button_ape_log_file).setChecked(false);
                     (button_modem_coredump).setChecked(false);
+                    (button_online_bp_log).setChecked(false);
                     disable_modem_trace();
                 } else {
                     (button_disable_modem_trace).setChecked(true);
@@ -390,6 +452,8 @@ public class Main_Activity extends Activity {
 
     @Override
     protected void onDestroy() {
+        alertDialog.dismiss();
+        progressDialog.dismiss();
         Log.d(Modem_Configuration.TAG, "onDestroy() call");
         super.onDestroy();
 

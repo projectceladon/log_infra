@@ -12,8 +12,9 @@
         <ToggleButton
             android:id="@+id/modem_coredump_btn"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="40px"
-            android:layout_height="200px"
+            android:layout_weight="1"
             android:paddingBottom="50px"
             android:textColor="#000000"
             android:textOn="@string/main_coredump_button"
@@ -24,8 +25,9 @@
         <ToggleButton
             android:id="@+id/ape_log_file_btn"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="40px"
-            android:layout_height="200px"
+            android:layout_weight="1"
             android:paddingBottom="50px"
             android:textColor="#000000"
             android:textOn="@string/main_ape_log_file_button"
@@ -34,10 +36,24 @@
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <ToggleButton
+            android:id="@+id/online_bp_log_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40px"
+            android:layout_weight="1"
+            android:paddingBottom="50px"
+            android:textColor="#000000"
+            android:textOn="@string/main_online_bp_log_button"
+            android:textOff="@string/main_online_bp_log_button"
+            android:background="@drawable/online_bp_log_btn"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <ToggleButton
             android:id="@+id/disable_modem_trace_btn"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="40px"
-            android:layout_height="200px"
+            android:layout_weight="1"
             android:paddingBottom="50px"
             android:textColor="#000000"
             android:textOn="@string/main_disable_button"

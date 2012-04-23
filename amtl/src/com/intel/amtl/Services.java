@@ -50,6 +50,10 @@ public class Services {
                 /*sdcard 800MB persistent*/
                 rtm.exec("setprop persist.service.mtsextsd.enable 1");
                 break;
+            case Modem_Configuration.online_bp_logging_persistent:
+                /* Online BP logging => persistent USB to modem */
+                rtm.exec("setprop persist.service.usbmodem.enable 1");
+                break;
             case Modem_Configuration.mtsusb:
                 /*USB oneshot*/
                 rtm.exec("start mtsusb");
@@ -77,6 +81,9 @@ public class Services {
         } else if (SystemProperties.get("persist.service.mtsextsd.enable", "").equals("1")) {
             /*sdcard 800MB persistent*/
             service_val = Modem_Configuration.mtsextsd_persistent;
+        } else if (SystemProperties.get("persist.service.usbmodem.enable", "").equals("1")) {
+            /* Online BP logging => persistent USB to modem service */
+            service_val = Modem_Configuration.online_bp_logging_persistent;
         } else if (SystemProperties.get("init.svc.mtsusb", "").equals("running")) {
             /*USB oneshot*/
             service_val = Modem_Configuration.mtsusb;
@@ -109,6 +116,10 @@ public class Services {
             case Modem_Configuration.mtsextsd_persistent:
                 /*sdcard 800MB persistent*/
                 rtm.exec("setprop persist.service.mtsextsd.enable 0");
+                break;
+            case Modem_Configuration.online_bp_logging_persistent:
+                /* Persistent USB to modem service */
+                rtm.exec("setprop persist.service.usbmodem.enable 0");
                 break;
             case Modem_Configuration.mtsusb:
                 /*USB oneshot*/

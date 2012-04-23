@@ -112,6 +112,8 @@ public class Settings_Activity extends Activity {
         } else if (((CompoundButton) button_location_usb_ape).isChecked()) {
             /*USB max oneshot*/
             return Modem_Configuration.mtsusb;
+        } else if (((CompoundButton) button_location_usb_modem).isChecked()) {
+            return Modem_Configuration.online_bp_logging_persistent;
         } else {
             /*Disable, service not necessary*/
             return Modem_Configuration.mts_disable;

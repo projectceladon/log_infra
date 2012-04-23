@@ -57,6 +57,7 @@ public class Modem_Configuration {
     protected final static int mtssd_persistent = 33;
     protected final static int mtsextsd_persistent = 34;
     protected final static int mtsusb = 35;
+    protected final static int online_bp_logging_persistent = 36;
     protected final static int trace_disable = 40;
     protected final static int trace_bb = 41;
     protected final static int trace_bb_3g = 42;

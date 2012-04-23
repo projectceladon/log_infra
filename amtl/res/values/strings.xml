@@ -3,6 +3,7 @@
     <string name="app_name">Amtl</string>
     <string name="main_coredump_button">Enable BP traces in modem coredump</string>
     <string name="main_ape_log_file_button">Enable offline BP logging</string>
+    <string name="main_online_bp_log_button">Enable online BP logging</string>
     <string name="main_disable_button">Disable BP logging</string>
     <string name="settings_trace_location_txt">Trace location</string>
     <string name="additional_features_usbswitch_txt">Usbswitch</string>
