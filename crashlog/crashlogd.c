@@ -41,6 +41,7 @@
 
 #define CRASHEVENT "CRASH"
 #define STATSEVENT "STATS"
+#define STATEEVENT "STATE"
 #define STATSTRIGGER "STTRIG"
 #define KERNEL_CRASH "IPANIC"
 #define SYSSERVER_WDT "UIWDT"
@@ -349,7 +350,7 @@ static int write_file(const char *path, const char *value)
 	}
 }
 
-static char *get_version_info(char *fn, char *field)
+static int get_version_info(char *fn, char *field, char *buf)
 {
 
 	char *data;
@@ -357,7 +358,7 @@ static char *get_version_info(char *fn, char *field)
 	int fd;
 	int i = 0;
 	char *info = NULL;
-	int len;
+	int len = -1;
 	int p;
 
 	data = 0;
@@ -385,25 +386,16 @@ static char *get_version_info(char *fn, char *field)
 	while (i < sz) {
 		if (data[i] == '=')
 			if (i - strlen(field) > 0)
-				if (!memcmp
-				    (&data[i - strlen(field)], field,
-				     strlen(field))) {
+				if (!memcmp(&data[i - strlen(field)], field, strlen(field))) {
 					p = ++i;
-					while ((data[i] != '\n')
-					       && (data[i] != 0))
+					while ((data[i] != '\n') && (data[i] != 0))
 						i++;
 					len = i - p;
 					if (len > 0) {
-						info = (char *)malloc(len + 1);
-						if (info == 0)
-							goto oops;
-						memcpy(info, &data[p], len);
-						info[len] = 0;
+						memcpy(buf, &data[p], len);
+						buf[len] = 0;
 						break;
 					}
-					/*else
-					   goto oops; */
-
 				}
 		i++;
 	}
@@ -412,7 +404,7 @@ oops:
 	close(fd);
 	if (data != 0)
 		free(data);
-	return info;
+	return len;
 
 }
 
@@ -940,7 +932,8 @@ static int do_crashlogd(unsigned int files)
 								}
 								/*Update event every 12 hours*/
 								if ((hours / UPTIME_HOUR_FREQUENCY) >= loop_uptime_event) {
-									time_tmp = localtime((const time_t *)&info.st_mtime);
+									time(&t);
+									time_tmp = localtime((const time_t *)&t);
 									PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
 									compute_key(key, PER_UPTIME, NULL);
 									history_file_write(PER_UPTIME, NULL, NULL, NULL, date_tmp, key, date_tmp_2);
@@ -1385,6 +1378,7 @@ static int swupdated(char *buildname)
 	char currentbuild[PROPERTY_VALUE_MAX];
 
 	if (stat(LOG_BUILDID, &info) == 0) {
+
 		fd = fopen(LOG_BUILDID, "r");
 		fscanf(fd, "%s", currentbuild);
 		fclose(fd);
@@ -1548,6 +1542,7 @@ int main(int argc, char **argv)
 		}
 	}
 
+
 	property_get(PROP_CRASH, value, "");
 	if (strncmp(value, "1", 1)){
 		if (stat(PANIC_CONSOLE_NAME, &info) == 0){
@@ -1566,8 +1561,13 @@ int main(int argc, char **argv)
 		chmod(HISTORY_FILE_DIR,0750);
                 chmod(HISTORY_CORE_DIR,0750);
 	}
-	property_get(BUILD_FIELD, buildVersion, "");
-	property_get(BOARD_FIELD, boardVersion, "");
+	if (property_get(BUILD_FIELD, buildVersion, "") <=0){
+		get_version_info(SYS_PROP, BUILD_FIELD, buildVersion);
+	}
+
+	if (property_get(BOARD_FIELD, boardVersion, "") <=0){
+		get_version_info(SYS_PROP, BOARD_FIELD, boardVersion);
+	}
 	read_uuid();
 
 	sdcard_exist();
@@ -1576,28 +1576,79 @@ int main(int argc, char **argv)
 	char startupreason[16] = { '\0', };
 	struct stat st;
 	char lastuptime[32];
+	char crypt_state[PROPERTY_VALUE_MAX];
+	char encrypt_progress[PROPERTY_VALUE_MAX];
+	char decrypt[PROPERTY_VALUE_MAX];
 
-	if (swupdated(buildVersion)) {
-		strcpy(lastuptime, "0000:00:00");
-		strcpy(startupreason,"SWUPDATE");
-		reset_crashlog();
-		reset_statslog();
-		reset_history();
-	}
-	else {
-		read_startupreason(startupreason);
-		uptime_history(lastuptime);
+	property_get("ro.crypto.state", crypt_state, "");
+	property_get("vold.encrypt_progress",encrypt_progress,"");
+	property_get("vold.decrypt", decrypt, "");
+
+	if ((!strcmp(crypt_state, "unencrypted")) && ( !encrypt_progress[0])){
+		LOGI("phone enter state: normal start.\n");
+		if (swupdated(buildVersion)) {
+			strcpy(lastuptime, "0000:00:00");
+			strcpy(startupreason,"SWUPDATE");
+			reset_crashlog();
+			reset_statslog();
+			reset_history();
+		}
+		else {
+			read_startupreason(startupreason);
+			uptime_history(lastuptime);
+		}
+		goto next;
 	}
 
+	if (encrypt_progress[0]){
+		LOGI("phone enter state: encrypting.\n");
+		time(&t);
+		time_tmp = localtime((const time_t *)&t);
+		PRINT_TIME(date_tmp, TIME_FORMAT_2, time_tmp);
+		compute_key(key, STATEEVENT, "DECRYPTED");
+		history_file_write(STATEEVENT, "DECRYPTED", NULL, NULL, NULL, key, date_tmp);
+		goto next2;
+	}
+
+	if ((!strcmp(crypt_state, "encrypted")) && strcmp(decrypt, "trigger_post_fs_data")){
+		LOGI("phone enter state: encrypted start.\n");
+		time(&t);
+		time_tmp = localtime((const time_t *)&t);
+		PRINT_TIME(date_tmp, TIME_FORMAT_2, time_tmp);
+		compute_key(key, STATEEVENT, "ENCRYPTED");
+		history_file_write(STATEEVENT, "ENCRYPTED", NULL, NULL, NULL, key, date_tmp);
+		goto next2;
+	}
+
+	if (!strcmp(decrypt, "trigger_post_fs_data")){
+		LOGI("phone enter state: phone encrypted.\n");
+		if (swupdated(buildVersion)) {
+			strcpy(lastuptime, "0000:00:00");
+			strcpy(startupreason,"SWUPDATE");
+			reset_crashlog();
+			reset_statslog();
+			reset_history();
+		}
+		else {
+			read_startupreason(startupreason);
+			uptime_history(lastuptime);
+		}
+		goto next;
+	}
+
+next:
 	crashlog_check_fabric(startupreason, files);
 	crashlog_check_panic(startupreason, files);
 	crashlog_check_modem_shutdown(startupreason, files);
 	crashlog_check_startupreason(startupreason, files);
 
-	time_tmp = localtime((const time_t *)&info.st_mtime);
+	time(&t);
+	time_tmp = localtime((const time_t *)&t);
 	PRINT_TIME(date_tmp, TIME_FORMAT_2, time_tmp);
 	compute_key(key, SYS_REBOOT, startupreason);
 	history_file_write(SYS_REBOOT, startupreason, NULL, NULL, lastuptime, key, date_tmp);
+
+next2:
 	del_file_more_lines(HISTORY_FILE);
 	notify_crashreport();
 
