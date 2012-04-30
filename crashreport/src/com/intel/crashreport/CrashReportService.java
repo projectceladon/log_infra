@@ -906,8 +906,21 @@ public class CrashReportService extends Service {
 	}
 
 	public class LocalBinder extends Binder {
+                //Waiting time before stop the StartServiceActivity if the binder makes too much time to create CrashReportService
+		//67 is for 2seconds fo waiting with a sleep of 30ms.(2000ms/30)
+		private static final int waiting_time = 67;
 
 		CrashReportService getService() {
+			int counter = 0;
+			while( CrashReportService.this == null && counter < waiting_time){
+				try{
+					Thread.sleep(30);
+                                        counter++;
+				}
+				catch(InterruptedException e){
+					Log.d("LocalBinder: getService: Interrupted Exception");
+				}
+			}
 			return CrashReportService.this;
 		}
 	}

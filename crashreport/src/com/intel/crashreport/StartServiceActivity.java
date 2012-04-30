@@ -275,16 +275,22 @@ public class StartServiceActivity extends Activity {
 			Log.d("StartServiceActivity: onServiceConnected");
 			LocalBinder binder = (LocalBinder) service;
 			mService = binder.getService();
-			text.setText(mService.getLogger().getLog());
-			registerMsgReceiver();
-			app.setActivityBounded(true);
-			if (needToStartService) {
-				needToStartService = false;
-				mService.sendMessage(ServiceMsg.startProcessEvents);
-			}
-			if (mService.isServiceUploading()) {
-				cancelButton.setEnabled(true);
-				showPleaseWait();
+			if(mService == null){
+				Log.d("StartServiceActivity: onServiceConnected: CrashReportService creation failed");
+				text.setText("CrashReportService is not created!");
+				onServiceDisconnected(name);
+			} else {
+				text.setText(mService.getLogger().getLog());
+				registerMsgReceiver();
+				app.setActivityBounded(true);
+				if (needToStartService) {
+					needToStartService = false;
+					mService.sendMessage(ServiceMsg.startProcessEvents);
+				}
+				if (mService.isServiceUploading()) {
+					cancelButton.setEnabled(true);
+					showPleaseWait();
+				}
 			}
 		}
 
