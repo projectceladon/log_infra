@@ -103,6 +103,8 @@ public class Event {
 			fillRebootEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("UPTIME"))
 			fillUptimeEvent(histEvent, myBuild);
+		else if (histEvent.getEventName().equals("STATE"))
+			fillStateEvent(histEvent, myBuild);
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild) {
@@ -154,6 +156,16 @@ public class Event {
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
 		uptime = histevent.getType();
+	}
+
+	private void fillStateEvent(HistoryEvent histevent, String myBuild) {
+		eventId = histevent.getEventId();
+		eventName = histevent.getEventName();
+		type = histevent.getType();
+		date = convertDate(histevent.getDate());
+		buildId = myBuild;
+		readDeviceIdFromFile();
+		imei = readImeiFromSystem();
 	}
 
 	public com.intel.crashtoolserver.bean.Event getEventForServer(Build build) {
