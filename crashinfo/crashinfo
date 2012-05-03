@@ -1,0 +1,7 @@
+# Script to start "crashinfo" on the device
+#
+base=/system
+export CLASSPATH=$base/framework/crashinfo.jar
+trap "" HUP
+exec app_process $base/bin com.intel.commands.crashinfo.CrashInfo $*
+
