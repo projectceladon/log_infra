@@ -89,6 +89,7 @@
 #define MAX_DIR 1000
 #define HISTORY_FILE_DIR  "/data/logs"
 #define HISTORY_CORE_DIR  "/data/logs/core"
+#define APLOG_FILE_BOOT   "/data/logs/aplog_boot"
 #define APLOG_FILE_0        "/data/logs/aplog"
 #define APLOG_FILE_1    "/data/logs/aplog.1"
 #define BPLOG_FILE_0    "/data/logs/bplog"
@@ -270,6 +271,17 @@ out:
 
 	do_chown(des, "root", "log");
 	return rc;
+}
+
+static void flush_aplog_atboot(char *mode, int dir, char* ts)
+{
+	char cmd[512] = { '\0', };
+
+	snprintf(cmd, sizeof(cmd)-1, "/system/bin/logcat -b system -b main -b radio -b events -b kernel -v threadtime -d -f %s%d/%s_%s_%s", CRASH_DIR, dir,strrchr(APLOG_FILE_BOOT,'/')+1,mode,ts);
+	int status = system(cmd);
+	if (status != 0)
+		LOGE("flush ap log from boot returns status: %d.\n", status);
+	return ;
 }
 
 static void do_log_copy(char *mode, int dir, char* ts, int type)
@@ -587,7 +599,10 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 	} else if (type != NULL) {
 
 		to = fopen(HISTORY_FILE, "a");
-		fprintf(to, "%-8s%-22s%-20s%-16s %s\n", event, key, date_tmp_2, type, lastuptime);
+		if (lastuptime != NULL)
+			fprintf(to, "%-8s%-22s%-20s%-16s %s\n", event, key, date_tmp_2, type, lastuptime);
+		else
+			fprintf(to, "%-8s%-22s%-20s%-16s\n", event, key, date_tmp_2, type);
 		fclose(to);
 		LOGE("%-8s%-22s%-20s%s\n", event, key, date_tmp_2, type);
 	} else {
@@ -980,7 +995,6 @@ static int do_crashlogd(unsigned int files)
 							snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
 							do_copy(path, destion, 0);
 							snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-
 							time(&t);
 							time_tmp = localtime((const time_t *)&t);
 							PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
@@ -1008,7 +1022,8 @@ static int do_crashlogd(unsigned int files)
 							snprintf(lostevent_subtype, sizeof(lostevent_subtype), "%s_%s", LOST, lostevent);
 							dir = find_dir(files,CRASH_MODE);
 							snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
-							time_tmp = localtime((const time_t *)&info.st_mtime);
+							time(&t);
+							time_tmp = localtime((const time_t *)&t);
 							PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
 							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
 							compute_key(key, CRASHEVENT, lostevent);
@@ -1041,7 +1056,8 @@ static int do_crashlogd(unsigned int files)
 							do_copy(path, destion, 0);
 							remove(path);
 							snprintf(destion,sizeof(destion),"%s%d/", STATS_DIR,dir);
-							time_tmp = localtime((const time_t *)&info.st_mtime);
+							time(&t);
+							time_tmp = localtime((const time_t *)&t);
 							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
 							compute_key(key, STATSEVENT, tmp);
 							LOGE("%-8s%-22s%-20s%s %s\n", STATSEVENT, key, date_tmp_2, tmp, destion);
@@ -1056,7 +1072,8 @@ static int do_crashlogd(unsigned int files)
 
 							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
 							if (stat(path, &info) == 0) {
-								time_tmp = localtime((const time_t *)&info.st_mtime);
+								time(&t);
+								time_tmp = localtime((const time_t *)&t);
 								PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
 								PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
 								if (strstr(event->name, ".core" ))
@@ -1248,6 +1265,9 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 		do_copy(SAVED_LOGCAT_NAME, destion, FILESIZE_MAX);
 
 		write_file(PANIC_CONSOLE_NAME, "1");
+
+		destion[0] = '\0';
+		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
 		if (!find_str_in_file(SAVED_CONSOLE_NAME, "Kernel panic - not syncing: Kernel Watchdog", NULL)) {
 			compute_key(key, CRASHEVENT, KERNEL_FORCE_CRASH);
 			LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, KERNEL_FORCE_CRASH, destion);
@@ -1316,6 +1336,7 @@ static void crashlog_check_startupreason(char *reason, unsigned int files)
 		snprintf(destion, sizeof(destion), "%s%d/", CRASH_DIR, dir);
 		compute_key(key, CRASHEVENT, "WDT");
 		LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, "WDT", destion);
+		flush_aplog_atboot("WDT", dir, date_tmp);
 		usleep(TIMEOUT_VALUE);
 		do_log_copy("WDT", dir, date_tmp, APLOG_TYPE);
 		history_file_write(CRASHEVENT, "WDT", reason, destion, NULL, key, date_tmp_2);
@@ -1451,6 +1472,7 @@ static void uptime_history(char *lastuptime)
 	char name[32];
 	char date_tmp[32];
 	struct tm *time_tmp;
+	time_t t;
 
 	to = fopen(HISTORY_FILE, "r");
 	fscanf(to, "#V1.0 %16s%24s\n", name, lastuptime);
@@ -1461,7 +1483,8 @@ static void uptime_history(char *lastuptime)
 		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
 		strcpy(name, PER_UPTIME);
 		fseek(to, 0, SEEK_END);
-		time_tmp = localtime((const time_t *)&info.st_mtime);
+		time(&t);
+		time_tmp = localtime((const time_t *)&t);
 		PRINT_TIME(date_tmp, TIME_FORMAT_2, time_tmp);
 		fprintf(to, "%-8s00000000000000000000  %-20s%s\n", name, date_tmp, lastuptime);
 		fclose(to);
@@ -1574,11 +1597,14 @@ int main(int argc, char **argv)
 
 	// check startup reason and sw update
 	char startupreason[16] = { '\0', };
+	char encryptstate[16] = { '\0', };
 	struct stat st;
 	char lastuptime[32];
 	char crypt_state[PROPERTY_VALUE_MAX];
 	char encrypt_progress[PROPERTY_VALUE_MAX];
 	char decrypt[PROPERTY_VALUE_MAX];
+
+	strcpy(encryptstate,"DECRYPTED");
 
 	property_get("ro.crypto.state", crypt_state, "");
 	property_get("vold.encrypt_progress",encrypt_progress,"");
@@ -1602,26 +1628,19 @@ int main(int argc, char **argv)
 
 	if (encrypt_progress[0]){
 		LOGI("phone enter state: encrypting.\n");
-		time(&t);
-		time_tmp = localtime((const time_t *)&t);
-		PRINT_TIME(date_tmp, TIME_FORMAT_2, time_tmp);
-		compute_key(key, STATEEVENT, "DECRYPTED");
-		history_file_write(STATEEVENT, "DECRYPTED", NULL, NULL, NULL, key, date_tmp);
+		strcpy(encryptstate,"DECRYPTED");
 		goto next2;
 	}
 
 	if ((!strcmp(crypt_state, "encrypted")) && strcmp(decrypt, "trigger_post_fs_data")){
 		LOGI("phone enter state: encrypted start.\n");
-		time(&t);
-		time_tmp = localtime((const time_t *)&t);
-		PRINT_TIME(date_tmp, TIME_FORMAT_2, time_tmp);
-		compute_key(key, STATEEVENT, "ENCRYPTED");
-		history_file_write(STATEEVENT, "ENCRYPTED", NULL, NULL, NULL, key, date_tmp);
+		strcpy(encryptstate,"ENCRYPTED");
 		goto next2;
 	}
 
 	if (!strcmp(decrypt, "trigger_post_fs_data")){
 		LOGI("phone enter state: phone encrypted.\n");
+		strcpy(encryptstate,"ENCRYPTED");
 		if (swupdated(buildVersion)) {
 			strcpy(lastuptime, "0000:00:00");
 			strcpy(startupreason,"SWUPDATE");
@@ -1648,10 +1667,13 @@ next:
 	compute_key(key, SYS_REBOOT, startupreason);
 	history_file_write(SYS_REBOOT, startupreason, NULL, NULL, lastuptime, key, date_tmp);
 
-next2:
+	compute_key(key, STATEEVENT, encryptstate);
+	history_file_write(STATEEVENT, encryptstate, NULL, NULL, NULL, key, date_tmp);
+
 	del_file_more_lines(HISTORY_FILE);
 	notify_crashreport();
 
+next2:
 	ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
 	if (ret < 0) {
 		LOGE("pthread_create error");
