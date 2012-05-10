@@ -78,17 +78,4 @@
 
 	</string-array>
 
-	<string-array name="criticalCrashLogsTypeValues">
-		<item>WDT</item>
-		<item>IPANIC</item>
-		<item>FABRICERR</item>
-		<item>IPANIC_FORCED</item>
-		<item>MEMERR</item>
-		<item>INSTERR</item>
-		<item>SRAMECCERR</item>
-		<item>HWWDTLOGERR</item>
-		<item>MSHUTDOWN</item>
-                <item>UIWDT</item>
-	</string-array>
-
 </resources>

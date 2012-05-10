@@ -49,14 +49,19 @@ public class CrashReport extends Application {
 
 			try {
 				db.open();
-				db.deleteAllCriticalTypes();
+				db.deleteAllTypes();
+
+				db.deleteAllCriticalEvents();
+
+				db.addTypes(new String[]{"IPANIC","FABRICERR","IPANIC_FORCED","MEMERR","INSTERR","SRAMECCERR","HWWDTLOGERR","MSHUTDOWN","UIWDT","WDT"},1);
 
 				for (String type : getResources().getStringArray(R.array.reportCrashLogsTypeValues)) {
-					db.addCriticalType(type);
+					if (!db.isTypeInDb(type)) {
+						db.addType(type,0);
+					}
 				}
-				for (String type : privatePrefs.getCriticalCrashTypes()) {
-					db.updateCriticalType(type, true);
-				}
+
+				db.insertCricitalEvent("TOMBSTONE", "system_server", "", "", "", "", "");
 				db.close();
 			} catch (SQLException e) {
 				Log.w("CrashReport: update of critical crash db failed");

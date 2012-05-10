@@ -47,18 +47,19 @@ public class NotifyEventActivity extends Activity {
 		Event event;
 		Cursor cursor;
 		HashMap<String,Integer> infos = new HashMap<String,Integer>();
-		for( String type : appPrefs.getCriticalCrashTypes() ){
-			infos.put(type, 0);
-		}
+
 		try {
 			db.open();
 			cursor = db.fetchNotNotifiedEvents();
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
 					event = db.fillEventFromCursor(cursor);
-					int value = infos.get(event.getType());
-					value++;
-					infos.put(event.getType(), value);
+					if (infos.containsKey(event.getType())) {
+						int value = infos.get(event.getType());
+						infos.put(event.getType(), ++value);
+					} else {
+						infos.put(event.getType(), 1);
+					}
 					cursor.moveToNext();
 				}
 				cursor.close();
@@ -68,13 +69,14 @@ public class NotifyEventActivity extends Activity {
 			Log.w("Service: db Exception");
 		}
 		text.setText("");
-		for ( String type : appPrefs.getCriticalCrashTypes()){
-			if( infos.get(type) > 0){
-				if( infos.get(type) == 1)
-					text.append(infos.get(type)+" "+type+" crash occured\n");
-				else
-					text.append(infos.get(type)+" "+type+" crashs occured\n");
-			}
+
+		for ( String type : infos.keySet()){
+
+			if( infos.get(type) == 1)
+				text.append(infos.get(type)+" "+type+" crash occured\n");
+			else
+				text.append(infos.get(type)+" "+type+" crashes occured\n");
+
 		}
 	}
 

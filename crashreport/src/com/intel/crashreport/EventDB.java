@@ -35,8 +35,10 @@ public class EventDB {
 
 	private static final String DATABASE_NAME = "eventlogs.db";
 	private static final String DATABASE_TABLE = "events";
+	private static final String DATABASE_TYPE_TABLE = "events_type";
+	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
 	private static final String DATABASE_CRITICAL_TABLE = "critical_events_type";
-	private static final int DATABASE_VERSION = 4;
+	private static final int DATABASE_VERSION = 5;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -81,13 +83,35 @@ public class EventDB {
 					KEY_UPLOADLOG + " integer, "+
 					KEY_NOTIFIED + " integer);";
 
-	private static final String DATABASE_CRITICAL_CREATE =
-			"create table " + DATABASE_CRITICAL_TABLE + " ("+
+	private static final String DATABASE_TYPE_CREATE =
+			"create table " + DATABASE_TYPE_TABLE + " ("+
 					KEY_TYPE + " text primary key, "+
-					KEY_CRITICAL + " integer);";
+					KEY_CRITICAL+" integer );";
 
-	private static final String DATABASE_CRITICAL_EMPTY =
-			"delete from "+DATABASE_CRITICAL_TABLE+";";
+	private static final String DATABASE_TYPE_EMPTY =
+			"delete from "+DATABASE_TYPE_TABLE+";";
+
+	private static final String DATABASE_CRITICAL_EVENTS_CREATE =
+			"create table " + DATABASE_CRITICAL_EVENTS_TABLE + " ("+
+					KEY_TYPE + " text not null, "+
+					KEY_DATA0 + " text not null, "+
+					KEY_DATA1 + " text, "+
+					KEY_DATA2 + " text, "+
+					KEY_DATA3 + " text, "+
+					KEY_DATA4 + " text, "+
+					KEY_DATA5 + " text, "+
+					"PRIMARY KEY ( "+KEY_TYPE+", "+KEY_DATA0+", "+KEY_DATA1+", "+KEY_DATA2+", "+KEY_DATA3+", "+KEY_DATA4+", "+KEY_DATA5+"));";
+
+	private static final String DATABASE_CRITICAL_EVENTS_EMPTY =
+			"delete from "+DATABASE_CRITICAL_EVENTS_TABLE+";";
+
+	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
+			                             +" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
+			                             +"(ce."+KEY_DATA1+"='' or ce."+KEY_DATA1+"=trim(e."+KEY_DATA1+")) and "
+			                             +"(ce."+KEY_DATA2+"='' or ce."+KEY_DATA2+"=trim(e."+KEY_DATA2+")) and "
+			                             +"(ce."+KEY_DATA3+"='' or ce."+KEY_DATA3+"=trim(e."+KEY_DATA3+")) and "
+			                             +"(ce."+KEY_DATA4+"='' or ce."+KEY_DATA4+"=trim(e."+KEY_DATA4+")) and "
+			                             +"(ce."+KEY_DATA5+"='' or ce."+KEY_DATA5+"=trim(e."+KEY_DATA5+"))";
 
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
@@ -102,13 +126,16 @@ public class EventDB {
 
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(DATABASE_CREATE);
-			db.execSQL(DATABASE_CRITICAL_CREATE);
+			db.execSQL(DATABASE_TYPE_CREATE);
+			db.execSQL(DATABASE_CRITICAL_EVENTS_CREATE);
 		}
 
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w("Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TYPE_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_EVENTS_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
 			onCreate(db);
 		}
@@ -189,7 +216,7 @@ public class EventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_CRITICAL}, null, null, null, null, null);
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED}, null, null, null, null, null);
 	}
 
 	public Cursor fetchNotUploadedEvents() throws SQLException {
@@ -369,13 +396,19 @@ public class EventDB {
 		return new Date(dateLong);
 	}
 
-	public long addCriticalType(String type) {
+	public long addType(String type,int critical) {
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_TYPE, type);
-		initialValues.put(KEY_CRITICAL, 0);
+		initialValues.put(KEY_CRITICAL,critical);
 
-		return mDb.insert(DATABASE_CRITICAL_TABLE, null, initialValues);
+		return mDb.insert(DATABASE_TYPE_TABLE, null, initialValues);
+	}
+
+	public void addTypes(String[] types,int critical){
+		for(String type : types){
+			addType(type,critical);
+		}
 	}
 
 	public boolean updateEventToNotified(String eventId) {
@@ -386,27 +419,11 @@ public class EventDB {
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
-	public boolean updateCriticalType(String type, boolean isCritical) {
-		ContentValues args = new ContentValues();
-		if( isCritical )
-			args.put(KEY_CRITICAL, 1);
-		else args.put(KEY_CRITICAL, 0);
-		return mDb.update(DATABASE_CRITICAL_TABLE, args, KEY_TYPE + "='" + type + "'", null) > 0;
-	}
-
-	public boolean updateAllCriticalType(boolean isCritical){
-		ContentValues args = new ContentValues();
-		if( isCritical )
-			args.put(KEY_CRITICAL, 1);
-		else args.put(KEY_CRITICAL, 0);
-		return mDb.update(DATABASE_CRITICAL_TABLE, args, null, null) > 0;
-	}
-
 	private Boolean isTypeExistFromWhereQuery(String whereQuery) {
 		Cursor mCursor;
 		Boolean ret;
 		try {
-			mCursor = mDb.query(true, DATABASE_CRITICAL_TABLE, new String[] {KEY_TYPE},
+			mCursor = mDb.query(true, DATABASE_TYPE_TABLE, new String[] {KEY_TYPE},
 					whereQuery, null,
 					null, null, null, null);
 			if (mCursor != null) {
@@ -426,26 +443,30 @@ public class EventDB {
 
 	public Cursor fetchNotNotifiedEvents() throws SQLException {
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
-	                        KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				            DATABASE_CRITICAL_TABLE+" where "+KEY_CRITICAL+" ='1')";
+	                        "("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+				            DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+				            + "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
 	public boolean isThereEventToNotified(){
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
-                KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-	            DATABASE_CRITICAL_TABLE+" where "+KEY_CRITICAL+" ='1')";
+	                        "("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+				            DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+				            + "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		return isEventExistFromWhereQuery(whereQuery);
 	}
 
 	public int getCriticalEventsNumber() {
 		Cursor mCursor;
 		int count;
+                String whereQuery = KEY_NOTIFIED+"='0' and "+
+	                        "("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+				            DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+				            + "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		try {
 			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-					KEY_NOTIFIED+" = '0' and "+
-			        KEY_TYPE+" in (select "+KEY_TYPE+" from "+
-				    DATABASE_CRITICAL_TABLE+" where "+KEY_CRITICAL+ " ='1')", null,
+					whereQuery, null,
 					null, null, null, null);
 			if (mCursor != null) {
 				count = mCursor.getCount();
@@ -458,8 +479,26 @@ public class EventDB {
 		return 0;
 	}
 
-	public void deleteAllCriticalTypes(){
-		mDb.execSQL(DATABASE_CRITICAL_EMPTY);
+	public void deleteAllTypes(){
+		mDb.execSQL(DATABASE_TYPE_EMPTY);
+	}
+
+	public long insertCricitalEvent(String type, String data0, String data1, String data2, String data3, String data4, String data5){
+		ContentValues initialValues = new ContentValues();
+
+		initialValues.put(KEY_TYPE, type);
+		initialValues.put(KEY_DATA0, data0);
+		initialValues.put(KEY_DATA1, data1);
+		initialValues.put(KEY_DATA2, data2);
+		initialValues.put(KEY_DATA3, data3);
+		initialValues.put(KEY_DATA4, data4);
+		initialValues.put(KEY_DATA5, data5);
+
+		return mDb.insert(DATABASE_CRITICAL_EVENTS_TABLE, null, initialValues);
+	}
+
+	public void deleteAllCriticalEvents(){
+		mDb.execSQL(DATABASE_CRITICAL_EVENTS_EMPTY);
 	}
 
 

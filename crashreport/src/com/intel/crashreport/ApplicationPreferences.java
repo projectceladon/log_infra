@@ -95,11 +95,6 @@ public class ApplicationPreferences {
 		return CrashLogsListPrefs.parseStoredValue(appSharedPrefs.getString("setReportCrashLogType", ""));
 	}
 
-	public String[] getCriticalCrashTypes() {
-		return mCtx.getResources().getStringArray(
-				R.array.criticalCrashLogsTypeValues);
-	}
-
 	public String getVersion() {
 		return appPrivatePrefs.getString("version", "0");
 	}
