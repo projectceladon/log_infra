@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ACS UI Recorder</string>
+    
+	<!--     Buttons -->
+	<string name="start_button">Record</string>
+	<string name="stop_button">Stop</string>
+	<string name="replay_button">Replay</string>
+	
+	<!--     Toast notifications -->
+	<string name="record_started">Start recording ...</string>
+	<string name="record_started_on">Start recording on</string>
+	<string name="record_stopped">Stop recording ...</string>
+	<string name="replay_started">Start replaying ...</string>
+	<string name="replay_started_from">Start replaying from</string>
+	
+	<!--     Status bar notifications texts -->
+	<string name="notification_service_started">Ui Recorder getting ready</string>
+	<string name="notification_service_update">Ui Recorder is now</string>
+			
+	<string name="recording_status_string">Current recording status:</string>
+	<string name="recording_status_unknown">Unknown</string>
+	<string name="recording_status_recording">Recording</string>
+	<string name="recording_status_ready">Ready</string>
+	<string name="recording_status_replay">Replaying</string>
+	
+	<string name="about">About</string>
+	<string name="quit">Quit</string>
+	<string name="quit_question">Are you sure to quit ? (It will stop current recording !)</string>
+	<string name="quit_abort">Quit aborted</string>
+	<string name="disclamer_title">Disclaimer</string>
+	<string name="disclamer_abort">You should accept disclaimer before using this application </string>
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
+	<string name="accept">Accept</string>
+	<string name="decline">Decline</string>
+	<string name="ok">Ok</string>
+</resources>
