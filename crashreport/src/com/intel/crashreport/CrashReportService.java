@@ -279,10 +279,13 @@ public class CrashReportService extends Service {
 	private Runnable askForUpload = new Runnable() {
 		public void run() {
 			if (app.isActivityBounded()) {
-				Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
-				getApplicationContext().sendBroadcast(askForUploadIntent);
 				if( SystemProperties.get("persist.crashreport.disabled", "0").equals("1") ) {
 					sendMsgToActivity("Warning : Background Upload is disabled due to property persist.crashreport.disabled set to 1");
+					Log.d("Service: Property persist.crashreport.disabled set to 1");
+					serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
+				} else {
+					Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
+					getApplicationContext().sendBroadcast(askForUploadIntent);
 				}
 			} else {
 				Log.w("R:askForUpload: Activity not bounded to service");
