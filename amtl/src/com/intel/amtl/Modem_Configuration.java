@@ -222,11 +222,11 @@ public class Modem_Configuration {
             if (levelvalue == trace_bb) {
                 /*MA traces*/
                 read_write_modem(gsmtty_port,"at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=0\"\r\n");
-                read_write_modem(gsmtty_port,"at+xsystrace=0,\"bb_sw=1\",,\"oct=4\"\r\n");
+                read_write_modem(gsmtty_port,"at+xsystrace=0,\"bb_sw=1;3g_sw=0;digrf=0\",,\"oct=4\"\r\n");
             } else if (levelvalue == trace_bb_3g) {
                 /*MA & Artemis traces*/
                 read_write_modem(gsmtty_port,"at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
-                read_write_modem(gsmtty_port,"at+xsystrace=0,\"bb_sw=1;3g_sw=1\",,\"oct=4\"\r\n");
+                read_write_modem(gsmtty_port,"at+xsystrace=0,\"bb_sw=1;3g_sw=0;digrf=0\",,\"oct=4\"\r\n");
             } else if (levelvalue == trace_bb_3g_digrf) {
                 /*MA & Artemis & Digrf traces*/
                 read_write_modem(gsmtty_port,"at+trace=,115200,\"st=1,pr=1,bt=1,ap=0,db=1,lt=0,li=1,ga=0,ae=1\"\r\n");
