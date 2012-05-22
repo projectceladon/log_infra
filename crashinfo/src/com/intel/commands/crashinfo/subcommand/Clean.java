@@ -31,17 +31,19 @@ public class Clean implements ISubCommand {
 		File logFolder = new File("/data/logs");
 		if (logFolder.isDirectory()){
 			String[] sLogFiles = logFolder.list();
-			for (int i = 0; i < sLogFiles.length; i++) {
-				if (sLogFiles[i].contains("aplog.")){
-					File f = new File(logFolder.getAbsolutePath() + File.separator +sLogFiles[i] );
-					if (f.isFile()){
-					  f.delete();
-					  System.out.println("XXX " + sLogFiles[i] + " : cleaned XXX");
+			if (sLogFiles!= null){
+				for (int i = 0; i < sLogFiles.length; i++) {
+					if (sLogFiles[i].contains("aplog.")){
+						File f = new File(logFolder.getAbsolutePath() + File.separator +sLogFiles[i] );
+						if (f.isFile()){
+							f.delete();
+							System.out.println("XXX APLOG " + i + " : cleaned XXX");
+						}else{
+							System.out.println("Path does not exist");
+						}
 					}else{
-						System.out.println(f.getAbsolutePath() + " does not exist");
+						System.out.println( "File " + i + " : skipped");
 					}
-				}else{
-					System.out.println(sLogFiles[i] + " : skipped");
 				}
 			}
 		}else{
@@ -64,7 +66,7 @@ public class Clean implements ISubCommand {
 			//correct, nothing to do
 		}else{
 			//Incorrect, no arguments allowed
-		   result = false;
+			result = false;
 		}
 		return result;
 	}

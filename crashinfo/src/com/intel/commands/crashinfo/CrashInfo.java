@@ -104,10 +104,11 @@ public class CrashInfo {
 		}
 		ISubCommand mySubCommand = null;
 		String sCurArg = nextArg();
-		if (sCurArg.equals("-h") || sCurArg.equals("--help")) {
+		if (sCurArg == null){
 			showUsage();
-		}else
-		{
+		}else if (sCurArg.equals("-h") || sCurArg.equals("--help")) {
+			showUsage();
+		}else{
 			if (sCurArg.equals("buildid")) {
 				mySubCommand = new BuildId();
 			}else if (sCurArg.equals("getevent")) {
