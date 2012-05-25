@@ -162,7 +162,8 @@ public class EventDB {
 			String deviceId, String imei, String uptime, String crashDir) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = convertDateForDb(date);
-
+		if (eventName.equals("")) return -2;
+		else if (eventDate == -1) return -3;
 		if (eventName.contentEquals("REBOOT") && type.contentEquals("SWUPDATE"))
 			mDb.delete(DATABASE_TABLE, KEY_DATE+"<"+eventDate, null);
 
@@ -389,6 +390,9 @@ public class EventDB {
 	}
 
 	private int convertDateForDb(Date date) {
+		if (date==null) {
+			return -1;
+		}
 		return (int)(date.getTime() / COEF_S_TO_MS);
 	}
 
@@ -480,6 +484,7 @@ public class EventDB {
 		}
 		return 0;
 	}
+
 
 	public void deleteAllTypes(){
 		mDb.execSQL(DATABASE_TYPE_EMPTY);

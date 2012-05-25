@@ -152,8 +152,11 @@ public class CrashReportService extends Service {
 								long ret = db.addEvent(event);
 								if (ret == -1)
 									Log.w("Service: Event error when added to DB, " + event.toString());
-								else
-									Log.d("Service: Event successfully added to DB, " + event.toString());
+								else if (ret == -2)
+									Log.w("Service: Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
+								else if (ret == -3)
+									Log.w("Service: Event " +event.toString() + " with wrong date, addition in DB canceled");
+								else Log.d("Service: Event successfully added to DB, " + event.toString());
 							} else
 								Log.d("Service: Event already in DB, " + event.toString());
 						} else
