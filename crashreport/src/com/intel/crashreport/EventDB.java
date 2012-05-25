@@ -226,6 +226,7 @@ public class EventDB {
 
 	public Cursor fetchNotUploadedLogs(String crashTypes[]) throws SQLException {
 		StringBuilder bQuery = new StringBuilder("");
+		bQuery.append("("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0') or ");
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
@@ -296,6 +297,7 @@ public class EventDB {
 
 	public Boolean isThereEventToUpload(String crashTypes[]) {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0'");
+		bQuery.append(" or ("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0')");
 		if (crashTypes != null) {
 
 			String sExcludedType = getExcludeTypeInLine(crashTypes);

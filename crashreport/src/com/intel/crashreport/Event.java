@@ -103,6 +103,8 @@ public class Event {
 			fillRebootEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("UPTIME"))
 			fillUptimeEvent(histEvent, myBuild);
+		else if (histEvent.getEventName().equals("STATS"))
+			fillStatsEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("STATE"))
 			fillStateEvent(histEvent, myBuild);
 	}
@@ -156,6 +158,17 @@ public class Event {
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
 		uptime = histevent.getType();
+	}
+
+		private void fillStatsEvent(HistoryEvent histevent, String myBuild) {
+		crashDir = histevent.getOption();
+		eventId = histevent.getEventId();
+		eventName = histevent.getEventName();
+		date = convertDate(histevent.getDate());
+		type = histevent.getType();
+		buildId = myBuild;
+		readDeviceIdFromFile();
+		imei = readImeiFromSystem();
 	}
 
 	private void fillStateEvent(HistoryEvent histevent, String myBuild) {

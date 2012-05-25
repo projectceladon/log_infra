@@ -864,7 +864,7 @@ struct wd_name wd_array[] = {
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, JAVA_CRASH, "/data/system/dropbox", "crash"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_COREDUMP ,"/data/logs/core", ".core"},
 	{0, IN_MOVED_TO|IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, LOST ,"/data/system/dropbox", ".lost"}, /* for full dropbox */
-	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, STATSTRIGGER, "/data/logs/stats", "trigger"},
+	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, STATSTRIGGER, "/data/logs/stats", "_trigger"},
 };
 
 int WDCOUNT = ((int)(sizeof(wd_array)/sizeof(struct wd_name)));
@@ -878,6 +878,7 @@ static int do_crashlogd(unsigned int files)
 	struct inotify_event *event;
 	int len, tmp_len;
 	int i = 0;
+	int j = 0;
 	char path[PATHMAX];
 	char destion[PATHMAX];
 	char date_tmp[32];
@@ -1036,15 +1037,24 @@ static int do_crashlogd(unsigned int files)
 							break;
 						}
 						/*for stat trigger*/
-						else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "trigger" ))){
+						else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "_trigger" ))){
 							char *p;
-							char tmp[16];
+							char tmp[32];
+							char statstype[9]={ '\0',};
+							int length;
+
 							dir = find_dir(files,STATS_MODE);
 							/*copy data file*/
 							snprintf(tmp,sizeof(tmp),"%s",event->name);
-                                                        p = strstr(tmp,"trigger");
+                                                        p = strstr(tmp,"_trigger");
 							if ( p ){
-								strcpy(p,"data");
+								if ((unsigned int)(p-tmp) < sizeof(statstype)-1)
+									length = p-tmp;
+								else
+									length = sizeof(statstype)-1;
+								for (j=0;j<length;j++)
+									statstype[j]=toupper(*(tmp+j));
+								strcpy(p,"_data");
 								snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,tmp);
 								snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,tmp);
 								do_copy(path, destion, 0);
@@ -1060,8 +1070,8 @@ static int do_crashlogd(unsigned int files)
 							time_tmp = localtime((const time_t *)&t);
 							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
 							compute_key(key, STATSEVENT, tmp);
-							LOGE("%-8s%-22s%-20s%s %s\n", STATSEVENT, key, date_tmp_2, tmp, destion);
-							history_file_write(STATSEVENT, tmp, NULL, destion, NULL, key, date_tmp_2);
+							LOGE("%-8s%-22s%-20s%s %s\n", STATSEVENT, key, date_tmp_2, statstype, destion);
+							history_file_write(STATSEVENT, statstype, NULL, destion, NULL, key, date_tmp_2);
 							del_file_more_lines(HISTORY_FILE);
 							notify_crashreport();
 							break;
