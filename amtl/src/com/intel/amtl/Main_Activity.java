@@ -452,10 +452,11 @@ public class Main_Activity extends Activity {
 
     @Override
     protected void onDestroy() {
-        alertDialog.dismiss();
-        progressDialog.dismiss();
+        if (alertDialog != null)
+            alertDialog.dismiss();
+        if (progressDialog != null)
+            progressDialog.dismiss();
         Log.d(Modem_Configuration.TAG, "onDestroy() call");
-        super.onDestroy();
 
         synchronizestmd.flag = false;
         if (synchronizestmd.mSocket != null) {
@@ -468,5 +469,6 @@ public class Main_Activity extends Activity {
             }
             synchronizestmd.mSocket = null;
         }
+        super.onDestroy();
     }
 }
