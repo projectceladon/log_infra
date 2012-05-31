@@ -25,8 +25,9 @@ LOCAL_MODULE:= crashlogd
 
 LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_UNSTRIPPED)
 
-LOCAL_SHARED_LIBRARIES:= libc libcutils
+#LOCAL_STATIC_LIBRARIES:= libc libcutils
 
+LOCAL_SHARED_LIBRARIES:= libparse_stack libc libcutils
 include $(BUILD_EXECUTABLE)
 
 PRODUCT_COPY_FILES += \

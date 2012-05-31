@@ -48,6 +48,9 @@ public class HistoryEvent {
 					eventName = eventList[0];
 					eventId = eventList[1];
 					date = eventList[2];
+//					type = eventList[3];
+				}
+				if (eventList.length == 4) {
 					type = eventList[3];
 				}
 			} catch (NullPointerException e) {

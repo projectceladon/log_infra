@@ -1,19 +1,18 @@
-/*
-* Copyright (C) Intel 2010
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+/* * Copyright (C) Intel 2010
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <stdarg.h>
 #include <stdlib.h>
@@ -36,8 +35,10 @@
 #include "cutils/log.h"
 #include <sys/inotify.h>
 #include <cutils/properties.h>
-
+#include <sys/wait.h>
+#include <sys/sendfile.h>
 #include <sha1.h>
+#include <backtrace.h>
 
 #define CRASHEVENT "CRASH"
 #define STATSEVENT "STATS"
@@ -228,7 +229,7 @@ static int do_copy(char *src, char *des, int limit)
 	else{
 		filelen = limit;
 		lseek(fd1, info.st_size-limit, SEEK_SET);
-		}
+	}
 
 	while(filelen){
 		p = buffer;
@@ -430,8 +431,8 @@ static int get_uptime(long long *time_ns)
 		return -1;
 
 	result =
-	    ioctl(fd,
-		  ANDROID_ALARM_GET_TIME(ANDROID_ALARM_ELAPSED_REALTIME), &ts);
+		ioctl(fd,
+				ANDROID_ALARM_GET_TIME(ANDROID_ALARM_ELAPSED_REALTIME), &ts);
 	close(fd);
 	*time_ns = (((long long) ts.tv_sec) * 1000000000LL) + ((long long) ts.tv_nsec);
 	return 0;
@@ -443,7 +444,7 @@ static void compute_key(char* key, char *event, char *type)
 	char buf[256] = { '\0', };
 	long long time_ns=0;
 	char *tmp_key = key;
-        unsigned char results[SHA1_DIGEST_LENGTH];
+	unsigned char results[SHA1_DIGEST_LENGTH];
 	int i;
 
 	get_uptime(&time_ns);
@@ -454,8 +455,8 @@ static void compute_key(char* key, char *event, char *type)
 	SHA1Final(results, &sha);
 	for (i = 0; i < SHA1_DIGEST_LENGTH/2; i++)
 	{
-	  sprintf(tmp_key, "%02x", results[i]);
-	  tmp_key+=2;
+		sprintf(tmp_key, "%02x", results[i]);
+		tmp_key+=2;
 	}
 	*tmp_key=0;
 }
@@ -478,16 +479,16 @@ static void build_footprint(char *id)
 	char prop[PROPERTY_VALUE_MAX];
 
 	/* footprint contains:
-	* buildId
-	* fingerPrint
-	* kernelVersion
-	* buildUserHostname
-	* modemVersion
-	* ifwiVersion
-	* iafwVersion
-	* scufwVersion
-	* punitVersion
-	* valhooksVersion */
+	 * buildId
+	 * fingerPrint
+	 * kernelVersion
+	 * buildUserHostname
+	 * modemVersion
+	 * ifwiVersion
+	 * iafwVersion
+	 * scufwVersion
+	 * punitVersion
+	 * valhooksVersion */
 
 	snprintf(id, SIZE_FOOTPRINT_MAX, "%s,", buildVersion);
 
@@ -681,7 +682,7 @@ static int del_file_more_lines(char *fn)
 		}
 
 		if (write(fd, &data[0], sz - i - 1 + dest + 1) !=
-		    (sz - i - 1 + dest + 1)) {
+				(sz - i - 1 + dest + 1)) {
 			close(fd);
 			free(data);
 			return 0;
@@ -771,7 +772,7 @@ static unsigned int find_dir(unsigned int max, int mode)
 			if (!strcmp(de->d_name, ".") || !strcmp(de->d_name, ".."))
 				continue;
 			snprintf(path, sizeof(path),  "%s%d/%s", dir, oldest,
-				 de->d_name);
+					de->d_name);
 			remove(path);
 		}
 		if (closedir(d) < 0){
@@ -853,11 +854,11 @@ struct wd_name {
 
 struct wd_name wd_array[] = {
 	{0, IN_CLOSE_WRITE, CURRENT_UPTIME, "/data/logs/uptime", ""},
-/* -------------------------above is file, below is dir---------------------------------------------------------------- */
+	/* -------------------------above is file, below is dir---------------------------------------------------------------- */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, MODEM_CRASH ,"/data/logs/modemcrash", "mpanic.txt"},/*for modem crash */
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, AP_INI_M_RST ,"/data/logs/modemcrash", "apimr.txt"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, M_RST_WN_COREDUMP ,"/data/logs/modemcrash", "mreset.txt"},
-/* -------------------------above is modem, below is AP---------------------------------------------------------------- */
+	/* -------------------------above is modem, below is AP---------------------------------------------------------------- */
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, SYSSERVER_WDT, "/data/system/dropbox", "system_server_watchdog"},
 	{0, IN_MOVED_TO|IN_DELETE_SELF|IN_MOVE_SELF, ANR_CRASH, "/data/system/dropbox", "anr"},
 	{0, IN_CLOSE_WRITE|IN_DELETE_SELF|IN_MOVE_SELF, TOMB_CRASH, "/data/tombstones", "tombstone"},
@@ -869,307 +870,397 @@ struct wd_name wd_array[] = {
 
 int WDCOUNT = ((int)(sizeof(wd_array)/sizeof(struct wd_name)));
 
+void process_anr_or_uiwdt(char *destion, int dir)
+{
+    char cmd[PATHMAX];
+    int src, dest;
+    char dest_path[PATHMAX];
+    struct stat stat_buf;
+    char *tracefile;
+    FILE *fp;
+    int i;
+
+	if (!strcmp(".gz", &destion[strlen(destion) - 3])) {
+		/* extract gzip file */
+		snprintf(cmd, sizeof(cmd), "gunzip %s", destion);
+		system(cmd);
+		destion[strlen(destion) - 3] = 0;
+	}
+	fp = fopen(destion, "r");
+	if (fp == NULL) {
+		LOGE("Failed to open file %s:%s\n", destion, strerror(errno));
+		return;
+	}
+	/* looking for "Trace file:" from the first 100 lines */
+	for (i = 0; i < 100; i++) {
+		if (fgets(cmd, sizeof(cmd), fp)) {
+			if (!strncmp("Trace file:", cmd, 11)) {
+				tracefile = cmd + 11;
+				tracefile[strlen(tracefile) - 1] = 0; /* eliminate trailing \n */
+				// copy
+				snprintf(dest_path,sizeof(dest_path),"%s%d/trace_all_stack.txt", CRASH_DIR, dir);
+				src = open(tracefile, O_RDONLY);
+				fstat(src, &stat_buf);
+				if (src < 0) {
+					LOGE("Failed to open file %s:%s\n", tracefile, strerror(errno));
+					break;
+				}
+				dest = open(dest_path, O_WRONLY|O_CREAT, stat_buf.st_mode);
+				if (dest < 0) {
+					LOGE("Failed to open file %s:%s\n", dest_path, strerror(errno));
+					close(src);
+					break;
+				}
+				sendfile(dest, src, NULL, stat_buf.st_size);
+				close(src);
+				close(dest);
+				// remove src file
+				if (unlink(tracefile) != 0) {
+					LOGE("Failed to remove file %s:%s\n", tracefile, strerror(errno));
+				}
+				// parse
+				backtrace_parse_tombstone_file(dest_path);
+				if (unlink(dest_path) != 0) {
+					LOGE("Failed to remove file %s:%s\n", dest_path, strerror(errno));
+                }
+                break;
+            }
+        }
+    }
+    fclose(fp);
+}
+
 static int do_crashlogd(unsigned int files)
 {
-	int fd, fd1;
-	int wd;
-	char buffer[PATHMAX];
-	char *offset = NULL;
-	struct inotify_event *event;
-	int len, tmp_len;
-	int i = 0;
-	int j = 0;
-	char path[PATHMAX];
-	char destion[PATHMAX];
-	char date_tmp[32];
-	char date_tmp_2[32];
-	struct stat info;
-	unsigned int dir;
-	long long tm;
-	int hours, seconds, minutes;
-	time_t t;
-	char cmd[512] = { '\0', };
-	char key[SHA1_DIGEST_LENGTH+1];
-	struct tm *time_tmp;
+    int fd, fd1;
+    int wd;
+    char buffer[PATHMAX];
+    char *offset = NULL;
+    struct inotify_event *event;
+    int len, tmp_len;
+    int i = 0;
+    char path[PATHMAX];
+    char destion[PATHMAX];
+    char date_tmp[32];
+    char date_tmp_2[32];
+    struct stat info;
+    unsigned int dir;
+    long long tm;
+    int hours, seconds, minutes;
+    time_t t;
+    char cmd[512] = { '\0', };
+    char key[SHA1_DIGEST_LENGTH+1];
+    struct tm *time_tmp;
 
-	fd = inotify_init();
-	if (fd < 0) {
-		LOGE("inotify_init failed, %s\n", strerror(errno));
-		return 1;
-	}
+    fd = inotify_init();
+    if (fd < 0) {
+        LOGE("inotify_init failed, %s\n", strerror(errno));
+        return 1;
+    }
 
-	for (i = 0; i < WDCOUNT; i++) {
-		wd = inotify_add_watch(fd, wd_array[i].filename,
-				       wd_array[i].mask);
-		if (wd < 0) {
-			LOGE("Can't add watch for %s.\n", wd_array[i].filename);
-			return -1;
-		}
-		wd_array[i].wd = wd;
-		LOGW("%s has been snooped\n", wd_array[i].filename);
-	}
+    for (i = 0; i < WDCOUNT; i++) {
+        wd = inotify_add_watch(fd, wd_array[i].filename,
+                wd_array[i].mask);
+        if (wd < 0) {
+            LOGE("Can't add watch for %s.\n", wd_array[i].filename);
+            return -1;
+        }
+        wd_array[i].wd = wd;
+        LOGW("%s has been snooped\n", wd_array[i].filename);
+    }
 
-	while ((len = read(fd, buffer, sizeof(buffer)))) {
-		offset = buffer;
-		event = (struct inotify_event *)buffer;
-		while (((char *)event - buffer) < len) {
-			/* for dir to be delete */
-			if((event->mask & IN_DELETE_SELF) ||(event->mask & IN_MOVE_SELF)){
-				for (i = 0; i < WDCOUNT; i++) {
-					if (event->wd != wd_array[i].wd)
-						continue;
-					mkdir(wd_array[i].filename, 0777);
-					wd = inotify_add_watch(fd, wd_array[i].filename, wd_array[i].mask);
-					if (wd < 0) {
-						LOGE("Can't add watch for %s.\n", wd_array[i].filename);
-						return -1;
-						}
-					wd_array[i].wd = wd;
-					LOGW("%s has been deleted or moved, we watch it again.\n", wd_array[i].filename);
-					}
-			}
-			if (!(event->mask & IN_ISDIR)) {
-				for (i = 0; i < WDCOUNT; i++) {
-					if (event->wd != wd_array[i].wd)
-						continue;
-					if(!event->len){
-						/* for file */
-						if (!memcmp(wd_array[i].filename,HISTORY_UPTIME,strlen(HISTORY_UPTIME))) {
-							if (!get_uptime(&tm)) {
-								hours = (int) (tm / 1000000000LL);
-								seconds = hours % 60; hours /= 60;
-								minutes = hours % 60; hours /= 60;
-								snprintf(date_tmp,sizeof(date_tmp),"%04d:%02d:%02d",hours, minutes,seconds);
-								snprintf(destion,sizeof(destion),"#V1.0 %-16s%-24s",wd_array[i].eventname,date_tmp);
-								fd1 = open(HISTORY_FILE,O_RDWR);
-								if (fd1 > 0) {
-									write(fd1,destion,strlen(destion));
-									close(fd1);
-								}
-								/*Update event every 12 hours*/
-								if ((hours / UPTIME_HOUR_FREQUENCY) >= loop_uptime_event) {
-									time(&t);
-									time_tmp = localtime((const time_t *)&t);
-									PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
-									compute_key(key, PER_UPTIME, NULL);
-									history_file_write(PER_UPTIME, NULL, NULL, NULL, date_tmp, key, date_tmp_2);
-									del_file_more_lines(HISTORY_FILE);
-									loop_uptime_event = (hours / UPTIME_HOUR_FREQUENCY) + 1;
-									notify_crashreport();
-								}
-							}
-						}
-						break;
-					}
-					else{
-						/* for modem reset */
-						if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "apimr.txt" ) ||strstr(event->name, "mreset.txt" ) )){
-							dir = find_dir(files,CRASH_MODE);
-							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
-							if((stat(path, &info) == 0) && (info.st_size != 0)){
-								snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
-								do_copy(path, destion, FILESIZE_MAX);
-							}
-							snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-							time(&t);
-							time_tmp = localtime((const time_t *)&t);
-							PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
-							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
-							compute_key(key, CRASHEVENT, wd_array[i].eventname);
-							LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
-							usleep(TIMEOUT_VALUE);
-							do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
-							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
-							history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
-							del_file_more_lines(HISTORY_FILE);
-							notify_crashreport();
-							break;
-						}
-						/* for modem crash */
-						else if(strstr(event->name, wd_array[i].cmp) && strstr(event->name, "mpanic.txt" )){
-							dir = find_dir(files,CRASH_MODE);
-							snprintf(destion,sizeof(destion),"%s%d", CRASH_DIR,dir);
-							int status = mv_modem_crash(wd_array[i].filename, destion);
-							if (status != 0)
-								LOGE("backup modem core dump status: %d.\n", status);
-							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
-							snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
-							do_copy(path, destion, 0);
-							snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
-							time(&t);
-							time_tmp = localtime((const time_t *)&t);
-							PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
-							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
-							compute_key(key, CRASHEVENT, wd_array[i].eventname);
-							LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
-							usleep(TIMEOUT_VALUE);
-							do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
-							do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
-							history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
-							del_file_more_lines(HISTORY_FILE);
-							notify_crashreport();
-							break;
-						}
-						/* for full dropbox */
-						else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, ".lost" ))){
-							char lostevent[32] = { '\0', };
-							char lostevent_subtype[32] = { '\0', };
-							if (strstr(event->name, "anr"))
-								strcpy(lostevent, ANR_CRASH);
-							else if (strstr(event->name, "crash"))
-								strcpy(lostevent, JAVA_CRASH);
-							else
-								break;
-							snprintf(lostevent_subtype, sizeof(lostevent_subtype), "%s_%s", LOST, lostevent);
-							dir = find_dir(files,CRASH_MODE);
-							snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
-							time(&t);
-							time_tmp = localtime((const time_t *)&t);
-							PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
-							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
-							compute_key(key, CRASHEVENT, lostevent);
-							LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, lostevent, destion);
-							usleep(TIMEOUT_VALUE);
-							do_log_copy(lostevent,dir,date_tmp,APLOG_TYPE);
-							history_file_write(CRASHEVENT, lostevent, lostevent_subtype, destion, NULL, key, date_tmp_2);
-							del_file_more_lines(HISTORY_FILE);
-							notify_crashreport();
-							break;
-						}
-						/*for stat trigger*/
-						else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "_trigger" ))){
-							char *p;
-							char tmp[32];
-							char statstype[9]={ '\0',};
-							int length;
+    while ((len = read(fd, buffer, sizeof(buffer)))) {
+        /* clean children to avoid zombie processes */
+        while(waitpid(-1, NULL, WNOHANG) > 0){};
+        offset = buffer;
+        event = (struct inotify_event *)buffer;
+        while (((char *)event - buffer) < len) {
+            /* for dir to be delete */
+            if((event->mask & IN_DELETE_SELF) ||(event->mask & IN_MOVE_SELF)){
+                for (i = 0; i < WDCOUNT; i++) {
+                    if (event->wd != wd_array[i].wd)
+                        continue;
+                    mkdir(wd_array[i].filename, 0777);
+                    wd = inotify_add_watch(fd, wd_array[i].filename, wd_array[i].mask);
+                    if (wd < 0) {
+                        LOGE("Can't add watch for %s.\n", wd_array[i].filename);
+                        return -1;
+                    }
+                    wd_array[i].wd = wd;
+                    LOGW("%s has been deleted or moved, we watch it again.\n", wd_array[i].filename);
+                }
+            }
+            if (!(event->mask & IN_ISDIR)) {
+                for (i = 0; i < WDCOUNT; i++) {
+                    if (event->wd != wd_array[i].wd)
+                        continue;
+                    if(!event->len){
+                        /* for file */
+                        if (!memcmp(wd_array[i].filename,HISTORY_UPTIME,strlen(HISTORY_UPTIME))) {
+                            if (!get_uptime(&tm)) {
+                                hours = (int) (tm / 1000000000LL);
+                                seconds = hours % 60; hours /= 60;
+                                minutes = hours % 60; hours /= 60;
+                                snprintf(date_tmp,sizeof(date_tmp),"%04d:%02d:%02d",hours, minutes,seconds);
+                                snprintf(destion,sizeof(destion),"#V1.0 %-16s%-24s",wd_array[i].eventname,date_tmp);
+                                fd1 = open(HISTORY_FILE,O_RDWR);
+                                if (fd1 > 0) {
+                                    write(fd1,destion,strlen(destion));
+                                    close(fd1);
+                                }
+                                /*Update event every 12 hours*/
+                                if ((hours / UPTIME_HOUR_FREQUENCY) >= loop_uptime_event) {
+                                    time(&t);
+                                    time_tmp = localtime((const time_t *)&t);
+                                    PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                                    compute_key(key, PER_UPTIME, NULL);
+                                    history_file_write(PER_UPTIME, NULL, NULL, NULL, date_tmp, key, date_tmp_2);
+                                    del_file_more_lines(HISTORY_FILE);
+                                    loop_uptime_event = (hours / UPTIME_HOUR_FREQUENCY) + 1;
+                                    notify_crashreport();
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    else{
+                        /* for modem reset */
+                        if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "apimr.txt" ) ||strstr(event->name, "mreset.txt" ) )){
+                            dir = find_dir(files,CRASH_MODE);
+                            snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+                            if((stat(path, &info) == 0) && (info.st_size != 0)){
+                                snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
+                                do_copy(path, destion, FILESIZE_MAX);
+                            }
+                            snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
+                            time(&t);
+                            time_tmp = localtime((const time_t *)&t);
+                            PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
+                            PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                            compute_key(key, CRASHEVENT, wd_array[i].eventname);
+                            LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
+                            usleep(TIMEOUT_VALUE);
+                            do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
+                            do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+                            history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
+                            del_file_more_lines(HISTORY_FILE);
+                            notify_crashreport();
+                            break;
+                        }
+                        /* for modem crash */
+                        else if(strstr(event->name, wd_array[i].cmp) && strstr(event->name, "mpanic.txt" )){
+                            dir = find_dir(files,CRASH_MODE);
+                            snprintf(destion,sizeof(destion),"%s%d", CRASH_DIR,dir);
+                            int status = mv_modem_crash(wd_array[i].filename, destion);
+                            if (status != 0)
+                                LOGE("backup modem core dump status: %d.\n", status);
+                            snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+                            snprintf(destion,sizeof(destion),"%s%d/%s", CRASH_DIR,dir,event->name);
+                            do_copy(path, destion, 0);
+                            snprintf(destion,sizeof(destion),"%s%d/", CRASH_DIR,dir);
+                            time(&t);
+                            time_tmp = localtime((const time_t *)&t);
+                            PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
+                            PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                            compute_key(key, CRASHEVENT, wd_array[i].eventname);
+                            LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
+                            usleep(TIMEOUT_VALUE);
+                            do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
+                            do_log_copy(wd_array[i].eventname,dir,date_tmp,BPLOG_TYPE);
+                            history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
+                            del_file_more_lines(HISTORY_FILE);
+                            notify_crashreport();
+                            break;
+                        }
+                        /* for full dropbox */
+                        else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, ".lost" ))){
+                            char lostevent[32] = { '\0', };
+                            char lostevent_subtype[32] = { '\0', };
+                            if (strstr(event->name, "anr")) {
+                                strcpy(lostevent, ANR_CRASH);
+                            }
+                            else if (strstr(event->name, "crash"))
+                                strcpy(lostevent, JAVA_CRASH);
+                            else
+                                break;
+                            snprintf(lostevent_subtype, sizeof(lostevent_subtype), "%s_%s", LOST, lostevent);
+                            dir = find_dir(files,CRASH_MODE);
+                            snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+                            time(&t);
+                            time_tmp = localtime((const time_t *)&t);
+                            PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
+                            PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                            compute_key(key, CRASHEVENT, lostevent);
+                            LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, lostevent, destion);
+                            usleep(TIMEOUT_VALUE);
+                            do_log_copy(lostevent,dir,date_tmp,APLOG_TYPE);
+                            history_file_write(CRASHEVENT, lostevent, lostevent_subtype, destion, NULL, key, date_tmp_2);
+                            del_file_more_lines(HISTORY_FILE);
+                            notify_crashreport();
+                            break;
+                        }
+                        /*for stat trigger*/
+                        else if(strstr(event->name, wd_array[i].cmp) && (strstr(event->name, "trigger" ))){
+                            char *p;
+                            char tmp[16];
+                            dir = find_dir(files,STATS_MODE);
+                            /*copy data file*/
+                            snprintf(tmp,sizeof(tmp),"%s",event->name);
+                            p = strstr(tmp,"trigger");
+                            if ( p ){
+                                strcpy(p,"data");
+                                snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,tmp);
+                                snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,tmp);
+                                do_copy(path, destion, 0);
+                                remove(path);
+                            }
+                            /*copy trigger file*/
+                            snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+                            snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,event->name);
+                            do_copy(path, destion, 0);
+                            remove(path);
+                            snprintf(destion,sizeof(destion),"%s%d/", STATS_DIR,dir);
+                            time(&t);
+                            time_tmp = localtime((const time_t *)&t);
+                            PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                            compute_key(key, STATSEVENT, tmp);
+                            LOGE("%-8s%-22s%-20s%s %s\n", STATSEVENT, key, date_tmp_2, tmp, destion);
+                            history_file_write(STATSEVENT, tmp, NULL, destion, NULL, key, date_tmp_2);
+                            del_file_more_lines(HISTORY_FILE);
+                            notify_crashreport();
+                            break;
+                        }
+                        /* for anr and UIwatchdog */
+                        else if (strstr(event->name, wd_array[i].cmp) && ( strstr(event->name, "anr") || strstr(event->name, "system_server_watchdog"))) {
+                            dir = find_dir(files,CRASH_MODE);
 
-							dir = find_dir(files,STATS_MODE);
-							/*copy data file*/
-							snprintf(tmp,sizeof(tmp),"%s",event->name);
-                                                        p = strstr(tmp,"_trigger");
-							if ( p ){
-								if ((unsigned int)(p-tmp) < sizeof(statstype)-1)
-									length = p-tmp;
-								else
-									length = sizeof(statstype)-1;
-								for (j=0;j<length;j++)
-									statstype[j]=toupper(*(tmp+j));
-								strcpy(p,"_data");
-								snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,tmp);
-								snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,tmp);
-								do_copy(path, destion, 0);
-								remove(path);
-							}
-							/*copy trigger file*/
-							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
-							snprintf(destion,sizeof(destion),"%s%d/%s", STATS_DIR,dir,event->name);
-							do_copy(path, destion, 0);
-							remove(path);
-							snprintf(destion,sizeof(destion),"%s%d/", STATS_DIR,dir);
-							time(&t);
-							time_tmp = localtime((const time_t *)&t);
-							PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
-							compute_key(key, STATSEVENT, tmp);
-							LOGE("%-8s%-22s%-20s%s %s\n", STATSEVENT, key, date_tmp_2, statstype, destion);
-							history_file_write(STATSEVENT, statstype, NULL, destion, NULL, key, date_tmp_2);
-							del_file_more_lines(HISTORY_FILE);
-							notify_crashreport();
-							break;
-						}
-						/* for other case */
-						else if (strstr(event->name, wd_array[i].cmp)) {
-							dir = find_dir(files,CRASH_MODE);
+                            snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+                            if (stat(path, &info) == 0) {
+                                time(&t);
+                                time_tmp = localtime((const time_t *)&t);
+                                PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
+                                PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                                snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
+                                do_copy(path, destion, FILESIZE_MAX);
+                                compute_key(key, CRASHEVENT, wd_array[i].eventname);
 
-							snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
-							if (stat(path, &info) == 0) {
-								time(&t);
-								time_tmp = localtime((const time_t *)&t);
-								PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
-								PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
-								if (strstr(event->name, ".core" ))
-									backup_apcoredump(dir, event->name, path);
-								else
-								{
-									snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
-									do_copy(path, destion, FILESIZE_MAX);
-								}
-								snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
-								compute_key(key, CRASHEVENT, wd_array[i].eventname);
-								LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
-								usleep(TIMEOUT_VALUE);
-								do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
-								history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
-								del_file_more_lines(HISTORY_FILE);
-								notify_crashreport();
-							}
+                                LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
+                                usleep(TIMEOUT_VALUE);
+                                do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
+                                del_file_more_lines(HISTORY_FILE);
+   
+                                int pid = -1;
+                                pid = fork();
+                                if (pid == 0){
+                                    process_anr_or_uiwdt(destion, dir);                                
 
-							/* for restart profile anr */
-							if (strstr(event->name, "anr")){
-								restart_profile_srv();
-							}
-							break;
-						}
-					}
-				}
-			}
-			tmp_len = sizeof(struct inotify_event) + event->len;
-			event = (struct inotify_event *)(offset + tmp_len);
-			offset += tmp_len;
-		}
+                                    history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
+                                    notify_crashreport();
+                                    exit(0);
+                                }
+                                restart_profile_srv();
+                            }
+                            break;
+                        }
+                        /* for other case */
+                        else if (strstr(event->name, wd_array[i].cmp)) {
+                            dir = find_dir(files,CRASH_MODE);
 
-	}
+                            snprintf(path, sizeof(path),"%s/%s",wd_array[i].filename,event->name);
+                            if (stat(path, &info) == 0) {
+                                time(&t);
+                                time_tmp = localtime((const time_t *)&t);
+                                PRINT_TIME(date_tmp, TIME_FORMAT_1, time_tmp);
+                                PRINT_TIME(date_tmp_2, TIME_FORMAT_2, time_tmp);
+                                if (strstr(event->name, ".core" ))
+                                    backup_apcoredump(dir, event->name, path);
+                                else
+                                {
+                                    snprintf(destion,sizeof(destion),"%s%d/%s",CRASH_DIR,dir,event->name);
+                                    do_copy(path, destion, FILESIZE_MAX);
+                                    /* parse anr file */
+                                    if (strstr(event->name, "anr") || strstr(event->name, "system_server_watchdog")){
+                                        int pid = -1;
+                                        pid = fork();
+                                        if (pid == 0){
+                                            process_anr_or_uiwdt(destion, dir);
+                                            exit(0);
+                                        }
+                                        restart_profile_srv();
+                                    }
+                                }
+                                snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
+                                compute_key(key, CRASHEVENT, wd_array[i].eventname);
+                                LOGE("%-8s%-22s%-20s%s %s\n", CRASHEVENT, key, date_tmp_2, wd_array[i].eventname, destion);
+                                usleep(TIMEOUT_VALUE);
+                                do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
+                                history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
+                                del_file_more_lines(HISTORY_FILE);
+                                notify_crashreport();
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            tmp_len = sizeof(struct inotify_event) + event->len;
+            event = (struct inotify_event *)(offset + tmp_len);
+            offset += tmp_len;
+        }
 
-	return 0;
+    }
+
+    return 0;
 }
 
 void do_timeup()
 {
-	int fd;
+    int fd;
 
-	while (1) {
-		sleep(UPTIME_FREQUENCY);
-		fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
-		close(fd);
-	}
+    while (1) {
+        sleep(UPTIME_FREQUENCY);
+        fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
+        close(fd);
+    }
 }
 
 static int find_str_in_file(char *file, char *keyword, char *tail)
 {
-	char buffer[4*1024];
-	int rc = 0;
-	FILE *fd1;
-	struct stat info;
-	int brtw, brtr;
-	char *p;
-	int filelen,tmp,stringlen,buflen;
+    char buffer[4*1024];
+    int rc = 0;
+    FILE *fd1;
+    struct stat info;
+    int brtw, brtr;
+    char *p;
+    int filelen,tmp,stringlen,buflen;
 
-	if (stat(file, &info) < 0)
-		return -1;
+    if (stat(file, &info) < 0)
+        return -1;
 
-	if (keyword == NULL)
-		return -1;
+    if (keyword == NULL)
+        return -1;
 
-	fd1 = fopen(file,"r");
-	if(fd1 == NULL)
-		goto out_err;
+    fd1 = fopen(file,"r");
+    if(fd1 == NULL)
+        goto out_err;
 
-	while(!feof(fd1)){
-		if (fgets(buffer, sizeof(buffer), fd1) != NULL){
-			if (keyword && strstr(buffer,keyword)){
-				if (!tail){
-					rc = 0;
-					goto out;
-				} else{
-					int buflen = strlen(buffer);
-					int str2len = strlen(tail);
-					if ((buflen > str2len) && (!strncmp(&(buffer[buflen-str2len-1]), tail, strlen(tail)))){
-						rc = 0;
-						goto out;
-					}
-				}
-			}
-		}
-	}
+    while(!feof(fd1)){
+        if (fgets(buffer, sizeof(buffer), fd1) != NULL){
+            if (keyword && strstr(buffer,keyword)){
+                if (!tail){
+                    rc = 0;
+                    goto out;
+                } else{
+                    int buflen = strlen(buffer);
+                    int str2len = strlen(tail);
+                    if ((buflen > str2len) && (!strncmp(&(buffer[buflen-str2len-1]), tail, strlen(tail)))){
+                        rc = 0;
+                        goto out;
+                    }
+                }
+            }
+        }
+    }
 
 out_err:
 	rc = -1;
@@ -1215,7 +1306,7 @@ static void crashlog_check_fabric(char *reason, unsigned int files)
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
-			 FABRIC_ERROR_NAME, date_tmp);
+				FABRIC_ERROR_NAME, date_tmp);
 		do_copy(SAVED_FABRIC_ERROR_NAME, destion, FILESIZE_MAX);
 
 		for (i = 0; i < sizeof(ft_array)/sizeof(struct fabric_type); i++){
@@ -1260,18 +1351,18 @@ static void crashlog_check_panic(char *reason, unsigned int files)
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
-			 THREAD_NAME, date_tmp);
+				THREAD_NAME, date_tmp);
 		do_copy(SAVED_THREAD_NAME, destion, FILESIZE_MAX);
 		snprintf(destion,sizeof(destion),"%s%d/",CRASH_DIR,dir);
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
-			 CONSOLE_NAME, date_tmp);
+				CONSOLE_NAME, date_tmp);
 		do_copy(SAVED_CONSOLE_NAME, destion, FILESIZE_MAX);
 
 		destion[0] = '\0';
 		snprintf(destion, sizeof(destion), "%s%d/%s_%s.txt", CRASH_DIR, dir,
-			 LOGCAT_NAME, date_tmp);
+				LOGCAT_NAME, date_tmp);
 		do_copy(SAVED_LOGCAT_NAME, destion, FILESIZE_MAX);
 
 		write_file(PANIC_CONSOLE_NAME, "1");
@@ -1585,14 +1676,14 @@ int main(int argc, char **argv)
 	}
 
 	property_get(PROP_COREDUMP, value, "");
-        if (!strncmp(value, "1", 1)){
+	if (!strncmp(value, "1", 1)){
 		chmod(HISTORY_FILE_DIR,0777);
 		chmod(HISTORY_CORE_DIR,0777);
-        }
+	}
 	else
 	{
 		chmod(HISTORY_FILE_DIR,0750);
-                chmod(HISTORY_CORE_DIR,0750);
+		chmod(HISTORY_CORE_DIR,0750);
 	}
 	if (property_get(BUILD_FIELD, buildVersion, "") <=0){
 		get_version_info(SYS_PROP, BUILD_FIELD, buildVersion);
