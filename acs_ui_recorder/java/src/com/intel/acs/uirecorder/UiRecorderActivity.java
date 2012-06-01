@@ -70,21 +70,10 @@ public class UiRecorderActivity extends Activity {
             setContentView(R.layout.main);
             this.checkDisclaimerDisplaying();
             try{
-                Button tmp_button = null;
-
                 // Add a listener on each button in current layout
-                tmp_button = (Button) findViewById(R.id.button_start);
-                if (tmp_button != null)
-                    tmp_button.setOnClickListener(eClickStart);
-
-                tmp_button = (Button) findViewById(R.id.button_stop);
-                if (tmp_button != null)
-                  tmp_button.setOnClickListener(eClickStop);
-
-                tmp_button=(Button) findViewById(R.id.button_replay);
-                if (tmp_button != null)
-                    tmp_button.setOnClickListener(eClickReplay);
-
+                ((Button) findViewById(R.id.button_start)).setOnClickListener(eClickStart);
+                ((Button) findViewById(R.id.button_stop)).setOnClickListener(eClickStop);
+                ((Button) findViewById(R.id.button_replay)).setOnClickListener(eClickReplay);
             } catch (NullPointerException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -146,12 +135,8 @@ public class UiRecorderActivity extends Activity {
     private void runStartRecording(){
 
         String path = "";
-        EditText path_view = null;
-
         try {
-            path_view = (EditText)findViewById(R.id.basepath);
-            if (path_view != null)
-              path = path_view.getText().toString();
+            path = ((EditText)findViewById(R.id.basepath)).getText().toString();
         } catch (NullPointerException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -222,12 +207,8 @@ public class UiRecorderActivity extends Activity {
     private void runReplayRecord(){
 
         String path = "";
-        EditText path_view = null;
-
         try {
-            path_view = (EditText)findViewById(R.id.basepath);
-            if (path_view != null)
-              path = path_view.getText().toString();
+            path = ((EditText)findViewById(R.id.basepath)).getText().toString();
         } catch (NullPointerException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -268,12 +249,8 @@ public class UiRecorderActivity extends Activity {
 
         //Get the current status
         String currentStatus = "";
-        TextView status_view = null;
-
         try {
-            status_view = (TextView)findViewById(R.id.recording_status);
-            if (status_view != null)
-                currentStatus = status_view.getText().toString();
+            currentStatus = ((TextView)findViewById(R.id.recording_status)).getText().toString();
         } catch (NullPointerException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -482,11 +459,6 @@ public class UiRecorderActivity extends Activity {
         Log.d(TAG, "Retrieve binder ...");
         UiRecorderBinder myBinder = new UiRecorderBinder();
 
-        if (myBinder == null){
-            Log.e(TAG, "Unable to malloc Binder");
-            return false;
-        }
-
         Log.d(TAG, "Attaching service ...");
         if (myBinder.AttachService(ACS_UI_SERVICE) == null){
             Log.e(TAG, "Unable to attache service");
@@ -526,11 +498,6 @@ public class UiRecorderActivity extends Activity {
         Log.d(TAG, "Retrieve binder ...");
         UiRecorderBinder myBinder = new UiRecorderBinder();
 
-        if (myBinder == null){
-            Log.e(TAG, "Unable to malloc Binder");
-            return false;
-        }
-
         Log.d(TAG, "Attaching service ...");
         if (myBinder.AttachService(ACS_UI_SERVICE) == null){
             Log.e(TAG, "Unable to attache service");
@@ -568,11 +535,6 @@ public class UiRecorderActivity extends Activity {
 
         Log.d(TAG, "Retrieve binder ...");
         UiRecorderBinder myBinder = new UiRecorderBinder();
-
-        if (myBinder == null){
-            Log.e(TAG, "Unable to malloc Binder");
-            return false;
-        }
 
         Log.d(TAG, "Attaching service ...");
         if (myBinder.AttachService(ACS_UI_SERVICE) == null){
@@ -621,6 +583,7 @@ public class UiRecorderActivity extends Activity {
             //Nothing to do
             return;
         }else{
+
             int currentStatus = uiNotifService.getRecordingStatus();
             //Load button view
             Button buttonStart = (Button) findViewById(R.id.button_start);
@@ -639,22 +602,22 @@ public class UiRecorderActivity extends Activity {
                     buttonReplay.setEnabled(true);
                     break;
                 case UiRecorderConstant.STATUS_RECORDING:
-                    buttonStart.setEnabled(false);
+                    ((Button) findViewById(R.id.button_start)).setEnabled(false);
                     buttonStop.setEnabled(true);
                     buttonReplay.setEnabled(false);
                     break;
                 case UiRecorderConstant.STATUS_REPLAYING:
-                    buttonStart.setEnabled(false);
+                    ((Button) findViewById(R.id.button_start)).setEnabled(false);
                     buttonStop.setEnabled(true);
                     buttonReplay.setEnabled(false);
                     break;
                 case UiRecorderConstant.STATUS_UNKNOWN:
-                    buttonStart.setEnabled(true);
+                    ((Button) findViewById(R.id.button_start)).setEnabled(true);
                     buttonStop.setEnabled(true);
                     buttonReplay.setEnabled(true);
                     break;
                 default:
-                    buttonStart.setEnabled(false);
+                    ((Button) findViewById(R.id.button_start)).setEnabled(false);
                     buttonStop.setEnabled(false);
                     buttonReplay.setEnabled(false);
                     break;
