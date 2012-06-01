@@ -69,19 +69,11 @@ public class UiRecorderActivity extends Activity {
 
             setContentView(R.layout.main);
             this.checkDisclaimerDisplaying();
-            try{
-                // Add a listener on each button in current layout
-                ((Button) findViewById(R.id.button_start)).setOnClickListener(eClickStart);
-                ((Button) findViewById(R.id.button_stop)).setOnClickListener(eClickStop);
-                ((Button) findViewById(R.id.button_replay)).setOnClickListener(eClickReplay);
-            } catch (NullPointerException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                Toast.makeText(getApplicationContext(),
-                        "Unable to launch application properly",
-                        Toast.LENGTH_SHORT).show();
-                finish();
-            }
+
+            // Add a listener on each button in current layout
+            ((Button) findViewById(R.id.button_start)).setOnClickListener(eClickStart);
+            ((Button) findViewById(R.id.button_stop)).setOnClickListener(eClickStop);
+            ((Button) findViewById(R.id.button_replay)).setOnClickListener(eClickReplay);
 
             // Get the UiRecorderNotificationService instance.
             UiRecorderNotificationService uiNotifService = UiRecorderNotificationService.getInstance();
@@ -134,17 +126,7 @@ public class UiRecorderActivity extends Activity {
      */
     private void runStartRecording(){
 
-        String path = "";
-        try {
-            path = ((EditText)findViewById(R.id.basepath)).getText().toString();
-        } catch (NullPointerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            Log.e(TAG, "Critical error occurred when retrieve the path.");
-            return;
-
-        }
-
+        String path = ((EditText)findViewById(R.id.basepath)).getText().toString();
         String message = getResources().getString(R.string.record_started_on)+" "+path;
 
         Log.i(TAG, "Start recording on '"+path+"'");
@@ -206,16 +188,7 @@ public class UiRecorderActivity extends Activity {
      */
     private void runReplayRecord(){
 
-        String path = "";
-        try {
-            path = ((EditText)findViewById(R.id.basepath)).getText().toString();
-        } catch (NullPointerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            Log.e(TAG, "Critical error occurred when retrieve the path.");
-            return;
-
-        }
+        String path = ((EditText)findViewById(R.id.basepath)).getText().toString();
         String message = getResources().getString(R.string.replay_started_from)+" "+path;
 
         Log.i(TAG, "Start replay from '"+path+"'");
@@ -248,32 +221,18 @@ public class UiRecorderActivity extends Activity {
     private void updateRecordingStatusColor(){
 
         //Get the current status
-        String currentStatus = "";
-        try {
-            currentStatus = ((TextView)findViewById(R.id.recording_status)).getText().toString();
-        } catch (NullPointerException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            Log.e(TAG, "Critical error occurred when retrieve the current status.");
-            return;
-        }
-
-        TextView recordingStatusTextView = (TextView) findViewById(R.id.recording_status);
-        if (recordingStatusTextView == null){
-            Log.e(TAG, "Critical error occurred when retrieve recording status view.");
-            return;
-        }
+        String currentStatus = ((TextView)findViewById(R.id.recording_status)).getText().toString();
 
         if (currentStatus.equals(getResources().getString(R.string.recording_status_ready))){
-            recordingStatusTextView.setTextColor(Color.GREEN);
+            ((TextView)findViewById(R.id.recording_status)).setTextColor(Color.GREEN);
         }else if (currentStatus.equals(getResources().getString(R.string.recording_status_recording))){
-            recordingStatusTextView.setTextColor(Color.RED);
+            ((TextView)findViewById(R.id.recording_status)).setTextColor(Color.RED);
         }else if (currentStatus.equals(getResources().getString(R.string.recording_status_replay))){
-            recordingStatusTextView.setTextColor(Color.YELLOW);
+            ((TextView)findViewById(R.id.recording_status)).setTextColor(Color.YELLOW);
         }else if (currentStatus.equals(getResources().getString(R.string.recording_status_unknown))){
-            recordingStatusTextView.setTextColor(Color.BLUE);
+            ((TextView)findViewById(R.id.recording_status)).setTextColor(Color.BLUE);
         }else{
-            recordingStatusTextView.setTextColor(Color.GRAY);
+            ((TextView)findViewById(R.id.recording_status)).setTextColor(Color.GRAY);
         }
     };
 
@@ -327,13 +286,7 @@ public class UiRecorderActivity extends Activity {
                 break;
         }
 
-        TextView recordingStatusTextView = (TextView) findViewById(R.id.recording_status);
-        if (recordingStatusTextView != null){
-            recordingStatusTextView.setText(newStatusString);
-        }else{
-            Log.e(TAG, "Critical error occurred when retrieve recording status view.");
-            return;
-        }
+        ((TextView)findViewById(R.id.recording_status)).setText(newStatusString);
         this.updateRecordingStatusColor();
     }
 
@@ -363,12 +316,7 @@ public class UiRecorderActivity extends Activity {
         if (newFolderDateNameString == null){
             newFolderDateNameString = this.generateFolderDateName();
         }
-        EditText basePathTextView = (EditText) findViewById(R.id.basepath);
-        if (basePathTextView != null){
-            basePathTextView.setText(newFolderDateNameString);
-        }else{
-            Log.e(TAG, "Critical error occurred when retrieve base path view.");
-        }
+        ((EditText)findViewById(R.id.basepath)).setText(newFolderDateNameString);
     }
     /**
      * Update the <i>Base Path</i> in the service with one passed as parameter.
@@ -479,9 +427,6 @@ public class UiRecorderActivity extends Activity {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
-        }catch (NullPointerException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
@@ -516,9 +461,6 @@ public class UiRecorderActivity extends Activity {
             }
         } catch (RemoteException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
-            return false;
-        }catch (NullPointerException e) {
             e.printStackTrace();
             return false;
         }
@@ -556,9 +498,6 @@ public class UiRecorderActivity extends Activity {
             // TODO Auto-generated catch block
             e.printStackTrace();
             return false;
-        }catch (NullPointerException e) {
-            e.printStackTrace();
-            return false;
         }
     }
 
@@ -585,41 +524,32 @@ public class UiRecorderActivity extends Activity {
         }else{
 
             int currentStatus = uiNotifService.getRecordingStatus();
-            //Load button view
-            Button buttonStart = (Button) findViewById(R.id.button_start);
-            Button buttonStop = (Button) findViewById(R.id.button_stop);
-            Button buttonReplay = (Button) findViewById(R.id.button_replay);
-            if (buttonStart == null ||  buttonStop == null || buttonReplay == null){
-                Log.e(TAG, "Critical error occurred when retrieve button view.");
-                return;
-            }
-
             //Update button enabling according current status
             switch (currentStatus){
                 case UiRecorderConstant.STATUS_READY:
-                    buttonStart.setEnabled(true);
-                    buttonStop.setEnabled(false);
-                    buttonReplay.setEnabled(true);
+                    ((Button) findViewById(R.id.button_start)).setEnabled(true);
+                    ((Button) findViewById(R.id.button_stop)).setEnabled(false);
+                    ((Button) findViewById(R.id.button_replay)).setEnabled(true);
                     break;
                 case UiRecorderConstant.STATUS_RECORDING:
                     ((Button) findViewById(R.id.button_start)).setEnabled(false);
-                    buttonStop.setEnabled(true);
-                    buttonReplay.setEnabled(false);
+                    ((Button) findViewById(R.id.button_stop)).setEnabled(true);
+                    ((Button) findViewById(R.id.button_replay)).setEnabled(false);
                     break;
                 case UiRecorderConstant.STATUS_REPLAYING:
                     ((Button) findViewById(R.id.button_start)).setEnabled(false);
-                    buttonStop.setEnabled(true);
-                    buttonReplay.setEnabled(false);
+                    ((Button) findViewById(R.id.button_stop)).setEnabled(true);
+                    ((Button) findViewById(R.id.button_replay)).setEnabled(false);
                     break;
                 case UiRecorderConstant.STATUS_UNKNOWN:
                     ((Button) findViewById(R.id.button_start)).setEnabled(true);
-                    buttonStop.setEnabled(true);
-                    buttonReplay.setEnabled(true);
+                    ((Button) findViewById(R.id.button_stop)).setEnabled(true);
+                    ((Button) findViewById(R.id.button_replay)).setEnabled(true);
                     break;
                 default:
                     ((Button) findViewById(R.id.button_start)).setEnabled(false);
-                    buttonStop.setEnabled(false);
-                    buttonReplay.setEnabled(false);
+                    ((Button) findViewById(R.id.button_stop)).setEnabled(false);
+                    ((Button) findViewById(R.id.button_replay)).setEnabled(false);
                     break;
             }
         }
