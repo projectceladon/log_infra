@@ -1,4 +1,4 @@
-/* crashinfo
+/* crashinfo - entry point for command
  *
  * Copyright (C) Intel 2012
  *
@@ -19,9 +19,8 @@
 
 package com.intel.commands.crashinfo;
 
-import com.intel.commands.crashinfo.ISubCommand;
-import com.intel.commands.crashinfo.subcommand.*;
 
+import com.intel.commands.crashinfo.subcommand.*;
 
 import android.os.Debug;
 import android.os.Process;
@@ -76,8 +75,14 @@ public class CrashInfo {
 		mArgs = args;
 		mNextArg = 0;
 
-		return processArgs();
-
+		try{
+			return processArgs();
+		}
+		catch (Exception e) {
+			System.err.println("Process Exception : " + e.toString());
+			Log.e("crashinfo","Process Exception : " + e.toString());
+			return -1;
+		}
 	}
 
 
@@ -86,10 +91,11 @@ public class CrashInfo {
 	 */
 	private void showUsage() {
 		StringBuffer usage = new StringBuffer();
-		usage.append("usage: crashinfo [getevent Filter ...]\n");
-		usage.append("                 [status]\n");
-		usage.append("                 [buildid --spec]\n");
-		usage.append("                 [clean]\n");
+		usage.append("usage: crashinfo getevent [--detail --full --last --filter-(id/time/type/name) --uploaded) ]\n");
+		usage.append("                 status [--uptime]\n");
+		usage.append("                 buildid [--spec]\n");
+		usage.append("                 clean [--filter-id --filter-time]\n");
+		usage.append("                 uploadstate [--filter-id --log]\n");
 
 		System.err.println(usage.toString());
 	}
@@ -117,12 +123,16 @@ public class CrashInfo {
 				mySubCommand = new Status();
 			}else if (sCurArg.equals("clean")) {
 				mySubCommand = new Clean();
+			}else if (sCurArg.equals("uploadstate")) {
+				mySubCommand = new UploadState();
 			}
 			if (mySubCommand != null){
-				mySubCommand.setArgs(GetSubArgs());
+				mySubCommand.setArgs(getSubArgs());
 				if (mySubCommand.checkArgs()){
+					Log.i("crashinfo","execution of : " + sCurArg );
 					iResultCode = mySubCommand.execute();
 				}else{
+					iResultCode = -2;
 					System.err.println("checkArgs failed");
 					showUsage();
 				}
@@ -130,6 +140,7 @@ public class CrashInfo {
 				showUsage();
 			}
 		}
+		Log.i("crashinfo","Result code: " + iResultCode );
 		return iResultCode;
 	}
 
@@ -142,7 +153,7 @@ public class CrashInfo {
 		return arg;
 	}
 
-	private String[] GetSubArgs() {
+	private String[] getSubArgs() {
 		if (mNextArg >= mArgs.length) {
 			return null;
 		}
@@ -152,5 +163,4 @@ public class CrashInfo {
 		}
 		return result;
 	}
-
 }

@@ -1,4 +1,4 @@
-/* crashinfo
+/* crashinfo - ISubCommand defines minimum method to implement a subCommand
  *
  * Copyright (C) Intel 2012
  *

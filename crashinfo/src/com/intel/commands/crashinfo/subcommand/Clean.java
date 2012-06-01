@@ -1,4 +1,4 @@
-/* crashinfo
+/* crashinfo - Clean manages the cleaning of log folders
  *
  * Copyright (C) Intel 2012
  *
@@ -20,55 +20,148 @@
 package com.intel.commands.crashinfo.subcommand;
 
 import java.io.File;
+import java.util.regex.Matcher;
 
+import com.intel.commands.crashinfo.DBManager;
 import com.intel.commands.crashinfo.ISubCommand;
+import com.intel.commands.crashinfo.option.OptionData;
+import com.intel.commands.crashinfo.option.Options;
+import com.intel.commands.crashinfo.option.Options.Multiplicity;
 
 public class Clean implements ISubCommand {
+	public static final String OPTION_CLEAN_TIME = "--filter-time";
+	public static final String OPTION_CLEAN_FORCE = "--force-all";
+	public static final String OPTION_CLEAN_ID = "--filter-id";
+
+
 	String[] myArgs;
+	Options myOptions;
+
 	@Override
 	public int execute() {
-		System.out.println("aplog cleaning");
-		File logFolder = new File("/data/logs");
-		if (logFolder.isDirectory()){
-			String[] sLogFiles = logFolder.list();
-			if (sLogFiles!= null){
-				for (int i = 0; i < sLogFiles.length; i++) {
-					if (sLogFiles[i].contains("aplog.")){
-						File f = new File(logFolder.getAbsolutePath() + File.separator +sLogFiles[i] );
-						if (f.isFile()){
-							f.delete();
-							System.out.println("XXX APLOG " + i + " : cleaned XXX");
-						}else{
-							System.out.println("Path does not exist");
-						}
-					}else{
-						System.out.println( "File " + i + " : skipped");
-					}
-				}
+		OptionData mainOp = myOptions.getMainOption();
+		if (mainOp == null){
+			baseClean();
+		}else if (mainOp.getKey().equals(OPTION_CLEAN_FORCE)){
+			forceClean();
+		}else if (mainOp.getKey().equals(OPTION_CLEAN_TIME)){
+			String sTmpValue = mainOp.getValues(0);
+			timeClean(sTmpValue);
+		}else if (mainOp.getKey().equals(OPTION_CLEAN_ID)){
+			String sTmpValue =  mainOp.getValues(0);
+			if (sTmpValue != null){
+				idClean(Integer.parseInt(sTmpValue));
 			}
+		}else if (mainOp.getKey().equals(Options.HELP_COMMAND)){
+			myOptions.generateHelp();
+			return 0;
 		}else{
-			System.out.println("Can't find log folder");
+			System.out.println("error : unknown op - " + mainOp.getKey());
+			return -1;
 		}
+		System.out.println("Clean : OK");
 		return 0;
 	}
 
 	@Override
 	public void setArgs(String[] subArgs) {
 		myArgs = subArgs;
+		myOptions = new Options(subArgs, "Clean enable to delete log folder. It also cleans crashdir in database");
+		myOptions.addMainOption(OPTION_CLEAN_FORCE, "-f", "", false, Multiplicity.ZERO_OR_ONE,"Clean all logs");
+		myOptions.addMainOption(OPTION_CLEAN_TIME, "-t", ".*", true, Multiplicity.ZERO_OR_ONE,"Clean all log folder before the time given (time format example:2012-05-29/13:33:41)");
+		myOptions.addMainOption(OPTION_CLEAN_ID, "-i", "(\\d)*", true, Multiplicity.ZERO_OR_ONE,"Clean log folder found for row_id given");
 	}
 
 	@Override
 	public boolean checkArgs() {
-		boolean result = true;
-		if (myArgs == null){
-			//correct, nothing to do
-		}else if (myArgs.length == 0){
-			//correct, nothing to do
-		}else{
-			//Incorrect, no arguments allowed
-			result = false;
-		}
-		return result;
+		return myOptions.check();
 	}
 
+	private void baseClean(){
+		DBManager aDB = new DBManager();
+		String[] usedLogsDir = aDB.getAllLogsDir();
+		File logFolder = new File(Status.PATH_LOGS);
+		File SDlogFolder = new File(Status.PATH_SD_LOGS);
+		folderClean(usedLogsDir,logFolder);
+		folderClean(usedLogsDir,SDlogFolder);
+	}
+
+	private void folderClean(String[] ExceptLogsDir, File folderToClean){
+		if (folderToClean.isDirectory()){
+			String[] sLogFiles = folderToClean.list();
+			if (sLogFiles!= null){
+				java.util.regex.Pattern  pattern = java.util.regex.Pattern.compile("(stats\\d(\\d)*)|(crashlog\\d(\\d)*)");
+				for (int i = 0; i < sLogFiles.length; i++) {
+					boolean bToClean = true;
+					//Only clean stats and crashlog pattern
+					Matcher tmpMatcher = pattern.matcher(sLogFiles[i]);
+					if (tmpMatcher.matches()){
+						File curFile = new File(folderToClean.getAbsolutePath() + File.separator +  sLogFiles[i]);
+						if (curFile.isDirectory()){
+							for (int j = 0; j < ExceptLogsDir.length; j++) {
+								if (curFile.getAbsolutePath().equals(ExceptLogsDir[j])){
+									//Found, not to be cleaned
+									bToClean = false;
+									break;
+								}
+							}
+							if (bToClean){
+								System.out.println("Cleaning file : " + i);
+								deleteFolder(curFile);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void timeClean(String sTimeValue){
+		DBManager aDB = new DBManager(true);
+		String[] logsToclean = aDB.getLogsDirByTime(sTimeValue);
+		for(String sLog : logsToclean){
+			File logFolder = new File(sLog);
+			if (logFolder.isDirectory()){
+				deleteFolder(logFolder);
+				System.out.println(sLog + " cleaned ");
+			}
+		}
+		aDB.cleanCrashDirByTime(sTimeValue);
+	}
+
+	private void idClean(int iIDtoClean){
+		System.out.println("ID clean " + iIDtoClean);
+		DBManager aDB = new DBManager(true);
+		String sDirToClean = aDB.getLogDirByID(iIDtoClean);
+		if (sDirToClean.equals("")){
+			System.out.println("Nothing to clean");
+		}else{
+			File logFolder = new File(sDirToClean);
+			if (logFolder.isDirectory()){
+				deleteFolder(logFolder);
+				System.out.println(sDirToClean + " cleaned ");
+			}
+			aDB.cleanCrashDirByID(iIDtoClean);
+		}
+	}
+
+	private void forceClean(){
+		System.out.println("Force clean not implemented yet");
+	}
+
+	public static void deleteFolder(File folder) {
+		if (folder!=null){
+			File[] files = folder.listFiles();
+			if(files!=null) {
+				for(File f: files) {
+					if(f.isDirectory()) {
+						deleteFolder(f);
+					} else {
+						f.delete();
+					}
+				}
+			}
+			folder.delete();
+		}
+	}
 }

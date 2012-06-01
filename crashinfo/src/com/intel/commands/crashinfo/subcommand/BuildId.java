@@ -1,4 +1,4 @@
-/* crashinfo
+/* crashinfo - Buildid manages device build detailed signature
  *
  * Copyright (C) Intel 2012
  *
@@ -20,25 +20,30 @@
 package com.intel.commands.crashinfo.subcommand;
 
 import com.intel.commands.crashinfo.ISubCommand;
+import com.intel.commands.crashinfo.option.OptionData;
+import com.intel.commands.crashinfo.option.Options;
+import com.intel.commands.crashinfo.option.Options.Multiplicity;
 
 import android.os.SystemProperties;
 import android.util.Log;
 
 public class BuildId implements ISubCommand {
 	String[] myArgs;
+	Options myOptions;
 
 	@Override
 	public int execute() {
-		if (myArgs == null){
+		OptionData mainOp = myOptions.getMainOption();
+		if (mainOp == null){
 			generateBuildSignature();
-		}else if (myArgs.length == 0){
-			generateBuildSignature();
+		}else if (mainOp.getKey().equals("--spec")){
+			generateSpec();
+		}else if (mainOp.getKey().equals(Options.HELP_COMMAND)){
+			myOptions.generateHelp();
+			return 0;
 		}else{
-			if (myArgs[0].equals("--spec")){
-				generateSpec();
-			}else{
-				System.out.println("error : nothing to do");
-			}
+			System.err.println("error : unknown op - " + mainOp.getKey());
+			return -1;
 		}
 		return 0;
 	}
@@ -84,7 +89,7 @@ public class BuildId implements ISubCommand {
 		spec.append("PunitVersion\n");
 		spec.append("ValhooksVersion\n");
 
-        System.out.println(spec.toString());
+		System.out.println(spec.toString());
 	}
 
 	private String getProperty(String name) {
@@ -100,25 +105,12 @@ public class BuildId implements ISubCommand {
 	@Override
 	public void setArgs(String[] subArgs) {
 		myArgs = subArgs;
+		myOptions = new Options(subArgs, "Buildid gives the build signature of the device");
+		myOptions.addMainOption("--spec", "-s", "", false, Multiplicity.ZERO_OR_ONE, "Displays specification of build signature");
 	}
 
 	@Override
 	public boolean checkArgs() {
-		boolean result = true;
-		if (myArgs == null){
-			//correct, nothing to do
-		}else if (myArgs.length == 0){
-			//correct, nothing to do
-		}else{
-			for (int i = 0; i < myArgs.length; i++) {
-				if (myArgs[i].equals("--spec")){
-					//correct, nothing to do
-				}else{
-					result = false;
-					break;
-				}
-			}
-		}
-		return result;
+		return myOptions.check();
 	}
 }

@@ -1,4 +1,4 @@
-/* crashinfo
+/* crashinfo - status gives main crash information
  *
  * Copyright (C) Intel 2012
  *
@@ -19,39 +19,70 @@
 
 package com.intel.commands.crashinfo.subcommand;
 
+import java.util.concurrent.TimeUnit;
+
 import com.intel.commands.crashinfo.DBManager;
 import com.intel.commands.crashinfo.ISubCommand;
+import com.intel.commands.crashinfo.option.OptionData;
+import com.intel.commands.crashinfo.option.Options;
+import com.intel.commands.crashinfo.option.Options.Multiplicity;
 
 public class Status implements ISubCommand {
-	//private static final int COEF_S_TO_MS = 1000;
 
 	public static final String PATH_LOGS = "/data/logs/";
+	public static final String PATH_SD_LOGS = "/mnt/sdcard/data/logs";
 	String[] myArgs;
-	@Override
-	public int execute() {
-		if (myArgs == null){
-			return execBaseStatus();
-		}else if (myArgs.length == 0){
-			return execBaseStatus();
-		}else{
-			if (myArgs[0].equals("--uptime") || myArgs[0].equals("-u")){
-				return execUptime();
-			}else{
-				System.out.println("error : nothing to do");
-				return -1;
-			}
-		}
+	Options myOptions;
+
+	public Status(){
 
 	}
 
+	@Override
+	public int execute() {
+		OptionData mainOp = myOptions.getMainOption();
+		if (mainOp == null){
+			return execBaseStatus();
+		}else if (mainOp.getKey().equals("--uptime")){
+			return execUptime();
+		}else if (mainOp.getKey().equals(Options.HELP_COMMAND)){
+			myOptions.generateHelp();
+			return 0;
+		}else{
+			System.out.println("error : unknown op - " + mainOp.getKey());
+			return -1;
+		}
+	}
+
+
 	private int execUptime(){
-		System.out.println("Empty uptime Function");
+		DBManager aDB = new DBManager();
+		long duration = aDB.getCurrentUptime() ;
+		if (duration >0){
+			long seconds = TimeUnit.SECONDS.toSeconds(duration) % 60;
+			long days = TimeUnit.SECONDS.toDays(duration);
+			long hours = TimeUnit.SECONDS.toHours(duration)% 24;
+			long minutes = TimeUnit.SECONDS.toMinutes(duration) % 60;
+			System.out.println( "Uptime since the last software update (SWUPDATE event):");
+			if (days > 0) {
+				System.out.println( days + " days");
+			}
+			if (hours > 0) {
+				System.out.println( hours + " hours");
+			}
+			if (minutes > 0) {
+				System.out.println( minutes + " minutes");
+			}
+			System.out.println(seconds + " seconds");
+		}else{
+			System.out.println("Error : No UPTIME found");
+		}
+
 		return 0;
 	}
 
 	private int execBaseStatus(){
 		try {
-			//displayContacts();
 			displayDbstatus();
 			System.out.println("Main Path for logs : " + PATH_LOGS);
 		}catch (Exception e) {
@@ -64,73 +95,19 @@ public class Status implements ISubCommand {
 	@Override
 	public void setArgs(String[] subArgs) {
 		myArgs = subArgs;
+		myOptions = new Options(subArgs, "Status gives general information about crash events");
+		myOptions.addMainOption("--uptime", "-u", "", false, Multiplicity.ZERO_OR_ONE, "Gives the uptime of the phone sonce last swupdate");
 	}
 
 	@Override
 	public boolean checkArgs() {
-		boolean result = true;
-		if (myArgs == null){
-			//correct, nothing to do
-		}else if (myArgs.length == 0){
-			//correct, nothing to do
-		}else{
-			for (int i = 0; i < myArgs.length; i++) {
-				if (myArgs[i].equals("--uptime")||myArgs[i].equals("-u")){
-					//correct, nothing to do
-				}else{
-					result = false;
-					break;
-				}
-			}
-		}
-		return result;
+		return myOptions.check();
 	}
 
 	private void displayDbstatus(){
 		DBManager aDB = new DBManager();
 		System.out.println("Version database : "  + aDB.getVersion());
 		System.out.println("Number of critical crash : "  +aDB.getNumberEventByCriticty(true));
-		System.out.println("Number of non-critical crash : "  +aDB.getNumberEventByCriticty(false));
-		aDB.getEvent();
-		/*SQLiteDatabase db;
-		db = SQLiteDatabase.openDatabase(
-				"/data/data/com.intel.crashreport/databases/eventlogs.db"
-				, null
-				, SQLiteDatabase.OPEN_READONLY
-				);
-		System.out.println("Version database : "  + db.getVersion());
-		Cursor mCursor;
-		int count;
-		try {
-			//warning : missing "order by time" for query
-			mCursor = db.query(true, "events", new String[] {"eventId","eventName","type", "date"},
-					null, null,
-					null, null, "date DESC", null);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				System.out.println( "count events : " + count);
-				mCursor.moveToFirst();
-				DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				while (!mCursor.isAfterLast()) {
-					String sLine = mCursor.getString(mCursor.getColumnIndex("eventId"));
-					sLine += " | " + mCursor.getString(mCursor.getColumnIndex("eventName"));
-					sLine += " | " + mCursor.getString(mCursor.getColumnIndex("type"));
-					long lDate = mCursor.getLong(mCursor.getColumnIndex("date"));
-					sLine += " | " + lDate;
-					try {
-					Date date = new Date(lDate*COEF_S_TO_MS);
-					sLine += " | " + iso8601Format.format(date);
-					} catch (Exception e) {
-						System.out.println("Managing datetime failed" + e);
-						sLine += " | parse error"  ;
-					}
-					System.out.println(sLine);
-					mCursor.moveToNext();
-				}
-				mCursor.close();
-			}
-		} catch (SQLException e) {
-			System.out.println( "count SQLException");
-		}*/
+		System.out.println("Number of events : "  +aDB.getNumberEventByCriticty(false));
 	}
 }
