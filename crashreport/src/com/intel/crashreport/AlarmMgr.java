@@ -43,7 +43,7 @@ public class AlarmMgr {
 		AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 		long setTime = System.currentTimeMillis() + delayMillis;
 		Log.d("AlarmMgr: setDateToRetry: " + setTime);
-		alarmManager.set(AlarmManager.RTC_WAKEUP, setTime, pendingIntent);
+		alarmManager.set(AlarmManager.RTC, setTime, pendingIntent);
 		ApplicationPreferences prefs = new ApplicationPreferences(context);
 		prefs.saveAlarmDate(setTime);
 		return toMinutes(delayMillis);
