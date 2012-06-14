@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Tony Goubert <tonyx.goubert@intel.com>
  */
 
 #ifndef __OPENGSMTTY_JNI_H__

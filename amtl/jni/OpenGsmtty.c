@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Tony Goubert <tonyx.goubert@intel.com>
  */
 
 #include <sys/types.h>
@@ -33,39 +32,41 @@
 
 #define LOG_TAG "AMTL"
 
+#define TTY_CLOSED -1
+
 JNIEXPORT jint JNICALL Java_com_intel_amtl_SynchronizeSTMD_OpenSerial(JNIEnv *env, jobject obj, jstring jtty_name, jint baudrate)
 {
-    int fd = -1;
-    const char *tty_name  = (*env)->GetStringUTFChars(env, jtty_name, 0);
+    int fd = TTY_CLOSED;
+    const char *tty_name = (*env)->GetStringUTFChars(env, jtty_name, 0);
 
     struct termios tio;
-    LOGD("OpenSerial: opening %s\n", tty_name);
+    LOGI("OpenSerial: opening %s", tty_name);
 
     fd = open(tty_name, O_RDWR | CLOCAL | O_NOCTTY);
     if (fd < 0) {
-        LOGE("Unable to open tty port: %s\n", tty_name);
-        return fd;
+        LOGE("OpenSerial: %s (%d)", strerror(errno), errno);
+        goto open_serial_failure;
     }
 
-    {
-        struct termios terminalParameters;
-        int err = tcgetattr(fd, &terminalParameters);
-        if (-1 != err) {
-            cfmakeraw(&terminalParameters);
-            tcsetattr(fd, TCSANOW, &terminalParameters);
-        }
+    struct termios terminalParameters;
+    if (tcgetattr(fd, &terminalParameters)) {
+        LOGE("OpenSerial: %s (%d)", strerror(errno), errno);
+        goto open_serial_failure;
     }
 
-    if ( fcntl(fd, F_SETFL, O_NONBLOCK) < 0 ) {
-        LOGE("fcntl error: %d\n", errno);
-        close(fd);
-        fd = -1;
-        return fd;
+    cfmakeraw(&terminalParameters);
+    if (tcsetattr(fd, TCSANOW, &terminalParameters)) {
+        LOGE("OpenSerial: %s (%d)", strerror(errno), errno);
+        goto open_serial_failure;
+    }
+
+    if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0 ) {
+        LOGE("OpenSerial: %s (%d)", strerror(errno), errno);
+        goto open_serial_failure;
     }
 
     memset(&tio, 0, sizeof(tio));
     tio.c_cflag = B115200;
-
     tio.c_cflag |= CS8 | CLOCAL | CREAD;
     tio.c_iflag &= ~(INPCK | IGNPAR | PARMRK | ISTRIP | IXANY | ICRNL);
     tio.c_oflag &= ~OPOST;
@@ -76,19 +77,31 @@ JNIEXPORT jint JNICALL Java_com_intel_amtl_SynchronizeSTMD_OpenSerial(JNIEnv *en
     cfsetispeed(&tio, baudrate);
     tcsetattr(fd, TCSANOW, &tio);
 
+    goto open_serial_success;
+
+open_serial_failure:
+    if (fd >= 0) {
+        close(fd);
+        fd = TTY_CLOSED;
+    }
+
+open_serial_success:
+    if (fd != TTY_CLOSED)
+        LOGI("OpenSerial: %s opened (%d)", tty_name, fd);
     (*env)->ReleaseStringUTFChars(env, jtty_name, tty_name);
-    LOGD("Opened serial port. fd = %d\n", fd);
     return fd;
 }
 
 JNIEXPORT jint JNICALL Java_com_intel_amtl_SynchronizeSTMD_CloseSerial(JNIEnv *env, jobject obj, jint fd)
 {
+    LOGI("CloseSerial: closing file descriptor (%d)", fd);
     if (fd >= 0) {
-        LOGD("Close serial port. fd = %d\n", fd);
         close(fd);
-        fd = -1;
-    } else {
-        LOGD("Serial port already closed");
+        fd = TTY_CLOSED;
+        LOGD("CloseSerial: closed");
+    }
+    else {
+        LOGD("CloseSerial: already closed");
     }
     return 0;
 }
