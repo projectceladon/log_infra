@@ -1622,6 +1622,25 @@ static void read_startupreason(char *startupreason)
 		}
 	}
 }
+static void update_logs_permission(void)
+{
+	char value[PROPERTY_VALUE_MAX] = "0";
+
+	if (property_get(PROP_COREDUMP, value, "") <= 0) {
+		LOGE("Property %s not readable - core dump capture is disabled\n", PROP_COREDUMP);
+	}
+
+	if (!strncmp(value, "1", 1)) {
+		LOGI("Folders /data/logs and /data/logs/core set to 0777\n");
+		chmod(HISTORY_FILE_DIR,0777);
+		chmod(HISTORY_CORE_DIR,0777);
+        }
+	else {
+		LOGI("Folders /data/logs and /data/logs/core set to 0750\n");
+		chmod(HISTORY_FILE_DIR,0750);
+		chmod(HISTORY_CORE_DIR,0750);
+	}
+}
 
 int main(int argc, char **argv)
 {
@@ -1675,16 +1694,6 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	property_get(PROP_COREDUMP, value, "");
-	if (!strncmp(value, "1", 1)){
-		chmod(HISTORY_FILE_DIR,0777);
-		chmod(HISTORY_CORE_DIR,0777);
-	}
-	else
-	{
-		chmod(HISTORY_FILE_DIR,0750);
-		chmod(HISTORY_CORE_DIR,0750);
-	}
 	if (property_get(BUILD_FIELD, buildVersion, "") <=0){
 		get_version_info(SYS_PROP, BUILD_FIELD, buildVersion);
 	}
@@ -1775,6 +1784,7 @@ next:
 	notify_crashreport();
 
 next2:
+	update_logs_permission();
 	ret = pthread_create(&thread, NULL, (void *)do_timeup, NULL);
 	if (ret < 0) {
 		LOGE("pthread_create error");
