@@ -22,6 +22,7 @@ package com.intel.crashreport;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -38,6 +39,7 @@ import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.intel.crashreport.CrashReportHome.AboutDialog;
 import com.intel.crashreport.CrashReportService.LocalBinder;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 
@@ -80,6 +82,7 @@ public class StartServiceActivity extends Activity {
 						mService.cancelDownload();
 				}
 			});
+		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
 	}
 
@@ -141,22 +144,7 @@ public class StartServiceActivity extends Activity {
 			waitStub.setVisibility(View.GONE);
 	}
 
-	protected Dialog onCreateDialog(int id) {
-		Dialog dialog;
-		switch(id) {
-		case DIALOG_ASK_UPLOAD_ID:
-			dialog = createAskForUploadDialog();
-			break;
-		case DIALOG_ASK_UPLOAD_SAVE_ID:
-			dialog = createAskForUploadSaveDialog();
-			break;
-		default:
-			dialog = null;
-		}
-		return dialog;
-	}
-
-	private Dialog createAskForUploadDialog() {
+	public Dialog createAskForUploadDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Crash report management");
 		builder.setSingleChoiceItems(R.array.uploadStateDialogText, 0, new DialogInterface.OnClickListener() {
@@ -174,15 +162,10 @@ public class StartServiceActivity extends Activity {
 				doActionAfterSelectUploadState(DIALOG_REP_ABORT);
 			}
 		});
-		builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
-				doActionAfterSelectUploadState(DIALOG_REP_ABORT);
-			}
-		});
 		return builder.create();
 	}
 
-	private Dialog createAskForUploadSaveDialog() {
+	public Dialog createAskForUploadSaveDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.alert_dialog_upload_save);
 		builder.setPositiveButton(R.string.alert_dialog_yes, new DialogInterface.OnClickListener() {
@@ -197,13 +180,27 @@ public class StartServiceActivity extends Activity {
 				mService.sendMessage(ServiceMsg.uploadImmadiately);
 			}
 		});
-		builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-			public void onCancel(DialogInterface dialog) {
+		return builder.create();
+	}
+
+    void displayDialog(int id) {
+        DialogFragment newFragment = AskDialog.newInstance(id);
+        newFragment.show(getFragmentManager(), "dialog");
+    }
+
+    public void cancel(int num) {
+		// TODO Auto-generated method stub
+		switch(num){
+			case DIALOG_ASK_UPLOAD_ID:
+				doActionAfterSelectUploadState(DIALOG_REP_ABORT);
+				break;
+			case DIALOG_ASK_UPLOAD_SAVE_ID:
 				appPrefs.setUploadStateToAsk();
 				mService.sendMessage(ServiceMsg.uploadDisabled);
-			}
-		});
-		return builder.create();
+				break;
+			default:
+				break;
+		}
 	}
 
 	private void doActionAfterSelectUploadState(int response) {
@@ -219,7 +216,7 @@ public class StartServiceActivity extends Activity {
 			if (uploadStatePref.contentEquals("uploadImmediately"))
 				mService.sendMessage(ServiceMsg.uploadImmadiately);
 			else
-				showDialog(DIALOG_ASK_UPLOAD_SAVE_ID);
+				displayDialog(DIALOG_ASK_UPLOAD_SAVE_ID);
 			break;
 		case DIALOG_REP_POSTPONE:
 			appPrefs.setUploadStateToReport();
@@ -254,7 +251,7 @@ public class StartServiceActivity extends Activity {
 	private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(ServiceToActivityMsg.askForUpload)) {
-				showDialog(DIALOG_ASK_UPLOAD_ID);
+				displayDialog(DIALOG_ASK_UPLOAD_ID);
 			} else if (intent.getAction().equals(ServiceToActivityMsg.updateLogTextView)) {
 				text.setText(mService.getLogger().getLog());
 			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadStarted)) {

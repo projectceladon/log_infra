@@ -73,8 +73,8 @@
 		<item>INSTERR</item>
 		<item>SRAMECCERR</item>
 		<item>HWWDTLOGERR</item>
-                <item>MSHUTDOWN</item>
-                <item>UIWDT</item>
+		<item>MSHUTDOWN</item>
+		<item>UIWDT</item>
 
 	</string-array>
 

@@ -27,5 +27,6 @@ public class CrashReportActivity extends PreferenceActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.menu);
+        setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
     }
 }

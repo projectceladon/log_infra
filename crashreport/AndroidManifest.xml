@@ -19,7 +19,11 @@
 
 		<activity
 			android:name=".CrashReportActivity"
-			android:label="@string/app_name">
+			android:label="@string/label" />
+
+		<activity
+			android:name=".CrashReportHome"
+			android:label="@string/label" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />

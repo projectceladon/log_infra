@@ -20,15 +20,6 @@
 <PreferenceScreen
   xmlns:android="http://schemas.android.com/apk/res/android">
 
-  	<PreferenceCategory android:title="Actions">
-		<PreferenceScreen
-  			android:key="checkCrashAction"
-			android:summary=""
-			android:title="Check for available events">
-  			<intent android:action="com.intel.crashreport.intent.START_SERVICE"/>
-  		</PreferenceScreen>
-  	</PreferenceCategory>
-
 	<PreferenceCategory android:title="Log settings">
 	    <CheckBoxPreference
 	        android:key="enableCrashLogReport"
