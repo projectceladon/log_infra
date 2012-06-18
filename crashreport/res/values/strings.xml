@@ -33,4 +33,7 @@
     <string name="label">Crash Report</string>
     <string name="settings_button_report">Check available events to report</string>
     <string name="about_title">Crash Report Informations</string>
+    <string name="button_logconfig_text">Configure Logs profiles</string>
+    <string name="button_submit_log_config_text">Disable all logs configurations</string>
+    <string name="persistant_text">Configuration persistant</string>
 </resources>

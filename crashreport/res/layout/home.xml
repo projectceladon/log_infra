@@ -4,18 +4,22 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical" >
-
 
         <Button
             android:id="@+id/button_report_events"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/settings_button_report" />
+
+        <Button
+            android:id="@+id/button_logconfig"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/button_logconfig_text" />
 
     </LinearLayout>
 

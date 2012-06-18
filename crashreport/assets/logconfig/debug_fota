@@ -1,0 +1,13 @@
+{
+    "description":"FOTA trace",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.Fota",
+                "value":"DEBUG",
+		"rollBackValue":"RELEASE"
+            }
+        }
+    ]
+}

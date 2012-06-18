@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.intel.crashreport"
-	android:sharedUserId="android.uid.log">
+	android:sharedUserId="android.uid.system">
 
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
 	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
@@ -14,9 +14,10 @@
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name"
-		android:name="CrashReport"
+		android:name=".CrashReport"
 		android:enabled="true">
 
+		<uses-library android:name="com.google.gson" />
 		<activity
 			android:name=".CrashReportActivity"
 			android:label="@string/label" />
@@ -48,13 +49,13 @@
 		</receiver>
 
 		<receiver
-			android:name="NetworkStateReceiver" android:enabled="false">
+			android:name=".NetworkStateReceiver" android:enabled="false">
 			<intent-filter>
 				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"></action>
 			</intent-filter>
 		</receiver>
 
-		<service android:name="CrashReportService">
+		<service android:name=".CrashReportService">
 			<intent-filter>
 				<action android:name="com.intel.crashreport.CrashReportService"></action>
 			</intent-filter>
@@ -68,6 +69,18 @@
 		</activity>
 
 		<activity android:name="NotifyEventActivity"/>
+
+		<!-- LogConfig -->
+		<activity android:name=".logconfig.ui.LogConfigHomeActivity"/>
+		<activity android:name=".logconfig.ui.LogConfigDisplaySettingsActivity"/>
+
+		<receiver android:name=".logconfig.BootConfigServiceReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+			</intent-filter>
+		</receiver>
+		<service android:name=".logconfig.BootConfigService" />
+		<service android:name=".logconfig.ConfigService" />
 
 	</application>
 </manifest>

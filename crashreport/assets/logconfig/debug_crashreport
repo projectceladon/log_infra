@@ -1,0 +1,13 @@
+{
+    "description":"CrashReport",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.CrashReport",
+                "value":"DEBUG",
+                "rollBackValue":"RELEASE"
+            }
+        }
+    ]
+}

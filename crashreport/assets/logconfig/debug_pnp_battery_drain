@@ -1,0 +1,22 @@
+{
+    "description":"Battery Drain",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.PowerManagerService",
+                "value":"DEBUG",
+		"rollBackValue":"NONE"
+            }
+        },
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/module/wakelock/parameters/debug_mask",
+                "value":"255",
+                "append":false,
+		"rollBackValue":"3"
+            }
+        }
+    ]
+}

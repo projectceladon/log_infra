@@ -1,3 +1,4 @@
+
 package com.intel.crashreport;
 
 import android.app.Activity;
@@ -12,7 +13,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-public class CrashReportHome extends Activity{
+import com.intel.crashreport.logconfig.ui.LogConfigHomeActivity;
+
+public class CrashReportHome extends Activity {
     private MenuItem aboutMenu;
     private MenuItem settingsMenu;
 
@@ -28,7 +31,17 @@ public class CrashReportHome extends Activity{
                 startActivity(intent);
             }
         });
-        setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+
+        Button button_logconfig = (Button) findViewById(R.id.button_logconfig);
+        // Attach a click listener for launching the system settings.
+        button_logconfig.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), LogConfigHomeActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        setTitle(getString(R.string.app_name) + " " + getString(R.string.app_version));
     }
 
     @Override
@@ -47,7 +60,7 @@ public class CrashReportHome extends Activity{
             startCrashReport();
             return true;
         }
-        if (item.equals(aboutMenu)){
+        if (item.equals(aboutMenu)) {
             showDialog();
             return true;
         }
@@ -60,8 +73,8 @@ public class CrashReportHome extends Activity{
         }
     }
 
-    public void startCrashReport(){
-        Intent intent = new Intent(getApplicationContext(),CrashReportActivity.class);
+    public void startCrashReport() {
+        Intent intent = new Intent(getApplicationContext(), CrashReportActivity.class);
         startActivity(intent);
     }
 
@@ -78,9 +91,11 @@ public class CrashReportHome extends Activity{
         public Dialog onCreateDialog(Bundle savedInstanceState) {
 
             return new AlertDialog.Builder(getActivity())
-                .setTitle(getString(R.string.about_title))
-                .setMessage(getString(R.string.app_name)+" v"+getString(R.string.app_version)+"\n"+"created by Intel DnT team.")
-                .create();
+                    .setTitle(getString(R.string.about_title))
+                    .setMessage(
+                            getString(R.string.app_name) + " v" + getString(R.string.app_version)
+                                    + "\n" + "created by Intel DnT team.")
+                    .create();
         }
     }
 
