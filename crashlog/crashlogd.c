@@ -84,6 +84,7 @@
 #define PROP_CRASH "persist.service.crashlog.enable"
 #define PROP_PROFILE "persist.service.profile.enable"
 #define PROP_COREDUMP "persist.core.enabled"
+#define PROP_ANR_USERSTACK "persist.anr.userstack.enabled"
 #define SYS_PROP "/system/build.prop"
 #define SAVEDLINES  1
 #define MAX_RECORDS 5000
@@ -870,7 +871,7 @@ struct wd_name wd_array[] = {
 
 int WDCOUNT = ((int)(sizeof(wd_array)/sizeof(struct wd_name)));
 
-void process_anr_or_uiwdt(char *destion, int dir)
+void process_anr_or_uiwdt(char *destion, int dir, int remove_path)
 {
     char cmd[PATHMAX];
     int src, dest;
@@ -920,7 +921,7 @@ void process_anr_or_uiwdt(char *destion, int dir)
 				}
 				// parse
 				backtrace_parse_tombstone_file(dest_path);
-				if (unlink(dest_path) != 0) {
+				if ((remove_path > 0) && unlink(dest_path) != 0) {
 					LOGE("Failed to remove file %s:%s\n", dest_path, strerror(errno));
                 }
                 break;
@@ -928,6 +929,15 @@ void process_anr_or_uiwdt(char *destion, int dir)
         }
     }
     fclose(fp);
+}
+
+void backtrace_anr_uiwdt(char *dest, int dir)
+{
+    char value[PROPERTY_VALUE_MAX];
+    property_get(PROP_ANR_USERSTACK, value, "0");
+    if (strncmp(value, "0", 1)) {
+        process_anr_or_uiwdt(dest, dir, !strncmp(value, "1", 1));
+   }
 }
 
 static int do_crashlogd(unsigned int files)
@@ -1148,16 +1158,9 @@ static int do_crashlogd(unsigned int files)
                                 usleep(TIMEOUT_VALUE);
                                 do_log_copy(wd_array[i].eventname,dir,date_tmp,APLOG_TYPE);
                                 del_file_more_lines(HISTORY_FILE);
-   
-                                int pid = -1;
-                                pid = fork();
-                                if (pid == 0){
-                                    process_anr_or_uiwdt(destion, dir);                                
-
-                                    history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
-                                    notify_crashreport();
-                                    exit(0);
-                                }
+                                backtrace_anr_uiwdt(destion, dir);
+                                history_file_write(CRASHEVENT, wd_array[i].eventname, NULL, destion, NULL, key, date_tmp_2);
+			        notify_crashreport();
                                 restart_profile_srv();
                             }
                             break;
@@ -1180,12 +1183,7 @@ static int do_crashlogd(unsigned int files)
                                     do_copy(path, destion, FILESIZE_MAX);
                                     /* parse anr file */
                                     if (strstr(event->name, "anr") || strstr(event->name, "system_server_watchdog")){
-                                        int pid = -1;
-                                        pid = fork();
-                                        if (pid == 0){
-                                            process_anr_or_uiwdt(destion, dir);
-                                            exit(0);
-                                        }
+                                        backtrace_anr_uiwdt(destion, dir);
                                         restart_profile_srv();
                                     }
                                 }
