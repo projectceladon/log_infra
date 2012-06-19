@@ -219,11 +219,15 @@ static int do_copy(char *src, char *des, int limit)
 	if (stat(src, &info) < 0)
 		return -1;
 
-	if ((fd1 = open(src, O_RDONLY)) < 0)
+	if ((fd1 = open(src, O_RDONLY)) < 0){
+		LOGE("can not open file: %s\n", src);
 		goto out_err;
+	}
 
-	if ((fd2 = open(des, O_WRONLY | O_CREAT | O_TRUNC, 0660)) < 0)
+	if ((fd2 = open(des, O_WRONLY | O_CREAT | O_TRUNC, 0660)) < 0){
+		LOGE("can not open file: %s\n", des);
 		goto out_err;
+	}
 
 	if ( (limit == 0) || (limit >= info.st_size) )
 		filelen = info.st_size;
@@ -347,9 +351,10 @@ static int write_file(const char *path, const char *value)
 
 	fd = open(path, O_WRONLY | O_CREAT, 0622);
 
-	if (fd < 0)
+	if (fd < 0){
+		LOGE("can not open file: %s\n", path);
 		return -errno;
-
+	}
 	len = strlen(value);
 
 	do {
@@ -377,8 +382,10 @@ static int get_version_info(char *fn, char *field, char *buf)
 
 	data = 0;
 	fd = open(fn, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0){
+		LOGE("can not open file: %s\n", fn);
 		return 0;
+	}
 
 	sz = lseek(fd, 0, SEEK_END);
 	if (sz < 0)
@@ -428,9 +435,10 @@ static int get_uptime(long long *time_ns)
 	int fd, result;
 
 	fd = open("/dev/alarm", O_RDONLY);
-	if (fd < 0)
+	if (fd < 0){
+		LOGE("can not open file: %s\n", "/dev/alarm");
 		return -1;
-
+	}
 	result =
 		ioctl(fd,
 				ANDROID_ALARM_GET_TIME(ANDROID_ALARM_ELAPSED_REALTIME), &ts);
@@ -582,6 +590,10 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 
 	if (stat(HISTORY_FILE, &info) != 0) {
 		to = fopen(HISTORY_FILE, "w");
+		if (to == NULL){
+			LOGE("can not open file: %s\n", HISTORY_FILE);
+			return;
+		}
 		do_chown(HISTORY_FILE, "root", "log");
 		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, uptime);
 		fprintf(to, "#EVENT  ID                    DATE                 TYPE\n");
@@ -594,6 +606,10 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 			p[0] = '\0';
 		}
 		to = fopen(HISTORY_FILE, "a");
+		if (to == NULL){
+			LOGE("can not open file: %s\n", HISTORY_FILE);
+			return;
+		}
 		fprintf(to, "%-8s%-22s%-20s%s %s\n", event, key, date_tmp_2, type, tmp);
 		fclose(to);
 		if (!strncmp(event, CRASHEVENT, sizeof(CRASHEVENT)))
@@ -601,6 +617,10 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 	} else if (type != NULL) {
 
 		to = fopen(HISTORY_FILE, "a");
+		if (to == NULL){
+			LOGE("can not open file: %s\n", HISTORY_FILE);
+			return;
+		}
 		if (lastuptime != NULL)
 			fprintf(to, "%-8s%-22s%-20s%-16s %s\n", event, key, date_tmp_2, type, lastuptime);
 		else
@@ -610,6 +630,10 @@ static void history_file_write(char *event, char *type, char *subtype, char *log
 	} else {
 
 		to = fopen(HISTORY_FILE, "a");
+		if (to == NULL){
+			LOGE("can not open file: %s\n", HISTORY_FILE);
+			return;
+		}
 		fprintf(to, "%-8s%-22s%-20s%s\n", event, key, date_tmp_2, lastuptime);
 		fclose(to);
 		LOGE("%-8s%-22s%-20s%s\n", event, key, date_tmp_2, lastuptime);
@@ -627,8 +651,10 @@ static int del_file_more_lines(char *fn)
 	int dest = 0;
 	data = 0;
 	fd = open(fn, O_RDWR);
-	if (fd < 0)
+	if (fd < 0){
+		LOGE("can not open file: %s\n", fn);
 		return 0;
+	}
 
 	sz = lseek(fd, 0, SEEK_END);
 	if (sz < 0) {
@@ -679,6 +705,7 @@ static int del_file_more_lines(char *fn)
 		fd = open(fn, O_RDWR | O_TRUNC);
 		if (fd < 0) {
 			free(data);
+			LOGE("can not open file: %s\n", fn);
 			return 0;
 		}
 
@@ -738,6 +765,10 @@ static unsigned int find_dir(unsigned int max, int mode)
 		snprintf(path, sizeof(path), STATS_CURRENT_LOG);
 	if ((!stat(path, &sb))) {
 		fd = fopen(path, "r");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", path);
+			return 0;
+		}
 		if (fscanf(fd, "%d", &i)==EOF) {
 			i = 0;
 		}
@@ -745,11 +776,19 @@ static unsigned int find_dir(unsigned int max, int mode)
 		i = i % MAX_DIR;
 		oldest = i++;
 		fd = fopen(path, "w");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", path);
+			return 0;
+		}
 		fprintf(fd, "%d", (i % max));
 		fclose(fd);
 	} else {
 
 		fd = fopen(path, "w");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", path);
+			return 0;
+		}
 		oldest = 0;
 		fprintf(fd, "%d", 1);
 		fclose(fd);
@@ -1218,6 +1257,9 @@ void do_timeup()
     while (1) {
         sleep(UPTIME_FREQUENCY);
         fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
+		if (fd < 0)
+			LOGE("can not open file: %s\n", HISTORY_UPTIME);
+		else
         close(fd);
     }
 }
@@ -1239,9 +1281,10 @@ static int find_str_in_file(char *file, char *keyword, char *tail)
         return -1;
 
     fd1 = fopen(file,"r");
-    if(fd1 == NULL)
+	if(fd1 == NULL){
+		LOGE("can not open file: %s\n", file);
         goto out_err;
-
+	}
     while(!feof(fd1)){
         if (fgets(buffer, sizeof(buffer), fd1) != NULL){
             if (keyword && strstr(buffer,keyword)){
@@ -1452,6 +1495,10 @@ static int file_read_value(const char *path, char *value, const char *default_va
 
 	if ( stat(path, &info) == 0 ) {
 		fd = fopen(path, "r");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", LOG_BUILDID);
+			return -1;
+		}
 		ret = fscanf(fd, "%s", value);
 		fclose(fd);
 		if (ret == 1)
@@ -1470,6 +1517,10 @@ static void write_uuid(char *uuid_value)
 	FILE *fd;
 
 	fd = fopen(LOG_UUID, "w");
+	if (fd == NULL){
+		LOGE("can not open file: %s\n", LOG_BUILDID);
+		return;
+	}
 	fprintf(fd, "%s", uuid_value);
 	fclose(fd);
 	do_chown(LOG_UUID, "root", "log");
@@ -1500,11 +1551,19 @@ static int swupdated(char *buildname)
 	if (stat(LOG_BUILDID, &info) == 0) {
 
 		fd = fopen(LOG_BUILDID, "r");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", LOG_BUILDID);
+			return 0;
+		}
 		fscanf(fd, "%s", currentbuild);
 		fclose(fd);
 
 		if (strcmp(currentbuild, buildname)) {
 			fd = fopen(LOG_BUILDID, "w");
+			if (fd == NULL){
+				LOGE("can not open file: %s\n", LOG_BUILDID);
+				return 0;
+			}
 			do_chown(LOG_BUILDID, "root", "log");
 			fprintf(fd, "%s", buildname);
 			fclose(fd);
@@ -1513,6 +1572,10 @@ static int swupdated(char *buildname)
 		}
 	} else {
 		fd = fopen(LOG_BUILDID, "w");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", LOG_BUILDID);
+			return 0;
+		}
 		do_chown(LOG_BUILDID, "root", "log");
 		fprintf(fd, "%s", buildname);
 		fclose(fd);
@@ -1530,6 +1593,10 @@ static void reset_history(void)
 	int fd;
 
 	to = fopen(HISTORY_FILE, "w");
+	if (to == NULL){
+		LOGE("can not open file: %s\n", HISTORY_FILE);
+		return;
+	}
 	do_chown(HISTORY_FILE, "root", "log");
 	fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
 	fprintf(to, "#EVENT  ID                    DATE                 TYPE\n");
@@ -1538,6 +1605,7 @@ static void reset_history(void)
 	fd = open(HISTORY_UPTIME, O_RDWR | O_CREAT, 0666);
 	if (fd < 0){
 		LOGE("open HISTORY_UPTIME error\n");
+		return;
 	}
 	close(fd);
 }
@@ -1549,6 +1617,10 @@ static void reset_crashlog(void)
 
 	snprintf(path, sizeof(path), CRASH_CURRENT_LOG);
 	fd = fopen(path, "w");
+	if (fd == NULL){
+		LOGE("can not open file: %s\n", path);
+		return;
+	}
 	fprintf(fd, "%d", 0);
 	fclose(fd);
 }
@@ -1558,6 +1630,10 @@ static void reset_statslog(void)
 	FILE *fd;
 	snprintf(path, sizeof(path), STATS_CURRENT_LOG);
 	fd = fopen(path, "w");
+	if (fd == NULL){
+		LOGE("can not open file: %s\n", path);
+		return;
+	}
 	fprintf(fd, "%d", 0);
 	fclose(fd);
 }
@@ -1574,11 +1650,19 @@ static void uptime_history(char *lastuptime)
 	time_t t;
 
 	to = fopen(HISTORY_FILE, "r");
+	if (to == NULL){
+		LOGE("can not open file: %s\n", HISTORY_FILE);
+		return;
+	}
 	fscanf(to, "#V1.0 %16s%24s\n", name, lastuptime);
 	fclose(to);
 	if (!memcmp(name, CURRENT_UPTIME, sizeof(CURRENT_UPTIME))) {
 
 		to = fopen(HISTORY_FILE, "r+");
+		if (to == NULL){
+			LOGE("can not open file: %s\n", HISTORY_FILE);
+			return;
+		}
 		fprintf(to, "#V1.0 %-16s%-24s\n", CURRENT_UPTIME, "0000:00:00");
 		strcpy(name, PER_UPTIME);
 		fseek(to, 0, SEEK_END);
@@ -1603,6 +1687,10 @@ static void read_startupreason(char *startupreason)
 
 	if (stat(KERNEL_CMDLINE, &info) == 0) {
 		fd = fopen(KERNEL_CMDLINE, "r");
+		if (fd == NULL){
+			LOGE("can not open file: %s\n", KERNEL_CMDLINE);
+			return;
+		}
 		fread(cmdline, 1, sizeof(cmdline)-1, fd);
 		fclose(fd);
 		p = strstr(cmdline, STARTUP_STR);
