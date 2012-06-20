@@ -1703,6 +1703,10 @@ int main(int argc, char **argv)
 
 	sdcard_exist();
 
+	char cmd[512] = { '\0', };
+        snprintf(cmd, sizeof(cmd)-1, " mount -t debugfs none /sys/kernel/debug");
+        system(cmd);
+
 	// check startup reason and sw update
 	char startupreason[16] = { '\0', };
 	char encryptstate[16] = { '\0', };
