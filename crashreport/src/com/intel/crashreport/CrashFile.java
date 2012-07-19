@@ -62,6 +62,7 @@ public class CrashFile {
 			if (field != null)
 				fillField(field);
 		}
+		scan.close();
 	}
 
 	private void fillField(String field) {

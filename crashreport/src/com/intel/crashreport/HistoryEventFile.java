@@ -62,4 +62,12 @@ public class HistoryEventFile {
 		return histFile;
 	}
 
+	protected void finalize() throws Throwable {
+		try {
+			scanner.close();        // close open files
+		} finally {
+			super.finalize();
+		}
+	}
+
 }

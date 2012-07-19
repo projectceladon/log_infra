@@ -212,6 +212,7 @@ public class Event {
 			Scanner scan = new Scanner(uuidFile);
 			if (scan.hasNext())
 				deviceId = scan.nextLine();
+			scan.close();
 		} catch (FileNotFoundException e) {
 			Log.w("CrashReportService: deviceId not set");
 		}

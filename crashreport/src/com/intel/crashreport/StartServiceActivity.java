@@ -23,6 +23,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -61,6 +63,8 @@ public class StartServiceActivity extends Activity {
 	private TextView text;
 	private Button cancelButton;
 	private ViewStub waitStub;
+	private static boolean instanceStateSaved = false;
+	private DialogFragment askDialog = null;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -84,9 +88,11 @@ public class StartServiceActivity extends Activity {
 			});
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
+		instanceStateSaved = false;
 	}
 
 	protected void onSaveInstanceState(Bundle outState) {
+		instanceStateSaved = true;
 		outState.putString("textLogger", (String)text.getText());
 		super.onSaveInstanceState(outState);
 	}
@@ -99,6 +105,7 @@ public class StartServiceActivity extends Activity {
 		}
 		if (!app.isActivityBounded())
 			doBindService();
+		instanceStateSaved = false;
 	}
 
 	protected void onPause() {
@@ -111,6 +118,8 @@ public class StartServiceActivity extends Activity {
 
 	public void onBackPressed() {
 		Log.d("StartServiceActivity: onBackPressed");
+		if(askDialog != null)askDialog.dismiss();
+		askDialog = null;
 		super.onBackPressed();
 	}
 
@@ -183,12 +192,20 @@ public class StartServiceActivity extends Activity {
 		return builder.create();
 	}
 
-    void displayDialog(int id) {
-        DialogFragment newFragment = AskDialog.newInstance(id);
-        newFragment.show(getFragmentManager(), "dialog");
-    }
+	public void displayDialog(int id) {
+		if (!instanceStateSaved){
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+			if (prev != null) {
+				ft.remove(prev);
+			}
+			ft.addToBackStack(null);
+			askDialog = AskDialog.newInstance(id);
+			askDialog.show(getFragmentManager(), "dialog");
+		}
+	}
 
-    public void cancel(int num) {
+	public void cancel(int num) {
 		// TODO Auto-generated method stub
 		switch(num){
 			case DIALOG_ASK_UPLOAD_ID:
