@@ -22,6 +22,7 @@ package com.intel.crashreport;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import com.intel.parsing.*;
 
 public class CrashFile {
 
@@ -44,10 +45,33 @@ public class CrashFile {
 
 	private File crashFile;
 
+	//Internal Value for crashfile generation
+	boolean bMissingData0;
+	boolean bMissingData1;
+	boolean bMissingData2;
+
 	public CrashFile(String path) throws FileNotFoundException {
 		//TODO watch if SDcard is mounted : special intent
 		crashFile = openCrashFile(path);
+		bMissingData0 = true;
+		bMissingData1 = true;
+		bMissingData2 = true;
 		fillCrashFile(crashFile);
+		//if data are not present, we try to generate it
+		if (bMissingData0 && bMissingData1 && bMissingData2)
+		{
+			Log.w("Missing Data, try to regenerate crashfile : " + type);
+			if (!type.equals("")){
+				MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei);
+				if (aParser.execParsing() == 0){
+					crashFile = openCrashFile(path);
+					fillCrashFile(crashFile);
+				}else{
+					Log.w("Error while parsing crashfile");
+				}
+
+			}
+		}
 	}
 
 	private File openCrashFile(String path) {
@@ -59,8 +83,9 @@ public class CrashFile {
 		String field;
 		while(scan.hasNext()) {
 			field = scan.nextLine();
-			if (field != null)
+			if (field != null){
 				fillField(field);
+			}
 		}
 		scan.close();
 	}
@@ -97,12 +122,18 @@ public class CrashFile {
 						board = value;
 					else if (name.equals("TYPE"))
 						type = value;
-					else if (name.equals("DATA0"))
+					else if (name.equals("DATA0")){
+						bMissingData0 = false;
 						data0 = value;
-					else if (name.equals("DATA1"))
+					}
+					else if (name.equals("DATA1")){
+						bMissingData1 = false;
 						data1 = value;
-					else if (name.equals("DATA2"))
+					}
+					else if (name.equals("DATA2")){
+						bMissingData2 = false;
 						data2 = value;
+					}
 					else if (name.equals("DATA3"))
 						data3 = value;
 					else if (name.equals("DATA4"))
@@ -112,7 +143,6 @@ public class CrashFile {
 					else
 						Log.w("CrashFile: field name\"" + name + "\" not recognised");
 				}
-
 			} catch (NullPointerException e) {
 				Log.w("CrashFile: field format not recognised : " + field);
 			}

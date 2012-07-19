@@ -96,6 +96,7 @@ public class CrashInfo {
 		usage.append("                 buildid [--spec]\n");
 		usage.append("                 clean [--filter-id --filter-time]\n");
 		usage.append("                 uploadstate [--filter-id --log]\n");
+		usage.append("                 analyzeevent [--help for parameter list]\n");
 
 		System.err.println(usage.toString());
 	}
@@ -125,6 +126,9 @@ public class CrashInfo {
 				mySubCommand = new Clean();
 			}else if (sCurArg.equals("uploadstate")) {
 				mySubCommand = new UploadState();
+			}
+			else if (sCurArg.equals("analyzeevent")) {
+				mySubCommand = new AnalyzeEvent();
 			}
 			if (mySubCommand != null){
 				mySubCommand.setArgs(getSubArgs());

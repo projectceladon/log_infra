@@ -153,8 +153,8 @@ public class CrashReportService extends Service {
 					if (histEventLine.length() != 0) {
 						HistoryEvent histEvent = new HistoryEvent(histEventLine);
 						if (histEvent.getEventId().replaceAll("0", "").length() != 0) {
-							Event event = new Event(histEvent, myBuild);
-							if (!db.isEventInDb(event.getEventId())) {
+							if (!db.isEventInDb(histEvent.getEventId())) {
+								Event event = new Event(histEvent, myBuild);
 								long ret = db.addEvent(event);
 								if (ret == -1)
 									Log.w("Service: Event error when added to DB, " + event.toString());
@@ -170,7 +170,7 @@ public class CrashReportService extends Service {
 									}
 								}
 							} else
-								Log.d("Service: Event already in DB, " + event.toString());
+								Log.d("Service: Event already in DB, " + histEvent.getEventId());
 						} else
 							Log.d("Service: Event ignored ID:" + histEvent.getEventId());
 					}

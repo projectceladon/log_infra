@@ -18,6 +18,7 @@
 		android:enabled="true">
 
 		<uses-library android:name="com.google.gson" />
+		<uses-library android:name="crashparsing" />
 		<activity
 			android:name=".CrashReportActivity"
 			android:label="@string/label" />
