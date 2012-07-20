@@ -20,6 +20,7 @@
 package com.intel.crashreport;
 
 public class HistoryEvent {
+	private static final int MIN_EVENT = 4;
 	private static final int HAS_OPTION = 5;
 
 	private String eventName = "";
@@ -38,20 +39,22 @@ public class HistoryEvent {
 		if (event.length() != 0) {
 			try {
 				String eventList[] = event.split("\\s+");
-				if (eventList.length == HAS_OPTION) {
+				if (eventList.length < MIN_EVENT)
+				{
+					Log.w("HistoryEvent: not enough columns : " + event);
+				}else if (eventList.length == MIN_EVENT) {
+					eventName = eventList[0];
+					eventId = eventList[1];
+					date = eventList[2];
+					type = eventList[3];
+				}else if (eventList.length == HAS_OPTION) {
 					eventName = eventList[0];
 					eventId = eventList[1];
 					date = eventList[2];
 					type = eventList[3];
 					option = eventList[4];
 				} else {
-					eventName = eventList[0];
-					eventId = eventList[1];
-					date = eventList[2];
-//					type = eventList[3];
-				}
-				if (eventList.length == 4) {
-					type = eventList[3];
+					Log.w("HistoryEvent: too many columns : " + event);
 				}
 			} catch (NullPointerException e) {
 				Log.w("HistoryEvent: event format not recognised : " + event);

@@ -42,8 +42,10 @@ public class HistoryEventFile {
 
 		while(scanner.hasNext()){
 			line = scanner.nextLine();
-			if ((line != null) && (line.charAt(0) != '#')) {
-				return line;
+			if (line != null){
+				if ((line.length() > 0) && (line.charAt(0) != '#')) {
+					return line;
+				}
 			}
 		}
 
