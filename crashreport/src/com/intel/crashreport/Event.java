@@ -107,6 +107,8 @@ public class Event {
 			fillStatsEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("STATE"))
 			fillStateEvent(histEvent, myBuild);
+		else if (histEvent.getEventName().equals("APLOG"))
+			fillAplogEvent(histEvent, myBuild);
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild) {
@@ -176,6 +178,17 @@ public class Event {
 		eventName = histevent.getEventName();
 		type = histevent.getType();
 		date = convertDate(histevent.getDate());
+		buildId = myBuild;
+		readDeviceIdFromFile();
+		imei = readImeiFromSystem();
+	}
+
+	private void fillAplogEvent(HistoryEvent histevent, String myBuild) {
+		crashDir = histevent.getOption();
+		eventId = histevent.getEventId();
+		eventName = histevent.getEventName();
+		date = convertDate(histevent.getDate());
+		type = histevent.getType();
 		buildId = myBuild;
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();

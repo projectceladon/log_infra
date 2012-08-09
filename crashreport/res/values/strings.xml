@@ -36,4 +36,5 @@
     <string name="button_logconfig_text">Configure Logs profiles</string>
     <string name="button_submit_log_config_text">Disable all logs configurations</string>
     <string name="persistant_text">Configuration persistant</string>
+    <string name="menu_aplogs">Upload aplogs</string>
 </resources>

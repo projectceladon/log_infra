@@ -28,7 +28,6 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import android.app.NotificationManager;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -60,12 +59,14 @@ public class CrashReportService extends Service {
 	private Logger logger = new Logger();
 	private static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
 
+	@Override
 	public void onCreate() {
 		super.onCreate();
 		app = (CrashReport)getApplicationContext();
 		Log.d("Service: created");
 	}
 
+	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d("Service: onStartCommand");
 		if (app.isServiceStarted()) {
@@ -94,11 +95,13 @@ public class CrashReportService extends Service {
 		return START_NOT_STICKY;
 	}
 
+	@Override
 	public IBinder onBind(Intent arg0) {
 		Log.d("Service: onBind");
 		return mBinder;
 	}
 
+	@Override
 	public boolean onUnbind(Intent intent) {
 		Log.d("Service: onUnbind");
 		return false;
@@ -420,6 +423,7 @@ public class CrashReportService extends Service {
 
 						//upload logs
 						String crashTypes[] = null;
+						Intent intent;
 						if (prefs.isCrashLogsUploadEnable()) {
 							crashTypes = prefs.getCrashLogsUploadTypes();
 							cursor = db.fetchNotUploadedLogs(crashTypes);
@@ -435,12 +439,38 @@ public class CrashReportService extends Service {
 										dayDate = DAY_DF.format(event.getDate());
 										fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
 										Log.i("Service:uploadEvent : Upload of "+event);
+										if (event.getEventName().equals("APLOG")) {
+											intent = new Intent(ServiceToActivityMsg.showProgressBar);
+											context.sendBroadcast(intent);
+											intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
+											intent.putExtra("progressValue", 0);
+											context.sendBroadcast(intent);
+										}
+
 										if (con.sendLogsFile(fileInfo, runThread)) {
 											db.updateEventLogToUploaded(event.getEventId());
 											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 											crashLogs.delete();
+											if (event.getEventName().equals("APLOG")) {
+												intent = new Intent(ServiceToActivityMsg.hideProgressBar);
+												context.sendBroadcast(intent);
+												File aplogData = new File(event.getCrashDir());
+												if (aplogData.exists() && aplogData.isDirectory()) {
+													for(File file:aplogData.listFiles()){
+														file.delete();
+													}
+													aplogData.delete();
+												}
+											}
+											intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
+											intent.putExtra("progressValue", 0);
+											context.sendBroadcast(intent);
 											cursor.moveToNext();
 										} else {
+											if (event.getEventName().equals("APLOG")) {
+												intent = new Intent(ServiceToActivityMsg.hideProgressBar);
+												context.sendBroadcast(intent);
+											}
 											Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
 											throw new ProtocolException();
 										}
@@ -566,6 +596,7 @@ public class CrashReportService extends Service {
 			super(looper);
 		}
 
+		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case ServiceMsg.startProcessEvents: {
@@ -912,7 +943,7 @@ public class CrashReportService extends Service {
 	}
 
 	public class LocalBinder extends Binder {
-                //Waiting time before stop the StartServiceActivity if the binder makes too much time to create CrashReportService
+		//Waiting time before stop the StartServiceActivity if the binder makes too much time to create CrashReportService
 		//67 is for 2seconds fo waiting with a sleep of 30ms.(2000ms/30)
 		private static final int waiting_time = 67;
 
@@ -921,7 +952,7 @@ public class CrashReportService extends Service {
 			while( CrashReportService.this == null && counter < waiting_time){
 				try{
 					Thread.sleep(30);
-                                        counter++;
+					counter++;
 				}
 				catch(InterruptedException e){
 					Log.d("LocalBinder: getService: Interrupted Exception");

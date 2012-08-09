@@ -25,7 +25,6 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -39,9 +38,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewStub;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.intel.crashreport.CrashReportHome.AboutDialog;
 import com.intel.crashreport.CrashReportService.LocalBinder;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 
@@ -63,9 +62,12 @@ public class StartServiceActivity extends Activity {
 	private TextView text;
 	private Button cancelButton;
 	private ViewStub waitStub;
+	private ProgressBar progressBar;
 	private static boolean instanceStateSaved = false;
+	private static boolean progressBarDisplayable = false;
 	private DialogFragment askDialog = null;
 
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
@@ -88,15 +90,18 @@ public class StartServiceActivity extends Activity {
 			});
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
+		progressBar = (ProgressBar) findViewById(R.id.progressAplog);
 		instanceStateSaved = false;
 	}
 
+	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		instanceStateSaved = true;
 		outState.putString("textLogger", (String)text.getText());
 		super.onSaveInstanceState(outState);
 	}
 
+	@Override
 	protected void onResume() {
 		super.onResume();
 		if (!app.isServiceStarted()) {
@@ -108,6 +113,7 @@ public class StartServiceActivity extends Activity {
 		instanceStateSaved = false;
 	}
 
+	@Override
 	protected void onPause() {
 		Log.d("StartServiceActivity: onPause");
 		doUnbindService();
@@ -116,6 +122,7 @@ public class StartServiceActivity extends Activity {
 		super.onPause();
 	}
 
+	@Override
 	public void onBackPressed() {
 		Log.d("StartServiceActivity: onBackPressed");
 		if(askDialog != null)askDialog.dismiss();
@@ -146,11 +153,17 @@ public class StartServiceActivity extends Activity {
 	private void showPleaseWait() {
 		if (waitStub != null)
 			waitStub.setVisibility(View.VISIBLE);
+		if (progressBar != null) {
+			if (progressBarDisplayable)
+				progressBar.setVisibility(View.VISIBLE);
+		}
 	}
 
 	private void hidePleaseWait() {
 		if (waitStub != null)
 			waitStub.setVisibility(View.GONE);
+		if (progressBar != null)
+			progressBar.setVisibility(View.GONE);
 	}
 
 	public Dialog createAskForUploadDialog() {
@@ -208,15 +221,15 @@ public class StartServiceActivity extends Activity {
 	public void cancel(int num) {
 		// TODO Auto-generated method stub
 		switch(num){
-			case DIALOG_ASK_UPLOAD_ID:
-				doActionAfterSelectUploadState(DIALOG_REP_ABORT);
-				break;
-			case DIALOG_ASK_UPLOAD_SAVE_ID:
-				appPrefs.setUploadStateToAsk();
-				mService.sendMessage(ServiceMsg.uploadDisabled);
-				break;
-			default:
-				break;
+		case DIALOG_ASK_UPLOAD_ID:
+			doActionAfterSelectUploadState(DIALOG_REP_ABORT);
+			break;
+		case DIALOG_ASK_UPLOAD_SAVE_ID:
+			appPrefs.setUploadStateToAsk();
+			mService.sendMessage(ServiceMsg.uploadDisabled);
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -257,6 +270,9 @@ public class StartServiceActivity extends Activity {
 		filter.addAction(ServiceToActivityMsg.updateLogTextView);
 		filter.addAction(ServiceToActivityMsg.uploadStarted);
 		filter.addAction(ServiceToActivityMsg.uploadFinished);
+		filter.addAction(ServiceToActivityMsg.uploadProgressBar);
+		filter.addAction(ServiceToActivityMsg.showProgressBar);
+		filter.addAction(ServiceToActivityMsg.hideProgressBar);
 		appCtx.registerReceiver(msgReceiver, filter);
 	}
 
@@ -266,6 +282,7 @@ public class StartServiceActivity extends Activity {
 	}
 
 	private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
+		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(ServiceToActivityMsg.askForUpload)) {
 				displayDialog(DIALOG_ASK_UPLOAD_ID);
@@ -279,6 +296,20 @@ public class StartServiceActivity extends Activity {
 				Log.d("StartServiceActivity:msgReceiver: uploadFinish");
 				hidePleaseWait();
 				cancelButton.setEnabled(false);
+			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadProgressBar)) {
+				if (null != progressBar && progressBarDisplayable) {
+					progressBar.setProgress(intent.getIntExtra("progressValue", 0));
+				}
+			}
+			else if (intent.getAction().equals(ServiceToActivityMsg.showProgressBar)) {
+				progressBarDisplayable = true;
+				if (null != progressBar)
+					progressBar.setVisibility(View.VISIBLE);
+			}
+			else if (intent.getAction().equals(ServiceToActivityMsg.hideProgressBar)) {
+				progressBarDisplayable = false;
+				if (null != progressBar)
+					progressBar.setVisibility(View.GONE);
 			}
 		}
 	};
@@ -325,6 +356,9 @@ public class StartServiceActivity extends Activity {
 		public static final String updateLogTextView = "com.intel.crashreport.updateLogTextView";
 		public static final String uploadStarted = "com.intel.crashreport.uploadStarted";
 		public static final String uploadFinished = "com.intel.crashreport.uploadFinished";
+		public static final String uploadProgressBar = "com.intel.crashreport.uploadProgressBarView";
+		public static final String showProgressBar = "com.intel.crashreport.showProgressBarView";
+		public static final String hideProgressBar = "com.intel.crashreport.hideProgressBarView";
 	}
 
 }

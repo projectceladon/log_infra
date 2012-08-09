@@ -52,6 +52,7 @@ import android.preference.PreferenceManager;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 import com.intel.crashtoolserver.bean.Event;
 import com.intel.crashtoolserver.bean.FileInfo;
+import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 
 public class Connector {
 
@@ -208,6 +209,7 @@ public class Connector {
 	}
 
 	private TimerTask wifiTimeOut = new TimerTask() {
+		@Override
 		public void run() {
 			Log.d("Connector: WifiTimeOut");
 			scanInProgress = false;
@@ -225,6 +227,7 @@ public class Connector {
 	};
 
 	private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
+		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
 				Log.d("Connector: Wifi state change");
@@ -562,13 +565,25 @@ public class Connector {
 		try {
 			mObjectOutputStream.writeObject(fileInfo);
 
-			BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileInfo.getPath()));
+			BufferedInputStream bis;
 			BufferedOutputStream bos = new BufferedOutputStream(mSocket.getOutputStream());
 
 			byte data[] = new byte[1024];
 			int count;
+			long fileSize = 0;
+			long readBytes = 0;
+
+			fileSize = fileInfo.getSize();
+			bis = new BufferedInputStream(new FileInputStream(fileInfo.getPath()));
 			while ((count = bis.read(data)) != -1) {
 				bos.write(data, 0, count);
+				readBytes += count;
+				if (fileSize > 0){
+					Intent intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
+
+					intent.putExtra("progressValue", (int) ((readBytes*100)/fileSize));
+					mCtx.sendBroadcast(intent);
+				}
 				if (t.isInterrupted())
 					throw new InterruptedException();
 			}
