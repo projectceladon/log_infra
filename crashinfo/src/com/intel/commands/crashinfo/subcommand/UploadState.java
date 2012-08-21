@@ -30,7 +30,7 @@ import com.intel.commands.crashinfo.option.Options.Multiplicity;
 public class UploadState implements ISubCommand {
 
 	public static final String PATH_LOGS = "/data/logs/";
-	public static final String PATH_SD_LOGS = "/mnt/sdcard/data/logs";
+	public static final String PATH_SD_LOGS = "/storage/sdcard0/data/logs";
 	String[] myArgs;
 	Options myOptions;
 
