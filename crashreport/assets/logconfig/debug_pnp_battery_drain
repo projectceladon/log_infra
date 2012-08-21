@@ -6,16 +6,15 @@
             "data": {
                 "name":"log.tag.PowerManagerService",
                 "value":"DEBUG",
-		"rollBackValue":"NONE"
+                "rollBackValue":"NONE"
             }
         },
         {
-            "type":"file",
+            "type":"prop",
             "data": {
-                "path":"/sys/module/wakelock/parameters/debug_mask",
-                "value":"255",
-                "append":false,
-		"rollBackValue":"3"
+                "name":"persist.service.profile.enable",
+                "value":"2",
+                "rollBackValue":"0"
             }
         }
     ]
