@@ -299,21 +299,22 @@ public class EventDB {
 
 	public Boolean isThereEventToUpload(String crashTypes[]) {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0'");
-		bQuery.append(" or ("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0')");
-		bQuery.append(" or ("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0')");
+		bQuery.append(" or ("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
+		bQuery.append(" or ("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
 		if (crashTypes != null) {
 
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
 			if (sExcludedType != "") {
-				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in("+ sExcludedType +") and "+KEY_UPLOADLOG+"='0')");
+				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in("+ sExcludedType +") and "
+						+KEY_UPLOADLOG + "='0' and "+ KEY_CRASHDIR + "!='' )");
 			} else {
 				// Case with no excluded type but still need to check Uploadlog
-				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0')");
+				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
 			}
 		} else {
 			// Case with no excluded type but still need to check Uploadlog
-			bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+ KEY_UPLOADLOG +"='0')");
+			bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+ KEY_UPLOADLOG +"='0' and "+ KEY_CRASHDIR + "!='' )");
 		}
 		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
 		return isEventExistFromWhereQuery(bQuery.toString());
@@ -340,6 +341,7 @@ public class EventDB {
 				return ret;
 			}
 		} catch (SQLException e) {
+			Log.d("isEventExistFromWhereQuery : " + e.getMessage());
 			return false;
 		}
 		return false;

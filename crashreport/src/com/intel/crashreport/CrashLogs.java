@@ -35,14 +35,16 @@ public class CrashLogs {
 
 	public static File getCrashLogsFile(Context context, String crashDir, String eventId) {
 		try {
-			File cacheDir = context.getExternalCacheDir();
-			if ((cacheDir != null) && cacheDir.exists()) {
-				String crashLogsFileName = "EVENT"+eventId+".zip";
-				File crashLogsFile = new File(cacheDir, crashLogsFileName);
-				if (crashLogsFile.exists())
-					return crashLogsFile;
-				else {
-					return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
+			if (crashDir != null){
+				File cacheDir = context.getExternalCacheDir();
+				if ((cacheDir != null) && cacheDir.exists() && !crashDir.isEmpty()) {
+					String crashLogsFileName = "EVENT"+eventId+".zip";
+					File crashLogsFile = new File(cacheDir, crashLogsFileName);
+					if (crashLogsFile.exists())
+						return crashLogsFile;
+					else {
+						return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
+					}
 				}
 			}
 		} catch (Exception e) {
