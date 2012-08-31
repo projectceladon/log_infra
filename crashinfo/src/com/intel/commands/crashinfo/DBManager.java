@@ -61,6 +61,7 @@ public class DBManager {
 	public static final String KEY_CRASHDIR = "crashdir";
 	public static final String KEY_UPLOADLOG = "logsuploaded";
 	public static final String KEY_NOTIFIED = "notified";
+	public static final String KEY_DATA_READY = "dataReady";
 
 
 	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
@@ -152,12 +153,12 @@ public class DBManager {
 				break;
 			case DETAIL :
 				listColumns = new String[] {KEY_ROWID,KEY_ID, KEY_NAME,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2, KEY_DATE,
-						KEY_CRASHDIR,KEY_DATA3,KEY_DATA4,KEY_DATA5,KEY_UPTIME,KEY_UPLOAD,KEY_UPLOADLOG};
+						KEY_CRASHDIR,KEY_DATA3,KEY_DATA4,KEY_DATA5,KEY_UPTIME,KEY_UPLOAD,KEY_UPLOADLOG,KEY_DATA_READY};
 				break;
 			case FULL :
 				listColumns = new String[] {KEY_ROWID,KEY_ID, KEY_NAME,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2, KEY_DATE,
 						KEY_CRASHDIR,KEY_DATA3,KEY_DATA4,KEY_DATA5,KEY_UPTIME,KEY_UPLOAD,KEY_UPLOADLOG,KEY_BUILDID,
-						KEY_DEVICEID,KEY_IMEI,KEY_NOTIFIED};
+						KEY_DEVICEID,KEY_IMEI,KEY_NOTIFIED,KEY_DATA_READY};
 				break;
 			default :
 				listColumns=null;

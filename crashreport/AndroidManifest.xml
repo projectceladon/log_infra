@@ -46,6 +46,10 @@
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.ALARM_NOTIFY" />
 			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.CRASH_LOGS_COPY_FINISHED" />
+				<category android:name="android.intent.category.ALTERNATIVE" />
+			</intent-filter>
 		</receiver>
 
 		<receiver

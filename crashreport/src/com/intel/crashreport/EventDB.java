@@ -38,7 +38,7 @@ public class EventDB {
 	private static final String DATABASE_TYPE_TABLE = "events_type";
 	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
 	private static final String DATABASE_CRITICAL_TABLE = "critical_events_type";
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 6;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -60,6 +60,7 @@ public class EventDB {
 	public static final String KEY_UPLOADLOG = "logsuploaded";
 	public static final String KEY_NOTIFIED = "notified";
 	public static final String KEY_CRITICAL = "critical";
+	public static final String KEY_DATA_READY = "dataReady";
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -81,7 +82,8 @@ public class EventDB {
 					KEY_UPLOAD + " integer, " +
 					KEY_CRASHDIR + " text, " +
 					KEY_UPLOADLOG + " integer, "+
-					KEY_NOTIFIED + " integer);";
+					KEY_NOTIFIED + " integer, "+
+					KEY_DATA_READY + " integer );";
 
 	private static final String DATABASE_TYPE_CREATE =
 			"create table " + DATABASE_TYPE_TABLE + " ("+
@@ -106,12 +108,12 @@ public class EventDB {
 			"delete from "+DATABASE_CRITICAL_EVENTS_TABLE+";";
 
 	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
-			                             +" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
-			                             +"(ce."+KEY_DATA1+"='' or ce."+KEY_DATA1+"=trim(e."+KEY_DATA1+")) and "
-			                             +"(ce."+KEY_DATA2+"='' or ce."+KEY_DATA2+"=trim(e."+KEY_DATA2+")) and "
-			                             +"(ce."+KEY_DATA3+"='' or ce."+KEY_DATA3+"=trim(e."+KEY_DATA3+")) and "
-			                             +"(ce."+KEY_DATA4+"='' or ce."+KEY_DATA4+"=trim(e."+KEY_DATA4+")) and "
-			                             +"(ce."+KEY_DATA5+"='' or ce."+KEY_DATA5+"=trim(e."+KEY_DATA5+"))";
+			+" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
+			+"(ce."+KEY_DATA1+"='' or ce."+KEY_DATA1+"=trim(e."+KEY_DATA1+")) and "
+			+"(ce."+KEY_DATA2+"='' or ce."+KEY_DATA2+"=trim(e."+KEY_DATA2+")) and "
+			+"(ce."+KEY_DATA3+"='' or ce."+KEY_DATA3+"=trim(e."+KEY_DATA3+")) and "
+			+"(ce."+KEY_DATA4+"='' or ce."+KEY_DATA4+"=trim(e."+KEY_DATA4+")) and "
+			+"(ce."+KEY_DATA5+"='' or ce."+KEY_DATA5+"=trim(e."+KEY_DATA5+"))";
 
 	private DatabaseHelper mDbHelper;
 	private SQLiteDatabase mDb;
@@ -124,12 +126,14 @@ public class EventDB {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
 		}
 
+		@Override
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(DATABASE_CREATE);
 			db.execSQL(DATABASE_TYPE_CREATE);
 			db.execSQL(DATABASE_CRITICAL_EVENTS_CREATE);
 		}
 
+		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w("Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
@@ -159,7 +163,7 @@ public class EventDB {
 	public long addEvent(String eventId, String eventName, String type,
 			String data0, String data1, String data2, String data3,
 			String data4, String data5, Date date, String buildId,
-			String deviceId, String imei, String uptime, String crashDir) {
+			String deviceId, String imei, String uptime, String crashDir, boolean bDataReady) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = convertDateForDb(date);
 		if (eventName.equals("")) return -2;
@@ -185,6 +189,11 @@ public class EventDB {
 		initialValues.put(KEY_CRASHDIR, crashDir);
 		initialValues.put(KEY_UPLOADLOG, 0);
 		initialValues.put(KEY_NOTIFIED, 0);
+		if (bDataReady){
+			initialValues.put(KEY_DATA_READY, 1);
+		} else {
+			initialValues.put(KEY_DATA_READY, 0);
+		}
 
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
 	}
@@ -204,7 +213,8 @@ public class EventDB {
 				event.getDeviceId(),
 				event.getImei(),
 				event.getUptime(),
-				event.getCrashDir());
+				event.getCrashDir(),
+				event.isDataReady());
 	}
 
 	public boolean deleteEvent(String eventId) {
@@ -217,28 +227,28 @@ public class EventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED}, null, null, null, null, null);
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY}, null, null, null, null, null);
 	}
 
 	public Cursor fetchNotUploadedEvents() throws SQLException {
-		String whereQuery = KEY_UPLOAD+"='0'";
+		String whereQuery = KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1'";
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
 	public Cursor fetchNotUploadedLogs(String crashTypes[]) throws SQLException {
 		StringBuilder bQuery = new StringBuilder("");
 		bQuery.append("("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0') or "+
-		              "("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0') or ");
+				"("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0') or ");
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
 			if (sExcludedType != "") {
-				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in ("+sExcludedType+") and "+KEY_UPLOADLOG+"='0')");
+				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in ("+sExcludedType+") and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 			} else {
-				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0')");
+				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 			}
 		} else {
-			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0')");
+			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
 		Log.d("fetchNotUploadedLogs : Query string = " +bQuery.toString() );
 		return fetchEventFromWhereQuery(bQuery.toString());
@@ -307,21 +317,21 @@ public class EventDB {
 
 			if (sExcludedType != "") {
 				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in("+ sExcludedType +") and "
-						+KEY_UPLOADLOG + "='0' and "+ KEY_CRASHDIR + "!='' )");
+						+KEY_UPLOADLOG + "='0' and "+ KEY_CRASHDIR + "!='' and "+ KEY_DATA_READY + "='1' )");
 			} else {
 				// Case with no excluded type but still need to check Uploadlog
-				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
+				bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' and "+ KEY_DATA_READY + "='1' )");
 			}
 		} else {
 			// Case with no excluded type but still need to check Uploadlog
-			bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+ KEY_UPLOADLOG +"='0' and "+ KEY_CRASHDIR + "!='' )");
+			bQuery.append(" or ("+KEY_NAME+"='CRASH' and "+ KEY_UPLOADLOG +"='0' and "+ KEY_CRASHDIR + "!='' and "+ KEY_DATA_READY + "='1' )");
 		}
 		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
 		return isEventExistFromWhereQuery(bQuery.toString());
 	}
 
 	public Boolean isThereEventToUploadNoReboot() {
-		return isEventExistFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "<>'REBOOT'");
+		return isEventExistFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "<>'REBOOT' AND "+KEY_DATA_READY + "='1'");
 	}
 
 	public Boolean isThereRebootToUpload() {
@@ -348,7 +358,7 @@ public class EventDB {
 	}
 
 	public int getNewCrashNumber() {
-		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='CRASH'");
+		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='CRASH' and "+ KEY_DATA_READY + "='1'");
 	}
 
 	public int getNewUptimeNumber() {
@@ -453,27 +463,27 @@ public class EventDB {
 
 	public Cursor fetchNotNotifiedEvents() throws SQLException {
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
-	                        "("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				            DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-				            + "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+				+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
 	public boolean isThereEventToNotified(){
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
-	                        "("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				            DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-				            + "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+				+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		return isEventExistFromWhereQuery(whereQuery);
 	}
 
 	public int getCriticalEventsNumber() {
 		Cursor mCursor;
 		int count;
-                String whereQuery = KEY_NOTIFIED+"='0' and "+
-	                        "("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				            DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-				            + "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+		String whereQuery = KEY_NOTIFIED+"='0' and "+
+				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+				+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		try {
 			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
 					whereQuery, null,
@@ -510,6 +520,19 @@ public class EventDB {
 
 	public void deleteAllCriticalEvents(){
 		mDb.execSQL(DATABASE_CRITICAL_EVENTS_EMPTY);
+	}
+
+	public boolean updateEventDataReady(String eventId) {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_DATA_READY, 1);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+	}
+
+	public boolean eventDataAreReady(String eventId){
+		String whereQuery = KEY_ID+"='"+eventId+"' and "+KEY_DATA_READY+"=1";
+		return isEventExistFromWhereQuery(whereQuery);
 	}
 
 

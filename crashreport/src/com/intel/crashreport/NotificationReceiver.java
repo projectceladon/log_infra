@@ -22,6 +22,7 @@ package com.intel.crashreport;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.SQLException;
 
 public class NotificationReceiver extends BroadcastReceiver {
 
@@ -30,9 +31,12 @@ public class NotificationReceiver extends BroadcastReceiver {
 	private static final String bootCompletedIntent = "android.intent.action.BOOT_COMPLETED";
 	private static final String networkStateChangeIntent = "android.net.conn.BACKGROUND_DATA_SETTING_CHANGED";
 	private static final String alarmNotificationIntent = "com.intel.crashreport.intent.ALARM_NOTIFY";
+	private static final String crashLogsCopyFinishedIntent = "com.intel.crashreport.intent.CRASH_LOGS_COPY_FINISHED";
+	private static final String eventIdExtra = "com.intel.crashreport.extra.EVENT_ID";
 
 	private static final Intent crashReportStartServiceIntent = new Intent("com.intel.crashreport.CrashReportService");
 
+	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction().equals(crashNotificationIntent)) {
 			Log.d("NotificationReceiver: crashNotificationIntent");
@@ -43,6 +47,30 @@ public class NotificationReceiver extends BroadcastReceiver {
 		} else if (intent.getAction().equals(networkStateChangeIntent)) {
 			Log.d("NotificationReceiver: networkStateChangeIntent");
 			context.startService(crashReportStartServiceIntent);
+		} else if (intent.getAction().equals(crashLogsCopyFinishedIntent)){
+			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
+			if (intent.hasExtra(eventIdExtra)) {
+				String eventId = intent.getStringExtra(eventIdExtra);
+				EventDB db = new EventDB(context);
+				boolean isPresent = false;
+				if (db!=null){
+					try {
+						db.open();
+						if (db.isEventInDb(eventId)) {
+
+							if (!db.eventDataAreReady(eventId)) {
+								isPresent = true;
+								db.updateEventDataReady(eventId);
+							}
+						}
+					} catch (SQLException e) {
+						Log.w("Service:uploadEvent : Fail to access DB", e);
+					}
+					db.close();
+					if(isPresent)
+						context.startService(crashReportStartServiceIntent);
+				}
+			}
 		} else if (intent.getAction().equals(alarmNotificationIntent)) {
 			Log.d("NotificationReceiver: alarmNotificationIntent");
 			ApplicationPreferences prefs = new ApplicationPreferences(context);

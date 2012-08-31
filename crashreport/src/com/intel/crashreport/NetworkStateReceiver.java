@@ -29,6 +29,7 @@ import android.net.ConnectivityManager;
 public class NetworkStateReceiver extends BroadcastReceiver {
 
 
+	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
 			Log.d("NetworkStateReceiver: CONNECTIVITY_ACTION");

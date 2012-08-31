@@ -47,6 +47,7 @@ public class Event {
 	private String imei = "";
 	private String uptime = "";
 	private String crashDir = "";
+	private boolean dataReady = true;
 
 	public Event() {}
 
@@ -118,6 +119,9 @@ public class Event {
 			eventId = histevent.getEventId();
 			eventName = histevent.getEventName();
 			type = histevent.getType();
+			if (type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")) {
+				dataReady = false;
+			}
 			data0 = crashFile.getData0();
 			data1 = crashFile.getData1();
 			data2 = crashFile.getData2();
@@ -162,7 +166,7 @@ public class Event {
 		uptime = histevent.getType();
 	}
 
-		private void fillStatsEvent(HistoryEvent histevent, String myBuild) {
+	private void fillStatsEvent(HistoryEvent histevent, String myBuild) {
 		crashDir = histevent.getOption();
 		eventId = histevent.getEventId();
 		eventName = histevent.getEventName();
@@ -212,6 +216,7 @@ public class Event {
 		return event;
 	}
 
+	@Override
 	public String toString() {
 		if (eventName.equals("UPTIME"))
 			return new String("Event: " + eventId + ":" + eventName + ":" + uptime);
@@ -398,6 +403,14 @@ public class Event {
 
 	public String getCrashDir() {
 		return crashDir;
+	}
+
+	public boolean isDataReady() {
+		return dataReady;
+	}
+
+	public void setDataReady(boolean dataReady) {
+		this.dataReady = dataReady;
 	}
 
 }

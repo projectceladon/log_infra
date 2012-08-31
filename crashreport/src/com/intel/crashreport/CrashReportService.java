@@ -27,6 +27,8 @@ import java.net.ProtocolException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -58,6 +60,7 @@ public class CrashReportService extends Service {
 	private final IBinder mBinder = new LocalBinder();
 	private Logger logger = new Logger();
 	private static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
+	private static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
 
 	@Override
 	public void onCreate() {
@@ -159,7 +162,13 @@ public class CrashReportService extends Service {
 									Log.w("Service: Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
 								else if (ret == -3)
 									Log.w("Service: Event " +event.toString() + " with wrong date, addition in DB canceled");
-								else Log.d("Service: Event successfully added to DB, " + event.toString());
+								else {
+									Log.d("Service: Event successfully added to DB, " + event.toString());
+									if (!event.isDataReady()) {
+										Timer timer = new Timer(true);
+										timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), CRASH_POSTPONE_DELAY*1000);
+									}
+								}
 							} else
 								Log.d("Service: Event already in DB, " + event.toString());
 						} else
@@ -962,5 +971,39 @@ public class CrashReportService extends Service {
 		}
 	}
 
+	public class NotifyCrashTask extends TimerTask{
+		private String eventId;
+		private Context context;
+		private boolean isPresent;
 
+		public NotifyCrashTask(String id,Context ctx){
+			super();
+			eventId = id;
+			context = ctx;
+
+		}
+
+		@Override
+		public void run() {
+			EventDB db = new EventDB(context);
+			isPresent = false;
+			if (db!=null){
+				try {
+					db.open();
+					if (!db.eventDataAreReady(eventId)) {
+						db.updateEventDataReady(eventId);
+						isPresent = true;
+					}
+				}catch (SQLException e) {
+					Log.w("Service:uploadEvent : Fail to access DB", e);
+					serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
+				}
+				db.close();
+				if (isPresent) {
+					Intent intent = new Intent("com.intel.crashreport.intent.CRASH_NOTIFY");
+					context.sendBroadcast(intent);
+				}
+			}
+		}
+	}
 }
