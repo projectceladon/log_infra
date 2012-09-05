@@ -378,6 +378,28 @@ public class CrashReportService extends Service {
 		}
 	}
 
+	private void updateProgressBar(int value) {
+		if (app.isActivityBounded()) {
+			Intent intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
+			intent.putExtra("progressValue", value);
+			getApplicationContext().sendBroadcast(intent);
+		}
+	}
+
+	private void hideProgressBar() {
+		if (app.isActivityBounded()) {
+			Intent intent = new Intent(ServiceToActivityMsg.hideProgressBar);
+			getApplicationContext().sendBroadcast(intent);
+		}
+	}
+
+	private void showProgressBar() {
+		if (app.isActivityBounded()) {
+			Intent intent = new Intent(ServiceToActivityMsg.showProgressBar);
+			getApplicationContext().sendBroadcast(intent);
+		}
+	}
+
 	private Runnable uploadEvent = new Runnable(){
 		Context context;
 		PowerManager pm = null;
@@ -411,6 +433,7 @@ public class CrashReportService extends Service {
 
 						//upload Events
 						cursor = db.fetchNotUploadedEvents();
+						hideProgressBar();
 						if (cursor != null) {
 							while (!cursor.isAfterLast()) {
 								if (runThread.isInterrupted())
@@ -432,7 +455,6 @@ public class CrashReportService extends Service {
 
 						//upload logs
 						String crashTypes[] = null;
-						Intent intent;
 						if (prefs.isCrashLogsUploadEnable()) {
 							crashTypes = prefs.getCrashLogsUploadTypes();
 							cursor = db.fetchNotUploadedLogs(crashTypes);
@@ -449,11 +471,8 @@ public class CrashReportService extends Service {
 										fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
 										Log.i("Service:uploadEvent : Upload of "+event);
 										if (event.getEventName().equals("APLOG")) {
-											intent = new Intent(ServiceToActivityMsg.showProgressBar);
-											context.sendBroadcast(intent);
-											intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
-											intent.putExtra("progressValue", 0);
-											context.sendBroadcast(intent);
+											showProgressBar();
+											updateProgressBar(0);
 										}
 
 										if (con.sendLogsFile(fileInfo, runThread)) {
@@ -461,24 +480,23 @@ public class CrashReportService extends Service {
 											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 											crashLogs.delete();
 											if (event.getEventName().equals("APLOG")) {
-												intent = new Intent(ServiceToActivityMsg.hideProgressBar);
-												context.sendBroadcast(intent);
+												updateProgressBar(0);
+												hideProgressBar();
 												File aplogData = new File(event.getCrashDir());
-												if (aplogData.exists() && aplogData.isDirectory()) {
-													for(File file:aplogData.listFiles()){
-														file.delete();
+												if (aplogData.exists()) {
+													if (aplogData.isDirectory()) {
+														for(File file:aplogData.listFiles()){
+															file.delete();
+														}
 													}
 													aplogData.delete();
 												}
 											}
-											intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
-											intent.putExtra("progressValue", 0);
-											context.sendBroadcast(intent);
 											cursor.moveToNext();
 										} else {
 											if (event.getEventName().equals("APLOG")) {
-												intent = new Intent(ServiceToActivityMsg.hideProgressBar);
-												context.sendBroadcast(intent);
+												updateProgressBar(0);
+												hideProgressBar();
 											}
 											Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
 											throw new ProtocolException();

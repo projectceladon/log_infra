@@ -578,7 +578,7 @@ public class Connector {
 			while ((count = bis.read(data)) != -1) {
 				bos.write(data, 0, count);
 				readBytes += count;
-				if (fileSize > 0){
+				if (fileSize > 0 && app.isActivityBounded()){
 					Intent intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
 
 					intent.putExtra("progressValue", (int) ((readBytes*100)/fileSize));

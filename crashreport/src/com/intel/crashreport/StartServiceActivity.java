@@ -156,6 +156,7 @@ public class StartServiceActivity extends Activity {
 		if (progressBar != null) {
 			if (progressBarDisplayable)
 				progressBar.setVisibility(View.VISIBLE);
+			else progressBar.setVisibility(View.GONE);
 		}
 	}
 
