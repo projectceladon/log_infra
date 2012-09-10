@@ -46,7 +46,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.os.SystemProperties;
-
+import java.util.TimeZone;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 import com.intel.crashtoolserver.bean.FileInfo;
 
@@ -163,6 +163,8 @@ public class CrashReportService extends Service {
 								else if (ret == -3)
 									Log.w("Service: Event " +event.toString() + " with wrong date, addition in DB canceled");
 								else {
+                                                                        if (event.getEventName().contentEquals("REBOOT") && event.getType().contentEquals("SWUPDATE"))
+                                                                                db.deleteEventsBeforeUpdate(event.getEventId());
 									Log.d("Service: Event successfully added to DB, " + event.toString());
 									if (!event.isDataReady()) {
 										Timer timer = new Timer(true);
@@ -467,6 +469,7 @@ public class CrashReportService extends Service {
 									event = db.fillEventFromCursor(cursor);
 									crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
 									if (crashLogs != null) {
+										DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 										dayDate = DAY_DF.format(event.getDate());
 										fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
 										Log.i("Service:uploadEvent : Upload of "+event);

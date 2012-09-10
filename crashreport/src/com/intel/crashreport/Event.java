@@ -26,6 +26,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 import android.os.SystemProperties;
+import java.util.TimeZone;
 
 public class Event {
 
@@ -212,7 +213,7 @@ public class Event {
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
 		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
 				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
-				this.date, this.deviceId, this.imei, sUptime, sBuild);
+				convertDateForServer(this.date), this.deviceId, this.imei, sUptime, sBuild);
 		return event;
 	}
 
@@ -250,9 +251,11 @@ public class Event {
 		Date cDate = null;
 		if (date != null) {
 			try {
+				EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 				cDate = EVENT_DF.parse(date);
 			} catch (ParseException e) {
 				try {
+					EVENT_DF_OLD.setTimeZone(TimeZone.getTimeZone("GMT"));
 					cDate = EVENT_DF_OLD.parse(date);
 				} catch (ParseException e1) {
 					cDate = new Date();
@@ -411,6 +414,19 @@ public class Event {
 
 	public void setDataReady(boolean dataReady) {
 		this.dataReady = dataReady;
+	}
+
+	public Date convertDateForServer(Date date){
+		Date cDate = null;
+		EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
+		String displayDate = EVENT_DF.format(date);
+		try {
+			EVENT_DF.setTimeZone(TimeZone.getTimeZone("CET"));
+			cDate = EVENT_DF.parse(displayDate);
+		} catch (ParseException e) {
+			cDate = new Date();
+		}
+		return cDate;
 	}
 
 }

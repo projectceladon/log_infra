@@ -168,8 +168,6 @@ public class EventDB {
 		int eventDate = convertDateForDb(date);
 		if (eventName.equals("")) return -2;
 		else if (eventDate == -1) return -3;
-		if (eventName.contentEquals("REBOOT") && type.contentEquals("SWUPDATE"))
-			mDb.delete(DATABASE_TABLE, KEY_DATE+"<"+eventDate, null);
 
 		initialValues.put(KEY_ID, eventId);
 		initialValues.put(KEY_NAME, eventName);
@@ -533,6 +531,11 @@ public class EventDB {
 	public boolean eventDataAreReady(String eventId){
 		String whereQuery = KEY_ID+"='"+eventId+"' and "+KEY_DATA_READY+"=1";
 		return isEventExistFromWhereQuery(whereQuery);
+	}
+
+	public void deleteEventsBeforeUpdate(String eventId){
+		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')";
+		mDb.delete(DATABASE_TABLE, whereQuery, null);
 	}
 
 

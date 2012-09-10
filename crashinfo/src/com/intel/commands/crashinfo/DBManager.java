@@ -31,6 +31,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import java.text.ParseException;
+import java.util.TimeZone;
 
 public class DBManager {
 	private static final int COEF_S_TO_MS = 1000;
@@ -231,6 +232,7 @@ public class DBManager {
 							long lDate = mCursor.getLong(indexListColumns[i]);
 							try {
 								Date date = new Date(lDate*COEF_S_TO_MS);
+								PARSE_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 								sColValue = PARSE_DF.format(date);
 							} catch (Exception e) {
 								sColValue = "parse error"  ;
@@ -260,6 +262,7 @@ public class DBManager {
 		Date cDate = null;
 		if (sDate != null) {
 			try {
+				PARSE_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 				cDate = PARSE_DF.parse(sDate);
 				iResult = (int)(cDate.getTime() / COEF_S_TO_MS);
 			} catch (ParseException e) {
@@ -275,7 +278,7 @@ public class DBManager {
 		try {
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_ROWID},
 					KEY_TYPE+"='SWUPDATE'", null,
-					null, null, KEY_DATE + " DESC", "1");
+					null, null, KEY_ROWID + " DESC", "1");
 			if (mCursor != null) {
 				mCursor.moveToFirst();
 				if (!mCursor.isAfterLast()) {
