@@ -19,6 +19,8 @@
 
 package com.intel.crashreport;
 
+import com.intel.crashreport.bugzilla.ui.BugStorage;
+
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -32,10 +34,12 @@ public class CrashReport extends Application {
 	private Boolean activityBounded = false;
 	private Boolean wifiOnly = false;
 	private Build myBuild;
+	private BugStorage bugzillaStorage;
 
 	public void onCreate() {
 		super.onCreate();
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		bugzillaStorage = new BugStorage(this);
 		String version = this.getString(R.string.app_version);
 		if (!privatePrefs.getVersion().contentEquals(version)) {
 			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -102,5 +106,39 @@ public class CrashReport extends Application {
 	}
 	public Build getMyBuild() {
 		return myBuild;
+	}
+
+	public String getUserLastName(){
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		return privatePrefs.getUserLastName();
+	}
+
+	public String getUserFirstName() {
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		return privatePrefs.getUserFirstName();
+	}
+
+	public String getUserEmail() {
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		return privatePrefs.getUserEmail();
+	}
+
+	public void setUserFirstName(String firstname){
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		privatePrefs.setUserFirstName(firstname);
+	}
+
+	public void setUserLastName(String lastname) {
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		privatePrefs.setUserLastName(lastname);
+	}
+
+	public void setUserEmail(String email) {
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		privatePrefs.setUserEmail(email);
+	}
+
+	public BugStorage getBugzillaStorage() {
+		return bugzillaStorage;
 	}
 }

@@ -22,6 +22,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.intel.crashreport.bugzilla.ui.BugzillaMainActivity;
+import com.intel.crashreport.bugzilla.ui.UserInformationsActivity;
 import com.intel.crashreport.logconfig.ui.LogConfigHomeActivity;
 
 public class CrashReportHome extends Activity {
@@ -62,6 +64,24 @@ public class CrashReportHome extends Activity {
 					}
 				});
 				alert.show();
+			}
+		});
+
+		Button button_bugzilla = (Button) findViewById(R.id.button_report_bugzilla);
+		button_bugzilla.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				CrashReport app = (CrashReport)getApplicationContext();
+				if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
+					Intent intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
+					intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
+					startActivity(intent);
+				}
+				else {
+					Intent intent = new Intent(getApplicationContext(), UserInformationsActivity.class);
+					intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
+					startActivity(intent);
+				}
+
 			}
 		});
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));

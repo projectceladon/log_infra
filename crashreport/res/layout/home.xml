@@ -20,5 +20,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/menu_aplogs" />
+    <Button
+        android:id="@+id/button_report_bugzilla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_bugzilla" />
 
 </LinearLayout>

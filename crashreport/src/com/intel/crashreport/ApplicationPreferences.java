@@ -103,4 +103,31 @@ public class ApplicationPreferences {
 		privatePrefsEditor.putString("version", version);
 		privatePrefsEditor.commit();
 	}
+
+	public String getUserLastName() {
+		return appPrivatePrefs.getString("userLastName", "");
+	}
+
+	public void setUserLastName(String lastname) {
+		privatePrefsEditor.putString("userLastName", lastname);
+		privatePrefsEditor.commit();
+	}
+
+	public String getUserFirstName() {
+		return appPrivatePrefs.getString("userFirstName", "");
+	}
+
+	public void setUserFirstName(String firstname) {
+		privatePrefsEditor.putString("userFirstName", firstname);
+		privatePrefsEditor.commit();
+	}
+
+	public String getUserEmail() {
+		return appPrivatePrefs.getString("userEmail", "");
+	}
+
+	public void setUserEmail(String email) {
+		privatePrefsEditor.putString("userEmail", email);
+		privatePrefsEditor.commit();
+	}
 }

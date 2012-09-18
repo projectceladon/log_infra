@@ -21,8 +21,8 @@
   xmlns:android="http://schemas.android.com/apk/res/android">
 
 	<PreferenceCategory android:title="Log settings">
-	    <CheckBoxPreference
-	        android:key="enableCrashLogReport"
+		<CheckBoxPreference
+			android:key="enableCrashLogReport"
 			android:title="Crash logs report"
 			android:summary="Enable crash logs upload"
 			android:defaultValue="true" />
@@ -37,8 +37,8 @@
 			android:defaultValue="APCOREDUMP" />
 	</PreferenceCategory>
 
-  	<PreferenceCategory
-    	android:title="General Settings">
+	<PreferenceCategory
+		android:title="General Settings">
 		<ListPreference
 			android:title="Report Management"
 			android:summary="How application react to new events"
@@ -76,6 +76,14 @@
 			android:defaultValue="test1234"
 			android:summary="Internal Wifi password"
 			android:title="Wifi Password"/>
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="Bugzilla report settings">
+		<CheckBoxPreference
+			android:title="Test mode"
+			android:defaultValue="false"
+			android:summary="Upload to the test Bugzilla server"
+			android:key="uploadBZPref" />
 	</PreferenceCategory>
 
 </PreferenceScreen>

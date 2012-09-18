@@ -16,6 +16,8 @@
      limitations under the License.
 
      Author: Jeremy Rocher <jeremyx.rocher@intel.com>
+
+
 -->
 <resources>
     <string name="app_name">Phone Doctor</string>
@@ -37,4 +39,23 @@
     <string name="button_submit_log_config_text">Disable all logs configurations</string>
     <string name="persistant_text">Configuration persistant</string>
     <string name="menu_aplogs">Upload aplogs</string>
+    <string name="menu_bugzilla">Report a bug</string>
+    <string name="title_activity_bugzilla_main">BugzillaMainActivity</string>
+    <string name="bugzilla_title">Summary :</string>
+    <string name="bugzilla_summary">Description :</string>
+    <string name="bugzilla_apply">Report now</string>
+    <string name="bugzilla_screenshot">With screen capture</string>
+    <string name="bugzilla_send">Send report</string>
+    <string name="bugzilla_edit">Edit report</string>
+    <string name="title_activity_bugzilla_summary">BugzillaSummaryActivity</string>
+    <string name="bugzilla_type">BZ\'s type :</string>
+    <string name="bugzilla_severity">BZ\'s severity :</string>
+    <string name="bugzilla_component">BZ\'s component :</string>
+    <string name="user_informations_firstname">User last name :</string>
+    <string name="user_informations_lastname">User first name :</string>
+    <string name="user_informations_email">Email :</string>
+    <string name="user_informations_button">Save personnal informations</string>
+    <string name="enter_intel_email">Enter your intel email.</string>
+    <string name="intel_email">\@intel.com</string>
+
 </resources>

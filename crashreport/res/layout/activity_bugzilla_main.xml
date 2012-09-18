@@ -1,0 +1,171 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00579c"
+    android:orientation="vertical" >
+
+ <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="4"
+        android:background="#00579c">
+
+   <LinearLayout
+       xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:isScrollContainer="true"
+       android:orientation="vertical"
+       android:scrollbarStyle="outsideOverlay"
+       android:scrollbars="vertical" >
+
+    <TextView
+        android:id="@+id/bz_title_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/bugzilla_title"
+        android:textSize="24sp"
+        android:textColor="#ffffff" />
+
+    <EditText
+        android:id="@+id/bz_title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:background="#d8eef9"
+        android:inputType="text"
+        android:lines="1"
+        android:maxLines="1"
+        android:textColor="#105372"
+        android:textCursorDrawable="@drawable/black_cursor"
+        android:textSize="22sp" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/bz_type_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:paddingTop="15dip"
+        android:text="@string/bugzilla_type"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <Spinner
+        android:id="@+id/bz_type_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/bz_severity_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_severity"
+        android:textSize="24sp"
+        android:textColor="#ffffff" />
+
+    <Spinner
+        android:id="@+id/bz_severity_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
+
+    <TextView
+        android:id="@+id/bz_component_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_component"
+        android:textSize="24sp"
+        android:textColor="#ffffff" />
+
+    <Spinner
+        android:id="@+id/bz_component_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:ems="10" />
+
+    <TextView
+        android:id="@+id/bz_summary_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:paddingTop="15dip"
+        android:text="@string/bugzilla_summary"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <EditText
+        android:id="@+id/bz_summary_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:background="#d8eef9"
+        android:textSize="22sp"
+        android:gravity="left|top"
+        android:inputType="textMultiLine"
+        android:lines="5"
+        android:maxLines="10"
+        android:textColor="#105372"
+         android:textCursorDrawable="@drawable/black_cursor" />
+
+     <CheckBox
+         android:id="@+id/bz_screenshot_box"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_alignParentLeft="true"
+         android:layout_alignParentRight="true"
+         android:paddingTop="15dip"
+         android:text="@string/bugzilla_screenshot"
+         android:textColor="#ffffff"
+         android:textSize="24sp" />
+
+     <Gallery
+         android:id="@+id/bz_select_screenshot"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:spacing="55dip" />
+
+</LinearLayout>
+</ScrollView>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#00579c"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/bz_apply_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="end|center"
+        android:padding="0dip"
+        android:text="@string/bugzilla_apply"
+        android:textSize="24sp"
+        android:textColor="#ffffff" />
+
+</LinearLayout>
+</LinearLayout>

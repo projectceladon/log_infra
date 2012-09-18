@@ -78,4 +78,25 @@
 
 	</string-array>
 
+	<string-array name="reportBugzillaTypeValues">
+		<item>Battery drain</item>
+		<item>Graphics problems</item>
+		<item>Modem problems</item>
+		<item>Java application crash</item>
+		<item>Native application crash</item>
+	</string-array>
+
+	<string-array name="reportBugzillaSeverityValues">
+		<item>low</item>
+		<item>medium</item>
+		<item>high</item>
+		<item>critical</item>
+		<item>enhancement</item>
+	</string-array>
+
+	<string-array name="reportBugzillaComponentValues">
+		<item>_User_Trials</item>
+		<item>_Triage_general</item>
+	</string-array>
+
 </resources>
