@@ -308,7 +308,7 @@ public class MainParser{
 
 			try{
 				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
-				Pattern patternForcedFabric = java.util.regex.Pattern.compile(".*SCU error summary.*");
+				Pattern patternForcedFabric = java.util.regex.Pattern.compile(".*HW WDT expired.*");
 				//suspicious regex repeating r has no effect
 			    //   data0=`grep "DW0:" $1/ipanic_fabric_err*`
 			    //   data1=`grep "DW1:" $1/ipanic_fabric_err*`
