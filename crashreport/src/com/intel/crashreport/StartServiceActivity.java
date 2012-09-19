@@ -1,4 +1,4 @@
-/* Crash Report (CLOTA)
+/* Phone Doctor (CLOTA)
  *
  * Copyright (C) Intel 2012
  *
@@ -169,7 +169,7 @@ public class StartServiceActivity extends Activity {
 
 	public Dialog createAskForUploadDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Crash report management");
+		builder.setTitle("Phone Doctor management");
 		builder.setSingleChoiceItems(R.array.uploadStateDialogText, 0, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int item) {
 				dialog_value = item;

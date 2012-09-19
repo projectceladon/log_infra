@@ -1,4 +1,4 @@
-/* Crash Report (CLOTA)
+/* Phone Doctor (CLOTA)
  *
  * Copyright (C) Intel 2012
  *
@@ -38,7 +38,7 @@ public class NotificationMgr {
 
 	public void notifyEventToUpload(int crashNumber, int uptimeNumber) {
 		CharSequence tickerText;
-		CharSequence contentTitle = "Crash Report";
+		CharSequence contentTitle = "Phone Doctor";
 		CharSequence contentText;
 		if ((crashNumber == 0) && (uptimeNumber != 0)) {
 			tickerText = "Uptime event";
@@ -72,7 +72,7 @@ public class NotificationMgr {
 
 	public void notifyUploadingLogs(int logNumber) {
 		CharSequence tickerText = "Start uploading crash logs";
-		CharSequence contentTitle = "Crash Report";
+		CharSequence contentTitle = "Phone Doctor";
 		CharSequence contentText = "Uploading "+logNumber+" crash logs";
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.icon;
@@ -96,7 +96,7 @@ public class NotificationMgr {
 
 	public void notifyCriticalEvent(int crashNumber){
 		CharSequence tickerText = "Critical events occured";
-		CharSequence contentTitle = "Crash Report";
+		CharSequence contentTitle = "Phone Doctor";
 		CharSequence contentText ;
 		if( crashNumber > 1)
 			contentText = crashNumber+" critical events occured";

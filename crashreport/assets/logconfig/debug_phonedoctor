@@ -1,10 +1,10 @@
 {
-    "description":"CrashReport",
+    "description":"PhoneDoctor",
     "config": [
         {
             "type":"prop",
             "data": {
-                "name":"log.tag.CrashReport",
+                "name":"log.tag.PhoneDoctor",
                 "value":"DEBUG",
                 "rollBackValue":"RELEASE"
             }

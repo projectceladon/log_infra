@@ -1,4 +1,4 @@
-/* Crash Report (CLOTA)
+/* Phone Doctor (CLOTA)
  *
  * Copyright (C) Intel 2012
  *

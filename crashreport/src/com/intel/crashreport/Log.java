@@ -1,4 +1,4 @@
-/* Crash Report (CLOTA)
+/* Phone Doctor (CLOTA)
  *
  * Copyright (C) Intel 2012
  *
@@ -21,7 +21,7 @@ package com.intel.crashreport;
 
 public class Log {
 
-	public static final String TAG = "CrashReport";
+	public static final String TAG = "PhoneDoctor";
 
 	//getprop log.tag.CrashReport
 	//setprop log.tag.CrashReport DEBUG
