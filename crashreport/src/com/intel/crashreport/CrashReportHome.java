@@ -161,7 +161,7 @@ public class CrashReportHome extends Activity {
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			File aplogTrigger = new File("/data/logs/aplogs/aplog_trigger");
+			File aplogTrigger = new File("/logs/aplogs/aplog_trigger");
 			if (!aplogTrigger.exists()) {
 				//to manage case  of crashlogd not launched
 				aplogTrigger.delete();

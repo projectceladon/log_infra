@@ -53,7 +53,7 @@ public class HistoryEventFile {
 	}
 
 	private File openFile() {
-		String path = new String("/data/" + "logs/history_event");
+		String path = new String("/logs/history_event");
 		File histFile = new File(path);
 
 		if (!histFile.canRead())

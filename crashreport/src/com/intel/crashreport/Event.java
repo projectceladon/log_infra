@@ -241,7 +241,7 @@ public class Event {
 	}
 
 	private void readDeviceIdFromFile() {
-		File uuidFile = new File("/data/logs/" + "uuid.txt");
+		File uuidFile = new File("/logs/" + "uuid.txt");
 		try {
 			Scanner scan = new Scanner(uuidFile);
 			if (scan.hasNext())

@@ -15,7 +15,7 @@ import java.util.zip.GZIPInputStream;
 
 public class MainParser{
 
-	public static final String PATH_UUID = "/data/logs/uuid.txt";
+	public static final String PATH_UUID = "/logs/uuid.txt";
 
 	private String sOutput = null;
 	private String sTag = "";
