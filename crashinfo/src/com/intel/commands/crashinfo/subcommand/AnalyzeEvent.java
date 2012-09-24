@@ -87,9 +87,15 @@ public class AnalyzeEvent implements ISubCommand {
 			}
 		}
 
-		MainParser aParser = new MainParser(sOutput, sTag, sCrashID, sUptime,sBuild, sBoard, sDate, sImei);
-
-		return aParser.execParsing();
+		if ((sOutput!=null)&& (sTag!=null)){
+			MainParser aParser = new MainParser(sOutput, sTag, sCrashID, sUptime,sBuild, sBoard, sDate, sImei);
+			return aParser.execParsing();
+		}
+		else
+		{
+			System.out.println("Path or Type is null");
+			return -1;
+		}
 	}
 
 
