@@ -74,7 +74,9 @@ public class ConfigManager implements IConfigServiceClient {
         ArrayList<String> mPersistConfigNames = mStorage.getAppliedConfigs();
         ArrayList<LogConfig> mPersistLogConfigs = new ArrayList<LogConfig>();
         for (String configName : mPersistConfigNames) {
-            mPersistLogConfigs.add(loadConfigStatus(configName).getLogConfig());
+            ConfigStatus mConfigStatus = loadConfigStatus(configName);
+            if (mConfigStatus != null)
+                mPersistLogConfigs.add(mConfigStatus.getLogConfig());
         }
         return mPersistLogConfigs;
     }
@@ -92,7 +94,10 @@ public class ConfigManager implements IConfigServiceClient {
      */
     public ConfigStatus loadConfigStatus(String configName) {
         ConfigStatus cs = getConfigStatus(configName);
-        cs.setLogConfig(mConfigLoader.getConfig(configName));
+        LogConfig mLogConfig = mConfigLoader.getConfig(configName);
+        if (mLogConfig == null)
+            return null;
+        cs.setLogConfig(mLogConfig);
         return cs;
     }
 
@@ -102,14 +107,16 @@ public class ConfigManager implements IConfigServiceClient {
     public void applyConfigs(ArrayList<String> configNames, boolean applied) {
         ArrayList<LogConfig> mLogConfigs = new ArrayList<LogConfig>();
         for (String configName : configNames) {
-            LogConfig logconf = loadConfigStatus(configName).getLogConfig();
-            logconf.setApplyValue(applied);
-            mLogConfigs.add(logconf);
-
+            ConfigStatus mConfigStatus = loadConfigStatus(configName);
+            if (mConfigStatus != null) {
+                LogConfig logconf = mConfigStatus.getLogConfig();
+                logconf.setApplyValue(applied);
+                mLogConfigs.add(logconf);
+            }
         }
         if (mClient == null)
             mClient = new ConfigServiceClient(this);
-        mClient.applyConfigList(mLogConfigs,applied);
+        mClient.applyConfigList(mLogConfigs, applied);
     }
 
     public void updateAppliedConfigs(ArrayList<String> configs,boolean applied) {

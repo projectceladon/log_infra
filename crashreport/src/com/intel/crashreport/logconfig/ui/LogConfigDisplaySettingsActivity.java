@@ -6,14 +6,7 @@ import java.util.ArrayList;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.util.SparseBooleanArray;
-import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -45,12 +38,13 @@ public class LogConfigDisplaySettingsActivity extends Activity {
         if (!configsNames.isEmpty()) {
             for (int i = 0; i < configsNames.size(); i++) {
                 if (nameConfig.equals(configsNames.get(i))) {
-                    mListConfigStatus.set(i,
-                            mConfigManager.loadConfigStatus(mListConfigStatus.get(i)
-                                    .getName()));
-                    config = mListConfigStatus.get(i).getLogConfig();
-                    currentIndex = i;
-
+                    ConfigStatus mConfigStatus = mConfigManager.loadConfigStatus(mListConfigStatus
+                            .get(i).getName());
+                    if (mConfigStatus != null) {
+                        mListConfigStatus.set(i, mConfigStatus);
+                        config = mListConfigStatus.get(i).getLogConfig();
+                        currentIndex = i;
+                    }
                 }
             }
         }
