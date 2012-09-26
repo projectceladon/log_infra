@@ -127,7 +127,9 @@ public class BugzillaSummaryActivity extends Activity {
 				write.write(line.getBytes());
 				line = "SEVERITY="+bugzillaStorage.getSeverity()+"\n";
 				write.write(line.getBytes());
-				line = "DESCRIPTION="+bugzillaStorage.getDescription().replaceAll("\n", "\\n")+"\n";
+				String strDescription = bugzillaStorage.getDescription();
+				strDescription = strDescription.replace("\n", "\\n");
+				line = "DESCRIPTION="+strDescription+"\n";
 				write.write(line.getBytes());
 				if(bugzillaStorage.getBugHasScreenshot()) {
 					line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+bugzillaStorage.getScreenshotPath()+"\n";

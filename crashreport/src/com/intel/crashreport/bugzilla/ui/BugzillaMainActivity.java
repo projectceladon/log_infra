@@ -49,6 +49,7 @@ public class BugzillaMainActivity extends Activity {
 				if (isChecked) {
 					if (screenshot.getAdapter().getCount() > 0) {
 						screenshot.setVisibility(View.VISIBLE);
+						galleryAdapter.notifyDataSetChanged();
 					}
 					else {
 						AlertDialog alert = new AlertDialog.Builder(context).create();
