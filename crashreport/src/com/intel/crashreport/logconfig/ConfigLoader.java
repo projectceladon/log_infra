@@ -14,6 +14,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.intel.crashreport.logconfig.bean.IntentLogSetting;
+import com.intel.crashreport.logconfig.bean.IntentLogSetting.IntentExtra;
 import com.intel.crashreport.logconfig.bean.LogConfig;
 import com.intel.crashreport.logconfig.bean.LogSetting;
 
@@ -57,8 +59,12 @@ public class ConfigLoader {
         try {
             InputStreamReader is = getConfigFile(name);
             if (is != null) {
-                Gson gson = new GsonBuilder().registerTypeAdapter(LogSetting.class,
-                        new JsonLogSettingAdapter()).create();
+                GsonBuilder mGsonBuilder = new GsonBuilder();
+                mGsonBuilder.registerTypeAdapter(LogSetting.class, new JsonLogSettingAdapter());
+                IntentLogSetting s = new IntentLogSetting();
+                mGsonBuilder.registerTypeAdapter(IntentExtra.class,
+                        s.new JsonIntentExtraAdapter());
+                Gson gson = mGsonBuilder.create();
                 LogConfig config = gson.fromJson(is, LogConfig.class);
                 config.setName(name);
                 return config;

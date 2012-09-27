@@ -5,13 +5,18 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
+import android.content.Context;
+import android.content.Intent;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 import android.os.SystemProperties;
 import android.util.Log;
 
 import com.intel.crashreport.logconfig.bean.FSLogSetting;
+import com.intel.crashreport.logconfig.bean.IntentLogSetting;
+import com.intel.crashreport.logconfig.bean.IntentLogSetting.IntentExtra;
 import com.intel.crashreport.logconfig.bean.PropertyLogSetting;
 
 public class LogConfigClient {
@@ -25,22 +30,23 @@ public class LogConfigClient {
     private static LocalSocket mSocket = null;
     private static BufferedReader mInputStream = null;
     private static DataOutputStream mOutputStream = null;
+    private static Context mContext = null;
+    private static boolean isLowLevelStarted = false;
 
-    private LogConfigClient() {
+    private LogConfigClient(Context context) {
+        mContext = context;
     }
 
-    public static synchronized LogConfigClient getInstance() throws Exception {
-        if (M_INSTANCE == null) {
-            M_INSTANCE = new LogConfigClient();
-            if (!init()) {
-                M_INSTANCE = null;
-                throw new Exception("Init logconfig service failed");
-            }
-        }
+    public static synchronized LogConfigClient getInstance(Context context) {
+        if (M_INSTANCE == null)
+            M_INSTANCE = new LogConfigClient(context);
         return M_INSTANCE;
     }
 
-    private static boolean init() {
+    private static void init() throws IllegalStateException {
+        if (isLowLevelStarted && mInputStream != null && mOutputStream != null)
+            return;
+
         // Start service which will open the server socket
         SystemProperties.set("ctl.start", "logconfig");
         mSocket = new LocalSocket();
@@ -65,18 +71,15 @@ public class LogConfigClient {
                 break;
             }
         }
-        if (i == MAX_RETRY) {
-            Log.e(TAG, "Service connection almost failed !!!");
-            return false;
-        }
+        if (i == MAX_RETRY)
+            throw new IllegalStateException("Init logconfig service failed");
         try {
             mInputStream = new BufferedReader(new InputStreamReader(mSocket.getInputStream()));
             mOutputStream = new DataOutputStream(mSocket.getOutputStream());
-            return true;
+            isLowLevelStarted = true;
         } catch (IOException e) {
-            Log.e(TAG, "Service connection almost failed !!!", e);
+            throw new IllegalStateException("Init logconfig service failed");
         }
-        return false;
     }
 
     public void close() {
@@ -90,11 +93,13 @@ public class LogConfigClient {
         } catch (IOException e) {
             Log.e(TAG, Log.getStackTraceString(e));
         } finally {
+            isLowLevelStarted = false;
             M_INSTANCE = null;
         }
     }
 
-    public void writeCommand(byte cmd, Object obj) {
+    public void writeCommand(byte cmd, Object obj) throws IllegalStateException {
+        init();
         switch (cmd) {
             case CommandLogConfigAdapter.CMD_WRITE_FILE:
                 try {
@@ -113,7 +118,8 @@ public class LogConfigClient {
         }
     }
 
-    public boolean writeData(byte[] b) {
+    public boolean writeData(byte[] b) throws IllegalStateException {
+        init();
         if (mOutputStream != null) {
             try {
                 mOutputStream.write(b, 0, b.length);
@@ -125,7 +131,8 @@ public class LogConfigClient {
         return false;
     }
 
-    public boolean finishData() {
+    public boolean finishData() throws IllegalStateException {
+        init();
         if (mOutputStream != null) {
             try {
                 mOutputStream.write('\0');
@@ -202,5 +209,20 @@ public class LogConfigClient {
             stream.write('\0');
         }
 
+    }
+
+    public void sendIntent(IntentLogSetting s) {
+        Intent mIntent = new Intent();
+        if (s.getAction() != null)
+            mIntent.setAction(s.getAction());
+        List<IntentExtra> mExtras = s.getExtras();
+        if (mExtras != null) {
+            for (IntentExtra extra : mExtras) {
+                Log.d("LogConfig", "Intent extra => " + extra.getKey() + " : " + extra.getValue());
+                IntentLogSetting.addExtraToIntent(extra, mIntent);
+            }
+        }
+        if (mContext != null)
+            mContext.sendBroadcast(mIntent);
     }
 }

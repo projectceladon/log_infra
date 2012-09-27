@@ -14,7 +14,6 @@ import android.os.Messenger;
 import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.intel.crashreport.logconfig.bean.LogConfig;
 import com.intel.crashreport.logconfig.bean.LogSetting;
@@ -91,7 +90,7 @@ public class ConfigService extends Service {
     private void applyConfig(LogConfig config) throws Exception {
         Log.i("LogConfig", "applying config: " + config.getName());
         if (mLogConfigClient == null)
-            mLogConfigClient = LogConfigClient.getInstance();
+            mLogConfigClient = LogConfigClient.getInstance(getApplicationContext());
         if (mAdapter == null)
             mAdapter = new ApplicatorLogSettingAdapter(mLogConfigClient);
         for (LogSetting s : config.config)

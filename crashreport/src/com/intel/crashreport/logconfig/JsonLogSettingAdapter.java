@@ -1,8 +1,15 @@
 
 package com.intel.crashreport.logconfig;
 
-import com.google.gson.*;
 import java.lang.reflect.Type;
+
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.intel.crashreport.logconfig.bean.LogSetting;
 
 @SuppressWarnings("rawtypes")
@@ -40,7 +47,7 @@ class JsonLogSettingAdapter implements JsonSerializer, JsonDeserializer {
         return elem;
     }
 
-    private String getNameFromClass(LogSetting c) {
+    private static String getNameFromClass(LogSetting c) {
         String fullName = c.getClass().getName();
         if (fullName.endsWith("FSLogSetting"))
             return new String("file");
@@ -48,16 +55,20 @@ class JsonLogSettingAdapter implements JsonSerializer, JsonDeserializer {
             return new String("prop");
         else if (fullName.endsWith("EventTagLogSetting"))
             return new String("event");
+        else if (fullName.endsWith("IntentLogSetting"))
+            return new String("intent");
         return null;
     }
 
-    private String getClassFromName(String name) {
+    private static String getClassFromName(String name) {
         if (name.contentEquals("file"))
             return new String("com.intel.crashreport.logconfig.bean.FSLogSetting");
         else if (name.contentEquals("prop"))
             return new String("com.intel.crashreport.logconfig.bean.PropertyLogSetting");
         else if (name.contentEquals("event"))
             return new String("com.intel.crashreport.logconfig.bean.EventTagLogSetting");
+        else if (name.contentEquals("intent"))
+            return new String("com.intel.crashreport.logconfig.bean.IntentLogSetting");
         return null;
     }
 }
