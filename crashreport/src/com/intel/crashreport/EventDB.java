@@ -19,6 +19,7 @@
 
 package com.intel.crashreport;
 
+import java.io.File;
 import java.util.Date;
 
 import android.content.ContentValues;
@@ -27,7 +28,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.database.sqlite.SQLiteOpenHelper;
 
 public class EventDB {
 
@@ -61,6 +61,7 @@ public class EventDB {
 	public static final String KEY_NOTIFIED = "notified";
 	public static final String KEY_CRITICAL = "critical";
 	public static final String KEY_DATA_READY = "dataReady";
+
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -120,20 +121,26 @@ public class EventDB {
 
 	private final Context mCtx;
 
-	private static class DatabaseHelper extends SQLiteOpenHelper {
+	private static class DatabaseHelper{
 
-		DatabaseHelper(Context context) {
-			super(context, DATABASE_NAME, null, DATABASE_VERSION);
+		private SQLiteDatabase mDB;
+		private Context mCtx;
+
+		public DatabaseHelper(Context ctx) {
+			mCtx = ctx;
 		}
 
-		@Override
+		public void close(){
+			if (null != mDB)
+				mDB.close();
+		}
+
 		public void onCreate(SQLiteDatabase db) {
 			db.execSQL(DATABASE_CREATE);
 			db.execSQL(DATABASE_TYPE_CREATE);
 			db.execSQL(DATABASE_CRITICAL_EVENTS_CREATE);
 		}
 
-		@Override
 		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 			Log.w("Upgrading database from version " + oldVersion + " to "
 					+ newVersion + ", which will destroy all old data");
@@ -143,6 +150,33 @@ public class EventDB {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
 			onCreate(db);
 		}
+
+		public SQLiteDatabase open() {
+			File dbfile = mCtx.getDatabasePath(DATABASE_NAME);
+			if (!dbfile.exists()){
+				mDB = SQLiteDatabase.openOrCreateDatabase(dbfile, null);
+				onCreate(mDB);
+				mDB.close();
+				dbfile.setReadable(true, false);
+				dbfile.setWritable(true, false);
+				File diary = new File(dbfile.getAbsolutePath()+"-journal");
+				diary.setReadable(true, false);
+				diary.setWritable(true, false);
+			}
+			mDB = SQLiteDatabase.openDatabase(dbfile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+			if (mDB.getVersion() != DATABASE_VERSION) {
+				onUpgrade(mDB,mDB.getVersion(),DATABASE_VERSION);
+				mDB.setVersion(DATABASE_VERSION);
+				mDB.close();
+				dbfile.setReadable(true, false);
+				dbfile.setWritable(true, false);
+				File diary = new File(dbfile.getAbsolutePath()+"-journal");
+				diary.setReadable(true, false);
+				diary.setWritable(true, false);
+				mDB = SQLiteDatabase.openDatabase(dbfile.getAbsolutePath(), null, SQLiteDatabase.OPEN_READWRITE);
+			}
+			return mDB;
+		}
 	}
 
 	public EventDB(Context ctx) {
@@ -151,13 +185,27 @@ public class EventDB {
 
 	public EventDB open() throws SQLException, SQLiteException {
 		mDbHelper = new DatabaseHelper(mCtx);
-		mDb = mDbHelper.getWritableDatabase();
+		mDb = mDbHelper.open();
 		return this;
 	}
 
 	public void close() {
 		if (mDbHelper != null)
 			mDbHelper.close();
+	}
+
+	public void updatePermission() {
+
+		File dbFile = mCtx.getDatabasePath(DATABASE_NAME);
+		if (dbFile.exists()) {
+			dbFile.setReadable(true, false);
+			dbFile.setWritable(true, false);
+		}
+		dbFile = new File(mCtx.getDatabasePath(DATABASE_NAME).getAbsolutePath()+"-journal");
+		if (dbFile.exists()) {
+			dbFile.setReadable(true, false);
+			dbFile.setWritable(true, false);
+		}
 	}
 
 	public long addEvent(String eventId, String eventName, String type,
