@@ -19,6 +19,10 @@
 
 package com.intel.crashreport;
 
+
+import java.net.ProtocolException;
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -32,12 +36,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewStub;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -60,12 +68,16 @@ public class StartServiceActivity extends Activity {
 	private ApplicationPreferences appPrefs;
 	private int dialog_value = 0;
 	private TextView text;
+	private TextView summaryText;
 	private Button cancelButton;
 	private ViewStub waitStub;
 	private ProgressBar progressBar;
 	private static boolean instanceStateSaved = false;
 	private static boolean progressBarDisplayable = false;
 	private DialogFragment askDialog = null;
+	private EventViewAdapter eventAdapter;
+	private ListView lvEvent;
+	final Context context = this;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -91,7 +103,52 @@ public class StartServiceActivity extends Activity {
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
 		progressBar = (ProgressBar) findViewById(R.id.progressAplog);
+		lvEvent = (ListView) findViewById(R.id.listEventView);
+		eventAdapter = new EventViewAdapter(getApplicationContext());
+		lvEvent.setAdapter(eventAdapter);
+		lvEvent.setOnItemClickListener(new OnItemClickListener() {
+			   public void onItemClick(AdapterView<?> adapter, View view, int position, long arg) {
+			      Event aEvent = (Event) lvEvent.getItemAtPosition(position);
+					AlertDialog alert = new AlertDialog.Builder(context).create();
+					alert.setMessage("EventID : " + aEvent.getEventId() + "\n" +
+									 " Data0 : " +  aEvent.getData0() + "\n" +
+									 " Data1 : " +  aEvent.getData1() + "\n" +
+									 " Data2 : " +  aEvent.getData2() + "\n" );
+					alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+						}
+					});
+					alert.show();
+			   }
+			});
 		instanceStateSaved = false;
+	}
+
+	private void updateSummary() {
+			ArrayList<Event> listEvent = new ArrayList<Event>();
+			EventDB db = new EventDB(getApplicationContext());
+			try {
+				db.open();
+				Cursor cursor = db.fetchLastNEvents("1000");
+				if (cursor != null) {
+					cursor.moveToFirst();
+					while (!cursor.isAfterLast()) {
+						Event aEvent = db.fillEventFromCursor(cursor);
+						listEvent.add(aEvent);
+						cursor.moveToNext();
+					}
+					cursor.close();
+				}
+				db.close();
+			}
+			catch (Exception e){
+				Log.e("Exception occured while generating summary :" + e.getMessage());
+			}
+			if (lvEvent != null)
+			{
+				eventAdapter.setListEvent(listEvent);
+				lvEvent.invalidateViews();
+			}
 	}
 
 	@Override
@@ -111,6 +168,7 @@ public class StartServiceActivity extends Activity {
 		if (!app.isActivityBounded())
 			doBindService();
 		instanceStateSaved = false;
+		updateSummary();
 	}
 
 	@Override
@@ -295,6 +353,7 @@ public class StartServiceActivity extends Activity {
 				cancelButton.setEnabled(true);
 			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadFinished)) {
 				Log.d("StartServiceActivity:msgReceiver: uploadFinish");
+				updateSummary();
 				hidePleaseWait();
 				cancelButton.setEnabled(false);
 			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadProgressBar)) {

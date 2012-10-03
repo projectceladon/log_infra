@@ -158,6 +158,7 @@
         </activity>
         <activity android:name=".bugzilla.ui.BugzillaSummaryActivity" />
         <activity android:name=".bugzilla.ui.UserInformationsActivity" />
+        <activity android:name=".bugzilla.ui.ListBugzillaActivity" />
 
     </application>
 </manifest>

@@ -1,5 +1,5 @@
 {
-    "description":"FOTA trace",
+    "description":"FOTA logs",
     "config": [
         {
             "type":"prop",
@@ -9,5 +9,6 @@
 		"rollBackValue":"RELEASE"
             }
         }
-    ]
+    ],
+    "appliedByDefault" : "false"
 }

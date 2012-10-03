@@ -49,6 +49,8 @@ public class Event {
 	private String uptime = "";
 	private String crashDir = "";
 	private boolean dataReady = true;
+	private boolean uploaded = false;
+	private boolean logUploaded = false;
 
 	public Event() {}
 
@@ -429,7 +431,7 @@ public class Event {
 		this.dataReady = dataReady;
 	}
 
-	public Date convertDateForServer(Date date){
+	public static Date convertDateForServer(Date date){
 		Date cDate = null;
 		EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 		String displayDate = EVENT_DF.format(date);
@@ -440,6 +442,22 @@ public class Event {
 			cDate = new Date();
 		}
 		return cDate;
+	}
+
+	public boolean isUploaded() {
+		return uploaded;
+	}
+
+	public void setUploaded(boolean uploaded) {
+		this.uploaded = uploaded;
+	}
+
+	public boolean isLogUploaded() {
+		return logUploaded;
+	}
+
+	public void setLogUploaded(boolean logUploaded) {
+		this.logUploaded = logUploaded;
 	}
 
 }

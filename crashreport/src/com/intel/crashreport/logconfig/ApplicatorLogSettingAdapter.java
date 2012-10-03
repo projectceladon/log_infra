@@ -1,6 +1,7 @@
 
 package com.intel.crashreport.logconfig;
 
+import android.os.SystemProperties;
 import android.util.Log;
 
 import com.intel.crashreport.logconfig.LogConfigClient.CommandLogConfigAdapter;
@@ -34,8 +35,11 @@ public class ApplicatorLogSettingAdapter {
     }
 
     private void applyPropertyLogSetting(PropertyLogSetting s) throws Error {
-        Log.i("LogConfig", "Apply : " + s);
-        mClient.writeCommand(CommandLogConfigAdapter.CMD_SET_PROP, s);
+        if(!s.valueToApply.equals(SystemProperties.get(s.name, s.rollBackValue))) {
+            mClient.writeCommand(CommandLogConfigAdapter.CMD_SET_PROP, s);
+            Log.i("LogConfig", "Apply : " + s);
+        }
+        else Log.i("LogConfig", s+" already set");
     }
 
     private void applyFSLogSetting(FSLogSetting s) throws Error {

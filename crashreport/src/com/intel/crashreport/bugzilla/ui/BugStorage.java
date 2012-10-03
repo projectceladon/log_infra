@@ -92,8 +92,11 @@ public class BugStorage {
 	}
 
 	public void clearValues() {
+		String component = getComponent();
 		mPrivatePrefsEditor.clear();
 		mPrivatePrefsEditor.commit();
+		if (!component.equals(""))
+			setComponent(component);
 	}
 
 

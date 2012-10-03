@@ -48,6 +48,7 @@ import android.preference.PreferenceManager;
 import android.os.SystemProperties;
 import java.util.TimeZone;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
+import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashtoolserver.bean.FileInfo;
 
 public class CrashReportService extends Service {
@@ -163,8 +164,19 @@ public class CrashReportService extends Service {
 								else if (ret == -3)
 									Log.w("Service: Event " +event.toString() + " with wrong date, addition in DB canceled");
 								else {
-                                                                        if (event.getEventName().contentEquals("REBOOT") && event.getType().contentEquals("SWUPDATE"))
-                                                                                db.deleteEventsBeforeUpdate(event.getEventId());
+									if (event.getEventName().contentEquals("REBOOT") && event.getType().contentEquals("SWUPDATE"))
+										db.deleteEventsBeforeUpdate(event.getEventId());
+									if (event.getEventName().equals("BZ")) {
+										BZFile bzfile = new BZFile(event.getCrashDir());
+										if(bzfile.hasScreenshotPath())
+											db.addBZ(event.getEventId(), bzfile.getSummary(), bzfile.getDescription(), bzfile.getType(),
+												 bzfile.getSeverity(), bzfile.getComponent(), bzfile.getScreenshotPath(), event.getDate());
+										else
+											db.addBZ(event.getEventId(), bzfile.getSummary(), bzfile.getDescription(), bzfile.getType(),
+													bzfile.getSeverity(), bzfile.getComponent(), event.getDate());
+										Log.d("Service: BZ added in DB, " + histEvent.getEventId());
+
+									}
 									Log.d("Service: Event successfully added to DB, " + event.toString());
 									if (!event.isDataReady()) {
 										Timer timer = new Timer(true);
@@ -444,6 +456,9 @@ public class CrashReportService extends Service {
 								com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild);
 								if (con.sendEvent(sEvent)) {
 									db.updateEventToUploaded(event.getEventId());
+									/*if (event.getEventName().equals("BZ")) {
+										db.updateBzToUpload(event.getEventId());
+									}*/
 									Log.d("Service:uploadEvent : Success upload of " + event);
 									Log.i("Service:uploadEvent : Success upload of " + event);
 									cursor.moveToNext();
@@ -480,6 +495,9 @@ public class CrashReportService extends Service {
 
 										if (con.sendLogsFile(fileInfo, runThread)) {
 											db.updateEventLogToUploaded(event.getEventId());
+											/*if (event.getEventName().equals("BZ")) {
+												db.updateBzLogsToUpload(event.getEventId());
+											}*/
 											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 											crashLogs.delete();
 											if (event.getEventName().equals("APLOG")) {

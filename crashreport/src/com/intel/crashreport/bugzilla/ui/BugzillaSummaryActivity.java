@@ -89,7 +89,8 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "Component : "+bugzillaStorage.getComponent()+ "\n";
 		text += "Severity : "+bugzillaStorage.getSeverity()+ "\n";
 		text += "Description : "+bugzillaStorage.getDescription()+ "\n \n";
-		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot";
+		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot\n";
+		text += "With Aplogs attached";
 		infos.setText(text);
 		super.onResume();
     }
@@ -120,7 +121,16 @@ public class BugzillaSummaryActivity extends Activity {
 				write.write(line.getBytes());
 				Boolean bzMode = PreferenceManager.getDefaultSharedPreferences(app).getBoolean("uploadBZPref", false);
 				if (!bzMode) {
-					line = "COMPONENT="+bugzillaStorage.getComponent()+"\n";
+					String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
+					String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
+					if( componentText.length == componentValues.length) {
+						for (int i=0; i<componentText.length;i++) {
+							if(componentText[i].equals(bugzillaStorage.getComponent())) {
+								line = "COMPONENT="+componentValues[i]+ "\n";
+								break;
+							}
+						}
+					}
 				}
 				else
 					line = "COMPONENT=Test Component\n";

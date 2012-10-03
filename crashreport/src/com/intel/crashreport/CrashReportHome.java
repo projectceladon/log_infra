@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.intel.crashreport.bugzilla.ui.BugzillaMainActivity;
+import com.intel.crashreport.bugzilla.ui.ListBugzillaActivity;
 import com.intel.crashreport.bugzilla.ui.UserInformationsActivity;
 import com.intel.crashreport.logconfig.ui.LogConfigHomeActivity;
 
@@ -82,6 +83,14 @@ public class CrashReportHome extends Activity {
 					startActivity(intent);
 				}
 
+			}
+		});
+
+		Button button_list_bugzilla = (Button) findViewById(R.id.button_list_bugzilla);
+		button_list_bugzilla.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Intent intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
+				startActivity(intent);
 			}
 		});
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));

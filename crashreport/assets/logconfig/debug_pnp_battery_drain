@@ -1,5 +1,5 @@
 {
-    "description":"Battery Drain",
+    "description":"Battery drain profiler",
     "config": [
         {
             "type":"prop",
@@ -17,5 +17,6 @@
                 "rollBackValue":"0"
             }
         }
-    ]
+    ],
+    "appliedByDefault" : "false"
 }

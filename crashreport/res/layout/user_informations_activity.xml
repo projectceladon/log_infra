@@ -29,7 +29,6 @@
          android:lines="1"
          android:textColor="#105372"
          android:textSize="22sp"
-         android:textColorHighlight="#105372"
          android:textCursorDrawable="@drawable/black_cursor" >
 
          <requestFocus />
@@ -53,7 +52,6 @@
          android:lines="1"
          android:textColor="#105372"
          android:textSize="22sp"
-         android:textColorHighlight="#105372"
          android:textCursorDrawable="@drawable/black_cursor" >
 
          <requestFocus />

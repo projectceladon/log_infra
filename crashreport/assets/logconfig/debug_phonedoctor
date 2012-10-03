@@ -1,5 +1,5 @@
 {
-    "description":"PhoneDoctor",
+    "description":"Debug Framework Integration",
     "config": [
         {
             "type":"prop",
@@ -9,5 +9,6 @@
                 "rollBackValue":"RELEASE"
             }
         }
-    ]
+    ],
+    "appliedByDefault" : "false"
 }

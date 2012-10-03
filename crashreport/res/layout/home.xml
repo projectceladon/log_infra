@@ -11,19 +11,30 @@
         android:text="@string/settings_button_report" />
 
     <Button
-        android:id="@+id/button_logconfig"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/button_logconfig_text" />
-    <Button
         android:id="@+id/button_report_aplogs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/menu_aplogs" />
+
+    <Button
+        android:id="@+id/button_logconfig"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_logconfig_text" />
+
+    <Button
+        android:id="@+id/button_list_bugzilla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/list_bugzilla" />
+
     <Button
         android:id="@+id/button_report_bugzilla"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/menu_bugzilla" />
+        android:text="@string/menu_bugzilla"
+        android:textSize="24sp"/>
+
+
 
 </LinearLayout>

@@ -55,4 +55,8 @@ public class Storage {
             return new ArrayList<String>();
     }
 
+    public boolean isFirstBoot(){
+        return (mPrivatePrefs.getStringSet(logconfig_applied_list, null) == null);
+    }
+
 }

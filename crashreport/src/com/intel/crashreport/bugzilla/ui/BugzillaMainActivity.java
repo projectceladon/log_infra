@@ -6,6 +6,7 @@ import com.intel.crashreport.R;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -30,6 +31,7 @@ public class BugzillaMainActivity extends Activity {
 	private boolean fromGallery;
 	private CrashReport app;
 	private Context context = this;
+	private static String TYPE_DEFAULT_VALUE = "medium";
 
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -101,7 +103,7 @@ public class BugzillaMainActivity extends Activity {
 		bz_types.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaTypeValues, R.layout.spinner_bugzilla_item));
 
 		Spinner bz_components = (Spinner) findViewById(R.id.bz_component_list);
-		bz_components.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaComponentValues, R.layout.spinner_bugzilla_item));
+		bz_components.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaComponentText, R.layout.spinner_bugzilla_item));
 	}
 
 	public void onResume(){
@@ -160,7 +162,7 @@ public class BugzillaMainActivity extends Activity {
 				if( pos >= 0)
 					bz_component.setSelection(pos);
 
-				adapter = (ArrayAdapter)bz_component.getAdapter();
+				adapter = (ArrayAdapter)bz_severity.getAdapter();
 				pos = adapter.getPosition(bugzillaStorage.getSeverity());
 				if( pos >= 0)
 					bz_severity.setSelection(pos);
@@ -173,6 +175,29 @@ public class BugzillaMainActivity extends Activity {
 
 				pictureBox.setChecked(bugzillaStorage.getBugHasScreenshot());
 
+
+			}
+			else {
+				ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
+				int pos = adapter.getPosition(TYPE_DEFAULT_VALUE);
+				if( pos >= 0)
+					bz_severity.setSelection(pos);
+
+				String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
+				String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
+				String component = bugzillaStorage.getComponent();
+				pos = 0;
+				if( componentText.length == componentValues.length) {
+					for (int i=0; i<componentText.length;i++) {
+						if(componentText[i].equals(component)) {
+							pos = i;
+							break;
+						}
+					}
+				}
+
+				if( pos >= 0)
+					bz_component.setSelection(pos);
 
 			}
 		}

@@ -8,6 +8,7 @@ public class LogConfig {
     private String name;
     private String description;
     public ArrayList<LogSetting> config;
+    private boolean appliedByDefault;
 
     public LogConfig(String name) {
         this.name = name;
@@ -53,6 +54,14 @@ public class LogConfig {
         for( LogSetting setting:config) {
             setting.setApplyValue(enabled);
         }
+    }
+
+    public boolean isAppliedByDefault() {
+        return appliedByDefault;
+    }
+
+    public void setAppliedByDefault(boolean value) {
+        appliedByDefault = value;
     }
 
 }
