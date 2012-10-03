@@ -43,12 +43,6 @@ public class IntentLogSetting implements LogSetting {
         return new String("Intent => Action: " + action);
     }
 
-    @Override
-    public void setApplyValue(boolean b) {
-        // TODO Auto-generated method stub
-
-    }
-
     public String getAction() {
         return action;
     }

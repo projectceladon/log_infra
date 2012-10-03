@@ -1,22 +1,36 @@
 {
     "description":"Battery drain profiler",
+    "appliedByDefault" : "false",
     "config": [
         {
             "type":"prop",
             "data": {
                 "name":"log.tag.PowerManagerService",
-                "value":"DEBUG",
-                "rollBackValue":"NONE"
+                "value":"DEBUG"
             }
         },
         {
             "type":"prop",
             "data": {
                 "name":"persist.service.profile.enable",
-                "value":"2",
-                "rollBackValue":"0"
+                "value":"2"
             }
         }
     ],
-    "appliedByDefault" : "false"
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.PowerManagerService",
+                "value":"NONE"
+            }
+        },
+        {
+            "type":"prop",
+            "data": {
+                "name":"persist.service.profile.enable",
+                "value":"0"
+            }
+        }
+    ]
 }

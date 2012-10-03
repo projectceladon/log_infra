@@ -3,21 +3,17 @@ package com.intel.crashreport.logconfig.bean;
 
 public class FSLogSetting implements LogSetting {
 
-    public String path;
-    public String value;
-    public Boolean append;
-    public String valueToApply;
-    public String rollBackValue;
+    private String path;
+    private String value;
+    private Boolean append;
 
     public FSLogSetting() {
     }
 
-    public FSLogSetting(String path, String value, Boolean append, String roll) {
+    public FSLogSetting(String path, String value, Boolean append) {
         this.path = path;
         this.value = value;
         this.append = append;
-        rollBackValue = roll;
-        valueToApply = rollBackValue;
     }
 
     public String toString() {
@@ -29,10 +25,28 @@ public class FSLogSetting implements LogSetting {
         return new String("FS");
     }
 
-    public void setApplyValue(boolean enabled) {
-        if(enabled)
-            valueToApply = value;
-        else valueToApply = rollBackValue;
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public Boolean getAppend() {
+        return append;
+    }
+
+    public void setAppend(Boolean append) {
+        this.append = append;
     }
 
 }

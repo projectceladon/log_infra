@@ -169,10 +169,10 @@ public class LogConfigClient {
          * @throws IOException when an error occurs during write
          */
         public static void writeFile(DataOutputStream stream, FSLogSetting s) throws IOException {
-            byte bPath[] = s.path.getBytes();
-            byte bValue[] = s.valueToApply.getBytes();
+            byte bPath[] = s.getPath().getBytes();
+            byte bValue[] = s.getValue().getBytes();
             stream.writeByte(CMD_WRITE_FILE);
-            stream.writeBoolean(s.append);
+            stream.writeBoolean(s.getAppend());
             stream.writeInt(bPath.length);
             stream.write(bPath);
             stream.writeInt(bValue.length);
@@ -199,8 +199,8 @@ public class LogConfigClient {
          */
         public static void setProperty(DataOutputStream stream, PropertyLogSetting s)
                 throws IOException {
-            byte bProp[] = s.name.getBytes();
-            byte bValue[] = s.valueToApply.getBytes();
+            byte bProp[] = s.getName().getBytes();
+            byte bValue[] = s.getValue().getBytes();
             stream.writeByte(CMD_SET_PROP);
             stream.writeInt(bProp.length);
             stream.write(bProp);

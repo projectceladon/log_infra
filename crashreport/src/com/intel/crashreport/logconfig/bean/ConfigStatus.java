@@ -1,17 +1,17 @@
 
 package com.intel.crashreport.logconfig.bean;
 
+import java.util.List;
+
 public class ConfigStatus {
 
     private LogConfig config = null;
-    private Boolean applied;
-    private Boolean persistent;
+    private ConfigState mState;
     private String name;
     private String description;
 
     public ConfigStatus(String name) {
-        applied = false;
-        persistent = false;
+        setState(ConfigState.OFF);
         this.name = name;
     }
 
@@ -28,22 +28,6 @@ public class ConfigStatus {
         this.config = c;
     }
 
-    public Boolean isPersistent() {
-        return persistent;
-    }
-
-    public void setPersistent(Boolean b) {
-        this.persistent = b;
-    }
-
-    public Boolean isApplied() {
-        return applied;
-    }
-
-    public void setApplied(Boolean b) {
-        this.applied = b;
-    }
-
     public String getName() {
         return name;
     }
@@ -52,8 +36,43 @@ public class ConfigStatus {
         description = d;
     }
 
-    public String getDescription(){
+    public String getDescription() {
         return description;
+    }
+
+    public ConfigState getState() {
+        return mState;
+    }
+
+    public void setState(ConfigState mState) {
+        this.mState = mState;
+    }
+
+    public void updateStateAfterApply() {
+        if (mState == ConfigState.TO_ON)
+            setState(ConfigState.ON);
+        else if (mState == ConfigState.TO_OFF)
+            setState(ConfigState.OFF);
+    }
+
+    public void updateStateAfterFail() {
+        if (mState == ConfigState.TO_ON)
+            setState(ConfigState.OFF);
+        else if (mState == ConfigState.TO_OFF)
+            setState(ConfigState.ON);
+    }
+
+    public List<LogSetting> getSettingsToApply() throws IllegalStateException {
+        if (mState == ConfigState.TO_ON)
+            return getLogConfig().getConfig();
+        else if (mState == ConfigState.TO_OFF)
+            return getLogConfig().getRollBackConfig();
+        else
+            throw new IllegalStateException("ConfigStatus not in a good state : " + mState);
+    }
+
+    public enum ConfigState {
+        OFF, TO_ON, ON, TO_OFF
     }
 
 }

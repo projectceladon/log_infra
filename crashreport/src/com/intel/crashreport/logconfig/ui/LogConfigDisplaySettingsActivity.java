@@ -51,7 +51,7 @@ public class LogConfigDisplaySettingsActivity extends Activity {
         titleConfig.setText(mListConfigStatus.get(currentIndex).getDescription() + " :");
         String listSettings[] = new String[0];
         if (!config.isEmpty()) {
-            listSettings = config.getSettings();
+            listSettings = config.getSettingNames();
         }
         ArrayAdapter<String> settingsAdapter = new ArrayAdapter<String>(this,
                 R.layout.logconfig_setting_item, listSettings);

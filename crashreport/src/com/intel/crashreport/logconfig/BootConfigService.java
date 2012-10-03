@@ -1,7 +1,7 @@
 
 package com.intel.crashreport.logconfig;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Service;
 import android.content.Context;
@@ -13,7 +13,7 @@ import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 
-import com.intel.crashreport.logconfig.bean.LogConfig;
+import com.intel.crashreport.logconfig.bean.ConfigStatus;
 
 /**
  * BootConfigService handles fetching and applying of persistent configurations.
@@ -27,10 +27,8 @@ public class BootConfigService extends Service implements IConfigServiceClient {
     private Runnable applyPersistantConfigs = new Runnable() {
         public void run() {
             mConfigManager = ConfigManager.getInstance(BootConfigService.this);
-            ArrayList<LogConfig> mPersistLogConfigs = mConfigManager.getPersistantConfigList();
-            for (LogConfig conf:mPersistLogConfigs)
-                conf.setApplyValue(true);
-            mClient.applyConfigList(mPersistLogConfigs,true);
+            List<ConfigStatus> mPersistConfigs = mConfigManager.getPersistantConfigList();
+            mClient.applyConfigList(mPersistConfigs);
         }
     };
 
@@ -63,9 +61,9 @@ public class BootConfigService extends Service implements IConfigServiceClient {
     }
 
     // TODO to implement ?
-    public void updateAppliedConfigs(ArrayList<String> configs, boolean applied) {
+    public void updateAppliedConfigs(List<ConfigStatus> configs) {
         if (mConfigManager != null)
-            mConfigManager.updateAppliedConfigs(configs,applied);
+            mConfigManager.updateAppliedConfigs(configs);
     }
 
     public void clientFinished() {

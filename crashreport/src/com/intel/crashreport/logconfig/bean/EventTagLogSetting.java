@@ -3,7 +3,7 @@ package com.intel.crashreport.logconfig.bean;
 
 public class EventTagLogSetting implements LogSetting {
 
-    public String tag;
+    private String tag;
 
     public String toString() {
         return new String("EventTag => " + tag);
@@ -13,6 +13,12 @@ public class EventTagLogSetting implements LogSetting {
         return new String("EventTag");
     }
 
-    public void setApplyValue(boolean b){};
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
 
 }

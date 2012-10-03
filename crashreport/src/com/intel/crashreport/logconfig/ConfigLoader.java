@@ -14,6 +14,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 import com.intel.crashreport.logconfig.bean.IntentLogSetting;
 import com.intel.crashreport.logconfig.bean.IntentLogSetting.IntentExtra;
 import com.intel.crashreport.logconfig.bean.LogConfig;
@@ -24,9 +26,16 @@ public class ConfigLoader {
     private static ConfigLoader mConfigLoader;
     private static final String M_ASSETS_DIR = "logconfig";
     private Context c;
+    private Gson mGson;
 
     private ConfigLoader(Context c) {
         this.c = c;
+        GsonBuilder mGsonBuilder = new GsonBuilder();
+        mGsonBuilder.registerTypeAdapter(LogSetting.class, new JsonLogSettingAdapter());
+        IntentLogSetting s = new IntentLogSetting();
+        mGsonBuilder.registerTypeAdapter(IntentExtra.class,
+                s.new JsonIntentExtraAdapter());
+        mGson = mGsonBuilder.create();
     }
 
     public static synchronized ConfigLoader getInstance(Context c) {
@@ -56,24 +65,26 @@ public class ConfigLoader {
     }
 
     public LogConfig getConfig(String name) {
+        LogConfig config = null;
         try {
             InputStreamReader is = getConfigFile(name);
             if (is != null) {
-                GsonBuilder mGsonBuilder = new GsonBuilder();
-                mGsonBuilder.registerTypeAdapter(LogSetting.class, new JsonLogSettingAdapter());
-                IntentLogSetting s = new IntentLogSetting();
-                mGsonBuilder.registerTypeAdapter(IntentExtra.class,
-                        s.new JsonIntentExtraAdapter());
-                Gson gson = mGsonBuilder.create();
-                LogConfig config = gson.fromJson(is, LogConfig.class);
-                config.setName(name);
-                return config;
+                config = mGson.fromJson(is, LogConfig.class);
+                if (config != null)
+                    config.setName(name);
+                is.close();
             } else
                 throw new FileNotFoundException(name);
         } catch (FileNotFoundException e) {
             Log.w("LogConfig", "Config not found : " + name);
+        } catch (JsonSyntaxException e) {
+            Log.w("LogConfig", "JsonSyntaxException in file : " + name, e);
+        } catch (JsonIOException e) {
+            Log.w("LogConfig", "JsonIOException while reading file : " + name, e);
+        } catch (IOException e) {
+            Log.w("LogConfig", "IOException while closing file : " + name, e);
         }
-        return null;
+        return config;
     }
 
     public LogConfig getConfig(LogConfig config) {

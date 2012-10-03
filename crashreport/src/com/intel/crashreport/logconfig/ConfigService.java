@@ -2,6 +2,7 @@
 package com.intel.crashreport.logconfig;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Service;
 import android.content.Intent;
@@ -15,7 +16,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.intel.crashreport.logconfig.bean.LogConfig;
+import com.intel.crashreport.logconfig.bean.ConfigStatus;
 import com.intel.crashreport.logconfig.bean.LogSetting;
 
 /**
@@ -60,7 +61,7 @@ public class ConfigService extends Service {
                     break;
                 case MSG_APPLY_CONFIG:
                     Log.i("LogConfig", "MSG_APPLY_CONFIG");
-                    LogConfig config = (LogConfig) msg.obj;
+                    ConfigStatus config = (ConfigStatus) msg.obj;
                     Message rMsg;
                     try {
                         applyConfig(config);
@@ -87,14 +88,18 @@ public class ConfigService extends Service {
         }
     }
 
-    private void applyConfig(LogConfig config) throws Exception {
+    private void applyConfig(ConfigStatus config) throws Exception {
         Log.i("LogConfig", "applying config: " + config.getName());
-        if (mLogConfigClient == null)
-            mLogConfigClient = LogConfigClient.getInstance(getApplicationContext());
-        if (mAdapter == null)
-            mAdapter = new ApplicatorLogSettingAdapter(mLogConfigClient);
-        for (LogSetting s : config.config)
-            mAdapter.apply(s);
+        List<LogSetting> mSettings = config.getSettingsToApply();
+        if (mSettings != null) {
+            if (mLogConfigClient == null)
+                mLogConfigClient = LogConfigClient.getInstance(getApplicationContext());
+            if (mAdapter == null)
+                mAdapter = new ApplicatorLogSettingAdapter(mLogConfigClient);
+
+            for (LogSetting s : mSettings)
+                mAdapter.apply(s);
+        }
     }
 
     public void onCreate() {

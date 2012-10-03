@@ -1,10 +1,12 @@
 
 package com.intel.crashreport.logconfig;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.os.Looper;
+
+import com.intel.crashreport.logconfig.bean.ConfigStatus;
 
 public interface IConfigServiceClient {
 
@@ -12,7 +14,7 @@ public interface IConfigServiceClient {
 
     public Looper getLooper();
 
-    public void updateAppliedConfigs(ArrayList<String> configs,boolean enabled);
+    public void updateAppliedConfigs(List<ConfigStatus> configs);
 
     public void clientFinished();
 

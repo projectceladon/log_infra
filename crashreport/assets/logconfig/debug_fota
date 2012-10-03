@@ -1,14 +1,22 @@
 {
     "description":"FOTA logs",
+    "appliedByDefault" : "false",
     "config": [
         {
             "type":"prop",
             "data": {
                 "name":"log.tag.Fota",
-                "value":"DEBUG",
-		"rollBackValue":"RELEASE"
+                "value":"DEBUG"
             }
         }
     ],
-    "appliedByDefault" : "false"
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.Fota",
+                "value":"RELEASE"
+            }
+        }
+    ]
 }

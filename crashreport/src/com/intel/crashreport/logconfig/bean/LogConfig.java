@@ -2,13 +2,15 @@
 package com.intel.crashreport.logconfig.bean;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class LogConfig {
 
     private String name;
     private String description;
-    public ArrayList<LogSetting> config;
     private boolean appliedByDefault;
+    private List<LogSetting> config;
+    private List<LogSetting> rollBackConfig;
 
     public LogConfig(String name) {
         this.name = name;
@@ -20,40 +22,51 @@ public class LogConfig {
         config.add(s);
     }
 
-    public String[] getSettings() {
-        String settingsName[] = new String[config.size()];
-        int i = 0;
-        for (LogSetting setting : config) {
-            settingsName[i] = setting.toString();
-            i++;
-        }
-        return settingsName;
+    public String[] getSettingNames() {
+        String settingNames[] = new String[config.size()];
+        for (int i = 0; i < config.size(); i++)
+            settingNames[i] = config.get(i).toString();
+        return settingNames;
     }
 
     public String toString() {
         return name;
     }
 
-    public String getName() {
-        return name;
+    public Boolean isEmpty() {
+        return (config == null);
     }
 
-    public String getDescription() {
-        return description;
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public Boolean isEmpty() {
-        return (config == null);
+    public String getDescription() {
+        return description;
     }
 
-    public void setApplyValue(boolean enabled){
-        for( LogSetting setting:config) {
-            setting.setApplyValue(enabled);
-        }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public List<LogSetting> getConfig() {
+        return config;
+    }
+
+    public void setConfig(List<LogSetting> config) {
+        this.config = config;
+    }
+
+    public List<LogSetting> getRollBackConfig() {
+        return rollBackConfig;
+    }
+
+    public void setRollBackConfig(List<LogSetting> rollBackConfig) {
+        this.rollBackConfig = rollBackConfig;
     }
 
     public boolean isAppliedByDefault() {

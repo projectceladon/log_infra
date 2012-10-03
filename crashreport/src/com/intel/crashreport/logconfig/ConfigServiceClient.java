@@ -1,7 +1,7 @@
 
 package com.intel.crashreport.logconfig;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -15,7 +15,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.intel.crashreport.logconfig.bean.LogConfig;
+import com.intel.crashreport.logconfig.bean.ConfigStatus;
 
 public class ConfigServiceClient {
 
@@ -25,11 +25,9 @@ public class ConfigServiceClient {
     private Messenger mMessenger = null;
     private Messenger mService = null;
     private Boolean mIsBound = false;
-    private boolean mApply;
 
-    private ArrayList<LogConfig> mLogConfigs;
+    private List<ConfigStatus> mConfigs;
     private int mConfigIndex;
-    private ArrayList<String> appliedConfigs;
 
     static final int CLIENT_OFFSET = 100;
     static final int MSG_FETCH_DATA = 1 + CLIENT_OFFSET;
@@ -44,12 +42,10 @@ public class ConfigServiceClient {
         mMessenger = new Messenger(mHandler);
     }
 
-    public void applyConfigList(ArrayList<LogConfig> configs, boolean enabled) {
-        mLogConfigs = configs;
+    public void applyConfigList(List<ConfigStatus> configs) {
+        mConfigs = configs;
         mConfigIndex = 0;
-        mApply = enabled;
-        appliedConfigs = new ArrayList<String>();
-        if ((mLogConfigs != null) && (mLogConfigs.size() > mConfigIndex)) {
+        if ((mConfigs != null) && (mConfigs.size() > mConfigIndex)) {
             doBindService();
         } else {
             mHandler.sendEmptyMessage(MSG_FINISH_BOOT_CONFIG);
@@ -65,9 +61,9 @@ public class ConfigServiceClient {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_APPLY_NEXT_CONFIG:
-                    if (!mLogConfigs.isEmpty()) {
+                    if (!mConfigs.isEmpty()) {
                         Message msg2 = Message.obtain(null, ConfigService.MSG_APPLY_CONFIG);
-                        msg2.obj = mLogConfigs.get(mConfigIndex);
+                        msg2.obj = mConfigs.get(mConfigIndex);
                         msg2.replyTo = mMessenger;
                         try {
                             mService.send(msg2);
@@ -78,21 +74,22 @@ public class ConfigServiceClient {
                     }
                     break;
                 case ConfigService.MSG_CONFIG_APPLIED:
-                    appliedConfigs.add(mLogConfigs.get(mConfigIndex).getName());
+                    mConfigs.get(mConfigIndex).updateStateAfterApply();
                     mConfigIndex++;
-                    if (mConfigIndex < mLogConfigs.size())
+                    if (mConfigIndex < mConfigs.size())
                         mHandler.sendEmptyMessage(MSG_APPLY_NEXT_CONFIG);
                     else
                         mHandler.sendEmptyMessage(MSG_FINISH_BOOT_CONFIG);
                     break;
                 case ConfigService.MSG_CONFIG_APPLY_FAILED:
-                    Log.e("LogConfig", "Applying config " + mLogConfigs.get(mConfigIndex).getName()
-                            + " failed");
+                    ConfigStatus mConfig = mConfigs.get(mConfigIndex);
+                    mConfig.updateStateAfterFail();
+                    Log.w("LogConfig", "Applying config " + mConfig.getName() + " failed");
                     mHandler.sendEmptyMessage(MSG_FINISH_BOOT_CONFIG);
                     break;
                 case MSG_FINISH_BOOT_CONFIG:
                     doUnbindService();
-                    mImplClient.updateAppliedConfigs(appliedConfigs,mApply);
+                    mImplClient.updateAppliedConfigs(mConfigs);
                     break;
                 case MSG_CLOSE:
                     mImplClient.clientFinished();

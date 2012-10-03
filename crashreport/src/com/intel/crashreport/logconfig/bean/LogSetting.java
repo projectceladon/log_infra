@@ -7,6 +7,4 @@ public interface LogSetting {
 
     public String getType();
 
-    public void setApplyValue(boolean b);
-
 }

@@ -1,14 +1,22 @@
 {
-    "description":"Standard logs",
+    "description": "Standard logs",
+    "appliedByDefault": "true",
     "config": [
         {
             "type":"prop",
             "data": {
                 "name":"persist.service.apklogfs.enable",
-                "value":"1",
-		"rollBackValue":"0"
+                "value":"1"
             }
         }
     ],
-    "appliedByDefault" : "true"
+    "rollBackConfig": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"persist.service.apklogfs.enable",
+                "value": "0"
+            }
+        }
+    ]
 }

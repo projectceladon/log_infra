@@ -3,16 +3,12 @@ package com.intel.crashreport.logconfig.bean;
 
 public class PropertyLogSetting implements LogSetting {
 
-    public String name;
-    public String value;
-    public String rollBackValue;
-    public String valueToApply;
+    private String name;
+    private String value;
 
-    public PropertyLogSetting(String name, String value, String roll) {
+    public PropertyLogSetting(String name, String value) {
         this.name = name;
         this.value = value;
-        rollBackValue = roll;
-        valueToApply = rollBackValue;
     }
 
     public String toString() {
@@ -23,10 +19,20 @@ public class PropertyLogSetting implements LogSetting {
         return new String("Property");
     }
 
-    public void setApplyValue(boolean enabled) {
-        if(enabled)
-            valueToApply = value;
-        else valueToApply = rollBackValue;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

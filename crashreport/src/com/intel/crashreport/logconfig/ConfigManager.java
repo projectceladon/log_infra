@@ -6,8 +6,10 @@ import java.util.List;
 
 import android.content.Context;
 import android.os.Looper;
+import android.util.Log;
 
 import com.intel.crashreport.logconfig.bean.ConfigStatus;
+import com.intel.crashreport.logconfig.bean.ConfigStatus.ConfigState;
 import com.intel.crashreport.logconfig.bean.LogConfig;
 import com.intel.crashreport.logconfig.ui.LogConfigHomeActivity;
 
@@ -34,24 +36,24 @@ public class ConfigManager implements IConfigServiceClient {
     }
 
     public ArrayList<ConfigStatus> getConfigStatusList() {
-        if (listConfigStatus == null) {
+        if (listConfigStatus == null)
             listConfigStatus = loadBaseConfigStatusList();
-        }
         return listConfigStatus;
     }
 
     private ArrayList<ConfigStatus> loadBaseConfigStatusList() {
         List<String> mConfigNames = mConfigLoader.getList();
-        //List<String> mConfigPersistentNames = mStorage.getPersistentConfigs();
         List<String> mConfigAppliedNames = mStorage.getAppliedConfigs();
         ArrayList<ConfigStatus> mConfigStatusList = new ArrayList<ConfigStatus>();
         for (String configName : mConfigNames) {
             ConfigStatus cs = new ConfigStatus(configName);
             if (mConfigAppliedNames.contains(configName))
-                cs.setApplied(true);
-            /*if (mConfigPersistentNames.contains(configName))
-                cs.setPersistent(true);*/
-            cs.setDescription(mConfigLoader.getConfig(configName).getDescription());
+                cs.setState(ConfigState.ON);
+            LogConfig mConfig = mConfigLoader.getConfig(configName);
+            if (mConfig != null)
+                cs.setDescription(mConfig.getDescription());
+            else
+                cs.setDescription("! Bad file ! " + configName);
             mConfigStatusList.add(cs);
         }
         return mConfigStatusList;
@@ -64,6 +66,7 @@ public class ConfigManager implements IConfigServiceClient {
         for (String configName : mConfigNames) {
             conf = mConfigLoader.getConfig(configName);
             if (conf.isAppliedByDefault()) {
+                Log.d("LogConfig", "Default config : " + configName);
                 defaultConfigs.add(configName);
             }
         }
@@ -71,31 +74,35 @@ public class ConfigManager implements IConfigServiceClient {
     }
 
     public void saveConfigStatus() {
-        //ArrayList<String> mConfigPersistentNames = new ArrayList<String>();
         ArrayList<String> mConfigAppliedNames = new ArrayList<String>();
         for (ConfigStatus cs : getConfigStatusList()) {
-            /*if (cs.isPersistent())
-                mConfigPersistentNames.add(cs.getName());*/
-            if (cs.isApplied())
+            if (cs.getState() == ConfigState.ON)
                 mConfigAppliedNames.add(cs.getName());
         }
-        //mStorage.savePersistentConfigs(mConfigPersistentNames);
         mStorage.saveAppliedConfigs(mConfigAppliedNames);
     }
 
-    public ArrayList<LogConfig> getPersistantConfigList() {
-        ArrayList<String> mPersistConfigNames;
+    public List<ConfigStatus> getPersistantConfigList() {
+        Log.d("LogConfig", "Get persistant configs");
+        List<ConfigStatus> mPersistConfigs = new ArrayList<ConfigStatus>();
+        List<String> mPersistConfigNames;
         if (mStorage.isFirstBoot()) {
+            Log.d("LogConfig", "First boot, get default configs");
             mPersistConfigNames = getDefaultConfigNames();
-        }
-        else {
+        } else {
+            Log.d("LogConfig", "Get applied configs");
             mPersistConfigNames = mStorage.getAppliedConfigs();
         }
-        ArrayList<LogConfig> mPersistLogConfigs = new ArrayList<LogConfig>();
-        for (String configName : mPersistConfigNames) {
-            mPersistLogConfigs.add(loadConfigStatus(configName).getLogConfig());
+        if (mPersistConfigNames != null) {
+            for (String configName : mPersistConfigNames) {
+                ConfigStatus mConfigStatus = loadConfigStatus(configName);
+                if (mConfigStatus != null) {
+                    mConfigStatus.setState(ConfigState.TO_ON);
+                    mPersistConfigs.add(mConfigStatus);
+                }
+            }
         }
-        return mPersistLogConfigs;
+        return mPersistConfigs;
     }
 
     public ConfigStatus getConfigStatus(String configName) {
@@ -111,31 +118,32 @@ public class ConfigManager implements IConfigServiceClient {
      */
     public ConfigStatus loadConfigStatus(String configName) {
         ConfigStatus cs = getConfigStatus(configName);
-        cs.setLogConfig(mConfigLoader.getConfig(configName));
+        LogConfig mLogConfig = mConfigLoader.getConfig(configName);
+        if (mLogConfig != null)
+            cs.setLogConfig(mLogConfig);
         return cs;
     }
 
     /**
      * Apply a config list
      */
-    public void applyConfigs(ArrayList<String> configNames, boolean applied) {
-        ArrayList<LogConfig> mLogConfigs = new ArrayList<LogConfig>();
+    public void applyConfigs(List<String> configNames) {
+        if (configNames == null || configNames.isEmpty()) {
+            Log.w("LogConfig", "No config to apply");
+            return;
+        }
+        List<ConfigStatus> mConfigs = new ArrayList<ConfigStatus>();
         for (String configName : configNames) {
-            LogConfig logconf = loadConfigStatus(configName).getLogConfig();
-            logconf.setApplyValue(applied);
-            mLogConfigs.add(logconf);
-
+            ConfigStatus mConfigStatus = loadConfigStatus(configName);
+            if (mConfigStatus != null)
+                mConfigs.add(mConfigStatus);
         }
         if (mClient == null)
             mClient = new ConfigServiceClient(this);
-        mClient.applyConfigList(mLogConfigs,applied);
+        mClient.applyConfigList(mConfigs);
     }
 
-    public void updateAppliedConfigs(ArrayList<String> configs,boolean applied) {
-        for (ConfigStatus cs : getConfigStatusList()) {
-            if (configs.contains(cs.getName()))
-                cs.setApplied(applied);
-        }
+    public void updateAppliedConfigs(List<ConfigStatus> configs) {
         saveConfigStatus();
         if (null != mActivity)
             mActivity.updateData();
@@ -158,7 +166,7 @@ public class ConfigManager implements IConfigServiceClient {
 
     public ArrayList<String> getConfigsDescription() {
         ArrayList<String> descriptions = new ArrayList<String>();
-        for(ConfigStatus cs: getConfigStatusList()) {
+        for (ConfigStatus cs : getConfigStatusList()) {
             descriptions.add(cs.getDescription());
         }
         return descriptions;
@@ -169,7 +177,7 @@ public class ConfigManager implements IConfigServiceClient {
         return listConfigStatus;
     }
 
-    public void setActivity(LogConfigHomeActivity activity){
+    public void setActivity(LogConfigHomeActivity activity) {
         mActivity = activity;
     }
 
