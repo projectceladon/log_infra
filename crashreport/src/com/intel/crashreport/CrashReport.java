@@ -70,11 +70,7 @@ public class CrashReport extends Application {
 			} catch (SQLException e) {
 				Log.w("CrashReport: update of critical crash db failed");
 			}
-
 		}
-
-		EventDB db = new EventDB(this.getApplicationContext());
-		db.updatePermission();
 	}
 
 	public boolean isServiceStarted(){
@@ -145,5 +141,4 @@ public class CrashReport extends Application {
 	public BugStorage getBugzillaStorage() {
 		return bugzillaStorage;
 	}
-
 }
