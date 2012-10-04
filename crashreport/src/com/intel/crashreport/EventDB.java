@@ -703,9 +703,12 @@ public class EventDB {
 		return 0;
 	}
 
-
-
-
-
+	public void updateEventsNotReadyBeforeREBOOT(String eventId){
+		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId
+				+"')  AND " +KEY_DATA_READY + "=0";
+		ContentValues args = new ContentValues();
+		args.put(KEY_DATA_READY, 1);
+		mDb.update(DATABASE_TABLE, args,whereQuery, null) ;
+	}
 
 }

@@ -164,8 +164,13 @@ public class CrashReportService extends Service {
 								else if (ret == -3)
 									Log.w("Service: Event " +event.toString() + " with wrong date, addition in DB canceled");
 								else {
-									if (event.getEventName().contentEquals("REBOOT") && event.getType().contentEquals("SWUPDATE"))
-										db.deleteEventsBeforeUpdate(event.getEventId());
+									if (event.getEventName().contentEquals("REBOOT")) {
+										if (event.getType().contentEquals("SWUPDATE")){
+											db.deleteEventsBeforeUpdate(event.getEventId());
+										}else{
+											db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
+										}
+									}
 									if (event.getEventName().equals("BZ")) {
 										BZFile bzfile = new BZFile(event.getCrashDir());
 										if(bzfile.hasScreenshotPath())
@@ -175,7 +180,6 @@ public class CrashReportService extends Service {
 											db.addBZ(event.getEventId(), bzfile.getSummary(), bzfile.getDescription(), bzfile.getType(),
 													bzfile.getSeverity(), bzfile.getComponent(), event.getDate());
 										Log.d("Service: BZ added in DB, " + histEvent.getEventId());
-
 									}
 									Log.d("Service: Event successfully added to DB, " + event.toString());
 									if (!event.isDataReady()) {
