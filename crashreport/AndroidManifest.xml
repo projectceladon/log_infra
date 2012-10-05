@@ -160,5 +160,12 @@
         <activity android:name=".bugzilla.ui.UserInformationsActivity" />
         <activity android:name=".bugzilla.ui.ListBugzillaActivity" />
 
+        <!-- Declare dedicated receivers to catch events from other applications -->
+        <receiver android:name=".receivers.KratosSessionInfoReceiver" >
+            <intent-filter >
+                <action android:name="intel.intent.action.kratos.SESSION_INFO" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
