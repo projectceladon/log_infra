@@ -119,6 +119,53 @@ public class BugzillaMainActivity extends Activity {
 
 		screenshot.setVisibility(View.GONE);
 		Intent intent = getIntent();
+
+		pictureBox.setChecked(false);
+		BugStorage bugzillaStorage = app.getBugzillaStorage();
+		if (bugzillaStorage.hasValuesSaved()) {
+			title.setText(bugzillaStorage.getSummary());
+			summary.setText(bugzillaStorage.getDescription());
+			ArrayAdapter<String> adapter = (ArrayAdapter)bz_types.getAdapter();
+			int pos = adapter.getPosition(bugzillaStorage.getBugType());
+			if( pos >= 0)
+				bz_types.setSelection(pos);
+
+			adapter = (ArrayAdapter)bz_component.getAdapter();
+			pos = adapter.getPosition(bugzillaStorage.getComponent());
+			if( pos >= 0)
+				bz_component.setSelection(pos);
+
+			adapter = (ArrayAdapter)bz_severity.getAdapter();
+			pos = adapter.getPosition(bugzillaStorage.getSeverity());
+			if( pos >= 0)
+				bz_severity.setSelection(pos);
+
+
+		}
+		else {
+			ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
+			int pos = adapter.getPosition(TYPE_DEFAULT_VALUE);
+			if( pos >= 0)
+				bz_severity.setSelection(pos);
+
+			String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
+			String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
+			String component = bugzillaStorage.getComponent();
+			pos = 0;
+			if( componentText.length == componentValues.length) {
+				for (int i=0; i<componentText.length;i++) {
+					if(componentText[i].equals(component)) {
+						pos = i;
+						break;
+					}
+				}
+			}
+
+			if( pos >= 0)
+				bz_component.setSelection(pos);
+
+		}
+
 		if ((null != intent) && (null != intent.getAction()) && intent.getAction().equals(Intent.ACTION_VIEW)) {
 			if(intent.getType().startsWith("image/")){
 				Uri imageUri = intent.getData();
@@ -128,9 +175,11 @@ public class BugzillaMainActivity extends Activity {
 					Cursor cursor = getApplicationContext().getContentResolver().query(imageUri, null, null, null, null);
 					if (cursor.moveToFirst())
 					{
-						int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-						imageUri = Uri.parse(cursor.getString(column_index));
-						fileName = imageUri.getLastPathSegment().toString();
+						int column_index = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+						if (column_index >= 0) {
+							imageUri = Uri.parse(cursor.getString(column_index));
+							fileName = imageUri.getLastPathSegment().toString();
+						}
 						cursor.close();
 					}
 
@@ -139,67 +188,30 @@ public class BugzillaMainActivity extends Activity {
 				{
 					fileName = imageUri.getLastPathSegment().toString();
 				}
-				pictureBox.setChecked(true);
 				int pos = galleryAdapter.getItemPosition(fileName);
-				if (-1 != pos)
+				if (-1 != pos) {
 					screenshot.setSelection(pos);
+					pictureBox.setChecked(true);
+				}
+				else {
+					AlertDialog alert = new AlertDialog.Builder(context).create();
+					alert.setMessage("This picture isn't a screenshot and it can't be associated with this BZ.");
+					alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+						}
+					});
+					alert.show();
+				}
 
 			}
 		}
-		else {
-			pictureBox.setChecked(false);
-			BugStorage bugzillaStorage = app.getBugzillaStorage();
-			if (bugzillaStorage.hasValuesSaved()) {
-				title.setText(bugzillaStorage.getSummary());
-				summary.setText(bugzillaStorage.getDescription());
-				ArrayAdapter<String> adapter = (ArrayAdapter)bz_types.getAdapter();
-				int pos = adapter.getPosition(bugzillaStorage.getBugType());
-				if( pos >= 0)
-					bz_types.setSelection(pos);
-
-				adapter = (ArrayAdapter)bz_component.getAdapter();
-				pos = adapter.getPosition(bugzillaStorage.getComponent());
-				if( pos >= 0)
-					bz_component.setSelection(pos);
-
-				adapter = (ArrayAdapter)bz_severity.getAdapter();
-				pos = adapter.getPosition(bugzillaStorage.getSeverity());
-				if( pos >= 0)
-					bz_severity.setSelection(pos);
-
-				if (bugzillaStorage.getBugHasScreenshot()) {
-					pos = galleryAdapter.getItemPosition(bugzillaStorage.getScreenshotPath());
-					if (-1 != pos)
-						screenshot.setSelection(pos);
-				}
-
-				pictureBox.setChecked(bugzillaStorage.getBugHasScreenshot());
-
-
+		else if(bugzillaStorage.hasValuesSaved()){
+			if (bugzillaStorage.getBugHasScreenshot()) {
+				int pos = galleryAdapter.getItemPosition(bugzillaStorage.getScreenshotPath());
+				if (-1 != pos)
+					screenshot.setSelection(pos);
 			}
-			else {
-				ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
-				int pos = adapter.getPosition(TYPE_DEFAULT_VALUE);
-				if( pos >= 0)
-					bz_severity.setSelection(pos);
-
-				String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
-				String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
-				String component = bugzillaStorage.getComponent();
-				pos = 0;
-				if( componentText.length == componentValues.length) {
-					for (int i=0; i<componentText.length;i++) {
-						if(componentText[i].equals(component)) {
-							pos = i;
-							break;
-						}
-					}
-				}
-
-				if( pos >= 0)
-					bz_component.setSelection(pos);
-
-			}
+			pictureBox.setChecked(bugzillaStorage.getBugHasScreenshot());
 		}
 
 	}
