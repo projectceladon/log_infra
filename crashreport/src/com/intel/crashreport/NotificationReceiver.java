@@ -19,9 +19,16 @@
 
 package com.intel.crashreport;
 
+import java.io.FileNotFoundException;
+import java.util.Timer;
+
+import com.intel.crashreport.NotifyCrashTask;
+import com.intel.crashreport.bugzilla.BZFile;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.SQLException;
 
 public class NotificationReceiver extends BroadcastReceiver {
@@ -40,7 +47,18 @@ public class NotificationReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction().equals(crashNotificationIntent)) {
 			Log.d("NotificationReceiver: crashNotificationIntent");
-			context.startService(crashReportStartServiceIntent);
+			CrashReport app = (CrashReport)context.getApplicationContext();
+			if (!app.isServiceStarted())
+				context.startService(crashReportStartServiceIntent);
+			else {
+				try {
+					app.checkEvents("NotificationReceiver");
+				} catch (FileNotFoundException e) {
+					Log.w("NotificationReceiver: history_event file not found");
+				} catch (SQLException e) {
+					Log.w("NotificationReceiver: db Exception");
+				}
+			}
 		} else if (intent.getAction().equals(bootCompletedIntent)) {
 			Log.d("NotificationReceiver: bootCompletedIntent");
 			context.startService(crashReportStartServiceIntent);

@@ -23,6 +23,7 @@ import java.io.File;
 import java.util.Date;
 
 import com.intel.crashreport.bugzilla.BZ;
+import com.intel.crashreport.bugzilla.BZFile;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -349,6 +350,11 @@ public class EventDB {
 		return sExcludedType;
 	}
 
+	public Boolean isThereEventToUpload() {
+		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1'");
+		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
+		return isEventExistFromWhereQuery(bQuery.toString());
+	}
 
 	public Boolean isThereEventToUpload(String crashTypes[]) {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0'");
@@ -527,7 +533,7 @@ public class EventDB {
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
-	public boolean isThereEventToNotified(){
+	public boolean isThereEventToNotify(){
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
 				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
 				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
@@ -598,9 +604,9 @@ public class EventDB {
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
 	}
 
-	public long addBZ(String eventId, String summary, String description,
-			String type, String severity, String component, Date creationDate) {
-		return addBZ(eventId,summary,description,type, severity, component, "", creationDate);
+	public long addBZ(String eventId,BZFile bzfile,Date date) {
+		return addBZ(eventId,bzfile.getSummary(),bzfile.getDescription(),bzfile.getType(),bzfile.getSeverity(),bzfile.getComponent(),
+				      bzfile.getScreenshotPath(),date);
 	}
 
 	public long addBZ(String eventId, String summary, String description,

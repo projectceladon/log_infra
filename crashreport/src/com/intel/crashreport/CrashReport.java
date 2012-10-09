@@ -19,6 +19,10 @@
 
 package com.intel.crashreport;
 
+import java.io.FileNotFoundException;
+import java.util.Timer;
+
+import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.bugzilla.ui.BugStorage;
 
 import android.app.Application;
@@ -35,6 +39,7 @@ public class CrashReport extends Application {
 	private Boolean wifiOnly = false;
 	private Build myBuild;
 	private BugStorage bugzillaStorage;
+	public static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
 
 	public void onCreate() {
 		super.onCreate();
@@ -147,5 +152,75 @@ public class CrashReport extends Application {
 
 	public BugStorage getBugzillaStorage() {
 		return bugzillaStorage;
+	}
+
+	public void checkEvents(String from) throws FileNotFoundException,SQLException{
+		HistoryEventFile histFile;
+		String histEventLine;
+		EventDB db;
+		String myBuild;
+		Event event;
+		NotificationMgr nMgr;
+
+		db = new EventDB(getApplicationContext());
+		myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
+		nMgr = new NotificationMgr(getApplicationContext());
+
+		try {
+			db.open();
+			histFile = new HistoryEventFile();
+
+			while (histFile.hasNext()) {
+				histEventLine = histFile.getNextEvent();
+				if (histEventLine.length() != 0) {
+					HistoryEvent histEvent = new HistoryEvent(histEventLine);
+					if (histEvent.getEventId().replaceAll("0", "").length() != 0) {
+						if (!db.isEventInDb(histEvent.getEventId())) {
+							event = new Event(histEvent, myBuild);
+							long ret = db.addEvent(event);
+							if (ret == -1)
+								Log.w(from+": Event error when added to DB, " + event.toString());
+							else if (ret == -2)
+								Log.w(from+": Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
+							else if (ret == -3)
+								Log.w(from+": Event " +event.toString() + " with wrong date, addition in DB canceled");
+							else {
+								if (event.getEventName().contentEquals("REBOOT")) {
+									if (event.getType().contentEquals("SWUPDATE")){
+										db.deleteEventsBeforeUpdate(event.getEventId());
+									}else{
+										db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
+									}
+								}
+								if (event.getEventName().equals("BZ")) {
+									BZFile bzfile = new BZFile(event.getCrashDir());
+									db.addBZ(event.getEventId(), bzfile, event.getDate());
+									Log.d(from+": BZ added in DB, " + histEvent.getEventId());
+								}
+								Log.d(from+": Event successfully added to DB, " + event.toString());
+								if (!event.isDataReady()) {
+									Timer timer = new Timer(true);
+									timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), CRASH_POSTPONE_DELAY*1000);
+								}
+							}
+						} else
+							Log.d(from+": Event already in DB, " + histEvent.getEventId());
+					} else
+						Log.d(from+": Event ignored ID:" + histEvent.getEventId());
+				}
+			}
+
+			if (db.isThereEventToNotify()) {
+				nMgr.notifyCriticalEvent(db.getCriticalEventsNumber());
+			}
+
+			db.close();
+		} catch (FileNotFoundException e) {
+			db.close();
+			throw e;
+		} catch (SQLException e) {
+			throw e;
+		}
+
 	}
 }

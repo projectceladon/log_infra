@@ -347,6 +347,7 @@ public class StartServiceActivity extends Activity {
 				displayDialog(DIALOG_ASK_UPLOAD_ID);
 			} else if (intent.getAction().equals(ServiceToActivityMsg.updateLogTextView)) {
 				text.setText(mService.getLogger().getLog());
+				updateSummary();
 			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadStarted)) {
 				Log.d("StartServiceActivity:msgReceiver: uploadStarted");
 				showPleaseWait();

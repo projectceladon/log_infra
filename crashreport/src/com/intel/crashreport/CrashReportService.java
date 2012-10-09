@@ -61,7 +61,6 @@ public class CrashReportService extends Service {
 	private final IBinder mBinder = new LocalBinder();
 	private Logger logger = new Logger();
 	private static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
-	private static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
 
 	@Override
 	public void onCreate() {
@@ -130,79 +129,13 @@ public class CrashReportService extends Service {
 	}
 
 	private Runnable processEvent = new Runnable(){
-		HistoryEventFile histFile;
-		String histEventLine;
-		EventDB db;
-		String myBuild;
-		ApplicationPreferences prefs;
-		Cursor cursor;
-		Event event;
-		NotificationMgr nMgr;
-
 		public void run() {
-			db = new EventDB(getApplicationContext());
-			myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
-			nMgr = new NotificationMgr(getApplicationContext());
 
 			try {
-				db.open();
-				histFile = new HistoryEventFile();
-				prefs = new ApplicationPreferences(getApplicationContext());
-
-				while (histFile.hasNext()) {
-					histEventLine = histFile.getNextEvent();
-					if (histEventLine.length() != 0) {
-						HistoryEvent histEvent = new HistoryEvent(histEventLine);
-						if (histEvent.getEventId().replaceAll("0", "").length() != 0) {
-							if (!db.isEventInDb(histEvent.getEventId())) {
-								Event event = new Event(histEvent, myBuild);
-								long ret = db.addEvent(event);
-								if (ret == -1)
-									Log.w("Service: Event error when added to DB, " + event.toString());
-								else if (ret == -2)
-									Log.w("Service: Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
-								else if (ret == -3)
-									Log.w("Service: Event " +event.toString() + " with wrong date, addition in DB canceled");
-								else {
-									if (event.getEventName().contentEquals("REBOOT")) {
-										if (event.getType().contentEquals("SWUPDATE")){
-											db.deleteEventsBeforeUpdate(event.getEventId());
-										}else{
-											db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
-										}
-									}
-									if (event.getEventName().equals("BZ")) {
-										BZFile bzfile = new BZFile(event.getCrashDir());
-										if(bzfile.hasScreenshotPath())
-											db.addBZ(event.getEventId(), bzfile.getSummary(), bzfile.getDescription(), bzfile.getType(),
-												 bzfile.getSeverity(), bzfile.getComponent(), bzfile.getScreenshotPath(), event.getDate());
-										else
-											db.addBZ(event.getEventId(), bzfile.getSummary(), bzfile.getDescription(), bzfile.getType(),
-													bzfile.getSeverity(), bzfile.getComponent(), event.getDate());
-										Log.d("Service: BZ added in DB, " + histEvent.getEventId());
-									}
-									Log.d("Service: Event successfully added to DB, " + event.toString());
-									if (!event.isDataReady()) {
-										Timer timer = new Timer(true);
-										timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), CRASH_POSTPONE_DELAY*1000);
-									}
-								}
-							} else
-								Log.d("Service: Event already in DB, " + histEvent.getEventId());
-						} else
-							Log.d("Service: Event ignored ID:" + histEvent.getEventId());
-					}
-				}
-
-				if (db.isThereEventToNotified()) {
-					nMgr.notifyCriticalEvent(db.getCriticalEventsNumber());
-				}
-
-				db.close();
+				app.checkEvents("Service");
 				serviceHandler.sendEmptyMessage(ServiceMsg.successProcessEvents);
 			} catch (FileNotFoundException e) {
 				Log.w("Service: history_event file not found");
-				db.close();
 				serviceHandler.sendEmptyMessage(ServiceMsg.failProcessEvents);
 			} catch (SQLException e) {
 				Log.w("Service: db Exception");
@@ -418,6 +351,50 @@ public class CrashReportService extends Service {
 		}
 	}
 
+	private void sendEvents(EventDB db, Connector con,Build myBuild) throws InterruptedException,ProtocolException{
+		Cursor cursor = db.fetchNotUploadedEvents();
+		Event event;
+		hideProgressBar();
+		if (cursor != null) {
+			while (!cursor.isAfterLast()) {
+				if (runThread.isInterrupted()) {
+					cursor.close();
+					throw new InterruptedException();
+				}
+				event = db.fillEventFromCursor(cursor);
+				com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild);
+				if (con.sendEvent(sEvent)) {
+					db.updateEventToUploaded(event.getEventId());
+					Log.i("Service:uploadEvent : Success upload of " + event);
+					cursor.moveToNext();
+				} else {
+					Log.w("Service:uploadEvent : Fail upload of " + event);
+					cursor.close();
+					throw new ProtocolException();
+				}
+			}
+			cursor.close();
+		}
+	}
+
+	private void updateEventsSummary(EventDB db) {
+		logger.clearLog();
+		int uptimeNumber = db.getNewRebootNumber();
+		int crashNumber = db.getNewCrashNumber();
+		if ((crashNumber == 0) && (uptimeNumber != 0))
+			sendMsgToActivity("There is Uptime event to report");
+		else if ((crashNumber == 1) && (uptimeNumber == 0))
+			sendMsgToActivity("There is 1 Crash event to report");
+		else if ((crashNumber == 1) && (uptimeNumber != 0))
+			sendMsgToActivity("There are Uptime and 1 Crash events to report");
+		else if ((crashNumber > 1) && (uptimeNumber == 0))
+			sendMsgToActivity("There are "+crashNumber+" Crash events to report");
+		else if ((crashNumber > 1) && (uptimeNumber != 0))
+			sendMsgToActivity("There are Uptime and "+crashNumber+" Crash events to report");
+		else
+			sendMsgToActivity("There are events to report");
+	}
+
 	private Runnable uploadEvent = new Runnable(){
 		Context context;
 		PowerManager pm = null;
@@ -432,6 +409,7 @@ public class CrashReportService extends Service {
 		File crashLogs;
 		String dayDate;
 		Build myBuild;
+		boolean toContinue = false;
 
 		public void run() {
 			context = getApplicationContext();
@@ -450,29 +428,13 @@ public class CrashReportService extends Service {
 						con.setupServerConnection();
 
 						//upload Events
-						cursor = db.fetchNotUploadedEvents();
-						hideProgressBar();
-						if (cursor != null) {
-							while (!cursor.isAfterLast()) {
-								if (runThread.isInterrupted())
-									throw new InterruptedException();
-								event = db.fillEventFromCursor(cursor);
-								com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild);
-								if (con.sendEvent(sEvent)) {
-									db.updateEventToUploaded(event.getEventId());
-									/*if (event.getEventName().equals("BZ")) {
-										db.updateBzToUpload(event.getEventId());
-									}*/
-									Log.d("Service:uploadEvent : Success upload of " + event);
-									Log.i("Service:uploadEvent : Success upload of " + event);
-									cursor.moveToNext();
-								} else {
-									Log.w("Service:uploadEvent : Fail upload of " + event);
-									throw new ProtocolException();
-								}
+						do {
+							sendEvents(db, con, myBuild);
+
+							if ((toContinue = db.isThereEventToUpload()) == true) {
+								updateEventsSummary(db);
 							}
-							cursor.close();
-						}
+						}while(toContinue);
 
 						//upload logs
 						String crashTypes[] = null;
@@ -499,9 +461,6 @@ public class CrashReportService extends Service {
 
 										if (con.sendLogsFile(fileInfo, runThread)) {
 											db.updateEventLogToUploaded(event.getEventId());
-											/*if (event.getEventName().equals("BZ")) {
-												db.updateBzLogsToUpload(event.getEventId());
-											}*/
 											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 											crashLogs.delete();
 											if (event.getEventName().equals("APLOG")) {
@@ -528,8 +487,23 @@ public class CrashReportService extends Service {
 										}
 									} else
 										cursor.moveToNext();
+
+									if(db.isThereEventToUpload()) {
+										cursor.close();
+										updateEventsSummary(db);
+										sendEvents(db,con,myBuild);
+										crashTypes = prefs.getCrashLogsUploadTypes();
+										cursor = db.fetchNotUploadedLogs(crashTypes);
+										if ((cursor != null) && (cursor.getCount() != 0)) {
+											nMgr = new NotificationMgr(context);
+											nMgr.notifyUploadingLogs(cursor.getCount());
+										}
+										else break;
+
+									}
 								}
-								cursor.close();
+								if (cursor != null)
+									cursor.close();
 								nMgr.cancelNotifUploadingLogs();
 								Log.i("Service:uploadEvent : Upload files finished");
 							}
@@ -1026,39 +1000,4 @@ public class CrashReportService extends Service {
 		}
 	}
 
-	public class NotifyCrashTask extends TimerTask{
-		private String eventId;
-		private Context context;
-		private boolean isPresent;
-
-		public NotifyCrashTask(String id,Context ctx){
-			super();
-			eventId = id;
-			context = ctx;
-
-		}
-
-		@Override
-		public void run() {
-			EventDB db = new EventDB(context);
-			isPresent = false;
-			if (db!=null){
-				try {
-					db.open();
-					if (!db.eventDataAreReady(eventId)) {
-						db.updateEventDataReady(eventId);
-						isPresent = true;
-					}
-				}catch (SQLException e) {
-					Log.w("Service:uploadEvent : Fail to access DB", e);
-					serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
-				}
-				db.close();
-				if (isPresent) {
-					Intent intent = new Intent("com.intel.crashreport.intent.CRASH_NOTIFY");
-					context.sendBroadcast(intent);
-				}
-			}
-		}
-	}
 }
