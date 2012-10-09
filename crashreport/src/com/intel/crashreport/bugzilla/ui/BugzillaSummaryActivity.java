@@ -105,7 +105,7 @@ public class BugzillaSummaryActivity extends Activity {
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			File bzTrigger = new File("/data/logs/aplogs/bz_trigger");
+			File bzTrigger = new File("/logs/aplogs/bz_trigger");
 			if (!bzTrigger.exists()) {
 				//to manage case  of crashlogd not launched
 				bzTrigger.delete();
