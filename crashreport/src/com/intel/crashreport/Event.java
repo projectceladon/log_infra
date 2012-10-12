@@ -115,6 +115,8 @@ public class Event {
 			fillAplogEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("BZ"))
 			fillBzEvent(histEvent, myBuild);
+		else if (histEvent.getEventName().equals("ERROR"))
+			fillErrorEvent(histEvent, myBuild);
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild) {
@@ -213,6 +215,18 @@ public class Event {
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
 	}
+
+        private void fillErrorEvent(HistoryEvent histevent, String myBuild) {
+		crashDir = histevent.getOption();
+		eventId = histevent.getEventId();
+		eventName = histevent.getEventName();
+		date = convertDate(histevent.getDate());
+		type = histevent.getType();
+		buildId = myBuild;
+		readDeviceIdFromFile();
+		imei = readImeiFromSystem();
+	}
+
 
 	public com.intel.crashtoolserver.bean.Event getEventForServer(Build build) {
 		com.intel.crashtoolserver.bean.Event event;
