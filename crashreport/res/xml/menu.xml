@@ -34,7 +34,7 @@
 			android:dialogTitle="Crash logs type to exclude"
 			android:entries="@array/reportCrashLogsTypeText"
 			android:entryValues="@array/reportCrashLogsTypeValues"
-			android:defaultValue="APCOREDUMP" />
+			android:defaultValue="APCOREDUMP,HPROF" />
 	</PreferenceCategory>
 
 	<PreferenceCategory

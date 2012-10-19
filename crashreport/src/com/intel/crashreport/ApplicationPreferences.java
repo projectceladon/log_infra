@@ -95,6 +95,28 @@ public class ApplicationPreferences {
 		return CrashLogsListPrefs.parseStoredValue(appSharedPrefs.getString("setReportCrashLogType", ""));
 	}
 
+	public void resetCrashLogsUploadTypes() {
+		String savedValues = appSharedPrefs.getString("setReportCrashLogType", "");
+		boolean begin = false;
+		if (savedValues.equals(""))
+			begin = true;
+
+		String defaultValues[] = new String[]{"APCOREDUMP","HPROF"};
+
+		for(String value:defaultValues) {
+			if(!savedValues.contains(value)) {
+				if(!begin){
+					savedValues += ",";
+				}
+				else begin = false;
+				savedValues += value;
+			}
+		}
+
+		sharedPrefsEditor.putString("setReportCrashLogType", savedValues);
+		sharedPrefsEditor.commit();
+	}
+
 	public String getVersion() {
 		return appPrivatePrefs.getString("version", "0");
 	}

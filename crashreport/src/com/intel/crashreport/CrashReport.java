@@ -49,6 +49,7 @@ public class CrashReport extends Application {
 			PreferenceManager.setDefaultValues(this, R.xml.menu, true);
 			privatePrefs.setVersion(version);
 
+			resetCrashLogsUploadTypes();
 			EventDB db = new EventDB(this.getApplicationContext());
 
 			try {
@@ -136,6 +137,11 @@ public class CrashReport extends Application {
 	public void setUserEmail(String email) {
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
 		privatePrefs.setUserEmail(email);
+	}
+
+	public void resetCrashLogsUploadTypes() {
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		privatePrefs.resetCrashLogsUploadTypes();
 	}
 
 	public BugStorage getBugzillaStorage() {

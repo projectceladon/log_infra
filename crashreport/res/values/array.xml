@@ -39,6 +39,7 @@
 
 	<string-array name="reportCrashLogsTypeText">
 		<item>JAVACRASH</item>
+		<item>HPROF !!! 64 MB !!!</item>
 		<item>TOMBSTONE</item>
 		<item>APCOREDUMP !!! 20 MB !!!</item>
 		<item>ANR</item>
@@ -59,6 +60,7 @@
 
 	<string-array name="reportCrashLogsTypeValues">
 		<item>JAVACRASH</item>
+		<item>HPROF</item>
 		<item>TOMBSTONE</item>
 		<item>APCOREDUMP</item>
 		<item>ANR</item>
