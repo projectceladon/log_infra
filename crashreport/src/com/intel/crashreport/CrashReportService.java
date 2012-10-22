@@ -639,7 +639,19 @@ public class CrashReportService extends Service {
 	}
 
 	protected void sendMessage(int msg) {
-		this.serviceHandler.sendEmptyMessage(msg);
+		if(serviceHandler == null) {
+			if(handlerThread != null){
+				Looper handlerThreadLooper = handlerThread.getLooper();
+				if (handlerThreadLooper != null)
+					serviceHandler = new ServiceHandler(handlerThreadLooper);
+			}
+		}
+		if(serviceHandler != null)
+			serviceHandler.sendEmptyMessage(msg);
+		else {
+			serviceState = ServiceState.Exit;
+			stopService();
+		}
 	}
 
 	private class ServiceHandler extends Handler {
