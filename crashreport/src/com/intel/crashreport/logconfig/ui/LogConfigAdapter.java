@@ -69,8 +69,8 @@ public class LogConfigAdapter extends BaseAdapter {
         holder.configDescription.setText(config.getDescription());
         holder.configDescription.setTag(config.getName());
         holder.configEnabled.setTag(config.getName());
-        holder.configEnabled.setChecked(cState == ConfigState.ON || cState == ConfigState.TO_ON);
-        holder.configEnabled.setEnabled(cState == ConfigState.ON || cState == ConfigState.OFF);
+        holder.configEnabled.setChecked(cState == ConfigState.ON || cState == ConfigState.TO_ON || cState == ConfigState.LOCKED_ON);
+        holder.configEnabled.setEnabled(cState == ConfigState.ON || cState == ConfigState.OFF || cState == ConfigState.LOCKED_OFF);
         return convertView;
     }
 

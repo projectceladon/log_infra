@@ -33,7 +33,6 @@ public class IntentLogSetting implements LogSetting {
         this.setExtras(extras);
     }
 
-    @Override
     public String getType() {
         return "Intent";
     }

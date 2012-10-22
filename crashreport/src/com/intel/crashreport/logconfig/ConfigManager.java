@@ -47,30 +47,20 @@ public class ConfigManager implements IConfigServiceClient {
         ArrayList<ConfigStatus> mConfigStatusList = new ArrayList<ConfigStatus>();
         for (String configName : mConfigNames) {
             ConfigStatus cs = new ConfigStatus(configName);
-            if (mConfigAppliedNames.contains(configName))
-                cs.setState(ConfigState.ON);
             LogConfig mConfig = mConfigLoader.getConfig(configName);
-            if (mConfig != null)
+            if (mConfig != null) {
                 cs.setDescription(mConfig.getDescription());
+                if (mConfig.isLockConfig()) {
+                    cs.setState(ConfigState.LOCKED_ON);
+                }
+                else if (mConfigAppliedNames.contains(configName))
+                    cs.setState(ConfigState.ON);
+            }
             else
                 cs.setDescription("! Bad file ! " + configName);
             mConfigStatusList.add(cs);
         }
         return mConfigStatusList;
-    }
-
-    private ArrayList<String> getDefaultConfigNames() {
-        List<String> mConfigNames = mConfigLoader.getList();
-        ArrayList<String> defaultConfigs = new ArrayList<String>();
-        LogConfig conf;
-        for (String configName : mConfigNames) {
-            conf = mConfigLoader.getConfig(configName);
-            if (conf.isAppliedByDefault()) {
-                Log.d("LogConfig", "Default config : " + configName);
-                defaultConfigs.add(configName);
-            }
-        }
-        return defaultConfigs;
     }
 
     public void saveConfigStatus() {
@@ -85,23 +75,39 @@ public class ConfigManager implements IConfigServiceClient {
     public List<ConfigStatus> getPersistantConfigList() {
         Log.d("LogConfig", "Get persistant configs");
         List<ConfigStatus> mPersistConfigs = new ArrayList<ConfigStatus>();
-        List<String> mPersistConfigNames;
-        if (mStorage.isFirstBoot()) {
-            Log.d("LogConfig", "First boot, get default configs");
-            mPersistConfigNames = getDefaultConfigNames();
-        } else {
-            Log.d("LogConfig", "Get applied configs");
-            mPersistConfigNames = mStorage.getAppliedConfigs();
-        }
-        if (mPersistConfigNames != null) {
-            for (String configName : mPersistConfigNames) {
-                ConfigStatus mConfigStatus = loadConfigStatus(configName);
-                if (mConfigStatus != null) {
-                    mConfigStatus.setState(ConfigState.TO_ON);
-                    mPersistConfigs.add(mConfigStatus);
+        List<String> mPersistConfigNames = mStorage.getAppliedConfigs();
+        List<ConfigStatus> allStatus = getConfigStatusList();
+
+        for(ConfigStatus cs:allStatus) {
+            LogConfig mLog = mConfigLoader.getConfig(cs.getName());
+            if (mLog != null)
+                cs.setLogConfig(mLog);
+
+            if (mLog != null) {
+                if(mStorage.isFirstBoot()) {
+                    if(mLog.isAppliedByDefault()) {
+                        Log.d("LogConfig", "First boot, get default configs");
+                        cs.setState(ConfigState.TO_ON);
+                        mPersistConfigs.add(cs);
+                    }
+                }
+                else {
+                    if(mLog.isLockConfig()) {
+                        Log.d("LogConfig", "Get Lock configs");
+                        mPersistConfigs.add(cs);
+                    }
+                    else if (mPersistConfigNames != null) {
+                        if (mPersistConfigNames.contains(cs.getName())) {
+                            Log.d("LogConfig", "Get applied configs");
+                            cs.setState(ConfigState.TO_ON);
+                            mPersistConfigs.add(cs);
+                        }
+                    }
+
                 }
             }
         }
+
         return mPersistConfigs;
     }
 

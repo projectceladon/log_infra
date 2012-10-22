@@ -8,9 +8,12 @@ public class LogConfig {
 
     private String name;
     private String description;
-    private boolean appliedByDefault;
+    private String type;
     private List<LogSetting> config;
     private List<LogSetting> rollBackConfig;
+    public static String LOCK_TYPE = "lock";
+    public static String NORMAL_TYPE = "normal";
+    public static String DEFAULT_TYPE = "default";
 
     public LogConfig(String name) {
         this.name = name;
@@ -70,11 +73,19 @@ public class LogConfig {
     }
 
     public boolean isAppliedByDefault() {
-        return appliedByDefault;
+        return type.equals(DEFAULT_TYPE);
     }
 
-    public void setAppliedByDefault(boolean value) {
-        appliedByDefault = value;
+    public boolean isLockConfig() {
+        return type.equals(LOCK_TYPE);
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String t) {
+        type = t;
     }
 
 }

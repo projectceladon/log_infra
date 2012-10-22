@@ -1,6 +1,6 @@
 {
     "description":"Battery drain profiler",
-    "appliedByDefault" : "false",
+    "type" : "normal",
     "config": [
         {
             "type":"prop",

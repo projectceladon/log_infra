@@ -1,6 +1,6 @@
 {
     "description":"Debug Framework Integration",
-    "appliedByDefault" : "false",
+    "type" : "normal",
     "config": [
         {
             "type":"prop",

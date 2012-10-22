@@ -1,6 +1,6 @@
 {
     "description":"FOTA logs",
-    "appliedByDefault" : "false",
+    "type" : "normal",
     "config": [
         {
             "type":"prop",

@@ -45,12 +45,9 @@ public class ApplicatorLogSettingAdapter {
     private void applyPropertyLogSetting(PropertyLogSetting s) throws IllegalStateException {
         String value = s.getValue();
         String key = s.getName();
-        if (value != null && key != null &&
-                !value.contentEquals(SystemProperties.get(key))) {
+        if (value != null && key != null) {
             Log.i("LogConfig", "Apply : " + s);
             mClient.writeCommand(CommandLogConfigAdapter.CMD_SET_PROP, s);
-        } else {
-            Log.i("LogConfig", s + " already set");
         }
     }
 
