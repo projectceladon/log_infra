@@ -41,6 +41,7 @@ public class CrashReport extends Application {
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
 		bugzillaStorage = new BugStorage(this);
 		String version = this.getString(R.string.app_version);
+		EventGenerator.INSTANCE.setContext(getApplicationContext());
 		if (!privatePrefs.getVersion().contentEquals(version)) {
 			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 			Editor editor = sharedPrefs.edit();

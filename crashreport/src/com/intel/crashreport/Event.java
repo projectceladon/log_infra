@@ -254,7 +254,7 @@ public class Event {
 			return new String("Event: " + eventId + ":" + eventName + ":" + type);
 	}
 
-	private void readDeviceIdFromFile() {
+	public void readDeviceIdFromFile() {
 		File uuidFile = new File("/logs/" + "uuid.txt");
 		try {
 			Scanner scan = new Scanner(uuidFile);
@@ -266,7 +266,7 @@ public class Event {
 		}
 	}
 
-	private String readImeiFromSystem() {
+	public String readImeiFromSystem() {
 		String imeiRead = "";
 		try {
 			imeiRead = SystemProperties.get("persist.radio.device.imei", "");
@@ -447,11 +447,13 @@ public class Event {
 
 	public static Date convertDateForServer(Date date){
 		Date cDate = null;
-		EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
-		String displayDate = EVENT_DF.format(date);
+		//need to use local dateFormat to avoid bad display of date
+		SimpleDateFormat local_df = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
+		local_df.setTimeZone(TimeZone.getTimeZone("GMT"));
+		String displayDate = local_df.format(date);
 		try {
-			EVENT_DF.setTimeZone(TimeZone.getTimeZone("CET"));
-			cDate = EVENT_DF.parse(displayDate);
+			local_df.setTimeZone(TimeZone.getTimeZone("CET"));
+			cDate = local_df.parse(displayDate);
 		} catch (ParseException e) {
 			cDate = new Date();
 		}

@@ -88,7 +88,7 @@ public class EventViewAdapter extends BaseAdapter {
 
 			}
 		}
-		Log.w(TAG+":getView "+position);
+		Log.d(TAG+":getView "+position);
 		return convertView;
 	}
 
