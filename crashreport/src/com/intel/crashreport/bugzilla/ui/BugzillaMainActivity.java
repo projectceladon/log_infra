@@ -84,7 +84,6 @@ public class BugzillaMainActivity extends Activity {
 				strSummary = strSummary.trim();
 
 				if (!strTitle.equals("") && !strSummary.equals("")) {
-					saveData();
 					Intent intent = new Intent(getApplicationContext(), BugzillaSummaryActivity.class);
 					intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", fromGallery);
 					finish();
@@ -235,7 +234,6 @@ public class BugzillaMainActivity extends Activity {
 	}
 
 	public void onBackPressed() {
-		saveData();
 		finish();
 		if (!fromGallery) {
 			Intent intent = new Intent(getApplicationContext(), CrashReportHome.class);
@@ -249,6 +247,11 @@ public class BugzillaMainActivity extends Activity {
 			startActivity(startMain);
 		}
 
+	}
+
+	public void onPause() {
+		saveData();
+		super.onPause();
 	}
 
 	public void saveData() {

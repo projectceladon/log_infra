@@ -15,7 +15,6 @@
        xmlns:android="http://schemas.android.com/apk/res/android"
        android:layout_width="match_parent"
        android:layout_height="match_parent"
-       android:isScrollContainer="true"
        android:orientation="vertical"
        android:scrollbarStyle="outsideOverlay"
        android:scrollbars="vertical" >
@@ -120,13 +119,11 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:background="#d8eef9"
-        android:textSize="22sp"
         android:gravity="left|top"
         android:inputType="textMultiLine"
-        android:lines="5"
-        android:maxLines="10"
         android:textColor="#105372"
-         android:textCursorDrawable="@drawable/black_cursor" />
+        android:textCursorDrawable="@drawable/black_cursor"
+        android:textSize="22sp" />
 
      <CheckBox
          android:id="@+id/bz_screenshot_box"
