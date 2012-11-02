@@ -29,6 +29,8 @@ import com.intel.parsing.*;
 
 public class CrashFile {
 
+	private static final String EVENT_TYPE_PARSING = "PARSING";
+
 	private String eventId = "";
 	private String eventName = "";
 	private String type = "";
@@ -76,8 +78,14 @@ public class CrashFile {
 						fillCrashFile(crashFile);
 					}else{
 						Log.w("Error while parsing crashfile");
+						//generating an error event to track this parsing error
+						CustomizableEventData mEvent = EventGenerator.INSTANCE.getEmptyErrorEvent();
+						mEvent.setType(EVENT_TYPE_PARSING);
+						mEvent.setData0("PARSE_CRASH_ERROR");
+						mEvent.setData1(type);
+						mEvent.setData2(eventId);
+						EventGenerator.INSTANCE.generateEvent(mEvent);
 					}
-
 				}
 			}
 		}

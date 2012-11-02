@@ -65,6 +65,12 @@ public class MainParser{
 			sDropbox="full";
 		}
 
+
+		if (sTag.equals( "LOST_DROPBOX_UIWDT")) {
+			sTag="UIWDT";
+			sDropbox="full";
+		}
+
 		if (sTag.equals( "LOST_DROPBOX_WTF")) {
 			sTag="WTF";
 			sDropbox="full";
@@ -103,6 +109,13 @@ public class MainParser{
 
 				if  (sTag.equals("ANR" )){
 					if (!anr(sOutput)){
+						closeOutput();
+						return -1;
+					}
+				}
+
+				if  (sTag.equals("UIWDT" )){
+					if (!uiwdt(sOutput)){
 						closeOutput();
 						return -1;
 					}
@@ -158,6 +171,8 @@ public class MainParser{
 			//Output object creation mandatory here
 			myOutput = new BufferedWriter(new FileWriter(aCrashfilename));
 
+			// TO DO LATER : manage other EVENTNAME than crash
+			// with this mechanism only crash event is supported
 			bResult &= appendToCrashfile( "EVENT=CRASH");
 			bResult &= appendToCrashfile( "ID=" + aCrashid);
 			bResult &= appendToCrashfile( "SN=" + sUuid);
@@ -168,8 +183,10 @@ public class MainParser{
 			bResult &= appendToCrashfile( "IMEI=" + aImei);
 			bResult &= appendToCrashfile( "TYPE=" + aTag);
 
+
 		} catch (Exception e) {
 			System.err.println( "prepare_crashfile : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -181,6 +198,7 @@ public class MainParser{
 				myOutput.close();
 			}catch (Exception e) {
 				System.out.println("error on crashfile close");
+				e.printStackTrace();
 			}
 		}
 	}
@@ -198,9 +216,10 @@ public class MainParser{
 		if (!matcherFile.find()){
 			try {
 				Runtime rt = Runtime.getRuntime ();
-				rt.exec("chown root.log " + aFolder);
+				rt.exec("chown system.log " + aFolder);
 			}catch (Exception e){
-				System.err.println( "chown root.log failed : " + e);
+				System.err.println( "chown system.log failed : " + e);
+				e.printStackTrace();
 			}
 		}
 		return bResult;
@@ -227,6 +246,7 @@ public class MainParser{
 			}
 			catch(Exception e) {
 				System.err.println( "modemcrash : " + e);
+				e.printStackTrace();
 				return false;
 			}
 		}
@@ -275,7 +295,7 @@ public class MainParser{
 						sTmp = simpleGrepAwk(patternPanic, sCurLine, ":", 1);
 						if (sTmp != null){
 							sPanic = sTmp;
-							bCommFound = true;
+							bPanicFound = true;
 						}
 					}
 				}
@@ -286,6 +306,7 @@ public class MainParser{
 			}
 			catch(Exception e) {
 				System.err.println( "iPanic : " + e);
+				e.printStackTrace();
 				return false;
 			}
 		}
@@ -310,12 +331,12 @@ public class MainParser{
 				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
 				Pattern patternForcedFabric = java.util.regex.Pattern.compile(".*HW WDT expired.*");
 				//suspicious regex repeating r has no effect
-			    //   data0=`grep "DW0:" $1/ipanic_fabric_err*`
-			    //   data1=`grep "DW1:" $1/ipanic_fabric_err*`
-			    //   data2=`grep "DW11:" $1/ipanic_fabric_err*`
-			    Pattern patternData0 = java.util.regex.Pattern.compile(".*DW0:.*");
-			    Pattern patternData1 = java.util.regex.Pattern.compile(".*DW1:.*");
-			    Pattern patternData2 = java.util.regex.Pattern.compile(".*DW11:.*");
+				//   data0=`grep "DW0:" $1/ipanic_fabric_err*`
+				//   data1=`grep "DW1:" $1/ipanic_fabric_err*`
+				//   data2=`grep "DW11:" $1/ipanic_fabric_err*`
+				Pattern patternData0 = java.util.regex.Pattern.compile(".*DW0:.*");
+				Pattern patternData1 = java.util.regex.Pattern.compile(".*DW1:.*");
+				Pattern patternData2 = java.util.regex.Pattern.compile(".*DW11:.*");
 				Pattern patternData0_1_2 = java.util.regex.Pattern.compile(".*[erroir|:].*");
 				Pattern patternInvertData0_1_2 = java.util.regex.Pattern.compile(".*(Fabric Error|summary|Additional|Decoded).*");
 
@@ -396,6 +417,7 @@ public class MainParser{
 			}
 			catch(Exception e) {
 				System.err.println( "fabricerr : " + e);
+				e.printStackTrace();
 				return false;
 			}
 		}
@@ -408,10 +430,12 @@ public class MainParser{
 		if (sTombstoneFile != ""){
 			String sProcess= "";
 			String sSignal= "";
-			String sStack = "";
+			String sStackSymbol = "";
+			String sStackLibs = "";
 			boolean bProcessFound = false;
 			boolean bSignalFound = false;
 			boolean bSubSignalFound = false;
+			boolean bDisplaySymbols = false;
 			int iSubSignalCount = 0;
 			int iStackCount = 0;
 			boolean bSubStackFound = false;
@@ -472,26 +496,40 @@ public class MainParser{
 								sTmp = simpleAwk(sTmpSubStack,"\\(", 1);
 								sTmp = simpleAwk(sTmp,"\\)", 0);
 								if (sTmp != null){
+									bDisplaySymbols = true;
 									if (iStackCount == 0){
-										sStack = sTmp;
-									}
-									else{
-										sStack += " " +  sTmp;
+										sStackSymbol = sTmp;
+									} else{
+										sStackSymbol += " " +  sTmp;
 									}
 									iStackCount++;
 								}else if (sTmpSubStack != null){
 									// required to reproduce exactly number of white space
 									if (iStackCount == 0){
-										sStack = "";
+										sStackSymbol = "";
+									}else{
+										sStackSymbol += " " ;
 									}
-									else{
-										sStack += " " ;
+									sTmp = advancedAwk(sTmpSubStack," ", 3);
+									if (sTmp != null){ //case without symbols
+										if (iStackCount == 0){
+											sStackLibs = sTmp;
+										}else{
+											sStackLibs += " " +  sTmp;
+										}
+									}else{
+										//in order to also reproduce white space mechanism
+										if (iStackCount == 0){
+											sStackLibs = "";
+										}else{
+											sStackLibs += " ";
+										}
 									}
 									iStackCount++;
 								}
 								iSubStackCount++;
 							}else{
-								bSubSignalFound = false;
+								bSubStackFound = false;
 							}
 						}
 					}
@@ -499,13 +537,43 @@ public class MainParser{
 
 				bResult &= appendToCrashfile("DATA0=" + sProcess);
 				bResult &= appendToCrashfile("DATA1=" + sSignal);
-				bResult &= appendToCrashfile("DATA2=" + sStack);
+				if (bDisplaySymbols){
+					bResult &= appendToCrashfile("DATA2=" + sStackSymbol);
+				}else{
+					bResult &= appendToCrashfile("DATA2=" + sStackLibs);
+				}
+
 				bufTombstoneFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "tombstone : " + e);
+				e.printStackTrace();
 				return false;
 			}
+		}
+		return bResult;
+	}
+
+	private boolean uiwdt(String aFolder){
+		boolean bResult = true;
+
+		String sUIWDTFileGZ = fileGrepSearch("system_server_watchdog.*txt.gz", aFolder);
+		try {
+			if (sUIWDTFileGZ != ""){
+				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sUIWDTFileGZ));
+				BufferedReader uiwdtReader = new BufferedReader(new InputStreamReader (gzipInputStream));
+				bResult = extractUIWDTData(uiwdtReader);
+			}else{
+				String sUIWDTFile = fileGrepSearch("system_server_watchdog.*txt" , aFolder);
+				if (sUIWDTFile != ""){
+					BufferedReader uiwdtReader = new BufferedReader(new FileReader(sUIWDTFile));
+					bResult = extractUIWDTData(uiwdtReader);
+				}
+			}
+		}catch(Exception e) {
+			System.err.println( "UIWDT : " + e);
+			e.printStackTrace();
+			return false;
 		}
 		return bResult;
 	}
@@ -528,6 +596,7 @@ public class MainParser{
 			}
 		}catch(Exception e) {
 			System.err.println( "WTF : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -551,6 +620,7 @@ public class MainParser{
 			}
 		}catch(Exception e) {
 			System.err.println( "anr - SysAppANR : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -581,6 +651,66 @@ public class MainParser{
 			}
 		}catch(Exception e) {
 			System.err.println( "javacrash - parseJavaCrashFile : " + e);
+			e.printStackTrace();
+			return false;
+		}
+		return bResult;
+	}
+
+	private boolean extractUIWDTData(BufferedReader aReader){
+		boolean bResult = true;
+
+		String sPID= "";
+		String sType= "";
+		String sStack = "";
+		boolean bPIDFound = false;
+		boolean bTypeFound = false;
+		int iStackCount = 0;
+
+		Pattern patternPID = java.util.regex.Pattern.compile(".*Process:.*");
+		Pattern patternType = java.util.regex.Pattern.compile(".*Subject:.*");
+		Pattern patternStack = java.util.regex.Pattern.compile("^  at.*");
+
+		String sCurLine;
+		try {
+			while ((sCurLine = aReader.readLine()) != null) {
+				String sTmp;
+				if (!bPIDFound){
+					sTmp = simpleGrepAwk(patternPID, sCurLine, ":", 1);
+					if (sTmp != null){
+						sPID = sTmp;
+						bPIDFound = true;
+					}
+				}
+				if (!bTypeFound){
+					sTmp = simpleGrepAwk(patternType, sCurLine, ":", 1);
+					if (sTmp != null){
+						sType = sTmp;
+						bTypeFound = true;
+					}
+				}
+
+				if (iStackCount<8){
+					sTmp = simpleGrepAwk(patternStack, sCurLine, "at ", 1);
+					sTmp = simpleAwk(sTmp,"\\(", 0);
+					if (sTmp != null){
+						if (iStackCount == 0){
+							sStack = sTmp;
+						}
+						else{
+							sStack += " " +  sTmp;
+						}
+						iStackCount++;
+					}
+				}
+			}
+			bResult &= appendToCrashfile("DATA0=" + sPID);
+			bResult &= appendToCrashfile("DATA1=" + sType);
+			bResult &= appendToCrashfile("DATA2=" + sStack);
+			aReader.close();
+		}catch (Exception e) {
+			System.err.println( "extractUIWDTData : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -622,6 +752,7 @@ public class MainParser{
 			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractWTFData : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -666,7 +797,7 @@ public class MainParser{
 					sTmp = simpleGrepAwk(patternCPU, sCurLine, "TOTAL", 0);
 					if (sTmp != null){
 						sCPU = sTmp;
-						bTypeFound = true;
+						bCPUFound = true;
 					}
 				}
 
@@ -692,6 +823,7 @@ public class MainParser{
 			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractAnrData : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -748,6 +880,7 @@ public class MainParser{
 			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractJavaCrashData : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return bResult;
@@ -758,6 +891,7 @@ public class MainParser{
 			myOutput.write(aStr + "\n");
 		} catch (Exception e) {
 			System.err.println( "appendToCrashfile : " + e);
+			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -796,6 +930,21 @@ public class MainParser{
 		String sResult = null;
 		if (aString != null){
 			String[] splitString = aString.split(sSeparator);
+			if (splitString.length > iReturnIndex ){
+				sResult = splitString[iReturnIndex];
+			}
+		}
+		return sResult;
+	}
+
+	private String advancedAwk(String aString, String sSeparator, int iReturnIndex){
+		String sResult = null;
+		if (aString != null){
+			String[] splitString = aString.split("(" + sSeparator + ")+" );
+			//to manage beginning separator
+			if (splitString[0].equals("")){
+				iReturnIndex++;
+			}
 			if (splitString.length > iReturnIndex ){
 				sResult = splitString[iReturnIndex];
 			}
