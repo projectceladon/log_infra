@@ -19,7 +19,6 @@
 
 package com.intel.crashreport;
 
-import java.io.File;
 import java.util.Date;
 
 import com.intel.crashreport.bugzilla.BZ;
@@ -36,6 +35,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class EventDB {
 
 	private static final int COEF_S_TO_MS = 1000;
+	private static final int BEGIN_FIBONACCI = 13;
+	private static final int BEGIN_FIBONACCI_BEFORE = 8;
+	private static final int RAIN_DURATION_MAX = 3600;
+	private static final int MAX_DELAY_RAIN = 600;
+	private static final int RAIN_CRASH_NUMBER = 10;
 
 	private static final String DATABASE_NAME = "eventlogs.db";
 	private static final String DATABASE_TABLE = "events";
@@ -43,7 +47,9 @@ public class EventDB {
 	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
 	private static final String DATABASE_CRITICAL_TABLE = "critical_events_type";
 	private static final String DATABASE_BZ_TABLE = "bz_events";
-	private static final int DATABASE_VERSION = 7;
+	private static final String DATABASE_BLACK_EVENTS_TABLE = "black_events";
+	private static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
+	private static final int DATABASE_VERSION = 8;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -66,6 +72,7 @@ public class EventDB {
 	public static final String KEY_NOTIFIED = "notified";
 	public static final String KEY_CRITICAL = "critical";
 	public static final String KEY_DATA_READY = "dataReady";
+	public static final String KEY_ORIGIN = "origin";
 	public static final String KEY_SUMMARY = "summary";
 	public static final String KEY_DESCRIPTION = "description";
 	public static final String KEY_SEVERITY = "severity";
@@ -103,7 +110,8 @@ public class EventDB {
 					KEY_CRASHDIR + " text, " +
 					KEY_UPLOADLOG + " integer, "+
 					KEY_NOTIFIED + " integer, "+
-					KEY_DATA_READY + " integer );";
+					KEY_DATA_READY + " integer, "+
+					KEY_ORIGIN + " text );";
 
 	private static final String DATABASE_TYPE_CREATE =
 			"create table " + DATABASE_TYPE_TABLE + " ("+
@@ -123,6 +131,26 @@ public class EventDB {
 					KEY_DATA4 + " text, "+
 					KEY_DATA5 + " text, "+
 					"PRIMARY KEY ( "+KEY_TYPE+", "+KEY_DATA0+", "+KEY_DATA1+", "+KEY_DATA2+", "+KEY_DATA3+", "+KEY_DATA4+", "+KEY_DATA5+"));";
+
+	private static final String DATABASE_BLACK_EVENTS_CREATE =
+			"create table " + DATABASE_BLACK_EVENTS_TABLE + " ("+
+					KEY_ID + " text primary key, " +
+					KEY_REASON + " text not null, "+
+					KEY_CRASHDIR + " text, " +
+					KEY_RAINID + " text );";
+
+	private static final String DATABASE_RAIN_CREATE =
+			"create table " + DATABASE_RAIN_OF_CRASHES_TABLE + " ("+
+					KEY_ID + " text not null, "+
+					KEY_TYPE + " text not null, " +
+					KEY_DATA0 + " text not null, " +
+					KEY_DATA1 + " text not null, " +
+					KEY_DATA2 + " text not null, " +
+					KEY_DATE + " integer not null, " +
+					KEY_OCCURRENCES + " integer, " +
+					KEY_LAST_FIBONACCI + " integer, "+
+					KEY_NEXT_FIBONACCI + " integer, "+
+					"PRIMARY KEY ( "+KEY_TYPE+", "+KEY_DATA0+", "+KEY_DATA1+", "+KEY_DATA2+"));";
 
 	private static final String DATABASE_CRITICAL_EVENTS_EMPTY =
 			"delete from "+DATABASE_CRITICAL_EVENTS_TABLE+";";
@@ -165,6 +193,8 @@ public class EventDB {
 			db.execSQL(DATABASE_TYPE_CREATE);
 			db.execSQL(DATABASE_CRITICAL_EVENTS_CREATE);
 			db.execSQL(DATABASE_BZ_CREATE);
+			db.execSQL(DATABASE_BLACK_EVENTS_CREATE);
+			db.execSQL(DATABASE_RAIN_CREATE);
 		}
 
 		@Override
@@ -176,6 +206,8 @@ public class EventDB {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TYPE_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_EVENTS_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
 			onCreate(db);
 		}
 	}
@@ -198,7 +230,7 @@ public class EventDB {
 	public long addEvent(String eventId, String eventName, String type,
 			String data0, String data1, String data2, String data3,
 			String data4, String data5, Date date, String buildId,
-			String deviceId, String imei, String uptime, String crashDir, boolean bDataReady) {
+			String deviceId, String imei, String uptime, String crashDir, boolean bDataReady, String origin) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = convertDateForDb(date);
 		if (eventName.equals("")) return -2;
@@ -227,6 +259,7 @@ public class EventDB {
 		} else {
 			initialValues.put(KEY_DATA_READY, 0);
 		}
+		initialValues.put(KEY_ORIGIN, origin);
 
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
 	}
@@ -247,7 +280,8 @@ public class EventDB {
 				event.getImei(),
 				event.getUptime(),
 				event.getCrashDir(),
-				event.isDataReady());
+				event.isDataReady(),
+				event.getOrigin());
 	}
 
 	public boolean deleteEvent(String eventId) {
@@ -260,7 +294,7 @@ public class EventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY}, null, null, null, null, null);
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN}, null, null, null, null, null);
 	}
 
 	public Cursor fetchLastNEvents(String sNlimit) {
@@ -268,7 +302,7 @@ public class EventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY}, null, null, null, null,
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN}, null, null, null, null,
 				KEY_ROWID + " DESC",sNlimit);
 	}
 
@@ -303,7 +337,7 @@ public class EventDB {
 		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
 				KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
-				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY}, whereQuery, null,
+				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN}, whereQuery, null,
 				null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
@@ -332,6 +366,7 @@ public class EventDB {
 		event.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))==1);
 		event.setDataReady(cursor.getInt(cursor.getColumnIndex(KEY_DATA_READY))==1);
 		event.setLogUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG))==1);
+		event.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
 
 
 		return event;
@@ -645,9 +680,6 @@ public class EventDB {
 				KEY_UPLOAD_DATE+" as "+KEY_UPLOAD_DATE+", "+KEY_CREATION_DATE+" as "+KEY_CREATION_DATE+", "+KEY_SCREENSHOT_PATH+ " as "+KEY_SCREENSHOT_PATH+" from "+DATABASE_TABLE+" e,"+DATABASE_BZ_TABLE+" bz "+
 				"where bz."+KEY_ID+" = "+"e."+KEY_ID;
 		cursor = mDb.rawQuery(whereQuery, null);
-		/*cursor = mDb.query(DATABASE_BZ_TABLE, new String[] {KEY_ID, KEY_SUMMARY, KEY_DESCRIPTION,
-				KEY_SEVERITY, KEY_BZ_TYPE, KEY_BZ_COMPONENT, KEY_SCREENSHOT,KEY_UPLOAD , KEY_UPLOADLOG,
-				KEY_UPLOAD_DATE, KEY_CREATION_DATE, KEY_SCREENSHOT_PATH}, null, null, null, null, null);*/
 		if (cursor != null)
 			cursor.moveToFirst();
 		return cursor;
@@ -710,12 +742,255 @@ public class EventDB {
 		return 0;
 	}
 
-	public void updateEventsNotReadyBeforeREBOOT(String eventId){
+	public void updateEventsNotReadyBeforeREBOOT(String eventId) {
 		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId
 				+"')  AND " +KEY_DATA_READY + "=0";
 		ContentValues args = new ContentValues();
 		args.put(KEY_DATA_READY, 1);
 		mDb.update(DATABASE_TABLE, args,whereQuery, null) ;
+	}
+
+	public long addBlackEvent(Event event, String reason) throws SQLException {
+		ContentValues initialValues = new ContentValues();
+
+		if(reason.equals("DUPLICATE")) {
+			Cursor cursor = getRainEventInfo(new CrashSignature(event));
+			if(cursor != null){
+				initialValues.put(KEY_RAINID, cursor.getString(cursor.getColumnIndex(KEY_ID)));
+				cursor.close();
+			}
+		}
+
+		initialValues.put(KEY_ID, event.getEventId());
+		initialValues.put(KEY_REASON, reason);
+		initialValues.put(KEY_CRASHDIR, event.getCrashDir());
+
+		return mDb.insert(DATABASE_BLACK_EVENTS_TABLE, null, initialValues);
+	}
+
+	public Cursor fetchAllBlackEvents() throws SQLException {
+		return mDb.query(DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID, KEY_REASON}, null, null, null, null, null);
+	}
+
+	public Cursor fetchBlackEventsFromQuery(String query) throws SQLException {
+		Cursor mCursor;
+		mCursor = mDb.query(DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID, KEY_REASON,KEY_CRASHDIR}, query, null, null, null, null);
+		if(mCursor != null)
+			mCursor.moveToFirst();
+		return mCursor;
+	}
+
+	public Cursor fetchRainOfCrashesFromQuery(String query) throws SQLException {
+		Cursor mCursor;
+		mCursor = mDb.query(DATABASE_RAIN_OF_CRASHES_TABLE, new String[] {KEY_DATE,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2,KEY_ID,KEY_OCCURRENCES,KEY_LAST_FIBONACCI,KEY_NEXT_FIBONACCI}, query, null, null, null, null);
+		if(mCursor != null)
+			mCursor.moveToFirst();
+		return mCursor;
+	}
+
+	public Cursor fetchBlackEventsRain(String rainId) throws SQLException {
+		String query = KEY_RAINID + " = '"+ rainId +"'";
+		return fetchBlackEventsFromQuery(query);
+	}
+
+	public Cursor fetchLastRain(Date date) throws SQLException {
+		int mDate = convertDateForDb(date);
+		mDate -=  RAIN_DURATION_MAX;
+		String query = KEY_DATE + " < " + mDate;
+		return fetchRainOfCrashesFromQuery(query);
+	}
+
+	public long addRainEvent(Event event) {
+		ContentValues initialValues = new ContentValues();
+
+		initialValues.put(KEY_TYPE, event.getType());
+		initialValues.put(KEY_DATA0, event.getData0());
+		initialValues.put(KEY_DATA1, event.getData1());
+		initialValues.put(KEY_DATA2, event.getData2());
+		initialValues.put(KEY_DATE, convertDateForDb(event.getDate()));
+		initialValues.put(KEY_OCCURRENCES, 1);
+		initialValues.put(KEY_LAST_FIBONACCI, BEGIN_FIBONACCI_BEFORE);
+		initialValues.put(KEY_NEXT_FIBONACCI, BEGIN_FIBONACCI);
+		initialValues.put(KEY_ID, event.getEventId());
+
+		return mDb.insert(DATABASE_RAIN_OF_CRASHES_TABLE, null, initialValues);
+	}
+
+	private Cursor getRainEventInfo(CrashSignature signature) throws SQLException {
+		return fetchRainOfCrashesFromQuery(signature.querySignature());
+	}
+
+	public void endOfRain(CrashSignature signature) throws SQLException {
+		Cursor cursor = getRainEventInfo(signature);
+
+		if(cursor != null) {
+			int occurences = cursor.getInt(cursor.getColumnIndex(KEY_OCCURRENCES));
+			cursor.close();
+
+			if( occurences > 0)
+				EventGenerator.INSTANCE.generateEventRain(signature, occurences);
+		}
+
+	}
+
+	public boolean resetRainEvent(CrashSignature signature, Date date) throws SQLException {
+		ContentValues args = new ContentValues();
+		endOfRain(signature);
+		args.put(KEY_OCCURRENCES, 1);
+		args.put(KEY_DATE, convertDateForDb(date) );
+		args.put(KEY_LAST_FIBONACCI, BEGIN_FIBONACCI_BEFORE);
+		args.put(KEY_NEXT_FIBONACCI, BEGIN_FIBONACCI);
+		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature.querySignature(), null) > 0;
+	}
+
+	public boolean updateRainEvent(CrashSignature signature, Date date) throws SQLException {
+		ContentValues args = new ContentValues();
+
+		Cursor cursor = getRainEventInfo(signature);
+		if(cursor != null) {
+			int occurences = cursor.getInt(cursor.getColumnIndex(KEY_OCCURRENCES));
+			int nextFibo = cursor.getInt(cursor.getColumnIndex(KEY_NEXT_FIBONACCI));
+			int lastFibo = cursor.getInt(cursor.getColumnIndex(KEY_LAST_FIBONACCI));
+
+			occurences++;
+
+			args.put(KEY_DATE, convertDateForDb(date) );
+			cursor.close();
+			if( occurences == nextFibo) {
+				args.put(KEY_NEXT_FIBONACCI, lastFibo + nextFibo);
+				args.put(KEY_LAST_FIBONACCI, nextFibo);
+				args.put(KEY_OCCURRENCES, 0);
+				EventGenerator.INSTANCE.generateEventRain(signature, nextFibo);
+			}
+			else
+				args.put(KEY_OCCURRENCES, occurences);
+
+
+			return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature.querySignature(), null) > 0;
+		}
+		return false;
+
+	}
+
+	public boolean deleteRainEvent(CrashSignature signature) {
+		String whereQuery = signature.querySignature();
+		endOfRain(signature);
+		return mDb.delete(DATABASE_RAIN_OF_CRASHES_TABLE, whereQuery, null) > 0;
+	}
+
+	public boolean isRainEventExist(CrashSignature signature) {
+		Cursor mCursor;
+		boolean ret;
+		try {
+			mCursor = mDb.query(true, DATABASE_RAIN_OF_CRASHES_TABLE, new String[] {KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2},
+					signature.querySignature(), null,
+					null, null, null, null);
+			if (mCursor != null) {
+				ret = mCursor.moveToFirst();
+				mCursor.close();
+				return ret;
+			}
+		} catch (SQLException e) {
+			Log.e("isRainEventExist : " + e.getMessage());
+		}
+		return false;
+	}
+
+	public boolean isEventInBlackList(String eventId) {
+		Cursor mCursor;
+		Boolean ret;
+		try {
+			mCursor = mDb.query(true, DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID},
+					KEY_ID + " = '" + eventId + "'", null,
+					null, null, null, null);
+			if (mCursor != null) {
+				ret = mCursor.moveToFirst();
+				mCursor.close();
+				return ret;
+			}
+		} catch (SQLException e) {
+			Log.e("isEventInBlackList : " + e.getMessage());
+		}
+		return false;
+	}
+
+	public boolean isInTheCurrentRain(Event event) throws SQLException {
+		Date date = event.getDate();
+
+		Cursor mCursor = getRainEventInfo(new CrashSignature(event));
+		if (mCursor != null) {
+			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
+			mCursor.close();
+			int newDate = convertDateForDb(date);
+			if( lastEvent < newDate) {
+				if ( (newDate - lastEvent) <=  MAX_DELAY_RAIN) {
+					return true;
+				}
+				else
+					return false;
+			}
+		}
+		return false;
+	}
+
+	public int getLastCrashDate(CrashSignature signature) throws SQLException {
+		Cursor mCursor = getRainEventInfo(signature);
+		if (mCursor != null) {
+			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
+			mCursor.close();
+			return lastEvent;
+		}
+		return 0;
+
+	}
+
+	public boolean checkNewRain(Event event, int lastRain) {
+		Cursor mCursor;
+		int lastEvent;
+		Date date = event.getDate();
+		CrashSignature signature = new CrashSignature(event);
+
+		if(-1 != lastRain)
+			lastEvent = lastRain;
+		else {
+			lastEvent = convertDateForDb(date);
+			lastEvent -= RAIN_DURATION_MAX;
+		}
+		String whereQuery = signature.querySignature() + " AND " + KEY_DATE + " > " + lastEvent;
+
+		int count = -1;
+
+		try {
+			mCursor = mDb.query(true, "events", new String[] {"date"},
+					whereQuery, null,
+					null, null, "date desc", "0,"+RAIN_CRASH_NUMBER);
+			if (mCursor != null) {
+				count = mCursor.getCount();
+				mCursor.close();
+				if (count == RAIN_CRASH_NUMBER) {
+					if (-1 == lastRain)
+						addRainEvent(event);
+					else
+						resetRainEvent(signature, date);
+					EventGenerator.INSTANCE.generateEventRain(signature, RAIN_CRASH_NUMBER);
+					return true;
+				}
+
+			}
+		}
+		catch (SQLException e){
+			Log.e("checkNewRain : " + e.getMessage());
+		}
+		return false;
+	}
+
+	public boolean checkNewRain(Event event) {
+		return checkNewRain(event, -1);
+	}
+
+	public boolean isOriginExist(String origin) {
+		String query = KEY_ORIGIN + " = '" + origin + "'";
+		return isEventExistFromWhereQuery(query);
 	}
 
 }

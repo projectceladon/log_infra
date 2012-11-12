@@ -27,8 +27,6 @@ import java.net.ProtocolException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -48,7 +46,6 @@ import android.preference.PreferenceManager;
 import android.os.SystemProperties;
 import java.util.TimeZone;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
-import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashtoolserver.bean.FileInfo;
 
 public class CrashReportService extends Service {
@@ -129,6 +126,7 @@ public class CrashReportService extends Service {
 	}
 
 	private Runnable processEvent = new Runnable(){
+
 		public void run() {
 
 			try {

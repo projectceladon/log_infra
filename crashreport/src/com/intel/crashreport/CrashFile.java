@@ -21,6 +21,9 @@ package com.intel.crashreport;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.Scanner;
 import com.intel.parsing.*;
 
@@ -51,27 +54,55 @@ public class CrashFile {
 	boolean bMissingData2;
 
 	public CrashFile(String path) throws FileNotFoundException {
+		this(path,true);
+	}
+
+	public CrashFile(String path, boolean toParse) throws FileNotFoundException{
 		//TODO watch if SDcard is mounted : special intent
 		crashFile = openCrashFile(path);
 		bMissingData0 = true;
 		bMissingData1 = true;
 		bMissingData2 = true;
 		fillCrashFile(crashFile);
-		//if data are not present, we try to generate it
-		if (bMissingData0 && bMissingData1 && bMissingData2)
-		{
-			Log.w("Missing Data, try to regenerate crashfile : " + type);
-			if (!type.equals("")){
-				MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei);
-				if (aParser.execParsing() == 0){
-					crashFile = openCrashFile(path);
-					fillCrashFile(crashFile);
-				}else{
-					Log.w("Error while parsing crashfile");
-				}
+		if(toParse) {
+			//if data are not present, we try to generate it
+			if (bMissingData0 && bMissingData1 && bMissingData2)
+			{
+				Log.w("Missing Data, try to regenerate crashfile : " + type);
+				if (!type.equals("")){
+					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei);
+					if (aParser.execParsing() == 0){
+						crashFile = openCrashFile(path);
+						fillCrashFile(crashFile);
+					}else{
+						Log.w("Error while parsing crashfile");
+					}
 
+				}
 			}
 		}
+	}
+
+	public void writeCrashFile(String reason) throws FileNotFoundException,IOException{
+			OutputStreamWriter record = new OutputStreamWriter(new FileOutputStream(crashFile));
+			record.write("EVENT="+eventName+"\n");
+			record.write("ID="+eventId+"\n");
+			record.write("SN="+sn+"\n");
+			record.write("IMEI="+imei+"\n");
+			record.write("DATE="+date+"\n");
+			record.write("UPTIME="+uptime+"\n");
+			record.write("BUILD="+buildId+"\n");
+			record.write("MODEM="+modem+"\n");
+			record.write("BOARD="+board+"\n");
+			record.write("TYPE="+type+"_"+reason+"\n");
+			record.write("DATA0="+data0+"\n");
+			record.write("DATA1="+data1+"\n");
+			record.write("DATA2="+data2+"\n");
+			record.write("DATA3="+data3+"\n");
+			record.write("DATA4="+data4+"\n");
+			record.write("DATA5="+data5+"\n");
+			record.write("_END\n");
+			record.close();
 	}
 
 	private File openCrashFile(String path) {

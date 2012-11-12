@@ -51,7 +51,23 @@ public enum EventGenerator {
 		return result;
 	}
 
-	public boolean generateEvent(CustomizableEventData aEventData){
+	public CustomizableEventData getEmptyRainEvent(){
+		CustomizableEventData result = new CustomizableEventData();
+		result.setEventName("RAIN");
+		return result;
+	}
+
+	public boolean generateEventRain(CrashSignature signature, int occurences) {
+		CustomizableEventData eventRain = getEmptyRainEvent();
+		eventRain.setType(signature.getType());
+		eventRain.setData0(signature.getData0());
+		eventRain.setData1(signature.getData1());
+		eventRain.setData2(signature.getData2());
+		eventRain.setData3(""+occurences);
+		return generateEvent(eventRain,false);
+	}
+
+	public boolean generateEvent(CustomizableEventData aEventData,boolean toNotify) {
 		boolean bResult = true;
 		if (mContext != null){
 			EventDB db = new EventDB(mContext);
@@ -91,8 +107,10 @@ public enum EventGenerator {
 
 				db.addEvent(event);
 				db.close();
-				Intent intent = new Intent("com.intel.crashreport.intent.CRASH_NOTIFY");
-				mContext.sendBroadcast(intent);
+				if (toNotify) {
+					Intent intent = new Intent("com.intel.crashreport.intent.CRASH_NOTIFY");
+					mContext.sendBroadcast(intent);
+				}
 			} catch (Exception e) {
 				Log.w("generateEvent: Exception : ", e);
 				bResult = false;
@@ -102,6 +120,10 @@ public enum EventGenerator {
 			Log.e("generateEvent/mContext is null");
 			return false;
 		}
+	}
+
+	public boolean generateEvent(CustomizableEventData aEventData){
+		return generateEvent(aEventData,true);
 	}
 
 	private String sha1Hash( String toHash ){

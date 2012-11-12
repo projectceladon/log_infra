@@ -21,6 +21,7 @@ package com.intel.crashreport;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -51,6 +52,7 @@ public class Event {
 	private boolean dataReady = true;
 	private boolean uploaded = false;
 	private boolean logUploaded = false;
+	private String origin = "";
 
 	public Event() {}
 
@@ -142,6 +144,10 @@ public class Event {
 			deviceId = crashFile.getSn();
 			setImei(crashFile.getImei());
 			uptime = crashFile.getUptime();
+			if(type.equals("ANR")) {
+				AnrEvent anrFile = new AnrEvent(crashDir);
+				origin = anrFile.getTraceFileId();
+			}
 		} catch (FileNotFoundException e) {
 			eventId = histevent.getEventId();
 			eventName = histevent.getEventName();
@@ -151,6 +157,8 @@ public class Event {
 			readDeviceIdFromFile();
 			imei = readImeiFromSystem();
 			Log.w(toString() + ", Crashfile not found, path: " + crashDir);
+		} catch (IOException e) {
+			Log.w(toString() + ", can not find ANR origin");
 		}
 	}
 
@@ -506,6 +514,14 @@ public class Event {
 
 	public void setLogUploaded(boolean logUploaded) {
 		this.logUploaded = logUploaded;
+	}
+
+	public void setOrigin(String mOrigin) {
+		origin = mOrigin;
+	}
+
+	public String getOrigin() {
+		return origin;
 	}
 
 }
