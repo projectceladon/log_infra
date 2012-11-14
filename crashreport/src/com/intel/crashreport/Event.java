@@ -117,6 +117,8 @@ public class Event {
 			fillBzEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("ERROR"))
 			fillErrorEvent(histEvent, myBuild);
+		else if (histEvent.getEventName().equals("INFO"))
+			fillInfoEvent(histEvent, myBuild);
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild) {
@@ -174,6 +176,17 @@ public class Event {
 	}
 
 	private void fillStatsEvent(HistoryEvent histevent, String myBuild) {
+		GenericParseFile aParseFile = null;
+		try{
+			aParseFile = new GenericParseFile(crashDir, "_trigger");
+
+		}catch (FileNotFoundException e){
+			Log.w(toString() + ",parsefile couldn't be created: " + crashDir);
+		}
+		fillGenericEvent(histevent,myBuild,aParseFile);
+	}
+
+	private void fillGenericEvent(HistoryEvent histevent, String myBuild,GenericParseFile aParseFile) {
 		crashDir = histevent.getOption();
 		eventId = histevent.getEventId();
 		eventName = histevent.getEventName();
@@ -182,6 +195,14 @@ public class Event {
 		buildId = myBuild;
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
+		if (aParseFile != null) {
+			data0 = aParseFile.getValueByName("DATA0");
+			data1 = aParseFile.getValueByName("DATA1");
+			data2 = aParseFile.getValueByName("DATA2");
+			data3 = aParseFile.getValueByName("DATA3");
+			data4 = aParseFile.getValueByName("DATA4");
+			data5 = aParseFile.getValueByName("DATA5");
+		}
 	}
 
 	private void fillStateEvent(HistoryEvent histevent, String myBuild) {
@@ -216,17 +237,28 @@ public class Event {
 		imei = readImeiFromSystem();
 	}
 
-        private void fillErrorEvent(HistoryEvent histevent, String myBuild) {
-		crashDir = histevent.getOption();
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
-		date = convertDate(histevent.getDate());
-		type = histevent.getType();
-		buildId = myBuild;
-		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
+	private void fillErrorEvent(HistoryEvent histevent, String myBuild) {
+		GenericParseFile aParseFile = null;
+		try{
+			aParseFile = new GenericParseFile(crashDir, "_errorevent");
+
+		}catch (FileNotFoundException e){
+			Log.w(toString() + ",parsefile couldn't be created: " + crashDir);
+		}
+		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
 
+
+	private void fillInfoEvent(HistoryEvent histevent, String myBuild) {
+		GenericParseFile aParseFile = null;
+		try{
+			aParseFile = new GenericParseFile(crashDir, "_infoevent");
+
+		}catch (FileNotFoundException e){
+			Log.w(toString() + ",parsefile couldn't be created: " + crashDir);
+		}
+		fillGenericEvent(histevent,myBuild,aParseFile);
+	}
 
 	public com.intel.crashtoolserver.bean.Event getEventForServer(Build build) {
 		com.intel.crashtoolserver.bean.Event event;

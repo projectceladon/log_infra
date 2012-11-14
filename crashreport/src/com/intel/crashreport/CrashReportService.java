@@ -858,7 +858,7 @@ public class CrashReportService extends Service {
 			case ServiceMsg.uploadFailFromSQL: {
 				if (serviceState == ServiceState.UploadEvent) {
 					Log.i("ServiceHandler: uploadFailFromSQL");
-					sendMsgToActivity("Report fail : Can't read local files");
+					sendMsgToActivity("Report fail : error while accessing SQL database");
 					final int time = checkDateToRetry();
 					sendMsgToActivity("Report is postponed in "+ time +" minutes");
 					sendMsgToActivity("Otherwise, exit and check again the available events");

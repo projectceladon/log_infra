@@ -75,7 +75,12 @@ public class EventDB {
 	public static final String KEY_SCREENSHOT_PATH = "screenshotPath";
 	public static final String KEY_CREATION_DATE = "creationDate";
 	public static final String KEY_UPLOAD_DATE = "uploadDate";
-
+	public static final String KEY_REASON = "reason";
+	public static final String KEY_OCCURRENCES = "occurrences";
+	public static final String KEY_LAST_FIBONACCI = "last_fibo";
+	public static final String KEY_NEXT_FIBONACCI = "next_fibo";
+	public static final String KEY_RAINID = "raindId";
+	public static final String OTHER_EVENT_NAMES = "'STATS','APLOG','BZ','INFO','ERROR'";
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -275,9 +280,7 @@ public class EventDB {
 
 	public Cursor fetchNotUploadedLogs(String crashTypes[]) throws SQLException {
 		StringBuilder bQuery = new StringBuilder("");
-		bQuery.append("("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0') or "+
-				"("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0') or "+
-				"("+KEY_NAME+"='BZ' and "+KEY_UPLOADLOG+"='0') or ");
+		bQuery.append("("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0') or ");
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
@@ -358,9 +361,7 @@ public class EventDB {
 
 	public Boolean isThereEventToUpload(String crashTypes[]) {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0'");
-		bQuery.append(" or ("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
-		bQuery.append(" or ("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
-		bQuery.append(" or ("+KEY_NAME+"='BZ' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
+		bQuery.append(" or ("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
 		appendQueryForCrashTypes(crashTypes,bQuery);
 		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
 		return isEventExistFromWhereQuery(bQuery.toString());
@@ -386,10 +387,10 @@ public class EventDB {
 
 	public int getEventNumberLogToUpload(String crashTypes[]) {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='1'");
-		bQuery.append(" and( ("+KEY_NAME+"='STATS' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
+		bQuery.append(" and( ("+KEY_NAME+ " in  ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
 		appendQueryForCrashTypes(crashTypes,bQuery);
-		bQuery.append(" or ("+KEY_NAME+"='APLOG' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
-		bQuery.append(" or ("+KEY_NAME+"='BZ' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' ))");
+		//required to close the query properly
+		bQuery.append(")");
 		Log.d("getEventNumberLogToUpload : Query string = " +bQuery.toString() );
 		return getNumberFromWhereQuery(bQuery.toString());
 	}
