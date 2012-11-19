@@ -57,14 +57,8 @@ public class CrashReportHome extends Activity {
 		Button button_aplogs = (Button) findViewById(R.id.button_report_aplogs);
 		button_aplogs.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				new UploadAplogTask().execute();
-				AlertDialog alert = new AlertDialog.Builder(context).create();
-				alert.setMessage("A background request of log upload has been created.");
-				alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-					}
-				});
-				alert.show();
+				Intent intent = new Intent(getApplicationContext(), UploadAplogActivity.class);
+				startActivity(intent);
 			}
 		});
 
@@ -157,35 +151,5 @@ public class CrashReportHome extends Activity {
 		newFragment.show(getFragmentManager(), "dialog");
 	}
 
-	private class UploadAplogTask extends AsyncTask<Void, Void, Void> {
 
-		@Override
-		protected Void doInBackground(Void... params) {
-			File aplogTrigger = new File("/logs/aplogs/aplog_trigger");
-			if (!aplogTrigger.exists()) {
-				//to manage case  of crashlogd not launched
-				aplogTrigger.delete();
-			}
-			try {
-				BufferedOutputStream write = new BufferedOutputStream(new FileOutputStream(aplogTrigger));
-				write.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(Void... params) {
-		}
-
-		protected void onPostExecute(Void... params) {
-
-		}
-
-	}
 }

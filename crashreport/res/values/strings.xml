@@ -40,6 +40,7 @@
     <string name="persistant_text">Configuration persistant</string>
     <string name="menu_aplogs">Upload my logs</string>
     <string name="menu_bugzilla">Report a bug</string>
+    <!-- Bugzilla part-->
     <string name="title_activity_bugzilla_main">BugzillaMainActivity</string>
     <string name="bugzilla_title">Summary :</string>
     <string name="bugzilla_summary">Description :</string>
@@ -59,5 +60,9 @@
     <string name="intel_email">\@intel.com</string>
     <string name="list_bugzilla">Check my BZ history</string>
     <string name="list_bugzilla_title">BZ events created with the phone :</string>
-
+    <!-- Upload log part-->
+    <string name="upload_log_button">Upload</string>
+    <string name="upload_log_ALL">All logs</string>
+    <string name="upload_log_DEFAULT">Default number of logs</string>
+    <string name="select_upload">Number of log to upload :</string>
 </resources>

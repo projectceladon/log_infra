@@ -28,6 +28,7 @@ public class BugzillaSummaryActivity extends Activity {
 	private Context context = this;
 	private boolean fromGallery;
 
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.bugzilla_summary);
@@ -78,6 +79,7 @@ public class BugzillaSummaryActivity extends Activity {
 		});
 	}
 
+	@Override
 	public void onResume() {
 		TextView infos = (TextView) findViewById(R.id.bugzilla_summary_text);
 		CrashReport app = (CrashReport)getApplicationContext();
@@ -92,8 +94,9 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "With Aplogs attached";
 		infos.setText(text);
 		super.onResume();
-    }
+	}
 
+	@Override
 	public void onStart() {
 		Intent intent = getIntent();
 		fromGallery = intent.getBooleanExtra("com.intel.crashreport.bugzilla.fromgallery", false);
@@ -114,6 +117,10 @@ public class BugzillaSummaryActivity extends Activity {
 				CrashReport app = (CrashReport)getApplicationContext();
 				BugStorage bugzillaStorage = app.getBugzillaStorage();
 				String line = "";
+				if (bugzillaStorage.getLogLevel()>0){
+					line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
+					write.write(line.getBytes());
+				}
 				line = "SUMMARY="+bugzillaStorage.getSummary()+"\n";
 				write.write(line.getBytes());
 				line = "TYPE="+bugzillaStorage.getBugType()+"\n";
@@ -181,6 +188,7 @@ public class BugzillaSummaryActivity extends Activity {
 
 	}
 
+	@Override
 	public void onBackPressed() {
 		finish();
 		if (!fromGallery) {

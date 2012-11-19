@@ -115,6 +115,7 @@
         <activity android:name=".bugzilla.ui.BugzillaSummaryActivity" />
         <activity android:name=".bugzilla.ui.UserInformationsActivity" />
         <activity android:name=".bugzilla.ui.ListBugzillaActivity" />
+        <activity android:name=".UploadAplogActivity" />
 
         <!-- Declare dedicated receivers to catch events from other applications -->
         <receiver android:name=".receivers.KratosSessionInfoReceiver" >

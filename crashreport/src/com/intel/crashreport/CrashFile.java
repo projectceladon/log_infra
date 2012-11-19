@@ -70,7 +70,7 @@ public class CrashFile {
 			//if data are not present, we try to generate it
 			if (bMissingData0 && bMissingData1 && bMissingData2)
 			{
-				Log.w("Missing Data, try to regenerate crashfile : " + type);
+				Log.i("Missing Data, try to regenerate crashfile : " + type);
 				if (!type.equals("")){
 					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei);
 					if (aParser.execParsing() == 0){

@@ -127,6 +127,42 @@
         android:textCursorDrawable="@drawable/black_cursor"
         android:textSize="22sp" />
 
+    <RadioGroup android:layout_width="fill_parent"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:id="@+id/bz_radiogroup_upload">
+
+    <TextView
+        android:id="@+id/bz_textViewSelect"
+        android:paddingTop="15dip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_upload"
+        android:textColor="#ffffff"
+        android:textSize="24sp" />
+
+    <RadioButton
+        android:id="@+id/bz_radioButtonDefault"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="@string/upload_log_DEFAULT" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <RadioButton
+        android:id="@+id/bz_radioButtonAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="@string/upload_log_ALL" />
+    </RadioGroup>
+
      <CheckBox
          android:id="@+id/bz_screenshot_box"
          android:layout_width="match_parent"

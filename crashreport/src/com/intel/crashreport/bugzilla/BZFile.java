@@ -87,6 +87,9 @@ public class BZFile {
 							screenshotsPath.add(value);
 							hasScreenshotPath = true;
 						}
+						else if (name.equals("APLOG")) {
+							//nothing to do
+						}
 						else
 							Log.w("BzFile: field name\"" + name + "\" not recognised");
 					}
