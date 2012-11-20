@@ -1,0 +1,24 @@
+{
+    "description":"Telephony debug logs",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/module/n_gsm/parameters/debug",
+                "value":"0x4",
+                "append":"false"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/module/n_gsm/parameters/debug",
+                "value":"0x0",
+                "append":"false"
+            }
+        }
+    ]
+}
