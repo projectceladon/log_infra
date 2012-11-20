@@ -38,7 +38,7 @@ public class NotificationMgr {
 
 	public void notifyEventToUpload(int crashNumber, int uptimeNumber) {
 		CharSequence tickerText;
-		CharSequence contentTitle = "Phone Doctor";
+		CharSequence contentTitle = "PSI Phone Doctor";
 		CharSequence contentText;
 		if ((crashNumber == 0) && (uptimeNumber != 0)) {
 			tickerText = "Uptime event";

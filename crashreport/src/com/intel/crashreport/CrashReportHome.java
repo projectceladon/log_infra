@@ -147,7 +147,7 @@ public class CrashReportHome extends Activity {
 			.setTitle(getString(R.string.about_title))
 			.setMessage(
 					getString(R.string.app_name) + " v" + getString(R.string.app_version)
-					+ "\n" + "created by Intel DnT team.")
+					+ "\n" + "© Intel 2012.")
 					.create();
 		}
 	}
