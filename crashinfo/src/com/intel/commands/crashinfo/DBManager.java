@@ -42,6 +42,7 @@ public class DBManager {
 	private static final String DATABASE_TYPE_TABLE = "events_type";
 	private static final String DATABASE_EVENTS_TABLE = "events";
 	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
+	private static final String DATABASE_BZ_TABLE = "bz_events";
 	public static final String KEY_CRITICAL = "critical";
 
 	public static final String KEY_ROWID = "_id";
@@ -63,6 +64,15 @@ public class DBManager {
 	public static final String KEY_UPLOADLOG = "logsuploaded";
 	public static final String KEY_NOTIFIED = "notified";
 	public static final String KEY_DATA_READY = "dataReady";
+	public static final String KEY_SUMMARY = "summary";
+	public static final String KEY_DESCRIPTION = "description";
+	public static final String KEY_SEVERITY = "severity";
+	public static final String KEY_BZ_TYPE = "bzType";
+	public static final String KEY_BZ_COMPONENT = "bzComponent";
+	public static final String KEY_SCREENSHOT = "screenshot";
+	public static final String KEY_SCREENSHOT_PATH = "screenshotPath";
+	public static final String KEY_CREATION_DATE = "creationDate";
+	public static final String KEY_UPLOAD_DATE = "uploadDate";
 
 
 	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
@@ -73,7 +83,18 @@ public class DBManager {
 			+"(ce."+KEY_DATA4+"='' or ce."+KEY_DATA4+"=trim(e."+KEY_DATA4+")) and "
 			+"(ce."+KEY_DATA5+"='' or ce."+KEY_DATA5+"=trim(e."+KEY_DATA5+"))";
 
-
+	public Cursor fetchAllBZs() {
+		Cursor cursor;
+		String whereQuery = "Select bz."+KEY_ID+" as "+KEY_ID+", "+KEY_SUMMARY+" as "+KEY_SUMMARY+", "+KEY_DESCRIPTION+" as "+KEY_DESCRIPTION+", "+
+				KEY_SEVERITY+" as "+KEY_SEVERITY+", "+KEY_BZ_TYPE+" as "+KEY_BZ_TYPE+", "+KEY_BZ_COMPONENT+" as "+KEY_BZ_COMPONENT+", "+KEY_SCREENSHOT+" as "+KEY_SCREENSHOT+", "+
+				KEY_UPLOAD+" as "+KEY_UPLOAD+", "+KEY_UPLOADLOG+" as "+KEY_UPLOADLOG+", "+
+				KEY_UPLOAD_DATE+" as "+KEY_UPLOAD_DATE+", "+KEY_CREATION_DATE+" as "+KEY_CREATION_DATE+", "+KEY_SCREENSHOT_PATH+ " as "+KEY_SCREENSHOT_PATH+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_BZ_TABLE+" bz "+
+				"where bz."+KEY_ID+" = "+"e."+KEY_ID;
+		cursor = myDB.rawQuery(whereQuery, null);
+		if (cursor != null)
+			cursor.moveToFirst();
+		return cursor;
+	}
 
 	public static enum EventLevel{BASE,DETAIL,FULL};
 
@@ -141,6 +162,52 @@ public class DBManager {
 		}
 		return sSql;
 	}
+
+
+	public void getBz() throws Exception
+	{
+		Cursor mCursor;
+		try {
+			//Defining columns to return
+			String[] listColumns;
+			listColumns = new String[] {KEY_ID,KEY_SUMMARY,KEY_DESCRIPTION,KEY_SEVERITY,KEY_BZ_TYPE,KEY_BZ_COMPONENT,KEY_SCREENSHOT,KEY_SCREENSHOT_PATH};
+			mCursor = fetchAllBZs();
+
+			//header
+			if (mCursor != null) {
+				int [] indexListColumns = new int[listColumns.length];
+				String sHeader="";
+				for (int i = 0; i < indexListColumns.length; i++) {
+					indexListColumns[i] = mCursor.getColumnIndex(listColumns[i]);
+					if (i==0){
+						sHeader = listColumns[i];
+					}else{
+						sHeader += " | " + listColumns[i];
+					}
+				}
+				System.out.println(sHeader);
+				//content
+				while (!mCursor.isAfterLast()) {
+					String sLine="";
+					for (int i = 0; i < listColumns.length; i++) {
+						String sColValue ="";
+						sColValue = mCursor.getString(indexListColumns[i]);
+						if (i==0){
+							sLine = sColValue;
+						}else{
+							sLine += " | " + sColValue;
+						}
+					}
+					System.out.println(sLine);
+					mCursor.moveToNext();
+				}
+				mCursor.close();
+			}
+		} catch (SQLException e) {
+			System.err.println( "count SQLException");
+		}
+	}
+
 
 	public void getEvent(EventLevel aLevel, ArrayList<OptionData> mySubOptions) throws Exception
 	{

@@ -97,6 +97,7 @@ public class CrashInfo {
 		usage.append("                 clean [--filter-id --filter-time]\n");
 		usage.append("                 uploadstate [--filter-id --log]\n");
 		usage.append("                 analyzeevent [--help for parameter list]\n");
+		usage.append("                 getbz\n");
 
 		System.err.println(usage.toString());
 	}
@@ -129,6 +130,9 @@ public class CrashInfo {
 			}
 			else if (sCurArg.equals("analyzeevent")) {
 				mySubCommand = new AnalyzeEvent();
+			}
+			else if (sCurArg.equals("getbz")) {
+				mySubCommand = new GetBZ();
 			}
 			if (mySubCommand != null){
 				mySubCommand.setArgs(getSubArgs());
