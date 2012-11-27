@@ -1,5 +1,8 @@
 package com.intel.crashreport.bugzilla.ui;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -50,12 +53,14 @@ public class BugStorage {
 	}
 
 	public void setBugHasScreenshot(boolean screenshot) {
+		if(!screenshot && hasValuesSaved() && getBugHasScreenshot())
+			mPrivatePrefsEditor.remove(BUGZILLA_SCREENSHOT_PATH);
 		mPrivatePrefsEditor.putBoolean(BUGZILLA_HAS_SCREENSHOT, screenshot);
 		mPrivatePrefsEditor.commit();
 	}
 
-	public void setBugScreenshotPath(String screenshot) {
-		mPrivatePrefsEditor.putString(BUGZILLA_SCREENSHOT_PATH, screenshot);
+	public void setBugScreenshotPath(ArrayList<String> screenshots) {
+		mPrivatePrefsEditor.putStringSet(BUGZILLA_SCREENSHOT_PATH, new HashSet<String>(screenshots));
 		mPrivatePrefsEditor.commit();
 	}
 
@@ -83,8 +88,13 @@ public class BugStorage {
 		return mPrivatePrefs.getBoolean(BUGZILLA_HAS_SCREENSHOT, false);
 	}
 
-	public String getScreenshotPath() {
-		return mPrivatePrefs.getString(BUGZILLA_SCREENSHOT_PATH, "");
+	public ArrayList<String> getScreenshotPath() {
+		HashSet<String> screenshots = (HashSet<String>)mPrivatePrefs.getStringSet(BUGZILLA_SCREENSHOT_PATH, null);
+		if(screenshots == null)
+			return new ArrayList<String>();
+		return new ArrayList<String>(screenshots);
+
+
 	}
 
 	public boolean hasValuesSaved() {

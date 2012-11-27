@@ -2,11 +2,14 @@ package com.intel.crashreport.bugzilla.ui;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
-import com.intel.crashreport.Log;
 import com.intel.crashreport.R;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,33 +21,52 @@ public class ScreenshotAdapter extends BaseAdapter{
 	private Context mContext;
 	private LayoutInflater mInflater;
 	private static String TAG = "ScreenshotAdapter";
+	private HashMap<String,Boolean> screenshotsSelected;
 
 	static class ViewHolder {
 		ImageView screenshot;
 	}
 
-	public ScreenshotAdapter(Context context){
+	public ScreenshotAdapter(Context context) {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
+		screenshotsSelected = new HashMap<String,Boolean>();
+	}
+
+	public void refreshScreenshotsSelected(ArrayList<String> screenshotsFiles) {
+		screenshotsSelected = new HashMap<String,Boolean>();
+		String files[] = getScreenshots();
+		for(String file:files) {
+			screenshotsSelected.put(file, screenshotsFiles.contains(file));
+		}
 
 	}
 
+	public void refreshScreenshotsSelected() {
+		String files[] = getScreenshots();
+		for(String file:files) {
+			if(!screenshotsSelected.containsKey(file))
+				screenshotsSelected.put(file, false);
+		}
+	}
+
 	public int getCount() {
-		String[] screenshots = getScreenshots();
-		if(null != screenshots)
-			return screenshots.length;
+		if(null != screenshotsSelected)
+			return screenshotsSelected.size();
 		return 0;
 	}
 
 	public int getItemPosition(String filename){
-		String[] screenshots = getScreenshots();
-		if (null != screenshots) {
-			for (int i=0;i<screenshots.length;i++) {
-				if (screenshots[i].equals(filename)) {
+		Iterator<String> itFilename = screenshotsSelected.keySet().iterator();
+		if (null != itFilename) {
+			int i=0;
+			while(itFilename.hasNext()){
+				if(filename.equals(itFilename.next()))
 					return i;
-				}
+				i++;
 			}
 		}
+
 		return -1;
 	}
 
@@ -67,12 +89,19 @@ public class ScreenshotAdapter extends BaseAdapter{
 
 	}
 
-	public Object getItem(int position) {
-		String[] screenshotsFiles = getScreenshots();
-		if (null != screenshotsFiles){
+	public ArrayList<String> getScreenshotsSelected() {
+		ArrayList<String> screens = new ArrayList<String>();
+		for(String screenshot:screenshotsSelected.keySet()) {
+			if(screenshotsSelected.get(screenshot))
+				screens.add(screenshot);
+		}
+		return screens;
+	}
 
-			if (screenshotsFiles.length > position)
-				return screenshotsFiles[position];
+	public Object getItem(int position) {
+		ArrayList<String> listFileName = new ArrayList<String>(screenshotsSelected.keySet());
+		if(listFileName != null && listFileName.size() > position) {
+			return listFileName.get(position);
 		}
 		return "";
 	}
@@ -81,20 +110,33 @@ public class ScreenshotAdapter extends BaseAdapter{
 		return position;
 	}
 
+	public void updateItem(View v){
+		ViewHolder child = (ViewHolder)v.getTag();
+		String filename = (String)child.screenshot.getTag();
+		screenshotsSelected.put(filename, !screenshotsSelected.get(filename));
+		if(screenshotsSelected.get(filename))
+			v.setBackgroundColor(Color.parseColor("#52e0ed"));
+		else v.setBackgroundColor(Color.parseColor("#00579c"));
+	}
+
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ViewHolder holder;
+
 		if (convertView == null) {
 			convertView = mInflater.inflate(R.layout.screenshot_item,null);
 			holder = new ViewHolder();
 			holder.screenshot = (ImageView)convertView.findViewById(R.id.screenshot_view);
-
 			convertView.setTag(holder);
 		}
 		else {
 			holder = (ViewHolder)convertView.getTag();
 		}
-		String[] screenshotsFiles = getScreenshots();
-		holder.screenshot.setImageDrawable(Drawable.createFromPath("/mnt/sdcard/Pictures/Screenshots/"+screenshotsFiles[position]));
+		String filename = (String)getItem(position);
+		holder.screenshot.setTag(filename);
+		holder.screenshot.setImageDrawable(Drawable.createFromPath("/mnt/sdcard/Pictures/Screenshots/"+filename));
+		if(screenshotsSelected.get(filename))
+			convertView.setBackgroundColor(Color.parseColor("#52e0ed"));
+		else convertView.setBackgroundColor(Color.parseColor("#00579c"));
 		return convertView;
 	}
 }

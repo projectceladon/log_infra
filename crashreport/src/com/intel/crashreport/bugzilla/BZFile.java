@@ -21,6 +21,7 @@ package com.intel.crashreport.bugzilla;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 import com.intel.crashreport.Log;
@@ -32,13 +33,14 @@ public class BZFile {
 		private String type = "";
 		private String component = "";
 		private String severity = "";
-		private String screenshotPath = "";
+		private ArrayList<String> screenshotsPath;
 		private boolean hasScreenshotPath = false;
 
 		private File bzFile;
 
 		public BZFile(String path) throws FileNotFoundException {
 			bzFile = openBzFile(path);
+			screenshotsPath = new ArrayList<String>();
 			fillBzFile(bzFile);
 
 		}
@@ -81,8 +83,8 @@ public class BZFile {
 							component = value;
 						else if (name.equals("SEVERITY"))
 							severity = value;
-						else if (name.equals("SCREENSHOTPATH")) {
-							screenshotPath = value;
+						else if (name.equals("SCREENSHOT")) {
+							screenshotsPath.add(value);
 							hasScreenshotPath = true;
 						}
 						else
@@ -134,12 +136,39 @@ public class BZFile {
 			this.severity = severity;
 		}
 
-		public String getScreenshotPath() {
-			return screenshotPath;
+		public ArrayList<String> getScreenshotsPath() {
+			return screenshotsPath;
 		}
 
-		public void setScreenshotPath(String screenshotPath) {
-			this.screenshotPath = screenshotPath;
+		public String getScreenshotsPathToString() {
+			String path = "";
+			for(String screen:screenshotsPath) {
+				if(path.equals(""))
+					path = screen;
+				else
+					path += "," + screen;
+
+			}
+			return path;
+		}
+
+		public void setScreenshotsPath(String screenshotPath) {
+			try{
+				String screens[] = screenshotPath.split(",");
+				if(screens.length > 0) {
+					for(String screenshot:screens){
+						screenshotsPath.add(screenshot);
+					}
+				}
+
+			}
+			catch(NullPointerException e){
+				Log.w("BZ:setScreenshots: not screenshot founded");
+			}
+		}
+
+		public void setScreenshotsPath(ArrayList<String> listScreenshots) {
+			screenshotsPath = listScreenshots;
 		}
 
 		public boolean hasScreenshotPath() {

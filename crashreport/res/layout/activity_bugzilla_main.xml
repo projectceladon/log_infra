@@ -133,7 +133,7 @@
          android:layout_height="wrap_content"
          android:layout_alignParentLeft="true"
          android:layout_alignParentRight="true"
-         android:paddingTop="15dip"
+         android:layout_marginTop="15dp"
          android:text="@string/bugzilla_screenshot"
          android:textColor="#ffffff"
          android:textSize="24sp" />
@@ -142,7 +142,7 @@
          android:id="@+id/bz_select_screenshot"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:spacing="55dip" />
+         android:spacing="20dip" />
 
 </LinearLayout>
 </ScrollView>

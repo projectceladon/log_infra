@@ -1,12 +1,13 @@
 package com.intel.crashreport.bugzilla.ui;
 
+import java.util.ArrayList;
+
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportHome;
 import com.intel.crashreport.R;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,6 +16,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -41,6 +44,17 @@ public class BugzillaMainActivity extends Activity {
 		galleryAdapter = new ScreenshotAdapter(getApplicationContext());
 		Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
 		screenshot.setAdapter(galleryAdapter);
+		screenshot.setOnItemClickListener(new OnItemClickListener(){
+
+			public void onItemClick(AdapterView<?> adapter, View view, int position,
+					long id) {
+				galleryAdapter.updateItem(view);
+				CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
+				pictureBox.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
+				                                 +galleryAdapter.getScreenshotsSelected().size() + ")");
+			}
+
+		});
 
 		CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
 		pictureBox.setOnCheckedChangeListener(new OnCheckedChangeListener(){
@@ -49,9 +63,12 @@ public class BugzillaMainActivity extends Activity {
 					boolean isChecked) {
 				Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
 				if (isChecked) {
+					galleryAdapter.refreshScreenshotsSelected();
 					if (screenshot.getAdapter().getCount() > 0) {
 						screenshot.setVisibility(View.VISIBLE);
 						galleryAdapter.notifyDataSetChanged();
+						buttonView.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
+                                                         +galleryAdapter.getScreenshotsSelected().size() + ")");
 					}
 					else {
 						AlertDialog alert = new AlertDialog.Builder(context).create();
@@ -65,7 +82,10 @@ public class BugzillaMainActivity extends Activity {
 						box.setChecked(false);
 					}
 				}
-				else screenshot.setVisibility(View.GONE);
+				else {
+					screenshot.setVisibility(View.GONE);
+					buttonView.setText(getResources().getText(R.string.bugzilla_screenshot));
+				}
 
 			}
 
@@ -165,6 +185,13 @@ public class BugzillaMainActivity extends Activity {
 
 		}
 
+		ArrayList<String> screenshots = new ArrayList<String>();
+		if(bugzillaStorage.hasValuesSaved()){
+			if (bugzillaStorage.getBugHasScreenshot()) {
+				screenshots = bugzillaStorage.getScreenshotPath();
+			}
+		}
+
 		if ((null != intent) && (null != intent.getAction()) && intent.getAction().equals(Intent.ACTION_VIEW)) {
 			if(intent.getType().startsWith("image/")){
 				Uri imageUri = intent.getData();
@@ -187,10 +214,9 @@ public class BugzillaMainActivity extends Activity {
 				{
 					fileName = imageUri.getLastPathSegment().toString();
 				}
-				int pos = galleryAdapter.getItemPosition(fileName);
-				if (-1 != pos) {
-					screenshot.setSelection(pos);
-					pictureBox.setChecked(true);
+
+				if (!fileName.equals("unknown")) {
+					screenshots.add(fileName);
 				}
 				else {
 					AlertDialog alert = new AlertDialog.Builder(context).create();
@@ -204,13 +230,13 @@ public class BugzillaMainActivity extends Activity {
 
 			}
 		}
-		else if(bugzillaStorage.hasValuesSaved()){
-			if (bugzillaStorage.getBugHasScreenshot()) {
-				int pos = galleryAdapter.getItemPosition(bugzillaStorage.getScreenshotPath());
-				if (-1 != pos)
-					screenshot.setSelection(pos);
-			}
-			pictureBox.setChecked(bugzillaStorage.getBugHasScreenshot());
+		galleryAdapter.refreshScreenshotsSelected(screenshots);
+
+		if(screenshots.size() > 0) {
+			int pos = galleryAdapter.getItemPosition(screenshots.get(screenshots.size() - 1));
+			if (-1 != pos)
+				screenshot.setSelection(pos);
+			pictureBox.setChecked(true);
 		}
 
 	}
@@ -270,8 +296,9 @@ public class BugzillaMainActivity extends Activity {
 		bugzillaStorage.setComponent((String)bz_component.getSelectedItem());
 		bugzillaStorage.setBugSeverity((String)bz_severity.getSelectedItem());
 		bugzillaStorage.setBugHasScreenshot(pictureBox.isChecked());
+
 		if(pictureBox.isChecked())
-			bugzillaStorage.setBugScreenshotPath((String)screenshot.getSelectedItem());
+			bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
 	}
 
 

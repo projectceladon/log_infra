@@ -656,7 +656,7 @@ public class EventDB {
 
 	public long addBZ(String eventId,BZFile bzfile,Date date) {
 		return addBZ(eventId,bzfile.getSummary(),bzfile.getDescription(),bzfile.getType(),bzfile.getSeverity(),bzfile.getComponent(),
-				      bzfile.getScreenshotPath(),date);
+				      bzfile.getScreenshotsPathToString(),date);
 	}
 
 	public long addBZ(String eventId, String summary, String description,
@@ -710,7 +710,7 @@ public class EventDB {
 		bz.setSeverity(cursor.getString(cursor.getColumnIndex(KEY_SEVERITY)));
 		bz.setHasScreenshot(cursor.getInt(cursor.getColumnIndex(KEY_SCREENSHOT)));
 		if (bz.hasScreenshot()) {
-			bz.setScreenshot(cursor.getString(cursor.getColumnIndex(KEY_SCREENSHOT_PATH)));
+			bz.setScreenshots(cursor.getString(cursor.getColumnIndex(KEY_SCREENSHOT_PATH)));
 		}
 		bz.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD)));
 		bz.setLogsUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG)));

@@ -1,6 +1,9 @@
 package com.intel.crashreport.bugzilla;
 
+import java.util.ArrayList;
 import java.util.Date;
+
+import com.intel.crashreport.Log;
 
 public class BZ {
 
@@ -10,8 +13,8 @@ public class BZ {
 	private String component = "";
 	private String severity = "";
 	private String type = "";
-	private boolean hasScreenshot = false;;
-	private String screenshot = "";
+	private boolean hasScreenshot = false;
+	private ArrayList<String> screenshots;
 	private boolean isUploaded = false;
 	private boolean logsAreUploaded = false;
 	private Date creationDate;
@@ -46,8 +49,24 @@ public class BZ {
 		hasScreenshot = (screenshot == 1);
 	}
 
-	public void setScreenshot(String screen) {
-		screenshot = screen;
+	public void setScreenshots(ArrayList<String> screen) {
+		screenshots = screen;
+	}
+
+	public void setScreenshots(String screen) {
+		try{
+			String screens[] = screen.split(",");
+			if(screens.length > 0) {
+				screenshots = new ArrayList<String>();
+				for(String screenshot:screens){
+					screenshots.add(screenshot);
+				}
+			}
+
+		}
+		catch(NullPointerException e){
+			Log.w("BZ:setScreenshots: not screenshot founded");
+		}
 	}
 
 	public void setSeverity(String sev) {
@@ -90,8 +109,8 @@ public class BZ {
 		return hasScreenshot;
 	}
 
-	public String getScreenshot() {
-		return screenshot;
+	public ArrayList<String> getScreenshots() {
+		return screenshots;
 	}
 
 	public boolean isUploaded() {

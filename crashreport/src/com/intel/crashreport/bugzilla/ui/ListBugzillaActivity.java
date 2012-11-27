@@ -3,7 +3,6 @@ package com.intel.crashreport.bugzilla.ui;
 import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.os.Bundle;

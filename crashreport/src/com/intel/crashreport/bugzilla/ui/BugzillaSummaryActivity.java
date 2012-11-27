@@ -1,10 +1,10 @@
 package com.intel.crashreport.bugzilla.ui;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportHome;
@@ -12,7 +12,6 @@ import com.intel.crashreport.R;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -89,7 +88,7 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "Component : "+bugzillaStorage.getComponent()+ "\n";
 		text += "Severity : "+bugzillaStorage.getSeverity()+ "\n";
 		text += "Description : "+bugzillaStorage.getDescription()+ "\n \n";
-		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot\n";
+		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
 		text += "With Aplogs attached";
 		infos.setText(text);
 		super.onResume();
@@ -142,8 +141,12 @@ public class BugzillaSummaryActivity extends Activity {
 				line = "DESCRIPTION="+strDescription+"\n";
 				write.write(line.getBytes());
 				if(bugzillaStorage.getBugHasScreenshot()) {
-					line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+bugzillaStorage.getScreenshotPath()+"\n";
-					write.write(line.getBytes());
+					ArrayList<String> screenshots = bugzillaStorage.getScreenshotPath();
+					for(String screenshot:screenshots) {
+						line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+screenshot+"\n";
+						write.write(line.getBytes());
+					}
+
 				}
 				line = "USERFIRSTNAME="+app.getUserFirstName()+"\n";
 				write.write(line.getBytes());

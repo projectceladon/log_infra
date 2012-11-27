@@ -44,7 +44,7 @@
     <string name="bugzilla_title">Summary :</string>
     <string name="bugzilla_summary">Description :</string>
     <string name="bugzilla_apply">Report now</string>
-    <string name="bugzilla_screenshot">With screen capture</string>
+    <string name="bugzilla_screenshot">Attach screen capture(s)</string>
     <string name="bugzilla_send">Send report</string>
     <string name="bugzilla_edit">Edit report</string>
     <string name="title_activity_bugzilla_summary">BugzillaSummaryActivity</string>
