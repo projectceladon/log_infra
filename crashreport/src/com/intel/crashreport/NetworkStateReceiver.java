@@ -25,21 +25,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
-
+import android.os.AsyncTask;
 public class NetworkStateReceiver extends BroadcastReceiver {
+
 
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
-			Log.d("NetworkStateReceiver: CONNECTIVITY_ACTION");
-			if (isNetworkAvailable(context)) {
-				Log.d("NetworkStateReceiver: connection available");
-				PackageManager pm = context.getPackageManager();
-				pm.setComponentEnabledSetting(new ComponentName(context, NetworkStateReceiver.class), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-				context.startService(new Intent(context, CrashReportService.class));
-			} else
-				Log.d("NetworkStateReceiver: connection not available");
+			Log.d("NetworkStateReceiver: Async process creation");
+			LongNetworkCheck aCheck = new LongNetworkCheck();
+			aCheck.contextASync = context;
+			//goAsync() is required to keep top priority for asyncTask
+			aCheck.result = goAsync();
+			aCheck.execute("");
 		}
 	}
 
@@ -47,5 +46,40 @@ public class NetworkStateReceiver extends BroadcastReceiver {
 		Connector conn = new Connector(context);
 		return conn.getDataConnectionAvailability();
 	}
+
+	private class LongNetworkCheck extends AsyncTask<String, Void, String> {
+		protected Context contextASync;
+		protected PendingResult result;
+		@Override
+		protected String doInBackground(String... params) {
+			Log.d("NetworkStateReceiver: CONNECTIVITY_ACTION");
+			if (isNetworkAvailable(contextASync)) {
+				Log.d("NetworkStateReceiver: connection available");
+				PackageManager pm = contextASync.getPackageManager();
+				pm.setComponentEnabledSetting(new ComponentName(contextASync, NetworkStateReceiver.class), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+				contextASync.startService(new Intent(contextASync, CrashReportService.class));
+			}else{
+				Log.d("NetworkStateReceiver: connection not available");
+			}
+			if (result != null){
+				result.finish();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+		}
+
+		@Override
+		protected void onPreExecute() {
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... values) {
+		}
+	}
+
+
 
 }
