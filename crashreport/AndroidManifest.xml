@@ -124,5 +124,12 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".receivers.InfoErrorEventReceiver" >
+            <intent-filter >
+                <action android:name="intel.intent.action.phonedoctor.REPORT_INFO" />
+                <action android:name="intel.intent.action.phonedoctor.REPORT_ERROR" />
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
