@@ -34,11 +34,11 @@ public class CrashReportActivity extends PreferenceActivity {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.menu);
         setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
-        EditTextPreference editLastName = (EditTextPreference)findPreference("userLastName");
+        EditTextPreference editLastName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_last_name_key));
         editLastName.setOnPreferenceChangeListener(listener);
-        EditTextPreference editFirstName = (EditTextPreference)findPreference("userFirstName");
+        EditTextPreference editFirstName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_first_name_key));
         editFirstName.setOnPreferenceChangeListener(listener);
-        EditTextPreference editMail = (EditTextPreference)findPreference("userMail");
+        EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
         editMail.setOnPreferenceChangeListener(listener);
         app = (CrashReport)getApplicationContext();
         editLastName.setText(app.getUserLastName());
@@ -51,11 +51,11 @@ public class CrashReportActivity extends PreferenceActivity {
 
         public boolean onPreferenceChange(Preference preference,
                 Object newValue) {
-            if(preference.getKey().equals("userLastName"))
+            if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_last_name_key)))
                 app.setUserLastName((String)newValue);
-            else if(preference.getKey().equals("userFirstName"))
+            else if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_first_name_key)))
                 app.setUserFirstName((String)newValue);
-            else if(preference.getKey().equals("userMail")) {
+            else if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_email_key))) {
                 String mail = (String)newValue;
                 if(mail.endsWith("@intel.com") && (mail.indexOf("@") == mail.lastIndexOf("@")) && (mail.indexOf("@")!=0))
                     app.setUserEmail((String)newValue);

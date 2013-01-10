@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportHome;
 import com.intel.crashreport.R;
@@ -125,7 +126,7 @@ public class BugzillaSummaryActivity extends Activity {
 				write.write(line.getBytes());
 				line = "TYPE="+bugzillaStorage.getBugType()+"\n";
 				write.write(line.getBytes());
-				Boolean bzMode = PreferenceManager.getDefaultSharedPreferences(app).getBoolean("uploadBZPref", false);
+				Boolean bzMode = new ApplicationPreferences(app).isBugzillaModuleInTestMode();
 				if (!bzMode) {
 					String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
 					String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);

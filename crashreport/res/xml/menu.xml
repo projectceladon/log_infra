@@ -14,91 +14,68 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
-
-     Author: Jeremy Rocher <jeremyx.rocher@intel.com>
 -->
+
 <PreferenceScreen
-  xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<PreferenceCategory android:title="Log settings">
-		<CheckBoxPreference
-			android:key="enableCrashLogReport"
-			android:title="Crash logs report"
-			android:summary="Enable crash logs upload"
-			android:defaultValue="true" />
-		<com.intel.crashreport.CrashLogsListPrefs
-			android:key="setReportCrashLogType"
-			android:dependency="enableCrashLogReport"
-			android:title="Crash logs type excluded"
-			android:summary="Set the crash logs type excluded from report"
-			android:dialogTitle="Crash logs type to exclude"
-			android:entries="@array/reportCrashLogsTypeText"
-			android:entryValues="@array/reportCrashLogsTypeValues"
-			android:defaultValue="APCOREDUMP,HPROF" />
-	</PreferenceCategory>
+    <ListPreference
+        android:title="@string/settings_event_report_management_title"
+        android:summary="@string/settings_event_report_management_summary"
+        android:key="@string/settings_event_report_management_key"
+        android:defaultValue="@string/settings_event_report_management_value_default"
+        android:entries="@array/uploadStateMenuText"
+        android:entryValues="@array/uploadStateMenuValues" />
 
-	<PreferenceCategory
-		android:title="General Settings">
-		<ListPreference
-			android:title="Report Management"
-			android:summary="How application react to new events"
-			android:key="uploadStatePref"
-			android:defaultValue="uploadImmediately"
-			android:entries="@array/uploadStateMenuText"
-			android:entryValues="@array/uploadStateMenuValues" />
-		<EditTextPreference
-			android:key="serverAddressPref"
-			android:defaultValue="crashtool.dtdns.net"
-			android:summary="Upload server URL"
-			android:title="Server Address" />
-		<EditTextPreference
-			android:key="serverPortPref"
-			android:defaultValue="4001"
-			android:summary="Upload server port"
-			android:title="Server Port" />
+    <PreferenceCategory
+        android:title="@string/settings_event_data_category_title">
 
-	</PreferenceCategory>
+        <CheckBoxPreference
+            android:key="@string/settings_event_data_enable_key"
+            android:title="@string/settings_event_data_enable_title"
+            android:summary="@string/settings_event_data_enable_summary"
+            android:defaultValue="@string/settings_event_data_enable_value_default" />
 
-	<PreferenceCategory android:title="Internal WiFi settings">
-		<CheckBoxPreference
-			android:title="Upload WiFi only"
-			android:defaultValue="false"
-			android:summary="Upload through WiFi only"
-			android:key="uploadWifiOnlyPref" />
-		<EditTextPreference
-			android:key="wifiSsidPref"
-			android:defaultValue="AndroidAP7403"
-			android:summary="Internal Wifi SSID name"
-			android:title="Wifi SSID" />
-		<EditTextPreference
-			android:key="wifiPassPref"
-			android:password="true"
-			android:defaultValue="test1234"
-			android:summary="Internal Wifi password"
-			android:title="Wifi Password"/>
-	</PreferenceCategory>
+        <com.intel.crashreport.CrashLogsListPrefs
+            android:key="@string/settings_event_data_types_key"
+            android:dependency="@string/settings_event_data_enable_key"
+            android:title="@string/settings_event_data_types_title"
+            android:summary="@string/settings_event_data_types_summary"
+            android:dialogTitle="@string/settings_event_data_types_dialog_title"
+            android:entries="@array/reportCrashLogsTypeText"
+            android:entryValues="@array/reportCrashLogsTypeValues"
+            android:defaultValue="@string/settings_event_data_types_value_default" />
 
-	<PreferenceCategory android:title="Bugzilla report settings">
-		<CheckBoxPreference
-			android:title="Test mode"
-			android:defaultValue="false"
-			android:summary="Upload to the test Bugzilla server"
-			android:key="uploadBZPref" />
-		<EditTextPreference
-			android:key="userLastName"
-			android:defaultValue=""
-			android:summary="User last name"
-			android:title="Last Name" />
-		<EditTextPreference
-			android:key="userFirstName"
-			android:defaultValue=""
-			android:summary="User first name"
-			android:title="First Name" />
-		<EditTextPreference
-			android:key="userMail"
-			android:defaultValue="\@intel.com"
-			android:summary="Intel user email"
-			android:title="User email" />
-	</PreferenceCategory>
+        <CheckBoxPreference
+            android:title="@string/settings_connection_wifi_only_title"
+            android:defaultValue="@string/settings_connection_wifi_only_value_default"
+            android:summary="@string/settings_connection_wifi_only_summary"
+            android:key="@string/settings_connection_wifi_only_key"
+            android:dependency="@string/settings_event_data_enable_key" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/settings_bugzilla_category_title">
+
+        <EditTextPreference
+            android:key="@string/settings_bugzilla_user_last_name_key"
+            android:defaultValue="@string/settings_bugzilla_user_last_name_value_default"
+            android:summary="@string/settings_bugzilla_user_last_name_summary"
+            android:title="@string/settings_bugzilla_user_last_name_title" />
+
+        <EditTextPreference
+            android:key="@string/settings_bugzilla_user_first_name_key"
+            android:defaultValue="@string/settings_bugzilla_user_first_name_value_default"
+            android:summary="@string/settings_bugzilla_user_first_name_summary"
+            android:title="@string/settings_bugzilla_user_first_name_title" />
+
+        <EditTextPreference
+            android:key="@string/settings_bugzilla_user_email_key"
+            android:defaultValue="@string/settings_bugzilla_user_email_value_default"
+            android:summary="@string/settings_bugzilla_user_email_summary"
+            android:title="@string/settings_bugzilla_user_email_title" />
+
+    </PreferenceCategory>
 
 </PreferenceScreen>

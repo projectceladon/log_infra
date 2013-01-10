@@ -1,0 +1,6 @@
+# Exclude files/directories
+*~
+.#*
+
+crashreport/bin/
+crashreport/gen/

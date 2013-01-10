@@ -143,8 +143,10 @@ public class CrashReportService extends Service {
 	};
 
 	private Runnable getUploadState = new Runnable() {
+		ApplicationPreferences prefs;
 		public void run() {
-			String uploadState = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("uploadStatePref", "askForUpload");
+			prefs = new ApplicationPreferences(getApplicationContext());
+			String uploadState = prefs.getUploadState();
 			if ( SystemProperties.get("persist.crashreport.disabled", "0").equals("1")) {
 				Log.d("Service: Property persist.crashreport.disabled set to 1");
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
@@ -209,9 +211,11 @@ public class CrashReportService extends Service {
 		}
 	};
 
+	// TODO remove
 	private Runnable isUploadWifiOnly = new Runnable() {
 		public void run() {
-			Boolean wifiOnly = PreferenceManager.getDefaultSharedPreferences(app).getBoolean("uploadWifiOnlyPref", false);
+			// Boolean wifiOnly = new ApplicationPreferences(app).isWifiOnlyForEventData();
+			Boolean wifiOnly = false;
 			if (wifiOnly) {
 				app.setWifiOnly(true);
 				serviceHandler.sendEmptyMessage(ServiceMsg.wifiOnly);
@@ -442,68 +446,72 @@ public class CrashReportService extends Service {
 							cursor = db.fetchNotUploadedLogs(crashTypes);
 							if ((cursor != null) && (cursor.getCount() != 0)) {
 								nMgr = new NotificationMgr(context);
-								nMgr.notifyUploadingLogs(cursor.getCount());
-								while (!cursor.isAfterLast()) {
-									if (runThread.isInterrupted())
-										throw new InterruptedException();
-									event = db.fillEventFromCursor(cursor);
-									crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
-									if (crashLogs != null) {
-										DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
-										dayDate = DAY_DF.format(event.getDate());
-										fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-										Log.i("Service:uploadEvent : Upload of "+event);
-										if (event.getEventName().equals("APLOG")) {
-											showProgressBar();
-											updateProgressBar(0);
-										}
-
-										if (con.sendLogsFile(fileInfo, runThread)) {
-											db.updateEventLogToUploaded(event.getEventId());
-											Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
-											crashLogs.delete();
+								if (prefs.isWifiOnlyForEventData() && !con.getWifiConnectionAvailability()) {
+									nMgr.notifyEventDataWifiOnly(cursor.getCount());
+								} else {
+									nMgr.notifyUploadingLogs(cursor.getCount());
+									while (!cursor.isAfterLast()) {
+										if (runThread.isInterrupted())
+											throw new InterruptedException();
+										event = db.fillEventFromCursor(cursor);
+										crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
+										if (crashLogs != null) {
+											DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
+											dayDate = DAY_DF.format(event.getDate());
+											fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
+											Log.i("Service:uploadEvent : Upload of "+event);
 											if (event.getEventName().equals("APLOG")) {
+												showProgressBar();
 												updateProgressBar(0);
-												hideProgressBar();
-												File aplogData = new File(event.getCrashDir());
-												if (aplogData.exists()) {
-													if (aplogData.isDirectory()) {
-														for(File file:aplogData.listFiles()){
-															file.delete();
+											}
+
+											if (con.sendLogsFile(fileInfo, runThread)) {
+												db.updateEventLogToUploaded(event.getEventId());
+												Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
+												crashLogs.delete();
+												if (event.getEventName().equals("APLOG")) {
+													updateProgressBar(0);
+													hideProgressBar();
+													File aplogData = new File(event.getCrashDir());
+													if (aplogData.exists()) {
+														if (aplogData.isDirectory()) {
+															for(File file:aplogData.listFiles()){
+																file.delete();
+															}
 														}
+														aplogData.delete();
 													}
-													aplogData.delete();
 												}
+												cursor.moveToNext();
+											} else {
+												if (event.getEventName().equals("APLOG")) {
+													updateProgressBar(0);
+													hideProgressBar();
+												}
+												Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
+												throw new ProtocolException();
 											}
+										} else
 											cursor.moveToNext();
-										} else {
-											if (event.getEventName().equals("APLOG")) {
-												updateProgressBar(0);
-												hideProgressBar();
+
+										if(db.isThereEventToUpload()) {
+											cursor.close();
+											updateEventsSummary(db);
+											sendEvents(db,con,myBuild);
+											crashTypes = prefs.getCrashLogsUploadTypes();
+											cursor = db.fetchNotUploadedLogs(crashTypes);
+											if ((cursor != null) && (cursor.getCount() != 0)) {
+												nMgr = new NotificationMgr(context);
+												nMgr.notifyUploadingLogs(cursor.getCount());
 											}
-											Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
-											throw new ProtocolException();
-										}
-									} else
-										cursor.moveToNext();
+											else break;
 
-									if(db.isThereEventToUpload()) {
-										cursor.close();
-										updateEventsSummary(db);
-										sendEvents(db,con,myBuild);
-										crashTypes = prefs.getCrashLogsUploadTypes();
-										cursor = db.fetchNotUploadedLogs(crashTypes);
-										if ((cursor != null) && (cursor.getCount() != 0)) {
-											nMgr = new NotificationMgr(context);
-											nMgr.notifyUploadingLogs(cursor.getCount());
 										}
-										else break;
-
 									}
+									nMgr.cancelNotifUploadingLogs();
 								}
 								if (cursor != null)
 									cursor.close();
-								nMgr.cancelNotifUploadingLogs();
 								Log.i("Service:uploadEvent : Upload files finished");
 							}
 						}

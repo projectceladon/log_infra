@@ -94,14 +94,9 @@ public class Connector {
 	}
 
 	public void setupServerConnection() throws UnknownHostException, IOException, InterruptedIOException {
-		String serverAddress = PreferenceManager.getDefaultSharedPreferences(mCtx).getString("serverAddressPref", "");
-		String serverPortStr = PreferenceManager.getDefaultSharedPreferences(mCtx).getString("serverPortPref", "4001");
-		int serverPort;
-		try {
-			serverPort = Integer.parseInt(serverPortStr);
-		} catch (NumberFormatException e) {
-			serverPort = 4001;
-		}
+		ApplicationPreferences prefs = new ApplicationPreferences(mCtx);
+		String serverAddress = prefs.getServerAddress();
+		int serverPort = prefs.getServerPort();
 		mSocket = new Socket();
 		if (mSocket == null)
 			throw new IOException("mSocket == null");
@@ -141,6 +136,14 @@ public class Connector {
 					return true;
 			}
 		}
+		return false;
+	}
+
+	public Boolean getWifiConnectionAvailability() {
+		ConnectivityManager cm = (ConnectivityManager)mCtx.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo wifiNetInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (wifiNetInfo != null)
+			return wifiNetInfo.isConnected();
 		return false;
 	}
 

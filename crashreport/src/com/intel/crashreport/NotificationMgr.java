@@ -31,9 +31,20 @@ public class NotificationMgr {
 	private static final int NOTIF_EVENT_ID = 1;
 	private static final int NOTIF_UPLOAD_ID = 2;
 	private static final int NOTIF_CRITICAL_EVENT_ID = 3;
+	private static final int NOTIF_UPLOAD_WIFI_ONLY_ID = 4;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
+	}
+
+	/**
+	 * Clear all pending notifications except critical event one.
+	 */
+	public void clearNonCriticalNotification() {
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NOTIF_EVENT_ID);
+		mNotificationManager.cancel(NOTIF_UPLOAD_ID);
+		mNotificationManager.cancel(NOTIF_UPLOAD_WIFI_ONLY_ID);
 	}
 
 	public void notifyEventToUpload(int crashNumber, int uptimeNumber) {
@@ -67,13 +78,14 @@ public class NotificationMgr {
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		clearNonCriticalNotification();
 		mNotificationManager.notify(NOTIF_EVENT_ID, notification);
 	}
 
 	public void notifyUploadingLogs(int logNumber) {
-		CharSequence tickerText = "Start uploading crash logs";
+		CharSequence tickerText = "Start uploading event data";
 		CharSequence contentTitle = "Phone Doctor";
-		CharSequence contentText = "Uploading "+logNumber+" crash logs";
+		CharSequence contentText = "Uploading "+logNumber+" event data files";
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.icon;
 		long when = System.currentTimeMillis();
@@ -81,12 +93,43 @@ public class NotificationMgr {
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		clearNonCriticalNotification();
 		mNotificationManager.notify(NOTIF_UPLOAD_ID, notification);
 	}
 
 	public void cancelNotifUploadingLogs() {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.cancel(NOTIF_UPLOAD_ID);
+	}
+
+	/**
+	 * Display a notification when there are event data files
+	 * to upload while wifi is not available.
+	 *
+	 * @param logNumber Number of data event files to upload
+	 */
+	public void notifyEventDataWifiOnly(int logNumber) {
+		CharSequence tickerText = "Phone Doctor event data to upload";
+		CharSequence contentTitle = "Connect WiFi";
+		CharSequence contentText = "You have "+logNumber+" event data files to upload.\n\nPlease connect to WiFi or disable WiFi only option";
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.icon;
+		long when = System.currentTimeMillis();
+		Notification notification = new Notification(icon, tickerText, when);
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		clearNonCriticalNotification();
+		mNotificationManager.notify(NOTIF_UPLOAD_WIFI_ONLY_ID, notification);
+	}
+
+	/**
+	 * Remove Event data file no wifi notifixation
+	 */
+	public void cancelNotifyEventDataWifiOnly() {
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NOTIF_UPLOAD_WIFI_ONLY_ID);
 	}
 
 	public void cancelNotifCriticalEvent(){
@@ -108,6 +151,7 @@ public class NotificationMgr {
 		Intent notificationIntent = new Intent(context, NotifyEventActivity.class);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		clearNonCriticalNotification();
 		mNotificationManager.notify(NOTIF_CRITICAL_EVENT_ID, notification);
 	}
 

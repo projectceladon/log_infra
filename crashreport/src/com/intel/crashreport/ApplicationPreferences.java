@@ -61,26 +61,36 @@ public class ApplicationPreferences {
 	}
 
 	public String getUploadState() {
-		return appSharedPrefs.getString("uploadStatePref", "askForUpload");
+		return appSharedPrefs.getString(
+			mCtx.getString(R.string.settings_event_report_management_key),
+			"askForUpload");
 	}
 
 	public void setUploadStateToAsk() {
-		sharedPrefsEditor.putString("uploadStatePref", "askForUpload");
+		sharedPrefsEditor.putString(
+			mCtx.getString(R.string.settings_event_report_management_key),
+			"askForUpload");
 		sharedPrefsEditor.commit();
 	}
 
 	public void setUploadStateToUpload() {
-		sharedPrefsEditor.putString("uploadStatePref", "uploadImmediately");
+		sharedPrefsEditor.putString(
+			mCtx.getString(R.string.settings_event_report_management_key),
+			"uploadImmediately");
 		sharedPrefsEditor.commit();
 	}
 
 	public void setUploadStateToReport() {
-		sharedPrefsEditor.putString("uploadStatePref", "uploadReported");
+		sharedPrefsEditor.putString(
+			mCtx.getString(R.string.settings_event_report_management_key),
+			"uploadReported");
 		sharedPrefsEditor.commit();
 	}
 
 	public void setUploadStateToDisable() {
-		sharedPrefsEditor.putString("uploadStatePref", "uploadDisabled");
+		sharedPrefsEditor.putString(
+			mCtx.getString(R.string.settings_event_report_management_key),
+			"uploadDisabled");
 		sharedPrefsEditor.commit();
 	}
 
@@ -90,15 +100,19 @@ public class ApplicationPreferences {
 	}
 
 	public Boolean isCrashLogsUploadEnable() {
-		return appSharedPrefs.getBoolean("enableCrashLogReport", false);
+		return appSharedPrefs.getBoolean(
+			mCtx.getString(R.string.settings_event_data_enable_key), false);
 	}
 
 	public String[] getCrashLogsUploadTypes() {
-		return CrashLogsListPrefs.parseStoredValue(appSharedPrefs.getString("setReportCrashLogType", ""));
+		return CrashLogsListPrefs.parseStoredValue(
+			appSharedPrefs.getString(
+				mCtx.getString(R.string.settings_event_data_types_key), ""));
 	}
 
 	public void resetCrashLogsUploadTypes() {
-		String savedValues = appSharedPrefs.getString("setReportCrashLogType", "");
+		String savedValues = appSharedPrefs.getString(
+			mCtx.getString(R.string.settings_event_data_types_key), "");
 		boolean begin = false;
 		if (savedValues.equals(""))
 			begin = true;
@@ -115,7 +129,8 @@ public class ApplicationPreferences {
 			}
 		}
 
-		sharedPrefsEditor.putString("setReportCrashLogType", savedValues);
+		sharedPrefsEditor.putString(
+			mCtx.getString(R.string.settings_event_data_types_key), savedValues);
 		sharedPrefsEditor.commit();
 	}
 
@@ -128,31 +143,59 @@ public class ApplicationPreferences {
 		privatePrefsEditor.commit();
 	}
 
+	/**
+	 *
+	 * @return
+	 */
 	public String getUserLastName() {
-		return appPrivatePrefs.getString("userLastName", "");
+		return appPrivatePrefs.getString(
+				mCtx.getString(R.string.settings_bugzilla_user_last_name_key),
+				mCtx.getString(R.string.settings_bugzilla_user_last_name_value_default));
 	}
 
 	public void setUserLastName(String lastname) {
-		privatePrefsEditor.putString("userLastName", lastname);
+		privatePrefsEditor.putString(
+				mCtx.getString(R.string.settings_bugzilla_user_last_name_key),
+				lastname);
 		privatePrefsEditor.commit();
 	}
 
 	public String getUserFirstName() {
-		return appPrivatePrefs.getString("userFirstName", "");
+		return appPrivatePrefs.getString(
+				mCtx.getString(R.string.settings_bugzilla_user_first_name_key),
+				mCtx.getString(R.string.settings_bugzilla_user_first_name_value_default));
 	}
 
 	public void setUserFirstName(String firstname) {
-		privatePrefsEditor.putString("userFirstName", firstname);
+		privatePrefsEditor.putString(
+				mCtx.getString(R.string.settings_bugzilla_user_first_name_key),
+				firstname);
 		privatePrefsEditor.commit();
 	}
 
 	public String getUserEmail() {
-		return appPrivatePrefs.getString("userEmail", "");
+		return appPrivatePrefs.getString(
+				mCtx.getString(R.string.settings_bugzilla_user_email_key),
+				mCtx.getString(R.string.settings_bugzilla_user_email_value_default));
 	}
 
 	public void setUserEmail(String email) {
-		privatePrefsEditor.putString("userEmail", email);
+		privatePrefsEditor.putString(
+				mCtx.getString(R.string.settings_bugzilla_user_email_key),
+				email);
 		privatePrefsEditor.commit();
+	}
+
+	/**
+	 * Return true if Bugzilla module is in test mode, which means that created
+	 * BZ will be created under the test project in Bugzilla DB.
+	 *
+	 * @return true if in test mode, else false.
+	 */
+	public Boolean isBugzillaModuleInTestMode() {
+		return appPrivatePrefs.getBoolean(
+				mCtx.getString(R.string.settings_private_bugzilla_test_mode_key),
+				Boolean.valueOf(mCtx.getString(R.string.settings_private_bugzilla_test_mode_value)));
 	}
 
 	/**
@@ -168,6 +211,45 @@ public class ApplicationPreferences {
 		privatePrefsEditor.putInt("newEventDirectoryNumber", number+1);
 		privatePrefsEditor.commit();
 		return Constants.PD_EVENT_DATA_DIR + Constants.PD_EVENT_DATA_DIR_ELEMENT_ROOT + number;
+	}
+
+	/**
+	 * Return true if event data, formerly named crashlogs, must be uploaded through WiFi only.
+	 *
+	 * @return true if event data are uploaded through WiFi only, else false.
+	 */
+	public Boolean isWifiOnlyForEventData() {
+		return appSharedPrefs.getBoolean(
+			mCtx.getString(R.string.settings_connection_wifi_only_key),
+			Boolean.valueOf(mCtx.getString(R.string.settings_connection_wifi_only_value_default)));
+	}
+
+	/**
+	 * Return the Crashtool server address, domain name.
+	 *
+	 * @return a String representing the Crashtool server address
+	 */
+	public String getServerAddress() {
+		return appPrivatePrefs.getString(
+				mCtx.getString(R.string.settings_private_app_server_host_key),
+				mCtx.getString(R.string.settings_private_app_server_host_value));
+	}
+
+	/**
+	 * Return the Crashtool server port.
+	 *
+	 * @return an int, representing Crashtool server port
+	 */
+	public int getServerPort() {
+		String port = appPrivatePrefs.getString(
+				mCtx.getString(R.string.settings_private_app_server_port_key),
+				mCtx.getString(R.string.settings_private_app_server_port_value));
+		try {
+			return Integer.parseInt(port);
+		} catch (NumberFormatException e) {
+			Log.w("ApplicationPreferences: getServerPort: port parse failed: " + port);
+			return 4001;
+		}
 	}
 
 }
