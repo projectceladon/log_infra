@@ -161,6 +161,7 @@ public class CrashReport extends Application {
 		String myBuild;
 		Event event;
 		NotificationMgr nMgr;
+		PhoneInspector phoneInspector;
 		BlackLister blackLister = new BlackLister();
 
 		db = new EventDB(getApplicationContext());
@@ -181,6 +182,11 @@ public class CrashReport extends Application {
 							event = new Event(histEvent, myBuild);
 							blackLister.cleanRain(event.getDate());
 							if (!blackLister.blackList(event)) {
+
+								//Manage full Dropbox case before adding an event
+							    phoneInspector = PhoneInspector.getInstance(getApplicationContext());
+							    phoneInspector.manageFullDropBox();
+
 								long ret = db.addEvent(event);
 								if (ret == -1)
 									Log.w(from+": Event error when added to DB, " + event.toString());
