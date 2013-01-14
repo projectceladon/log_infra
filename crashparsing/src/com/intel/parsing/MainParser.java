@@ -136,7 +136,7 @@ public class MainParser{
 				}
 
 				if(sTag.equals("FABRICERR") || sTag.equals("MEMERR") || sTag.equals("INSTERR")
-						|| sTag.equals("SRAMECCERR") || sTag.equals("HWWDTLOGERR")){
+						|| sTag.equals("SRAMECCERR") || sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE")){
 					if (!fabricerr(sOutput)){
 						closeOutput();
 						return -1;
@@ -605,21 +605,21 @@ public class MainParser{
 	private boolean anr(String aFolder){
 		boolean bResult = true;
 
-		String sSysANRGZ = fileGrepSearch("system_app_anr.*txt.gz", aFolder);
+		String sSysANRGZ = fileGrepSearch(".*_app_anr.*txt.gz", aFolder);
 		try {
 			if (sSysANRGZ != ""){
 				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sSysANRGZ));
 				BufferedReader sysANRReader = new BufferedReader(new InputStreamReader (gzipInputStream));
 				bResult = extractAnrData(sysANRReader);
 			}else{
-				String sSysANR = fileGrepSearch("system_app_anr.*txt" , aFolder);
+				String sSysANR = fileGrepSearch(".*_app_anr.*txt" , aFolder);
 				if (sSysANR != ""){
 					BufferedReader sysANRReader = new BufferedReader(new FileReader(sSysANR));
 					bResult = extractAnrData(sysANRReader);
 				}
 			}
 		}catch(Exception e) {
-			System.err.println( "anr - SysAppANR : " + e);
+			System.err.println( "anr - general AppANR : " + e);
 			e.printStackTrace();
 			return false;
 		}
@@ -629,7 +629,7 @@ public class MainParser{
 
 	private boolean javacrash(String aFolder){
 		boolean bResult = true;
-		bResult &= parseJavaCrashFile("system_app_crash.*.txt.gz","system_app_crash.*.txt",aFolder);
+		bResult &= parseJavaCrashFile(".*_app_crash.*.txt.gz",".*_app_crash.*.txt",aFolder);
 		bResult &= parseJavaCrashFile("system_server_crash.*.txt.gz","system_server_crash.*.txt",aFolder);
 		return bResult;
 	}
