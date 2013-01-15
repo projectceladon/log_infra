@@ -167,6 +167,8 @@ public class StartServiceActivity extends Activity {
 		}
 		if (!app.isActivityBounded())
 			doBindService();
+		if(app.isActivityBounded())
+			app.setActivity(this);
 		instanceStateSaved = false;
 		updateSummary();
 	}
@@ -204,6 +206,7 @@ public class StartServiceActivity extends Activity {
 			unbindService(mConnection);
 			mService = null;
 			app.setActivityBounded(false);
+			app.setActivity(null);
 			unregisterMsgReceiver();
 		}
 	}
@@ -402,6 +405,15 @@ public class StartServiceActivity extends Activity {
 
 		public void onServiceDisconnected(ComponentName name) {
 			Log.d("StartServiceActivity: onServiceDisconnected");
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+			if (prev != null) {
+				ft.remove(prev);
+			}
+			ft.addToBackStack(null);
+			if(null != askDialog)
+				askDialog.dismiss();
+			askDialog = null;
 			mService = null;
 			unregisterMsgReceiver();
 			if (app.isActivityBounded())

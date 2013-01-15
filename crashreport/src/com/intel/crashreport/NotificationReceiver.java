@@ -55,29 +55,17 @@ public class NotificationReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		if (intent.getAction().equals(crashNotificationIntent)) {
 			Log.d("NotificationReceiver: crashNotificationIntent");
-			CrashReport app = (CrashReport)context.getApplicationContext();
-			if (!app.isServiceStarted())
-				context.startService(crashReportStartServiceIntent);
-			else {
-				try {
-					app.checkEvents("NotificationReceiver");
-				} catch (FileNotFoundException e) {
-					Log.w("NotificationReceiver: history_event file not found");
-				} catch (SQLException e) {
-					Log.w("NotificationReceiver: db Exception");
-				}
-			}
+			startCrashReport(context);
 		} else if (intent.getAction().equals(bootCompletedIntent)) {
 			Log.d("NotificationReceiver: bootCompletedIntent");
-			context.startService(crashReportStartServiceIntent);
+			startCrashReport(context);
 
 			//Add type to intent and send it
 			phoneInspectorStartServiceIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
 			context.startService(phoneInspectorStartServiceIntent);
-
 		} else if (intent.getAction().equals(networkStateChangeIntent)) {
 			Log.d("NotificationReceiver: networkStateChangeIntent");
-			context.startService(crashReportStartServiceIntent);
+			startCrashReport(context);
 		} else if (intent.getAction().equals(crashLogsCopyFinishedIntent)){
 			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
 			if (intent.hasExtra(eventIdExtra)) {
@@ -98,8 +86,9 @@ public class NotificationReceiver extends BroadcastReceiver {
 						Log.w("Service:uploadEvent : Fail to access DB", e);
 					}
 					db.close();
-					if(isPresent)
-						context.startService(crashReportStartServiceIntent);
+					if(isPresent) {
+						startCrashReport(context);
+					}
 				}
 			}
 		} else if (intent.getAction().equals(alarmNotificationIntent)) {
@@ -108,7 +97,7 @@ public class NotificationReceiver extends BroadcastReceiver {
 			String uploadState = prefs.getUploadState();
 			if ((uploadState != null) && uploadState.contentEquals("uploadReported"))
 				prefs.setUploadStateToAsk();
-			context.startService(crashReportStartServiceIntent);
+			startCrashReport(context);
 
 		//Intent indicating a new entry has been added to the dropbox
 		} else if (intent.getAction().equals(DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED)) {
@@ -121,7 +110,21 @@ public class NotificationReceiver extends BroadcastReceiver {
 
 			context.startService(phoneInspectorStartServiceIntent);
 		}
+	}
 
+	public void startCrashReport(Context context) {
+		CrashReport app = (CrashReport)context.getApplicationContext();
+		if (!app.isServiceStarted())
+			context.startService(crashReportStartServiceIntent);
+		else {
+			try {
+				app.checkEvents("NotificationReceiver");
+			} catch (FileNotFoundException e) {
+				Log.w("NotificationReceiver: history_event file not found");
+			} catch (SQLException e) {
+				Log.w("NotificationReceiver: db Exception");
+			}
+		}
 	}
 
 }

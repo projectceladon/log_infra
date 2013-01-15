@@ -25,7 +25,10 @@ import java.util.Timer;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.bugzilla.ui.BugStorage;
 
+import android.app.Activity;
 import android.app.Application;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
@@ -40,6 +43,7 @@ public class CrashReport extends Application {
 	private Build myBuild;
 	private BugStorage bugzillaStorage;
 	public static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
+	public static Activity boundedActivity = null;
 
 	public void onCreate() {
 		super.onCreate();
@@ -85,6 +89,14 @@ public class CrashReport extends Application {
 	}
 	public void setServiceStarted(Boolean s){
 		serviceStarted = s;
+		if( (false == serviceStarted) && (null != boundedActivity) ) {
+			FragmentTransaction ft = boundedActivity.getFragmentManager().beginTransaction();
+			Fragment prev = boundedActivity.getFragmentManager().findFragmentByTag("dialog");
+			if (prev != null) {
+				ft.remove(prev);
+			}
+			ft.addToBackStack(null);
+		}
 	}
 
 	public boolean isTryingToConnect(){
@@ -97,8 +109,13 @@ public class CrashReport extends Application {
 	public boolean isActivityBounded() {
 		return activityBounded;
 	}
+
 	public void setActivityBounded(Boolean s) {
 		activityBounded = s;
+	}
+
+	public void setActivity(Activity activity) {
+		boundedActivity = activity;
 	}
 
 	public boolean isWifiOnly() {
