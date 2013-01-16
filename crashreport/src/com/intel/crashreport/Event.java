@@ -184,6 +184,8 @@ public class Event {
 	}
 
 	private void fillStatsEvent(HistoryEvent histevent, String myBuild) {
+		//crashdir should be filled before genericparsefile
+		crashDir = histevent.getOption();
 		GenericParseFile aParseFile = null;
 		try{
 			aParseFile = new GenericParseFile(crashDir, "_trigger");
@@ -195,7 +197,6 @@ public class Event {
 	}
 
 	private void fillGenericEvent(HistoryEvent histevent, String myBuild,GenericParseFile aParseFile) {
-		crashDir = histevent.getOption();
 		eventId = histevent.getEventId();
 		eventName = histevent.getEventName();
 		date = convertDate(histevent.getDate());
@@ -246,6 +247,8 @@ public class Event {
 	}
 
 	private void fillErrorEvent(HistoryEvent histevent, String myBuild) {
+		//crashdir should be filled before genericparsefile
+		crashDir = histevent.getOption();
 		GenericParseFile aParseFile = null;
 		try{
 			aParseFile = new GenericParseFile(crashDir, "_errorevent");
@@ -258,6 +261,8 @@ public class Event {
 
 
 	private void fillInfoEvent(HistoryEvent histevent, String myBuild) {
+		//crashdir should be filled before genericparsefile
+		crashDir = histevent.getOption();
 		GenericParseFile aParseFile = null;
 		try{
 			aParseFile = new GenericParseFile(crashDir, "_infoevent");
