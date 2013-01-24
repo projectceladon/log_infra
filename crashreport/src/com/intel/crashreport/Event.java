@@ -142,7 +142,9 @@ public class Event {
 			date = convertDate(histevent.getDate());
 			buildId = myBuild;
 			deviceId = crashFile.getSn();
-			setImei(crashFile.getImei());
+			if(!crashFile.getImei().equals(""))
+				setImei(crashFile.getImei());
+			else setImei(readImeiFromSystem());
 			uptime = crashFile.getUptime();
 			if(type.equals("ANR")) {
 				AnrEvent anrFile = new AnrEvent(crashDir);
@@ -315,7 +317,11 @@ public class Event {
 		String imeiRead = "";
 		try {
 			imeiRead = SystemProperties.get("persist.radio.device.imei", "");
-		} catch (IllegalArgumentException e) {
+			if(imeiRead.equals("")) {
+				imeiRead = EventGenerator.INSTANCE.getImei();
+			}
+		}
+		catch (IllegalArgumentException e) {
 			Log.w("CrashReportService: IMEI not available");
 		}
 		return imeiRead;

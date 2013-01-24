@@ -32,6 +32,7 @@ import com.intel.phonedoctor.utils.FileOps;
 
 import android.content.Context;
 import android.content.Intent;
+import android.telephony.TelephonyManager;
 
 
 public enum EventGenerator {
@@ -166,6 +167,16 @@ public enum EventGenerator {
 			return dir;
 		}
 		throw new FileNotFoundException();
+	}
+	
+        public String getImei() {
+		TelephonyManager tm = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
+		try {
+			String deviceId = tm.getDeviceId();
+			return deviceId;
+		}catch(NullPointerException e){
+			return "";
+		}
 	}
 }
 
