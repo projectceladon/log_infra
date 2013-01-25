@@ -767,7 +767,7 @@ public class EventDB {
 	public long addBlackEvent(Event event, String reason) throws SQLException {
 		ContentValues initialValues = new ContentValues();
 
-		if(reason.equals("DUPLICATE")) {
+		if(reason.equals("RAIN")) {
 			Cursor cursor = getRainEventInfo(new CrashSignature(event));
 			if(cursor != null){
 				initialValues.put(KEY_RAINID, cursor.getString(cursor.getColumnIndex(KEY_ID)));

@@ -73,8 +73,8 @@ public class BlackLister {
 				else
 					result = db.checkNewRain(event);
 				if(result) {
-					db.addBlackEvent(event, "DUPLICATE");
-					Log.w("BlackLister: event "+event.getEventId()+" is DUPLICATE");
+					db.addBlackEvent(event, "RAIN");
+					Log.w("BlackLister: event "+event.getEventId()+" is RAIN");
 				}
 			}
 		}
@@ -89,10 +89,10 @@ public class BlackLister {
 			if(!event.getOrigin().equals("") && db.isOriginExist(event.getOrigin())){
 				//db.addBlackEvent(event, "FAKE");
 				String crashdir = event.getCrashDir();
-				event.setData4("FAKE");
+				event.setData4("DUPLICATE");
 				if(!crashdir.equals("")) {
 					try {
-						changeCrashType(crashdir,"FAKE");
+						changeCrashType(crashdir,"DUPLICATE");
 					} catch (FileNotFoundException e) {
 						Log.e("BlackLister:blackListAnr:crashfile is not present "+crashdir);
 					}
@@ -100,7 +100,7 @@ public class BlackLister {
 						Log.e("BlackLister:blackListAnr:write problem in crashfile "+crashdir);
 					}
 				}
-				Log.w("BlackLister: event "+event.getEventId()+" is FAKE");
+				Log.w("BlackLister: event "+event.getEventId()+" is DUPLICATE");
 			}
 			return blackListCrash(event);
 		}
