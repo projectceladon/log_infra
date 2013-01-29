@@ -20,13 +20,51 @@
 package com.intel.crashreport;
 
 import android.os.Bundle;
+import android.preference.EditTextPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
+import android.widget.Toast;
 
 public class CrashReportActivity extends PreferenceActivity {
+
+    private CrashReport app;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.menu);
         setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+        EditTextPreference editLastName = (EditTextPreference)findPreference("userLastName");
+        editLastName.setOnPreferenceChangeListener(listener);
+        EditTextPreference editFirstName = (EditTextPreference)findPreference("userFirstName");
+        editFirstName.setOnPreferenceChangeListener(listener);
+        EditTextPreference editMail = (EditTextPreference)findPreference("userMail");
+        editMail.setOnPreferenceChangeListener(listener);
+        app = (CrashReport)getApplicationContext();
+        editLastName.setText(app.getUserLastName());
+        editFirstName.setText(app.getUserFirstName());
+        if(!app.getUserEmail().equals(""))
+            editMail.setText(app.getUserEmail());
     }
+
+    private OnPreferenceChangeListener listener = new OnPreferenceChangeListener(){
+
+        public boolean onPreferenceChange(Preference preference,
+                Object newValue) {
+            if(preference.getKey().equals("userLastName"))
+                app.setUserLastName((String)newValue);
+            else if(preference.getKey().equals("userFirstName"))
+                app.setUserFirstName((String)newValue);
+            else if(preference.getKey().equals("userMail")) {
+                String mail = (String)newValue;
+                if(mail.endsWith("@intel.com") && (mail.indexOf("@") == mail.lastIndexOf("@")) && (mail.indexOf("@")!=0))
+                    app.setUserEmail((String)newValue);
+                else {
+                    Toast.makeText(getApplicationContext(), "Wrong email address.", Toast.LENGTH_LONG).show();
+                    return false;
+                }
+            }
+            return true;
+        }
+    };
 }

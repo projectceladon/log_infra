@@ -31,6 +31,12 @@ public class UserInformationsActivity extends Activity {
 			}
 
 		});
+		CrashReport app = (CrashReport) getApplicationContext();
+
+		EditText lastName = (EditText)findViewById(R.id.lastNameText);
+		lastName.setText(app.getUserLastName());
+		EditText firstName = (EditText)findViewById(R.id.firstNameText);
+		firstName.setText(app.getUserFirstName());
 
 		EditText email = (EditText)findViewById(R.id.mailText);
 		email.setOnEditorActionListener(new OnEditorActionListener(){
@@ -45,6 +51,8 @@ public class UserInformationsActivity extends Activity {
 			}
 
 		});
+		if(!app.getUserEmail().equals(""))
+			email.setText(app.getUserEmail());
 	}
 
 	public void onStart(){

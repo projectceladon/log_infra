@@ -84,6 +84,21 @@
 			android:defaultValue="false"
 			android:summary="Upload to the test Bugzilla server"
 			android:key="uploadBZPref" />
+		<EditTextPreference
+			android:key="userLastName"
+			android:defaultValue=""
+			android:summary="User last name"
+			android:title="Last Name" />
+		<EditTextPreference
+			android:key="userFirstName"
+			android:defaultValue=""
+			android:summary="User first name"
+			android:title="First Name" />
+		<EditTextPreference
+			android:key="userMail"
+			android:defaultValue="\@intel.com"
+			android:summary="Intel user email"
+			android:title="User email" />
 	</PreferenceCategory>
 
 </PreferenceScreen>

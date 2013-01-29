@@ -52,8 +52,8 @@
     <string name="bugzilla_type">BZ\'s type :</string>
     <string name="bugzilla_severity">BZ\'s severity :</string>
     <string name="bugzilla_component">BZ\'s component :</string>
-    <string name="user_informations_firstname">User last name :</string>
-    <string name="user_informations_lastname">User first name :</string>
+    <string name="user_informations_firstname">User first name :</string>
+    <string name="user_informations_lastname">User last name :</string>
     <string name="user_informations_email">Email :</string>
     <string name="user_informations_button">Save personnal informations</string>
     <string name="enter_intel_email">Enter your intel email.</string>
