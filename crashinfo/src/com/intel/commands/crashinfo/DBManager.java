@@ -235,9 +235,15 @@ public class DBManager {
 			//Defining selection depending on options
 			String sSelection = "";
 			String sLimit = null;
+			boolean bChangeOrder = false;
+			boolean bUseHeader = false;
 			for (OptionData aSubOption : mySubOptions) {
-				if (aSubOption.getKey().equals("--last")){
+				if (aSubOption.getKey().equals(GetEvent.OPTION_LAST)){
 					sLimit = "1";
+				}else if (aSubOption.getKey().equals(GetEvent.OPTION_REVERSE)){
+					bChangeOrder = true;
+				}else if (aSubOption.getKey().equals(GetEvent.OPTION_HEADER)){
+					bUseHeader = true;
 				}else if (aSubOption.getKey().equals(GetEvent.OPTION_ID)){
 					String sTmpValue =  aSubOption.getValues(0);
 					if (sTmpValue != null){
@@ -273,9 +279,13 @@ public class DBManager {
 			}
 
 			//execute query to database
+			String sOrderTag = " DESC";
+			if (bChangeOrder){
+				sOrderTag = " ASC";
+			}
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, listColumns,
 					sSelection, null,
-					null, null, KEY_ROWID + " DESC", sLimit);
+					null, null, KEY_ROWID + sOrderTag, sLimit);
 			//header
 			if (mCursor != null) {
 				mCursor.moveToFirst();
@@ -289,7 +299,7 @@ public class DBManager {
 						sHeader += " | " + listColumns[i];
 					}
 				}
-				System.out.println(sHeader);
+				CrashInfo.outputCrashinfo(sHeader, bUseHeader);
 				//content
 				while (!mCursor.isAfterLast()) {
 					String sLine="";
@@ -313,8 +323,7 @@ public class DBManager {
 							sLine += " | " + sColValue;
 						}
 					}
-					System.out.println(sLine);
-
+					CrashInfo.outputCrashinfo(sLine,bUseHeader);
 					mCursor.moveToNext();
 				}
 				mCursor.close();
@@ -421,6 +430,7 @@ public class DBManager {
 			}
 		} catch (SQLException e) {
 			System.err.println( "getLogsDir  SQLexception : " + e);
+			return null;
 		}
 		return sResultLogsDir;
 	}
@@ -460,6 +470,7 @@ public class DBManager {
 		Cursor mCursor;
 		long lResultUptime = 0;
 		int iLastSWUpdateID = getLastSWUpdate();
+		boolean bUptimePresent = false;
 		try {
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_NAME,KEY_UPTIME},
 					KEY_ROWID + " > " + iLastSWUpdateID, null,
@@ -473,11 +484,14 @@ public class DBManager {
 					sName = mCursor.getString(mCursor.getColumnIndex(KEY_NAME));
 					sUptime = mCursor.getString(mCursor.getColumnIndex(KEY_UPTIME));
 					int iCurUptime = convertUptime(sUptime);
-					if (sName.equals("REBOOT")){
-						lUptimeReboot += iCurUptime;
-						lUptimeOther = 0;
-					}else if (iCurUptime > 0){
-						lUptimeOther = iCurUptime;
+					if (iCurUptime >= 0){
+						bUptimePresent = true;
+						if (sName.equals("REBOOT")){
+							lUptimeReboot += iCurUptime;
+							lUptimeOther = 0;
+						}else if (iCurUptime > 0){
+							lUptimeOther = iCurUptime;
+						}
 					}
 					mCursor.moveToNext();
 				}
@@ -486,12 +500,17 @@ public class DBManager {
 			}
 		} catch (SQLException e) {
 			System.err.println( "getCurrentUptime  SQLexception : " + e);
+			lResultUptime = -1;
 		}
-		return lResultUptime;
+		if (bUptimePresent) {
+			return lResultUptime;
+		}else{
+			return -1;
+		}
 	}
 
 	private int convertUptime(String sUpTime){
-		int iResultUpTime = 0;
+		int iResultUpTime = -1;
 		int iHour, iMinute, iSecond;
 		String[] sDecodedUptime = sUpTime.split(":");
 		if (sDecodedUptime.length == 3){
@@ -502,7 +521,7 @@ public class DBManager {
 				iResultUpTime = (iHour * 60 * 60) + (iMinute * 60) + iSecond;
 			}
 			catch (Exception e) {
-				iResultUpTime= 0;
+				iResultUpTime= -1;
 				System.err.println( "convertUptime  exception : " + e);
 			}
 		}

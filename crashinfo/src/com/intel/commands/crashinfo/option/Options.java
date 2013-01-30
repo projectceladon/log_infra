@@ -212,7 +212,7 @@ public class Options {
 		System.out.println("  --- Main options --- " );
 		for (OptionData optionData : optionSet) {
 			if (optionData.isMainOption()){
-				System.out.println("Main name : " + optionData.getKey() +" / Shortcut : " + optionData.getShortKey()
+				System.out.println("   " +  optionData.getShortKey() +"," +optionData.getKey()
 						+ " - " + optionData.getHelpValue());
 				bFound = true;
 			}
@@ -224,7 +224,7 @@ public class Options {
 		bFound = false;
 		for (OptionData optionData : optionSet) {
 			if (!optionData.isMainOption()){
-				System.out.println("Sub name : " + optionData.getKey() +" / Shortcut : " + optionData.getShortKey()
+				System.out.println("   " +  optionData.getShortKey() +"," +optionData.getKey()
 						+ " - " + optionData.getHelpValue());
 				bFound = true;
 			}

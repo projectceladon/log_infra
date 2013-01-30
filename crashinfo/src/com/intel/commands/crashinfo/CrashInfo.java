@@ -31,6 +31,8 @@ import android.util.Log;
  */
 public class CrashInfo {
 
+	public static final String TAG_HEADER= "<crashinfo>";
+
 	/**
 	 * Crashinfo command
 	 * <p>
@@ -137,14 +139,16 @@ public class CrashInfo {
 			if (mySubCommand != null){
 				mySubCommand.setArgs(getSubArgs());
 				if (mySubCommand.checkArgs()){
-					Log.i("crashinfo","execution of : " + sCurArg );
+					Log.i("crashinfo","execution of : " + getFullArgsInString());
 					iResultCode = mySubCommand.execute();
 				}else{
 					iResultCode = -2;
-					System.err.println("checkArgs failed");
+					Log.i("crashinfo","checkArgs failed : " + getFullArgsInString());
+					System.err.println("checkArgs failed : ");
 					showUsage();
 				}
 			}else{
+				Log.i("crashinfo","unknown command : " + getFullArgsInString());
 				showUsage();
 			}
 		}
@@ -161,6 +165,14 @@ public class CrashInfo {
 		return arg;
 	}
 
+	private String getFullArgsInString() {
+		String result = "";
+		for (int i = 0; i < mArgs.length; i++) {
+			result += " " +  mArgs[i];
+		}
+		return result;
+	}
+
 	private String[] getSubArgs() {
 		if (mNextArg >= mArgs.length) {
 			return null;
@@ -171,4 +183,13 @@ public class CrashInfo {
 		}
 		return result;
 	}
+
+	public static void outputCrashinfo(String sOutput, boolean bUseTag) {
+		if (bUseTag){
+			System.out.println(TAG_HEADER+sOutput);
+		}else{
+			System.out.println(sOutput);
+		}
+	}
+
 }

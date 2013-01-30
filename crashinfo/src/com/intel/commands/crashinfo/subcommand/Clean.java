@@ -80,10 +80,12 @@ public class Clean implements ISubCommand {
 	private void baseClean(){
 		DBManager aDB = new DBManager();
 		String[] usedLogsDir = aDB.getAllLogsDir();
-		File logFolder = new File(Status.PATH_LOGS);
-		File SDlogFolder = new File(Status.PATH_SD_LOGS);
-		folderClean(usedLogsDir,logFolder);
-		folderClean(usedLogsDir,SDlogFolder);
+		if (usedLogsDir != null){
+			File logFolder = new File(Status.PATH_LOGS);
+			File SDlogFolder = new File(Status.PATH_SD_LOGS);
+			folderClean(usedLogsDir,logFolder);
+			folderClean(usedLogsDir,SDlogFolder);
+		}
 	}
 
 	private void folderClean(String[] ExceptLogsDir, File folderToClean){
@@ -119,14 +121,16 @@ public class Clean implements ISubCommand {
 	private void timeClean(String sTimeValue){
 		DBManager aDB = new DBManager(true);
 		String[] logsToclean = aDB.getLogsDirByTime(sTimeValue);
-		for(String sLog : logsToclean){
-			File logFolder = new File(sLog);
-			if (logFolder.isDirectory()){
-				deleteFolder(logFolder);
-				System.out.println(sLog + " cleaned ");
+		if (logsToclean != null){
+			for(String sLog : logsToclean){
+				File logFolder = new File(sLog);
+				if (logFolder.isDirectory()){
+					deleteFolder(logFolder);
+					System.out.println(sLog + " cleaned ");
+				}
 			}
+			aDB.cleanCrashDirByTime(sTimeValue);
 		}
-		aDB.cleanCrashDirByTime(sTimeValue);
 	}
 
 	private void idClean(int iIDtoClean){

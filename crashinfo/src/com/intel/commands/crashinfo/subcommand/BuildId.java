@@ -19,6 +19,7 @@
 
 package com.intel.commands.crashinfo.subcommand;
 
+import com.intel.commands.crashinfo.CrashInfo;
 import com.intel.commands.crashinfo.ISubCommand;
 import com.intel.commands.crashinfo.option.OptionData;
 import com.intel.commands.crashinfo.option.Options;
@@ -28,11 +29,19 @@ import android.os.SystemProperties;
 import android.util.Log;
 
 public class BuildId implements ISubCommand {
+	public static final String OPTION_HEADER= "--header";
 	String[] myArgs;
 	Options myOptions;
+	boolean bUseTag;
 
 	@Override
 	public int execute() {
+		bUseTag = false;
+		for (OptionData aSubOption : myOptions.getSubOptions()){
+			if (aSubOption.getKey().equals(OPTION_HEADER)){
+				bUseTag = true;
+			}
+		}
 		OptionData mainOp = myOptions.getMainOption();
 		if (mainOp == null){
 			generateBuildSignature();
@@ -71,25 +80,21 @@ public class BuildId implements ISubCommand {
 				+ sScufwVersion + sSeparator
 				+ sPunitVersion + sSeparator
 				+ sValhooksVersion;
-		System.out.println(sCompleteBuildId);
+		CrashInfo.outputCrashinfo(sCompleteBuildId,bUseTag);
 	}
 
 	private void generateSpec(){
-
-		StringBuffer spec = new StringBuffer();
-		spec.append("Build signature is composed of :\n");
-		spec.append("BuildId\n");
-		spec.append("FingerPrint\n");
-		spec.append("KernelVersion\n");
-		spec.append("BuildUserHostname\n");
-		spec.append("ModemVersion\n");
-		spec.append("IfwiVersion\n");
-		spec.append("IafwVersion\n");
-		spec.append("ScufwVersion\n");
-		spec.append("PunitVersion\n");
-		spec.append("ValhooksVersion\n");
-
-		System.out.println(spec.toString());
+		CrashInfo.outputCrashinfo("Build signature is composed of :",bUseTag);
+		CrashInfo.outputCrashinfo("BuildId",bUseTag);
+		CrashInfo.outputCrashinfo("FingerPrint",bUseTag);
+		CrashInfo.outputCrashinfo("KernelVersion",bUseTag);
+		CrashInfo.outputCrashinfo("BuildUserHostname",bUseTag);
+		CrashInfo.outputCrashinfo("ModemVersion",bUseTag);
+		CrashInfo.outputCrashinfo("IfwiVersion",bUseTag);
+		CrashInfo.outputCrashinfo("IafwVersion",bUseTag);
+		CrashInfo.outputCrashinfo("ScufwVersion",bUseTag);
+		CrashInfo.outputCrashinfo("PunitVersion",bUseTag);
+		CrashInfo.outputCrashinfo("ValhooksVersion",bUseTag);
 	}
 
 	private String getProperty(String name) {
@@ -107,6 +112,7 @@ public class BuildId implements ISubCommand {
 		myArgs = subArgs;
 		myOptions = new Options(subArgs, "Buildid gives the build signature of the device");
 		myOptions.addMainOption("--spec", "-s", "", false, Multiplicity.ZERO_OR_ONE, "Displays specification of build signature");
+		myOptions.addSubOption(OPTION_HEADER, "-a", "", false, Multiplicity.ZERO_OR_ONE, "Add crashinfo TAG at beginning of the output");
 	}
 
 	@Override

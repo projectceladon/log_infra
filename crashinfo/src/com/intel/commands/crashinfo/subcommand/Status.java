@@ -58,7 +58,7 @@ public class Status implements ISubCommand {
 	private int execUptime(){
 		DBManager aDB = new DBManager();
 		long duration = aDB.getCurrentUptime() ;
-		if (duration >0){
+		if (duration >=0){
 			long seconds = TimeUnit.SECONDS.toSeconds(duration) % 60;
 			long days = TimeUnit.SECONDS.toDays(duration);
 			long hours = TimeUnit.SECONDS.toHours(duration)% 24;
