@@ -43,4 +43,9 @@ public class Constants {
      */
     public static final String PD_EVENT_DATA_DIR_ELEMENT_ROOT = "/event_";
 
+    /**
+     * Critical size in bytes for the logs partition
+     * */
+	public static final int LOGS_CRITICAL_SIZE = 20000000;
+
 }

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Mathieu Auret <mathieux.auret@intel.com>
+ * Author: Mathieu Auret <mathieu.auret@intel.com>
  */
 
 package com.intel.crashtoolserver.bean;
@@ -25,10 +25,15 @@ import java.util.Date;
 public class Build implements Serializable {
 
 	private static final long serialVersionUID = 5286879029277574763L;
+
 	private static final String DEFAULT_VALUE = "";
+	public static final int MAX_SIZE_BUILDID = 40;
+	public final static String DEFAULT_BUILD_TYPE = "dev";
+	public final static String DEFAULT_BUILD_VARIANT = "unknown";
 
 	private Long id;
 	private String buildId;
+	private String name = DEFAULT_VALUE;
 	private String fingerPrint = DEFAULT_VALUE;
 	private String kernelVersion = DEFAULT_VALUE;
 	private String buildUserHostname = DEFAULT_VALUE;
@@ -38,8 +43,54 @@ public class Build implements Serializable {
 	private String scufwVersion  = DEFAULT_VALUE;
 	private String punitVersion  = DEFAULT_VALUE;
 	private String valhooksVersion  = DEFAULT_VALUE;
+	private String variant;
+	private String type;
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	@Deprecated
+	private Long mainlineId;
+	private Mainline mainline;
+
+	// used for backwork compatibility
+	public Build(String buildId) {
+		super();
+		this.buildId = buildId;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	private Date date;
 
+	/**
+	 * Default constructor
+	 */
+	public Build() {}
 
 
 	/**
@@ -228,22 +279,64 @@ public class Build implements Serializable {
 		this.date = date;
 	}
 
+	/**
+	 * @return the mainlineId
+	 */
+	@Deprecated
+	public Long getMainlineId() {
+		return mainlineId;
+	}
+
+
+	/**
+	 * @param mainlineId the mainlineId to set
+	 */
+	@Deprecated
+	public void setMainlineId(Long mainlineId) {
+		this.mainlineId = mainlineId;
+	}
+
+	/**
+	 * @return the mainline
+	 */
+	public Mainline getMainline() {
+		return mainline;
+	}
+
+	/**
+	 * @param mainline the mainline to set
+	 */
+	public void setMainline(Mainline mainline) {
+		this.mainline = mainline;
+	}
+
+	/**
+	 * @return the variant
+	 */
+	public String getVariant() {
+		return variant;
+	}
+
+	/**
+	 * @param variant the variant to set
+	 */
+	public void setVariant(String variant) {
+		this.variant = variant;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "Build [id=" + id + ", buildId=" + buildId + ", fingerPrint=" + fingerPrint
-				+ ", kernelVersion=" + kernelVersion + ", buildUserHostname=" + buildUserHostname
-				+ ", modemVersion=" + modemVersion + ", ifwiVersion=" + ifwiVersion
-				+ ", iafwVersion=" + iafwVersion + ", scufwVersion=" + scufwVersion
+		return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name + ", fingerPrint="
+				+ fingerPrint + ", kernelVersion=" + kernelVersion + ", buildUserHostname="
+				+ buildUserHostname + ", modemVersion=" + modemVersion + ", ifwiVersion="
+				+ ifwiVersion + ", iafwVersion=" + iafwVersion + ", scufwVersion=" + scufwVersion
 				+ ", punitVersion=" + punitVersion + ", valhooksVersion=" + valhooksVersion
+				+ ", variant=" + variant + ", mainlineId=" + mainlineId + ", mainline=" + mainline
 				+ ", date=" + date + "]";
 	}
 
-	// used for backwork compatibility
-	public Build(String buildId) {
-		super();
-		this.buildId = buildId;
-	}
+
 }

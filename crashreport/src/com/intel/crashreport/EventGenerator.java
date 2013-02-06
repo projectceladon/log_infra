@@ -27,8 +27,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-
 import com.intel.phonedoctor.utils.FileOps;
+import com.intel.crashreport.PDStatus.PDSTATUS_TIME;
 
 import android.content.Context;
 import android.content.Intent;
@@ -123,6 +123,7 @@ public enum EventGenerator {
 						event.getType() + event.getDateAsString();
 
 				event.setEventId(sha1Hash(SHA1String));
+				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.INSERTION_TIME));
 
 				db.addEvent(event);
 				db.close();
@@ -176,8 +177,8 @@ public enum EventGenerator {
 		}
 		throw new FileNotFoundException();
 	}
-	
-        public String getImei() {
+
+	public String getImei() {
 		TelephonyManager tm = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		try {
 			String deviceId = tm.getDeviceId();
@@ -187,4 +188,3 @@ public enum EventGenerator {
 		}
 	}
 }
-

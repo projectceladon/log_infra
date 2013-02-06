@@ -29,6 +29,9 @@ import java.util.Scanner;
 import android.os.SystemProperties;
 import java.util.TimeZone;
 
+import com.intel.crashreport.PDStatus.PDSTATUS_TIME;
+import com.intel.crashtoolserver.bean.Device;
+
 public class Event {
 
 	private final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
@@ -52,14 +55,19 @@ public class Event {
 	private boolean dataReady = true;
 	private boolean uploaded = false;
 	private boolean logUploaded = false;
+
+
+	private int iRowID;
 	private String origin = "";
+	private String pdStatus = "";
 
 	public Event() {}
 
-	public Event(String eventId, String eventName, String type, String data0,
+	public Event(int rowid, String eventId, String eventName, String type, String data0,
 			String data1, String data2, String data3,
 			String data4, String data5, String date, String buildId,
 			String deviceId, String imei, String uptime, String crashDir) {
+		this.iRowID = rowid;
 		this.eventId = eventId;
 		this.eventName = eventName;
 		this.type = type;
@@ -77,10 +85,11 @@ public class Event {
 		this.crashDir = crashDir;
 	}
 
-	public Event(String eventId, String eventName, String type, String data0,
+	public Event(int rowid, String eventId, String eventName, String type, String data0,
 			String data1, String data2, String data3,
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, String uptime, String crashDir) {
+		this.iRowID = rowid;
 		this.eventId = eventId;
 		this.eventName = eventName;
 		this.type = type;
@@ -100,6 +109,7 @@ public class Event {
 
 	public Event(HistoryEvent histEvent, String myBuild) {
 		fillEvent(histEvent, myBuild);
+		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
 	}
 
 	private void fillEvent(HistoryEvent histEvent, String myBuild) {
@@ -275,21 +285,24 @@ public class Event {
 		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
 
-	public com.intel.crashtoolserver.bean.Event getEventForServer(Build build) {
+	public com.intel.crashtoolserver.bean.Event getEventForServer(com.intel.crashreport.Build build) {
 		com.intel.crashtoolserver.bean.Event event;
-		long sUptime = convertUptime(this.uptime);
-		Build mBuild;
+		long lUptime = convertUptime(this.uptime);
+		com.intel.crashreport.Build mBuild;
 		if (this.buildId.contentEquals(build.toString()))
 			mBuild = build;
 		else {
-			mBuild = new Build(this.buildId);
+			mBuild = new com.intel.crashreport.Build(this.buildId);
 			if (mBuild.getBuildId().contentEquals(""))
 				mBuild = build;
 		}
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
+		com.intel.crashtoolserver.bean.Device aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented yet*/);
 		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
 				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
-				convertDateForServer(this.date), this.deviceId, this.imei, sUptime, sBuild);
+				convertDateForServer(this.date), lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
+				aDevice, this.iRowID,this.pdStatus );
+
 		return event;
 	}
 
@@ -533,6 +546,21 @@ public class Event {
 
 	public String getOrigin() {
 		return origin;
+	}
+
+	public int getiRowID() {
+		return iRowID;
+	}
+
+	public void setiRowID(int iRowID) {
+		this.iRowID = iRowID;
+	}
+	public String getPdStatus() {
+		return pdStatus;
+	}
+
+	public void setPdStatus(String pdStatus) {
+		this.pdStatus = pdStatus;
 	}
 
 }

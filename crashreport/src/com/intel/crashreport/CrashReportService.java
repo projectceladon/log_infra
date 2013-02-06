@@ -45,6 +45,8 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.os.SystemProperties;
 import java.util.TimeZone;
+
+import com.intel.crashreport.PDStatus.PDSTATUS_TIME;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 import com.intel.crashtoolserver.bean.FileInfo;
 
@@ -359,15 +361,18 @@ public class CrashReportService extends Service {
 		Event event;
 		hideProgressBar();
 		if (cursor != null) {
+			PDStatus.INSTANCE.setContext(getApplicationContext());
 			while (!cursor.isAfterLast()) {
 				if (runThread.isInterrupted()) {
 					cursor.close();
 					throw new InterruptedException();
 				}
 				event = db.fillEventFromCursor(cursor);
+				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.UPLOAD_TIME));
 				com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild);
 				if (con.sendEvent(sEvent)) {
 					db.updateEventToUploaded(event.getEventId());
+					db.updatePDStatus(event.getPdStatus(), event.getEventId());
 					Log.i("Service:uploadEvent : Success upload of " + event);
 					cursor.moveToNext();
 				} else {

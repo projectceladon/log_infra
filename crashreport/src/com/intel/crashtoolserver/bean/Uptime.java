@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Mathieu Auret <mathieux.auret@intel.com>
+ * Author: Mathieu Auret <mathieu.auret@intel.com>
  */
 
 package com.intel.crashtoolserver.bean;

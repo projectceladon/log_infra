@@ -28,6 +28,7 @@ public class HistoryEvent {
 	private String date = "";
 	private String type = "";
 	private String option = "";
+	private boolean eventCorrupted = false;
 
 	public HistoryEvent() {}
 
@@ -42,6 +43,7 @@ public class HistoryEvent {
 				if (eventList.length < MIN_EVENT)
 				{
 					Log.w("HistoryEvent: not enough columns : " + event);
+					eventCorrupted = true;
 				}else if (eventList.length == MIN_EVENT) {
 					eventName = eventList[0];
 					eventId = eventList[1];
@@ -55,9 +57,11 @@ public class HistoryEvent {
 					option = eventList[4];
 				} else {
 					Log.w("HistoryEvent: too many columns : " + event);
+					eventCorrupted = true;
 				}
 			} catch (NullPointerException e) {
 				Log.w("HistoryEvent: event format not recognised : " + event);
+				eventCorrupted = true;
 			}
 		}
 	}
@@ -100,6 +104,10 @@ public class HistoryEvent {
 
 	public void setOption(String option) {
 		this.option = option;
+	}
+
+	public boolean isCorrupted() {
+		return eventCorrupted;
 	}
 
 }

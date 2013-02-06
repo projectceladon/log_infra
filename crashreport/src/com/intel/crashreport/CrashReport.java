@@ -179,10 +179,13 @@ public class CrashReport extends Application {
 		Event event;
 		NotificationMgr nMgr;
 		BlackLister blackLister = new BlackLister(getApplicationContext());
+		PhoneInspector phoneInspector;
+		boolean historyEventCorrupted = false;
 
 		db = new EventDB(getApplicationContext());
 		myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
 		nMgr = new NotificationMgr(getApplicationContext());
+		PDStatus.INSTANCE.setContext(getApplicationContext());
 
 		try {
 			db.open();
@@ -194,6 +197,8 @@ public class CrashReport extends Application {
 					histEventLine = histFile.getNextEvent();
 					if (histEventLine.length() != 0) {
 						HistoryEvent histEvent = new HistoryEvent(histEventLine);
+						historyEventCorrupted |= histEvent.isCorrupted();
+						PDStatus.INSTANCE.setHistoryEventCorrupted(historyEventCorrupted);
 						if (histEvent.getEventId().replaceAll("0", "").length() != 0) {
 							if (!db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId())) {
 								event = new Event(histEvent, myBuild);

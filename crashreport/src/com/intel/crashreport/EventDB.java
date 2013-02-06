@@ -49,7 +49,7 @@ public class EventDB {
 	private static final String DATABASE_BZ_TABLE = "bz_events";
 	private static final String DATABASE_BLACK_EVENTS_TABLE = "black_events";
 	private static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
-	private static final int DATABASE_VERSION = 9;
+	private static final int DATABASE_VERSION = 10;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -73,6 +73,7 @@ public class EventDB {
 	public static final String KEY_CRITICAL = "critical";
 	public static final String KEY_DATA_READY = "dataReady";
 	public static final String KEY_ORIGIN = "origin";
+	public static final String KEY_PDSTATUS = "pdStatus";
 	public static final String KEY_SUMMARY = "summary";
 	public static final String KEY_DESCRIPTION = "description";
 	public static final String KEY_SEVERITY = "severity";
@@ -111,7 +112,8 @@ public class EventDB {
 					KEY_UPLOADLOG + " integer, "+
 					KEY_NOTIFIED + " integer, "+
 					KEY_DATA_READY + " integer, "+
-					KEY_ORIGIN + " text );";
+					KEY_ORIGIN + " text, " +
+					KEY_PDSTATUS + " text " + ");";
 
 	private static final String DATABASE_TYPE_CREATE =
 			"create table " + DATABASE_TYPE_TABLE + " ("+
@@ -245,7 +247,8 @@ public class EventDB {
 	public long addEvent(String eventId, String eventName, String type,
 			String data0, String data1, String data2, String data3,
 			String data4, String data5, Date date, String buildId,
-			String deviceId, String imei, String uptime, String crashDir, boolean bDataReady, String origin) {
+			String deviceId, String imei, String uptime, String crashDir,
+			boolean bDataReady, String origin, String pdStatus) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = convertDateForDb(date);
 		if (eventName.equals("")) return -2;
@@ -275,6 +278,7 @@ public class EventDB {
 			initialValues.put(KEY_DATA_READY, 0);
 		}
 		initialValues.put(KEY_ORIGIN, origin);
+		initialValues.put(KEY_PDSTATUS, pdStatus);
 
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
 	}
@@ -296,7 +300,8 @@ public class EventDB {
 				event.getUptime(),
 				event.getCrashDir(),
 				event.isDataReady(),
-				event.getOrigin());
+				event.getOrigin(),
+				event.getPdStatus());
 	}
 
 	public boolean deleteEvent(String eventId) {
@@ -306,18 +311,18 @@ public class EventDB {
 
 	public Cursor fetchAllEvents() {
 
-		return mDb.query(DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
+		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN}, null, null, null, null, null);
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS}, null, null, null, null, null);
 	}
 
 	public Cursor fetchLastNEvents(String sNlimit) {
 
-		return mDb.query(DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
+		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN}, null, null, null, null,
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS}, null, null, null, null,
 				KEY_ROWID + " DESC",sNlimit);
 	}
 
@@ -349,10 +354,10 @@ public class EventDB {
 	private Cursor fetchEventFromWhereQuery(String whereQuery) throws SQLException {
 		Cursor mCursor;
 
-		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID, KEY_NAME, KEY_TYPE,
+		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
 				KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
-				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN}, whereQuery, null,
+				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS}, whereQuery, null,
 				null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
@@ -362,7 +367,7 @@ public class EventDB {
 
 	public Event fillEventFromCursor(Cursor cursor) {
 		Event event = new Event();
-
+		event.setiRowID(cursor.getInt(cursor.getColumnIndex(KEY_ROWID)));
 		event.setEventId(cursor.getString(cursor.getColumnIndex(KEY_ID)));
 		event.setEventName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
 		event.setType(cursor.getString(cursor.getColumnIndex(KEY_TYPE)));
@@ -382,6 +387,7 @@ public class EventDB {
 		event.setDataReady(cursor.getInt(cursor.getColumnIndex(KEY_DATA_READY))==1);
 		event.setLogUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG))==1);
 		event.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
+		event.setPdStatus(cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS)));
 
 
 		return event;
@@ -478,6 +484,10 @@ public class EventDB {
 
 	public int getNewUptimeNumber() {
 		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='UPTIME'");
+	}
+
+	public int getUptimeNumber() {
+		return getNumberFromWhereQuery(KEY_NAME + "='UPTIME'");
 	}
 
 	public int getNewRebootNumber() {
@@ -650,6 +660,14 @@ public class EventDB {
 		return isEventExistFromWhereQuery(whereQuery);
 	}
 
+	public boolean updatePDStatus(String pdStatus, String eventId) {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_PDSTATUS, pdStatus);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+	}
+
 	public void deleteEventsBeforeUpdate(String eventId){
 		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')";
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
@@ -657,7 +675,7 @@ public class EventDB {
 
 	public long addBZ(String eventId,BZFile bzfile,Date date) {
 		return addBZ(eventId,bzfile.getSummary(),bzfile.getDescription(),bzfile.getType(),bzfile.getSeverity(),bzfile.getComponent(),
-				      bzfile.getScreenshotsPathToString(),date);
+				bzfile.getScreenshotsPathToString(),date);
 	}
 
 	public long addBZ(String eventId, String summary, String description,

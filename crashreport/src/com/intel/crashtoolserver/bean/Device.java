@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Mathieu Auret <mathieux.auret@intel.com>
+ * Author: Mathieu Auret <mathieu.auret@intel.com>
  */
 
 package com.intel.crashtoolserver.bean;
@@ -40,6 +40,8 @@ public class Device implements Serializable {
 	private String imei;
 	private String pid;
 	private String hwType;
+	private String platform;
+	private String ssn;
 	private String team;
 	private String domain;
 	private String owner;
@@ -47,9 +49,6 @@ public class Device implements Serializable {
 	private String tag;
 	private Date lastUpdatedDate;
 
-	/**
-	 * Default constructor
-	 */
 	public Device() {
 		// do nothing
 	}
@@ -60,14 +59,52 @@ public class Device implements Serializable {
 	 * @param deviceId
 	 * @param imei
 	 */
+	@Deprecated
 	public Device(String deviceId, String imei) {
-
-		this(deviceId, imei, null, null, null, null, null);
+		this(deviceId, imei, null, null, null, null, null, null);
 	}
 
+	/**
+	 *
+	 * @param deviceId
+	 * @param imei
+	 * @param pid
+	 * @param owner
+	 * @param location
+	 * @param tag
+	 * @param lastUpdatedDate
+	 */
+	@Deprecated
 	public Device(String deviceId, String imei, String pid, String owner, String location,
 			String tag, Date lastUpdatedDate) {
-		super();
+
+		this(deviceId, imei, pid, owner, location, tag, lastUpdatedDate, null);
+	}
+
+	/**
+	 *
+	 * @param deviceId
+	 * @param imei
+	 * @param ssn
+	 */
+	public Device(String deviceId, String imei, String ssn) {
+		this(deviceId, imei, null, null, null, null, null, ssn);
+	}
+
+	/**
+	 *
+	 * @param deviceId
+	 * @param imei
+	 * @param pid
+	 * @param owner
+	 * @param location
+	 * @param tag
+	 * @param lastUpdatedDate
+	 * @param ssn
+	 */
+	private Device(String deviceId, String imei, String pid, String owner, String location,
+			String tag, Date lastUpdatedDate, String ssn) {
+
 		this.deviceId = deviceId;
 		this.imei = imei;
 		this.pid = pid;
@@ -79,130 +116,93 @@ public class Device implements Serializable {
 			lastUpdatedDate = new Date();
 		}
 		this.lastUpdatedDate = lastUpdatedDate;
+		this.ssn = ssn;
 	}
 
-	/**
-	 * @return the deviceId
-	 */
+	public String getSsn() {
+		return ssn;
+	}
+
+	public void setSsn(String ssn) {
+		this.ssn = ssn;
+	}
+
+	public String getPlatform() {
+		return platform;
+	}
+
+	public void setPlatform(String platform) {
+		this.platform = platform;
+	}
+
 	public String getDeviceId() {
 		return deviceId;
 	}
 
-	/**
-	 * @param deviceId the deviceId to set
-	 */
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
 	}
 
-	/**
-	 * @return the imei
-	 */
 	public String getImei() {
 		return imei;
 	}
 
-	/**
-	 * @param imei the imei to set
-	 */
 	public void setImei(String imei) {
 		this.imei = imei;
 	}
 
-	/**
-	 * @return the pid
-	 */
 	public String getPid() {
 		return pid;
 	}
 
-	/**
-	 * @param pid the pid to set
-	 */
 	public void setPid(String pid) {
 		this.pid = pid;
 	}
 
-	/**
-	 * @return the hwType
-	 */
 	public String getHwType() {
 		return hwType;
 	}
 
-	/**
-	 * @param hwType the hwType to set
-	 */
 	public void setHwType(String hwType) {
 		this.hwType = hwType;
 	}
 
-	/**
-	 * @return the team
-	 */
 	public String getTeam() {
 		return team;
 	}
 
-	/**
-	 * @param team the team to set
-	 */
 	public void setTeam(String team) {
 		this.team = team;
 	}
 
-	/**
-	 * @return the domain
-	 */
 	public String getDomain() {
 		return domain;
 	}
 
-	/**
-	 * @param domain the domain to set
-	 */
 	public void setDomain(String domain) {
 		this.domain = domain;
 	}
 
-	/**
-	 * @return the owner
-	 */
 	public String getOwner() {
 		return owner;
 	}
 
-	/**
-	 * @param owner the owner to set
-	 */
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
 
-	/**
-	 * @return the location
-	 */
 	public String getLocation() {
 		return location;
 	}
 
-	/**
-	 * @param location the location to set
-	 */
 	public void setLocation(String location) {
 		this.location = location;
 	}
 
-	/**
-	 * @return the tag
-	 */
 	public String getTag() {
 		return tag;
 	}
 
-	/**
-	 * @param tag the tag to set
-	 */
 	public void setTag(String tag) {
 		this.tag = tag;
 	}
@@ -241,8 +241,8 @@ public class Device implements Serializable {
 	@Override
 	public String toString() {
 		return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei + ", pid=" + pid
-				+ ", hwType=" + hwType + ", team=" + team + ", domain=" + domain + ", owner="
-				+ owner + ", location=" + location + ", tag=" + tag + ", lastUpdatedDate="
-				+ lastUpdatedDate + "]";
+				+ ", hwType=" + hwType + ", platform=" + platform + ", ssn=" + ssn + ", team="
+				+ team + ", domain=" + domain + ", owner=" + owner + ", location=" + location
+				+ ", tag=" + tag + ", lastUpdatedDate=" + lastUpdatedDate + "]";
 	}
 }

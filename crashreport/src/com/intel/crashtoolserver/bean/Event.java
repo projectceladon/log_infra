@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Author: Mathieu Auret <mathieux.auret@intel.com>
+ * Author: Mathieu Auret <mathieu.auret@intel.com>
  */
 
 package com.intel.crashtoolserver.bean;
@@ -36,9 +36,18 @@ public class Event implements Serializable {
 
 	private static final long serialVersionUID = -1516767267932884874L;
 
+	/**
+	 * Origin exhaustive list
+	 * default value : GENE
+	 */
 	public enum Origin {
-		CLOTA, MPTA
+		CLOTA, MPTA, GENE, ACS
 	}
+
+	/**
+	 * rowid default value : GENE
+	 */
+	public static final long UNKNOWN_ROWID = -1;
 
 	private Long id;
 	private String eventId;
@@ -51,22 +60,31 @@ public class Event implements Serializable {
 	private String data4;
 	private String data5;
 	private Date date;
+	private String dateString;
+
 	@Deprecated
 	private String buildId;
+	@Deprecated
 	private String deviceId;
 	private String testId;
 	private long uptime;
 	private String logFileName;
 	private File logFile;
+	private String reportFile;
 	private String imei;
 	private String origin;
 	private String fileOrigin;
 	private Date insertedEventDate;
 	private Date insertedFileDate;
+	private Boolean rejected;
+	private int bplog;
+	private long rowId;
+	private String pdStatus;
 
 	private Build build;
 	private Device device;
 	private Uptime uptimeObj;
+	private Crashtype crashtype;
 
 	public Event() {
 		super();
@@ -91,7 +109,7 @@ public class Event implements Serializable {
 			String data1, String data2, Date date, String buildId,
 			String deviceId, long uptime) {
 
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null);
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null, null, null, UNKNOWN_ROWID, null);
 	}
 
 	/**
@@ -118,7 +136,7 @@ public class Event implements Serializable {
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, long uptime) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null, null, null, UNKNOWN_ROWID, null);
 	}
 
 	/**
@@ -144,7 +162,7 @@ public class Event implements Serializable {
 			String data4, String data5, Date date,
 			String deviceId, String imei, long uptime, Build build) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build, null, null, UNKNOWN_ROWID, null);
 	}
 
 	/**
@@ -167,7 +185,7 @@ public class Event implements Serializable {
 			String data1, String data2, Date date, String buildId,
 			String deviceId, long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null);
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null);
 	}
 
 	/**
@@ -194,7 +212,7 @@ public class Event implements Serializable {
 			String data5, Date date, String buildId, String deviceId,
 			long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null);
 	}
 
 	/**
@@ -216,12 +234,13 @@ public class Event implements Serializable {
 	 * @param uptime
 	 * @param logFile
 	 */
+	@Deprecated
 	public Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date, String buildId, String deviceId, String imei,
 			long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null);
 	}
 
 	/**
@@ -243,12 +262,97 @@ public class Event implements Serializable {
 	 * @param logFile
 	 * @param build
 	 */
+	@Deprecated
 	public Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date, String deviceId, String imei,
 			long uptime, File logFile, Build build) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, null, null, UNKNOWN_ROWID, null);
+	}
+
+	/**
+	 * Instantiate an event used by MPTA above 2.6 and ACS
+	 *
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param deviceId
+	 * @param imei
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 */
+	@Deprecated
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date, String deviceId, String imei,
+			long uptime, File logFile, Build build, Event.Origin origin) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, origin, null, UNKNOWN_ROWID, null);
+	}
+
+	/**
+	 * Instantiate an event used by MPTA 2.7 (has never been used in production)
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 * @param origin
+	 * @param device
+	 * @param rowId
+	 */
+	@Deprecated
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date,
+			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, null);
+	}
+
+
+	/**
+	 * Instantiate an event used by MPTA above 2.7 and ACS
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 * @param origin
+	 * @param device
+	 * @param rowId
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date,
+			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus) {
+
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus);
 	}
 
 	/**
@@ -274,7 +378,7 @@ public class Event implements Serializable {
 	private Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date, String buildId, String deviceId, String imei,
-			String testId, long uptime, File logFile, Build build) {
+			String testId, long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus) {
 
 		this.eventId = eventId;
 		this.event = event;
@@ -298,34 +402,47 @@ public class Event implements Serializable {
 		this.data5 = data5;
 		this.testId = testId;
 		this.build = build;
+		if (origin != null) {
+			this.origin = origin.name();
+		}
+
+		this.device = device;
+		this.dateString = com.intel.crashtool.crashtoolDb.bean.util.DateUtils.dateToString(date);
+		this.rowId = rowId;
+		this.pdStatus = pdStatus;
 	}
 
-	/**
-	 * @return the id
-	 */
+
 	public Long getId() {
 		return id;
 	}
 
-	/**
-	 * @param id the id to set
-	 */
+
 	public void setId(Long id) {
 		this.id = id;
 	}
 
-	/**
-	 * @return the origin
-	 */
 	public String getOrigin() {
 		return origin;
 	}
 
-	/**
-	 * @param origin the origin to set
-	 */
+	public Event.Origin getOriginEnum() {
+		if (origin == null) {
+			return  null;
+		}
+
+		try {
+			return Event.Origin.valueOf(origin);
+		} catch (Exception e) {
+			//do nothing
+		}
+		return null;
+	}
+
 	public void setOrigin(Origin value) {
-		this.origin = value.name();
+		if (value != null) {
+			this.origin = value.name();
+		}
 	}
 
 	public String getImei() {
@@ -445,10 +562,12 @@ public class Event implements Serializable {
 		this.buildId = buildId;
 	}
 
+	@Deprecated
 	public String getDeviceId() {
 		return deviceId;
 	}
 
+	@Deprecated
 	public void setDeviceId(String deviceId) {
 		this.deviceId = deviceId;
 	}
@@ -469,7 +588,19 @@ public class Event implements Serializable {
 		this.logFileName = logFileName;
 	}
 
+	/**
+	 * @return the reportFile
+	 */
+	public String getReportFile() {
+		return reportFile;
+	}
 
+	/**
+	 * @param reportFile the reportFile to set
+	 */
+	public void setReportFile(String reportFile) {
+		this.reportFile = reportFile;
+	}
 
 	public String getTestId() {
 		return testId;
@@ -537,6 +668,34 @@ public class Event implements Serializable {
 	}
 
 	/**
+	 * @return the rejected
+	 */
+	public Boolean getRejected() {
+		return rejected;
+	}
+
+	/**
+	 * @param rejected the rejected to set
+	 */
+	public void setRejected(Boolean rejected) {
+		this.rejected = rejected;
+	}
+
+	/**
+	 * @return the bplog
+	 */
+	public int getBplog() {
+		return bplog;
+	}
+
+	/**
+	 * @param bplog the bplog to set
+	 */
+	public void setBplog(int bplog) {
+		this.bplog = bplog;
+	}
+
+	/**
 	 * @return the build
 	 */
 	public Build getBuild() {
@@ -587,18 +746,79 @@ public class Event implements Serializable {
 		this.uptimeObj = uptimeObj;
 	}
 
+	/**
+	 * @return the crashtype
+	 */
+	public Crashtype getCrashtype() {
+		return crashtype;
+	}
+
+	/**
+	 * @param crashtype the crashtype to set
+	 */
+	public void setCrashtype(Crashtype crashtype) {
+		this.crashtype = crashtype;
+	}
+
+	/**
+	 * @return the dateString
+	 */
+	public String getDateString() {
+		return dateString;
+	}
+
+	/**
+	 * @param dateString the dateString to set
+	 */
+	public void setDateString(String dateString) {
+		this.dateString = dateString;
+	}
+
+	/**
+	 * @return the rowId
+	 */
+	public long getRowId() {
+		return rowId;
+	}
+
+	/**
+	 * @param rowId the rowId to set
+	 */
+	public void setRowId(long rowId) {
+		this.rowId = rowId;
+	}
+
+	/**
+	 * @return the pdStatus
+	 */
+	public String getPdStatus() {
+		return pdStatus;
+	}
+
+	/**
+	 * @param pdStatus the pdStatus to set
+	 */
+	public void setPdStatus(String pdStatus) {
+		this.pdStatus = pdStatus;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
-		return "Event [eventId=" + eventId + ", event=" + event + ", type=" + type + ", data0="
-				+ data0 + ", data1=" + data1 + ", data2=" + data2 + ", data3=" + data3 + ", data4="
-				+ data4 + ", data5=" + data5 + ", date=" + date + ", buildId=" + buildId
-				+ ", deviceId=" + deviceId + ", testId=" + testId + ", uptime=" + uptime
-				+ ", logFileName=" + logFileName + ", logFile=" + logFile + ", imei=" + imei
-				+ ", origin=" + origin + ", fileOrigin=" + fileOrigin + ", insertedEventDate="
-				+ insertedEventDate + ", insertedFileDate=" + insertedFileDate + ", build=" + build
+		return "Event [id=" + id + ", eventId=" + eventId + ", event=" + event + ", type=" + type
+				+ ", data0=" + data0 + ", data1=" + data1 + ", data2=" + data2 + ", data3=" + data3
+				+ ", data4=" + data4 + ", data5=" + data5 + ", date=" + date + ", dateString="
+				+ dateString + ", buildId=" + buildId + ", deviceId=" + deviceId + ", testId="
+				+ testId + ", uptime=" + uptime + ", logFileName=" + logFileName + ", logFile="
+				+ logFile + ", reportFile=" + reportFile + ", imei=" + imei + ", origin=" + origin
+				+ ", fileOrigin=" + fileOrigin + ", insertedEventDate=" + insertedEventDate
+				+ ", insertedFileDate=" + insertedFileDate + ", rejected=" + rejected + ", bplog="
+				+ bplog + ", rowId=" + rowId + ", pdStatus=" + pdStatus + ", build=" + build
+				+ ", device=" + device + ", uptimeObj=" + uptimeObj + ", crashtype=" + crashtype
 				+ "]";
 	}
+
+
 }
