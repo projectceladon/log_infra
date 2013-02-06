@@ -41,6 +41,15 @@ public final class PDIntentConstants {
         "intel.intent.action.phonedoctor.REPORT_ERROR";
 
     /**
+     * Intent action to send in order to report a "Stats" event to
+     * Crashtool. Extras "Type", "Data0", "Data1" and "Data2" form the
+     * event signature on Crashtool and should be filled
+     * appropriately.
+     */
+    public static final String INTENT_REPORT_STATS =
+        "intel.intent.action.phonedoctor.REPORT_STATS";
+
+    /**
      * "Type" of the event. It should be constant across a same
      * component to ease identification of issue from non FT
      * members. Part of the event signature on Crashtool server.
@@ -86,5 +95,11 @@ public final class PDIntentConstants {
      */
     public static final String EXTRA_DATA5 =
         "intel.intent.extra.phonedoctor.DATA5";
+
+    /**
+     * File absolute path associated with the event.
+     */
+    public static final String EXTRA_FILE =
+        "intel.intent.extra.phonedoctor.FILE";
 
 }

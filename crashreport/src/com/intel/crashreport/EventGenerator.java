@@ -19,12 +19,16 @@
 
 package com.intel.crashreport;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+
+import com.intel.phonedoctor.utils.FileOps;
 
 import android.content.Context;
 import android.content.Intent;
@@ -48,6 +52,12 @@ public enum EventGenerator {
 	public CustomizableEventData getEmptyErrorEvent(){
 		CustomizableEventData result = new CustomizableEventData();
 		result.setEventName("ERROR");
+		return result;
+	}
+
+	public CustomizableEventData getEmptyStatsEvent(){
+		CustomizableEventData result = new CustomizableEventData();
+		result.setEventName("STATS");
 		return result;
 	}
 
@@ -139,6 +149,23 @@ public enum EventGenerator {
 			e.printStackTrace();
 		}
 		return hash;
+	}
+
+	/**
+	 * Provide an empty directory, ready to receive event data files.
+	 *
+	 * @return the directory
+	 * @throws FileNotFoundException if it's not possible to provide a directory
+	 */
+	public File getNewEventDirectory() throws FileNotFoundException {
+		if (mContext != null) {
+			File dir = new File(new ApplicationPreferences(mContext).getNewEventDirectoryName());
+			if (dir.exists())
+				FileOps.delete(dir);
+			dir.mkdirs();
+			return dir;
+		}
+		throw new FileNotFoundException();
 	}
 }
 

@@ -19,6 +19,8 @@
 
 package com.intel.crashreport;
 
+import com.intel.phonedoctor.Constants;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -152,4 +154,20 @@ public class ApplicationPreferences {
 		privatePrefsEditor.putString("userEmail", email);
 		privatePrefsEditor.commit();
 	}
+
+	/**
+	 * @brief Provide a directory name (full path) to store new event data files.
+	 *
+	 * No checks are done on directory, it's your responsibility to clean it if
+	 * not empty. Directory numbers are incremented on each call.
+	 *
+	 * @return directory path
+	 */
+	public synchronized String getNewEventDirectoryName() {
+		int number = appPrivatePrefs.getInt("newEventDirectoryNumber", 0);
+		privatePrefsEditor.putInt("newEventDirectoryNumber", number+1);
+		privatePrefsEditor.commit();
+		return Constants.PD_EVENT_DATA_DIR + Constants.PD_EVENT_DATA_DIR_ELEMENT_ROOT + number;
+	}
+
 }

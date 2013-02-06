@@ -138,8 +138,11 @@
             <intent-filter >
                 <action android:name="intel.intent.action.phonedoctor.REPORT_INFO" />
                 <action android:name="intel.intent.action.phonedoctor.REPORT_ERROR" />
+                <action android:name="intel.intent.action.phonedoctor.REPORT_STATS" />
             </intent-filter>
         </receiver>
+
+        <service android:name=".receivers.EventReceiverService" />
 
     </application>
 </manifest>
