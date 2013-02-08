@@ -181,6 +181,7 @@ public class CrashReportService extends Service {
 					String crashTypes[] = null;
 					if (prefs.isCrashLogsUploadEnable())
 						crashTypes = prefs.getCrashLogsUploadTypes();
+					else Log.d("Service:isThereEventToUpload : upload logs disabled");
 					if (db.isThereEventToUpload(crashTypes)) {
 						Message msg = Message.obtain();
 						msg.what = ServiceMsg.eventToUpload;
@@ -506,6 +507,7 @@ public class CrashReportService extends Service {
 								Log.i("Service:uploadEvent : Upload files finished");
 							}
 						}
+						else Log.i("Service:uploadEvent : logs upload disabled");
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
 					} catch (InterruptedException e) {
 						Log.i("Service:uploadEvent : upload interrupted");
