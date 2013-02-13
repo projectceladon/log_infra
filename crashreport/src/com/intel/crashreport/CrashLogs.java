@@ -37,27 +37,16 @@ public class CrashLogs {
 		try {
 			if (crashDir != null){
 				if (!crashDir.isEmpty()){
-					File cacheDir = context.getExternalCacheDir();
+					Log.d("getCrashLogsFile: using cachedir");
+					File cacheDir = context.getCacheDir();
 					if ((cacheDir != null) && cacheDir.exists()) {
 						String crashLogsFileName = "EVENT"+eventId+".zip";
 						File crashLogsFile = new File(cacheDir, crashLogsFileName);
+						crashLogsFile.deleteOnExit();
 						if (crashLogsFile.exists())
 							return crashLogsFile;
 						else {
 							return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
-						}
-					}else{
-						Log.w("getExternalCacheDir Null : using cachedir");
-						cacheDir = context.getCacheDir();
-						if ((cacheDir != null) && cacheDir.exists()) {
-							String crashLogsFileName = "EVENT"+eventId+".zip";
-							File crashLogsFile = new File(cacheDir, crashLogsFileName);
-							crashLogsFile.deleteOnExit();
-							if (crashLogsFile.exists())
-								return crashLogsFile;
-							else {
-								return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
-							}
 						}
 					}
 				}
@@ -110,18 +99,4 @@ public class CrashLogs {
 			return null;
 		}
 	}
-
-	public static void deleteCrashLogsZipFiles(Context context) {
-		File cacheDir = context.getExternalCacheDir();
-		if ((cacheDir != null) && cacheDir.isDirectory()) {
-			File fileList[] = cacheDir.listFiles();
-			if (fileList != null)
-				for (int i=0; i<fileList.length; i++) {
-					File cFile = fileList[i];
-					if ((cFile != null) && cFile.isFile())
-						cFile.delete();
-				}
-		}
-	}
-
 }

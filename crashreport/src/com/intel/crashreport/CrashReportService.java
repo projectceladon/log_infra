@@ -538,7 +538,6 @@ public class CrashReportService extends Service {
 				serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
 			}
 
-			CrashLogs.deleteCrashLogsZipFiles(context);
 			if (nMgr != null)
 				nMgr.cancelNotifUploadingLogs();
 			if (cursor != null)
