@@ -936,7 +936,7 @@ public class EventDB {
 			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
 			mCursor.close();
 			int newDate = convertDateForDb(date);
-			if( lastEvent < newDate) {
+			if( lastEvent <= newDate) {
 				if ( (newDate - lastEvent) <=  MAX_DELAY_RAIN) {
 					return true;
 				}
