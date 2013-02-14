@@ -1,0 +1,20 @@
+{
+    "description":"Phone Monitor Service",
+    "type": "normal",
+    "config": [
+        {
+            "type":"intent",
+            "data": {
+                "action":"com.intel.action.phonemonitor.START_MONITORING"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"intent",
+            "data": {
+                "action":"com.intel.action.phonemonitor.STOP_MONITORING"
+            }
+        }
+    ]
+}
