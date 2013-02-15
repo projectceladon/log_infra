@@ -432,6 +432,9 @@ public class MainParser{
 			String sSignal= "";
 			String sStackSymbol = "";
 			String sStackLibs = "";
+			String sFaultAddress = "";
+			String sFaultAddrSeparator = "fault addr ";
+			String sHexCharactersPattern = "[0-9A-Fa-f]+";
 			boolean bProcessFound = false;
 			boolean bSignalFound = false;
 			boolean bSubSignalFound = false;
@@ -441,6 +444,7 @@ public class MainParser{
 			boolean bSubStackFound = false;
 			int iSubStackCount = 0;
 
+			/*Defines patterns expected to be found in the tombstone file to extract relevant crash data*/
 			Pattern patternProcess = java.util.regex.Pattern.compile(".*>>>.*");
 			Pattern patternSignalStack = java.util.regex.Pattern.compile(".*Build fingerprint.*");
 			Pattern patternSubSignal = java.util.regex.Pattern.compile(".*signal.*");
@@ -465,14 +469,24 @@ public class MainParser{
 							iSubSignalCount = 0;
 							bSubSignalFound = true;
 						}
-
 						if (bSubSignalFound){
+							//Search SubSignal and FaultAddress patterns only in the 4 lines following the line
+							//containing SignalStack pattern
 							if (iSubSignalCount < 4){
 								sTmp = simpleGrepAwk(patternSubSignal, sCurLine, "\\(", 1);
 								sTmp = simpleAwk(sTmp,"\\)", 0);
 								if (sTmp != null){
 									sSignal = sTmp;
 									bSignalFound = true;
+									//signal has been found : it is assumed the fault address is always in the same line
+									//and shall necessary be an 8 hex characters long string
+									sTmp = simpleAwk(sCurLine,sFaultAddrSeparator, 1);
+									if (sTmp != null){
+										sTmp = sTmp.substring(0, 7);
+										if (sTmp.matches(sHexCharactersPattern)){
+											sFaultAddress = sTmp;
+										}
+									}
 								}
 								iSubSignalCount++;
 							}else{
@@ -542,6 +556,7 @@ public class MainParser{
 				}else{
 					bResult &= appendToCrashfile("DATA2=" + sStackLibs);
 				}
+				bResult &= appendToCrashfile("DATA3=" + sFaultAddress);
 
 				bufTombstoneFile.close();
 			}

@@ -21,7 +21,6 @@ package com.intel.crashreport;
 import android.content.Context;
 import android.os.DropBoxManager;
 import android.os.SystemProperties;
-import android.util.Log;
 
 /**
  * This singleton class is responsible for watching infrastructure state allowing
@@ -78,11 +77,11 @@ public class PhoneInspector {
     public void manageFullDropBox() {
 
         if (mDropBoxManager.isFull()) {
-            Log.i(TAG, Module + "DropBox full");
+            Log.i(Module + "DropBox full");
             SystemProperties.set(FULL_DROPBOX_PROP, LOW_MEM_MODE);
         }
         else {
-            Log.i(TAG, Module + "DropBox not full");
+            Log.d(Module + "DropBox not full");
             SystemProperties.set(FULL_DROPBOX_PROP, NOMINAL_MODE);
         }
     }

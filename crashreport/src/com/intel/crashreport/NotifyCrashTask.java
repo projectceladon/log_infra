@@ -49,7 +49,7 @@ public class NotifyCrashTask extends TimerTask{
 			}
 			db.close();
 		}catch (SQLException e) {
-			Log.w("Service:uploadEvent : Fail to access DB", e);
+			Log.w("NotifyCrashTask: Fail to access DB", e);
 		}
 
 		if (isPresent) {

@@ -68,13 +68,21 @@ public enum EventGenerator {
 		return result;
 	}
 
-	public boolean generateEventRain(CrashSignature signature, int occurences) {
+	/**
+	 * @brief Generate an event of RAIN type and add it to the events db
+	 *
+	 * @param signature is the input signature of the RAIN event to generate
+	 * @param occurences is the number of crashes contained by the rain event
+	 * @return true is the generation is successful. False otherwise.
+	 */
+	public boolean generateEventRain(RainSignature signature, int occurences) {
 		CustomizableEventData eventRain = getEmptyRainEvent();
 		eventRain.setType(signature.getType());
 		eventRain.setData0(signature.getData0());
 		eventRain.setData1(signature.getData1());
 		eventRain.setData2(signature.getData2());
-		eventRain.setData3(""+occurences);
+		eventRain.setData3(signature.getData3());
+		eventRain.setData4(""+occurences);
 		return generateEvent(eventRain,false);
 	}
 

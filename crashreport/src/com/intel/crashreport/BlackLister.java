@@ -24,13 +24,25 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
 public class BlackLister {
 	private EventDB db;
+	private static Context mCtxt;
+
+	/**
+	 * Constructor
+	 *
+	 * @param aContext is caller context
+	 */
+	public BlackLister (Context aContext) {
+		mCtxt = aContext;
+	}
 
 	public boolean blackList(Event event){
 		if(event.getType().equals("TOMBSTONE")) {
@@ -61,10 +73,11 @@ public class BlackLister {
 		boolean result = false;
 		try{
 			CrashSignature signature = new CrashSignature(event);
+			RainSignature rainSignature = new RainSignature(event);
 			if(!signature.isEmpty()) {
-				if(db.isRainEventExist(signature)){
+				if(db.isRainEventExist(rainSignature)){
 					if(db.isInTheCurrentRain(event)){
-						db.updateRainEvent(signature, event.getDate());
+						db.updateRainEvent(rainSignature, event.getDate());
 						result = true;
 					}
 					else
@@ -80,6 +93,10 @@ public class BlackLister {
 		}
 		catch(SQLException e){
 			Log.e("BlaskLister:blackListCrash" + e.getMessage());
+		}
+		if(result) {
+			//If the event is blacklisted its crashlog directorie shall be removed
+			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
 		}
 		return result;
 	}
@@ -119,6 +136,7 @@ public class BlackLister {
 					String data0 = cursor.getString(cursor.getColumnIndex("data0"));
 					String data1 = cursor.getString(cursor.getColumnIndex("data1"));
 					String data2 = cursor.getString(cursor.getColumnIndex("data2"));
+					String data3 = cursor.getString(cursor.getColumnIndex("data3"));
 					String rainId = cursor.getString(cursor.getColumnIndex("eventId"));
 					Cursor blackEvents = db.fetchBlackEventsRain(rainId);
 					if(blackEvents!=null){
@@ -137,7 +155,7 @@ public class BlackLister {
 						}
 						blackEvents.close();
 					}
-					db.deleteRainEvent(new CrashSignature(type,data0,data1,data2));
+					db.deleteRainEvent(new RainSignature(type,data0,data1,data2,data3));
 					cursor.moveToNext();
 				}
 				cursor.close();

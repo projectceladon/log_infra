@@ -249,4 +249,18 @@ public class ApplicationPreferences {
 		}
 	}
 
+	/**
+	 * @brief Provide an index value to generate crashlogd trigger command file
+	 *
+	 * The index value is incremented on each call, and modulo 99.
+	 *
+	 * @return index value
+	 */
+	public synchronized int getNewTriggerFileIndex() {
+		int index = appPrivatePrefs.getInt("newTriggerFileIndex", 1);
+		privatePrefsEditor.putInt("newTriggerFileIndex", ((index+1) % 99));
+		privatePrefsEditor.commit();
+		return index;
+	}
+
 }

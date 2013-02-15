@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportHome;
+import com.intel.crashreport.CrashlogDaemonCmdFile;
 import com.intel.crashreport.R;
 
 import android.os.AsyncTask;
@@ -108,73 +109,63 @@ public class BugzillaSummaryActivity extends Activity {
 
 		@Override
 		protected Void doInBackground(Void... params) {
-			File bzTrigger = new File("/logs/aplogs/bz_trigger");
-			if (!bzTrigger.exists()) {
-				//to manage case  of crashlogd not launched
-				bzTrigger.delete();
+
+			ArrayList<String> sArguments = new ArrayList<String>();
+
+			CrashReport app = (CrashReport)getApplicationContext();
+			BugStorage bugzillaStorage = app.getBugzillaStorage();
+			String line = "";
+			if (bugzillaStorage.getLogLevel()>0){
+				line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
+				sArguments.add(line);
 			}
-			try {
-				FileOutputStream write = new FileOutputStream(bzTrigger);
-				CrashReport app = (CrashReport)getApplicationContext();
-				BugStorage bugzillaStorage = app.getBugzillaStorage();
-				String line = "";
-				if (bugzillaStorage.getLogLevel()>0){
-					line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
-					write.write(line.getBytes());
-				}
-				line = "SUMMARY="+bugzillaStorage.getSummary()+"\n";
-				write.write(line.getBytes());
-				line = "TYPE="+bugzillaStorage.getBugType()+"\n";
-				write.write(line.getBytes());
-				Boolean bzMode = new ApplicationPreferences(app).isBugzillaModuleInTestMode();
-				if (!bzMode) {
-					String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
-					String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
-					if( componentText.length == componentValues.length) {
-						for (int i=0; i<componentText.length;i++) {
-							if(componentText[i].equals(bugzillaStorage.getComponent())) {
-								line = "COMPONENT="+componentValues[i]+ "\n";
-								break;
-							}
+			line = "SUMMARY="+bugzillaStorage.getSummary()+"\n";
+			sArguments.add(line);
+			line = "TYPE="+bugzillaStorage.getBugType()+"\n";
+			sArguments.add(line);
+			Boolean bzMode = new ApplicationPreferences(app).isBugzillaModuleInTestMode();
+			if (!bzMode) {
+				String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
+				String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
+				if( componentText.length == componentValues.length) {
+					for (int i=0; i<componentText.length;i++) {
+						if(componentText[i].equals(bugzillaStorage.getComponent())) {
+							line = "COMPONENT="+componentValues[i]+ "\n";
+							break;
 						}
 					}
 				}
-				else
-					line = "COMPONENT=Test Component\n";
-				write.write(line.getBytes());
-				line = "SEVERITY="+bugzillaStorage.getSeverity()+"\n";
-				write.write(line.getBytes());
-				String strDescription = bugzillaStorage.getDescription();
-				strDescription = strDescription.replace("\n", "\\n");
-				line = "DESCRIPTION="+strDescription+"\n";
-				write.write(line.getBytes());
-				if(bugzillaStorage.getBugHasScreenshot()) {
-					ArrayList<String> screenshots = bugzillaStorage.getScreenshotPath();
-					for(String screenshot:screenshots) {
-						line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+screenshot+"\n";
-						write.write(line.getBytes());
-					}
-
-				}
-				line = "USERFIRSTNAME="+app.getUserFirstName()+"\n";
-				write.write(line.getBytes());
-				line = "USERLASTNAME="+app.getUserLastName()+"\n";
-				write.write(line.getBytes());
-				line = "USEREMAIL="+app.getUserEmail()+"\n";
-				write.write(line.getBytes());
-				if (bzMode) {
-					line = "TEST=true\n";
-					write.write(line.getBytes());
-				}
-
-				write.close();
-				bugzillaStorage.clearValues();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
+			else
+				line = "COMPONENT=Test Component\n";
+			sArguments.add(line);
+			line = "SEVERITY="+bugzillaStorage.getSeverity()+"\n";
+			sArguments.add(line);
+			String strDescription = bugzillaStorage.getDescription();
+			strDescription = strDescription.replace("\n", "\\n");
+			line = "DESCRIPTION="+strDescription+"\n";
+			sArguments.add(line);
+			if(bugzillaStorage.getBugHasScreenshot()) {
+				ArrayList<String> screenshots = bugzillaStorage.getScreenshotPath();
+				for(String screenshot:screenshots) {
+					line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+screenshot+"\n";
+					sArguments.add(line);
+				}
+			}
+			line = "USERFIRSTNAME="+app.getUserFirstName()+"\n";
+			sArguments.add(line);
+			line = "USERLASTNAME="+app.getUserLastName()+"\n";
+			sArguments.add(line);
+			line = "USEREMAIL="+app.getUserEmail()+"\n";
+			sArguments.add(line);
+			if (bzMode) {
+				line = "TEST=true\n";
+				sArguments.add(line);
+			}
+			//Create a file to trigger crashlog daemon with arguments previously set
+			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
 
+			bugzillaStorage.clearValues();
 
 			return null;
 		}

@@ -24,7 +24,6 @@ import java.util.Date;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.DropBoxManager;
-import android.util.Log;
 
 /**
  * PhoneInspectorService is the service class responsible for catching intents necessary
@@ -56,7 +55,7 @@ public class PhoneInspectorService extends IntentService {
                 //Format date and log message
                 Date date = new Date(intentTimeMs);
                 String formattedDate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.SSS").format(date);
-                Log.i(TAG, Module + ": New dropbox entry: " + intentTag + " " + formattedDate + " ["+ intentTimeMs + "]");
+                Log.d(Module + ": New dropbox entry: " + intentTag + " " + formattedDate + " ["+ intentTimeMs + "]");
 
                 //Manage FullDropBox case
                 PhoneInspector phoneInspector = PhoneInspector.getInstance(getApplicationContext());

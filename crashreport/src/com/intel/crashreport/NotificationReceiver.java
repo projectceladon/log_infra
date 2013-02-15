@@ -83,7 +83,7 @@ public class NotificationReceiver extends BroadcastReceiver {
 							}
 						}
 					} catch (SQLException e) {
-						Log.w("Service:uploadEvent : Fail to access DB", e);
+						Log.w("NotificationReceiver: Fail to access DB", e);
 					}
 					db.close();
 					if(isPresent) {
