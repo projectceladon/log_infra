@@ -15,6 +15,7 @@
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name"
+		android:versionName="@string/app_version"
 		android:name=".CrashReport"
 		android:enabled="true">
 

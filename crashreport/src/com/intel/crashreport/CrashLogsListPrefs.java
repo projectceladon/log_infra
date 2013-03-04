@@ -89,17 +89,17 @@ public class CrashLogsListPrefs extends ListPreference {
 					values.add(val);
 				}
 			}
-			setValue(joinStrings(values, DEFAULT_SEPARATOR));
+			setValue(prepareToStoreStrings(values));
 		}
 	}
 
-	private static String joinStrings(ArrayList<String> strings, String separator) {
+	public static String prepareToStoreStrings(List<String> strings) {
 		Iterator<String> sIter;
 		if (strings == null || !(sIter = strings.iterator()).hasNext())
 			return "";
 		StringBuilder sBuilder = new StringBuilder(sIter.next());
 		while (sIter.hasNext())
-			sBuilder.append(separator).append(sIter.next());
+			sBuilder.append(DEFAULT_SEPARATOR).append(sIter.next());
 		return sBuilder.toString();
 	}
 

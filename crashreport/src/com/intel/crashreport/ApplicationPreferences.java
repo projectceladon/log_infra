@@ -19,6 +19,9 @@
 
 package com.intel.crashreport;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.intel.phonedoctor.Constants;
 
 import android.content.Context;
@@ -63,7 +66,7 @@ public class ApplicationPreferences {
 	public String getUploadState() {
 		return appSharedPrefs.getString(
 			mCtx.getString(R.string.settings_event_report_management_key),
-			"askForUpload");
+			mCtx.getString(R.string.settings_event_report_management_value_default));
 	}
 
 	public void setUploadStateToAsk() {
@@ -101,36 +104,30 @@ public class ApplicationPreferences {
 
 	public Boolean isCrashLogsUploadEnable() {
 		return appSharedPrefs.getBoolean(
-			mCtx.getString(R.string.settings_event_data_enable_key), false);
+			mCtx.getString(R.string.settings_event_data_enable_key),
+			Boolean.valueOf(mCtx.getString(R.string.settings_event_data_enable_value_default)));
 	}
 
 	public String[] getCrashLogsUploadTypes() {
 		return CrashLogsListPrefs.parseStoredValue(
 			appSharedPrefs.getString(
-				mCtx.getString(R.string.settings_event_data_types_key), ""));
+				mCtx.getString(R.string.settings_event_data_types_key),
+				mCtx.getString(R.string.settings_event_data_types_value_default)));
 	}
 
 	public void resetCrashLogsUploadTypes() {
-		String savedValues = appSharedPrefs.getString(
-			mCtx.getString(R.string.settings_event_data_types_key), "");
-		boolean begin = false;
-		if (savedValues.equals(""))
-			begin = true;
+		List<String> savedValues = Arrays.asList(getCrashLogsUploadTypes());
 
-		String defaultValues[] = new String[]{"APCOREDUMP","HPROF"};
+		String defaultValues[] = CrashLogsListPrefs.parseStoredValue(
+				mCtx.getString(R.string.settings_event_data_types_value_default));
 
-		for(String value:defaultValues) {
-			if(!savedValues.contains(value)) {
-				if(!begin){
-					savedValues += ",";
-				}
-				else begin = false;
-				savedValues += value;
-			}
-		}
+		for(String value:defaultValues)
+			if(!savedValues.contains(value))
+				savedValues.add(value);
 
 		sharedPrefsEditor.putString(
-			mCtx.getString(R.string.settings_event_data_types_key), savedValues);
+			mCtx.getString(R.string.settings_event_data_types_key),
+			CrashLogsListPrefs.prepareToStoreStrings(savedValues));
 		sharedPrefsEditor.commit();
 	}
 
