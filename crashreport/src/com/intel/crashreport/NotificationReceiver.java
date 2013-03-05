@@ -20,16 +20,13 @@
 package com.intel.crashreport;
 
 import java.io.FileNotFoundException;
-import java.util.Timer;
-
-import com.intel.crashreport.NotifyCrashTask;
-import com.intel.crashreport.bugzilla.BZFile;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
+import android.content.BroadcastReceiver.PendingResult;
 import android.database.SQLException;
+import android.os.AsyncTask;
 import android.os.DropBoxManager;
 
 public class NotificationReceiver extends BroadcastReceiver {
@@ -117,6 +114,22 @@ public class NotificationReceiver extends BroadcastReceiver {
 		if (!app.isServiceStarted())
 			context.startService(crashReportStartServiceIntent);
 		else {
+			CheckEventsTask checkTask = new CheckEventsTask(app);
+			checkTask.result = goAsync();
+			checkTask.execute();
+		}
+	}
+
+	private class CheckEventsTask extends AsyncTask<Void, Void, Void> {
+
+		private CrashReport app;
+		protected PendingResult result;
+
+		public CheckEventsTask(CrashReport app){
+			this.app = app;
+		}
+
+		protected Void doInBackground(Void... params) {
 			try {
 				app.checkEvents("NotificationReceiver");
 			} catch (FileNotFoundException e) {
@@ -124,7 +137,20 @@ public class NotificationReceiver extends BroadcastReceiver {
 			} catch (SQLException e) {
 				Log.w("NotificationReceiver: db Exception");
 			}
+			if (result != null){
+				result.finish();
+			}
+			return null;
 		}
+
+		@Override
+		protected void onProgressUpdate(Void... params) {
+		}
+
+		protected void onPostExecute(Void... params) {
+
+		}
+
 	}
 
 }
