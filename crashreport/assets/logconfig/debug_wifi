@@ -1,0 +1,22 @@
+{
+    "description":"Wifi logs",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.wifi",
+                "value":"ON"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.wifi",
+                "value":"OFF"
+            }
+        }
+    ]
+}
