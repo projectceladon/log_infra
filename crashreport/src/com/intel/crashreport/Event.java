@@ -297,7 +297,13 @@ public class Event {
 				mBuild = build;
 		}
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
-		com.intel.crashtoolserver.bean.Device aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented yet*/);
+		com.intel.crashtoolserver.bean.Device aDevice;
+		String sSSN = getSSN();
+		if (sSSN.equals("")){
+			aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented if property empty*/);
+		}else{
+			aDevice = new Device(this.deviceId, this.imei, sSSN);
+		}
 		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
 				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
 				convertDateForServer(this.date), lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
@@ -315,15 +321,25 @@ public class Event {
 	}
 
 	public void readDeviceIdFromFile() {
+		deviceId = getDeviceIdFromFile();
+	}
+
+	public static String getDeviceIdFromFile() {
+		String sResult = "";
 		File uuidFile = new File("/logs/" + "uuid.txt");
 		try {
 			Scanner scan = new Scanner(uuidFile);
 			if (scan.hasNext())
-				deviceId = scan.nextLine();
+				sResult = scan.nextLine();
 			scan.close();
 		} catch (FileNotFoundException e) {
 			Log.w("CrashReportService: deviceId not set");
 		}
+		return sResult;
+	}
+
+	public static String getSSN(){
+		return SystemProperties.get("ro.serialno", "");
 	}
 
 	public String readImeiFromSystem() {
