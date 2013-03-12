@@ -11,9 +11,12 @@ import java.io.OutputStream;
 import java.io.DataInputStream;
 import java.io.BufferedReader;
 
+import java.util.ArrayList;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipException;
+import java.util.zip.GZIPOutputStream;
 
 public class Util {
     private static final String TAG = Util.class.getSimpleName();
@@ -28,7 +31,7 @@ public class Util {
             OutputStream outStream = null;
 
             if (!fromFile.exists()) {
-                Log.e(TAG, "Cannot see file "+ from);
+                Log.e(TAG, "Cannot see file " + from);
                 return false;
             }
 
@@ -53,15 +56,19 @@ public class Util {
         return true;
     }
 
-    public static boolean zipFiles (String zipFileName, String[] inputFileNames) {
+    public static boolean zipFiles (String zipFileName, ArrayList<String> inputFileNames) {
+        boolean zipGood = true;
+        ZipOutputStream out = null;
+        FileInputStream in = null;
+
         try {
             byte[] buffer = new byte[BUFFER_SIZE_BYTES];
-            ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFileName));
+            out = new ZipOutputStream(new FileOutputStream(zipFileName));
             out.setLevel(Deflater.BEST_COMPRESSION);
 
             for (String fname :inputFileNames) {
                 File f = new File(fname);
-                FileInputStream in = new FileInputStream(f);
+                in = new FileInputStream(f);
                 out.putNextEntry(new ZipEntry(f.getName()));
                 int len;
                 while ((len = in.read(buffer)) > 0) {
@@ -70,21 +77,31 @@ public class Util {
                 out.closeEntry();
                 in.close();
             }
-            out.close();
         }
         catch (IllegalArgumentException e) {
             e.printStackTrace();
-            return false;
+            zipGood = false;
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
-            return false;
+            zipGood = false;
         }
         catch (IOException e) {
             e.printStackTrace();
-            return false;
+            zipGood = false;
         }
-        return true;
+        finally {
+            try {
+                if (out != null)
+                    out.close();
+                if (in != null)
+                    in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                zipGood = false;
+            }
+        }
+        return zipGood;
     }
 
     /* Pretty inefficient... but this is meant to work on relatively small files, so
@@ -101,7 +118,8 @@ public class Util {
                 str = str + strLine + "\n";
             }
             in.close();
-            return str;
+            /* Crude way of stripping the last \n */
+            return str.substring(0, str.length()-1);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return "";
@@ -109,5 +127,46 @@ public class Util {
             e.printStackTrace();
             return "";
         }
+    }
+
+    public static String gzipFile(String fname) {
+        byte[] buffer = new byte[1024];
+        boolean gz_success = true;
+        final String GZIP_PATH = fname + ".gz";
+        GZIPOutputStream gzos = null;
+        FileInputStream in = null;
+
+        try {
+            gzos = new GZIPOutputStream(new FileOutputStream(GZIP_PATH));
+            in   = new FileInputStream(fname);
+
+            int len;
+            while ((len = in.read(buffer)) > 0) {
+                gzos.write(buffer, 0, len);
+            }
+
+            gzos.finish();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            gz_success = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+            gz_success = false;
+        } finally {
+            try {
+                if (in != null)
+                    in.close();
+                if (gzos != null)
+                    gzos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                gz_success = false;
+            }
+        }
+
+        if (gz_success)
+            return GZIP_PATH;
+
+        return null;
     }
 }

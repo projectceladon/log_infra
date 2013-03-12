@@ -49,20 +49,29 @@ public class PowerMonitor extends Monitor {
     /* Since BatteryStatsImpl provides a dumper taking directly a PrintWriter as input
        we do not reuse the parent class flush method, but directly tap into the parent
        class PrintWriter. Yes, this is ugly. No we do not care. */
-    public void collectMetrics() {
+    public synchronized void collectMetrics() {
         PrintWriter pw = myOutputFilePrintWriter;
         refreshStats();
-        String midPmuStates = Util.stringFromFile("/sys/kernel/debug/mid_pmu_states");
-        String midPmuStats = Util.stringFromFile("/sys/kernel/debug/pmu_stats_log");
-        synchronized(mLock) {
-            flush("======================================", "", "");
-            flush("BATTERY_STATS", "", "");
-            flush("MID_PMU_STATES", "", "");
-            flush("Content", "", midPmuStates);
-            flush("MID_PMU_STATS", "", "");
-            flush("Content", "", midPmuStats);
-            mStats.dumpLocked(pw);
-            myOutputFilePrintWriter.flush();
-      }
+        String midPmuStates  = Util.stringFromFile("/sys/kernel/debug/mid_pmu_states");
+        String midPmuStats   = Util.stringFromFile("/sys/kernel/debug/pmu_stats_log");
+        String upTime        = Util.stringFromFile("/proc/uptime");
+        String voltageOCV    = Util.stringFromFile("/sys/class/power_supply/max17047_battery/voltage_ocv");
+        String chargeNow     = Util.stringFromFile("/sys/class/power_supply/max17047_battery/charge_now");
+        String chargeFull    = Util.stringFromFile("/sys/class/power_supply/max17047_battery/charge_full");
+        String irqStats      = Util.stringFromFile("/proc/interrupts");
+        String wakeupSources = Util.stringFromFile("/sys/kernel/debug/wakeup_sources");
+        flush("======================================", "", "");
+        flush("Uptime and charges", "", upTime + ',' + chargeNow + ',' + chargeFull + ',' + voltageOCV);
+        flush("BATTERY_STATS", "", "");
+        flush("MID_PMU_STATES", "", "");
+        flush("Content", "", "\n" + midPmuStates);
+        flush("MID_PMU_STATS", "", "");
+        flush("Content", "", "\n" + midPmuStats);
+        flush("INTERRUPT_STATS", "", "");
+        flush("Content", "", "\n" + irqStats);
+        flush("WAKEUP_SOURCES_STATS", "", "");
+        flush("Content", "", "\n" + wakeupSources);
+        mStats.dumpLocked(pw);
+        myOutputFilePrintWriter.flush();
     }
 }

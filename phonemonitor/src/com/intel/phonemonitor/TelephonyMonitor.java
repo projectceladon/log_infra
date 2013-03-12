@@ -66,7 +66,7 @@ public class TelephonyMonitor extends Monitor {
     public void onReceive(Context context, Intent intent) {
     }
 
-    public void collectMetrics(){
+    public synchronized void collectMetrics(){
 
         // Return modem sate metrics
         metric_name = strStatUpdate;

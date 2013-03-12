@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -20,14 +21,19 @@ import android.os.SystemClock;
 
 public class MonitorMasterService extends Service {
     private static int uploadIntervalSeconds = 24 * 60 * 60 - 13;
-    private static final String STATDIR = "/logs/stats";
-    private static final String TAG = "PhoneMonitorMaster";
-    private static final String PD_PACKAGE = "phonemonitor";
-    private static final String UPLOAD_ACTION = "com.intel.phonemonitor.UPLOAD_METRICS";
-    private static final String NEXT_MONITOR_ACTION = "com.intel.phonemonitor.NEXT_MONITOR";
-    private static final String ZIP_SUFFIX = "_data.zip";
-    public  static final String EXTRA_ORIGINAL_ACTION = "com.intel.phonemonitor.EXTRA_ORIGINAL_ACTION";
-    private static Object mLock = new Object();
+
+    private static final String UPLOAD_ACTION            = "com.intel.phonemonitor.UPLOAD_METRICS_ACTION";
+    private static final String COLLECT_ACTION           = "com.intel.phonemonitor.COLLECT_METRICS_ACTION";
+    private static final String NEXT_MONITOR_ACTION      = "com.intel.phonemonitor.NEXT_MONITOR_ACTION";
+    private static final String COLLECT_LIST_EXTRA       = "com.intel.phonemonitor.COLLECT_LIST_EXTRA";
+    private static final String PD_UPLOAD_ACTION         = "intel.intent.action.phonedoctor.REPORT_STATS";
+    private static final String PD_FILE_EXTRA            = "intel.intent.extra.phonedoctor.FILE";
+    public  static final String EXTRA_ORIGINAL_ACTION    = "com.intel.phonemonitor.EXTRA_ORIGINAL_ACTION";
+
+    private static final String STATDIR                  = "/logs/stats";
+    private static final String TAG                      = "PhoneMonitorMaster";
+    private static final String PD_PACKAGE               = "phonemonitor";
+    private static final String ZIP_SUFFIX               = "_data.zip";
 
     private MasterReceiver mMasterReceiver;
     private MonitorList nextMonitorList;
@@ -37,10 +43,11 @@ public class MonitorMasterService extends Service {
     private String triggerFileName;
     private String needUploadFileName;
     private long initialTime_us;
+    private LinkedList<Intent> msgQueue;
+    private IntentHandlingThread ht;
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -52,6 +59,8 @@ public class MonitorMasterService extends Service {
         zipFileName = cacheDir + "/" + PD_PACKAGE + ZIP_SUFFIX;
         needUploadFileName = cacheDir + "/.needupload";
         triggerFileName = STATDIR + "/" + PD_PACKAGE + "_trigger";
+        msgQueue = new LinkedList<Intent>();
+        ht = new IntentHandlingThread();
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -66,8 +75,11 @@ public class MonitorMasterService extends Service {
 
             IntentFilter filter = new IntentFilter();
             filter.addAction(UPLOAD_ACTION);
+            filter.addAction(COLLECT_ACTION);
             filter.addAction(NEXT_MONITOR_ACTION);
             filter.addAction(Intent.ACTION_SHUTDOWN);
+
+            ht.start();
             registerReceiver(mMasterReceiver, filter);
 
             setUploadAlarm(softStart);
@@ -83,6 +95,7 @@ public class MonitorMasterService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (ht.isAlive()) ht.interrupt();
         stopMonitors(); // Should flush all the monitor metrics
         uploadToCrashtool(false);
         cancelUploadAlarm();
@@ -112,7 +125,6 @@ public class MonitorMasterService extends Service {
             if (f.exists()) {
                 Log.d(TAG, "Detected a pending upload upon startup. Uploading.");
                 uploadToCrashtool(true);
-                f.delete();
             }
 
             Log.d(TAG, "Cleaning metrics");
@@ -137,7 +149,7 @@ public class MonitorMasterService extends Service {
     }
 
     private boolean createMonitorList() {
-        // TODO: intialize all those values either from a HashMap belonging to a separate class
+        // TODO: initialize all those values either from a HashMap belonging to a separate class
         // or (better) from a file  - which will anyway need a HashMap to match monitor name and class
         fullMonitorList = new ArrayList<LocalMonitor>();
 
@@ -156,6 +168,11 @@ public class MonitorMasterService extends Service {
                                              new PowerMonitor(),
                                              true,
                                              "powermonitor.txt"));
+        fullMonitorList.add(new LocalMonitor("Thermal",
+                                             0,
+                                             new ThermalMonitor(),
+                                             true,
+                                             "thermalmonitor.txt"));
 /*        fullMonitorList.add(new LocalMonitor("Telephony",
                                              6 * 60,
                                              new TelephonyMonitor(),
@@ -171,7 +188,6 @@ public class MonitorMasterService extends Service {
     }
 
     private void startMonitors(boolean cleanMetrics) {
-        // TODO: set first metrics upload alarm here
         Context ctx = getApplicationContext();
 
         for (LocalMonitor m :fullMonitorList) {
@@ -199,7 +215,7 @@ public class MonitorMasterService extends Service {
         MonitorList lm = new MonitorList(new ArrayList<LocalMonitor>(), 0);
         long minNextSec = 0;
 
-        Log.d(TAG, "Checking for next stat gathering");
+        Log.d(TAG, "Checking for next metrics collection");
         for (LocalMonitor m :fullMonitorList) {
             if (m.periodSec != 0) {
                 long nextEventSecs = m.periodSec - timeSeconds % m.periodSec;
@@ -209,7 +225,7 @@ public class MonitorMasterService extends Service {
                 }
             }
         }
-        Log.d(TAG, "next stat gathering will occur in " + minNextSec + " seconds");
+        Log.d(TAG, "next metrics collection will occur in " + minNextSec + " seconds");
 
         for (LocalMonitor m :fullMonitorList) {
             if (m.periodSec != 0) {
@@ -244,25 +260,39 @@ public class MonitorMasterService extends Service {
         long nextAlarmDateUs = SystemClock.elapsedRealtime() + uploadIntervalSeconds*1000;
         String alarmFileName = cacheDir + "/.nextupload";
         if (resetDate) {
+            BufferedWriter out = null;
             try {
-                BufferedWriter out = new BufferedWriter(new FileWriter(alarmFileName));
+                out = new BufferedWriter(new FileWriter(alarmFileName));
                 out.write(String.valueOf(nextAlarmDateUs));
-                out.close();
             } catch (IOException e) {
-                Log.d(TAG, "Error writing to next alarm date file.");
+                Log.e(TAG, "Error writing to next alarm date file.");
+            }
+            finally {
+                try {
+                    if (out != null) out.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Error closing the next alarm date file.");
+                }
             }
         }
         else {
+            BufferedReader in = null;
             try {
-                BufferedReader in = new BufferedReader(new FileReader(alarmFileName));
+                in = new BufferedReader(new FileReader(alarmFileName));
                 String s = in.readLine();
                 nextAlarmDateUs = Long.parseLong(s);
-                in.close();
                 Log.d(TAG, "Regenerated next date from cache file");
             } catch (IOException e) {
                 Log.d(TAG, "Error with next-alarm-date file. Falling down to default value.");
             } catch (java.lang.NumberFormatException e) {
                 Log.d(TAG, "Error reading next alarm date from file. Falling down to default value.");
+            }
+            finally {
+                try {
+                    if (in != null) in.close();
+                } catch (IOException e) {
+                    Log.e(TAG , "Error closing next alarm date file");
+                }
             }
         }
         Log.d(TAG, "Next upload will take place at " + nextAlarmDateUs/1000 + ". Current time: " + SystemClock.elapsedRealtime()/1000);
@@ -276,27 +306,51 @@ public class MonitorMasterService extends Service {
         am.cancel(pi);
     }
 
-    private void uploadByFile(String bundlePath, boolean blocking) {
-        File f = new File(STATDIR);
+    private String copyMetricFile(String bundlePath) {
+         File f = new File(STATDIR);
 
         if (!f.exists()) {
             Log.e(TAG, "Cannot find stat directory " + STATDIR + ". Trying to create it");
             if (!f.mkdirs()) {
                 Log.e(TAG, "Cannot create stat directory " + STATDIR);
-                return;
+                return null;
             }
             f.setReadable(true, false);
             f.setWritable(true, false);
             f.setExecutable(true, false);
         }
 
-        if (!Util.copyFile(bundlePath, STATDIR + "/" + PD_PACKAGE + ZIP_SUFFIX)) {
+        String finalFile = STATDIR + "/" + PD_PACKAGE + ZIP_SUFFIX;
+        if (!Util.copyFile(bundlePath, finalFile)) {
             Log.e(TAG, "Error copying bundle to repository upload file");
+            return null;
+        }
+        return finalFile;
+
+   }
+
+   private void uploadByIntent(String bundlePath, boolean blocking) {
+        // Copy the file to a location where PhoneDoctor can see it
+        String uploadFileName = copyMetricFile(bundlePath);
+        if (uploadFileName == null) {
+            Log.e(TAG, "Unable to copy metric file " + bundlePath + " to " + STATDIR + ".");
             return;
         }
+        Intent i = new Intent(PD_UPLOAD_ACTION);
+        i.putExtra(PD_FILE_EXTRA, uploadFileName);
+        sendBroadcast(i);
+        /* TODO: we cannot check for the event upload as of today, making
+           blocking calls to this function impossible. Need to solve this ! */
+    }
 
-        /* Now trigger the upload */
-        f = new File(triggerFileName);
+    private void uploadByFile(String bundlePath, boolean blocking) {
+        // Copy the file to a location where PhoneDoctor can see it
+        if (copyMetricFile(bundlePath) == null) {
+            Log.e(TAG, "Unable to copy metric file " + bundlePath + " to " + STATDIR + ".");
+            return;
+        }
+        // Now trigger the upload
+        File f = new File(triggerFileName);
         if (!f.exists()) {
             try {
                 f.createNewFile();
@@ -329,34 +383,27 @@ public class MonitorMasterService extends Service {
     }
 
     private String createFileBundle() {
-        int nm = 0;
-        boolean zipDone = false;
+        ArrayList<String> inputGzFileNames = new ArrayList<String>();
 
         // No need to upload if we do not have anything to say
         if (isAllMonitorsEmpty()) return null;
 
         for (LocalMonitor m :fullMonitorList) {
-            if (m.enabled) nm++;
-        }
-
-        String[] inputFileNames = new String[nm];
-
-        nm = 0;
-        for (LocalMonitor m :fullMonitorList) {
             if (m.enabled) {
-                inputFileNames[nm] = cacheDir + "/" + m.metricFile;
-                nm++;
+                String monitorName = cacheDir + "/" + m.metricFile;
+                String gzipName = Util.gzipFile(monitorName);
+                if (gzipName != null)
+                    inputGzFileNames.add(gzipName);
             }
         }
 
-        synchronized(mLock) {
-            zipDone = Util.zipFiles(zipFileName, inputFileNames);
-        }
+        boolean zipDone = Util.zipFiles(zipFileName, inputGzFileNames);
 
         if (zipDone) {
             return zipFileName;
         }
         else {
+            Log.d(TAG, "Cannot create zip");
             return null;
         }
     }
@@ -376,13 +423,39 @@ public class MonitorMasterService extends Service {
         }
 
         uploadByFile(bundlePath, blocking);
+
+        File f = new File(needUploadFileName);
+        if (f.exists()) f.delete();
+    }
+
+    private void touchNeedUploadFile() {
+        File f = new File(needUploadFileName);
+        try {
+            f.createNewFile();
+        } catch (IOException e) {
+            Log.e(TAG, "Unable to create upload file");
+        }
     }
 
     private void launchMetricCollection(MonitorList m) {
+        /* Each time we collect new metrics, mark that an
+           upload is needed. This way, if we shutdown (even
+           by long keypress) we will at least upload the
+           metrics at the next reboot. */
+        touchNeedUploadFile();
         for (LocalMonitor lm :m.list) {
-             Log.d(TAG, "Launching metric collection for monitor " + lm.name);
-             lm.monitor.collectMetrics();
+            Log.d(TAG, "Launching metric collection for monitor " + lm.name);
+            lm.monitor.collectMetrics();
         }
+    }
+
+    private LocalMonitor getMonitorByName(CharSequence s) {
+        for (LocalMonitor lm :fullMonitorList) {
+            if (lm.name.equals(s)) {
+                return lm;
+            }
+        }
+        return null;
     }
 
     public class MasterReceiver extends BroadcastReceiver {
@@ -391,37 +464,15 @@ public class MonitorMasterService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             String a = intent.getAction();
+            final Intent i = intent;
             if (a == null) {
                 Log.d(TAG, "Received null intent");
                 return;
             }
-            if (a.equals(MonitorMasterService.UPLOAD_ACTION)) {
-                uploadToCrashtool(false);
-                setUploadAlarm(true);
-            }
-            else if (a.equals(MonitorMasterService.NEXT_MONITOR_ACTION)) {
-                Log.d(TAG, "Received next monitor event");
-                // Even if metric collection is not supposed ot last for too long - do not stall
-                // the monitoring process.
-                new Thread(new Runnable() {
-                    public void run() {
-                        synchronized(mLock) { // Should not be necessary except if sth goes really wrong
-                            launchMetricCollection(nextMonitorList);
-                            nextMonitorList = setNextMetricAlarm();
-                        }
-                    }
-                }).start();
-            }
-            else if (a.equals(Intent.ACTION_SHUTDOWN)) {
-                File f = new File(needUploadFileName);
-                try {
-                    f.createNewFile();
-                } catch (IOException e) {
-                    Log.e(TAG, "Unable to create upload file");
-                }
-            }
-            else {
-                Log.e(TAG, "Received unrecognized intent: "+ a);
+            Log.d(TAG, "Received " + a);
+            synchronized(msgQueue) {
+                msgQueue.offer(intent);
+                msgQueue.notify();
             }
         }
     }
@@ -449,6 +500,73 @@ public class MonitorMasterService extends Service {
         public MonitorList(ArrayList<LocalMonitor> list, long nextEventSec) {
             this.list = list;
             this.nextEventSec = nextEventSec;
+        }
+    }
+
+    private class IntentHandlingThread extends Thread {
+
+        public IntentHandlingThread() {
+            super(TAG);
+        }
+
+        public synchronized void receiverHandler(Intent intent) {
+            String a = intent.getAction();
+            if (a.equals(MonitorMasterService.UPLOAD_ACTION)) {
+                Log.d(TAG, "Handling upload event");
+                uploadToCrashtool(false);
+                setUploadAlarm(true);
+            }
+            else if (a.equals(MonitorMasterService.NEXT_MONITOR_ACTION)) {
+                Log.d(TAG, "Handling next monitor event");
+                launchMetricCollection(nextMonitorList);
+                nextMonitorList = setNextMetricAlarm();
+            }
+            else if (MonitorMasterService.COLLECT_ACTION.equals(a)) {
+                Log.d(TAG, "Handling metric collection event");
+                final CharSequence[] monitorListExtras = intent.getCharSequenceArrayExtra(MonitorMasterService.COLLECT_LIST_EXTRA);
+                if (monitorListExtras != null) {
+                    for (CharSequence s :monitorListExtras) {
+                        LocalMonitor m = getMonitorByName(s);
+                        if (m != null && m.enabled) {
+                            m.monitor.collectMetrics();
+                            m.monitor.forceFlush();
+                        }
+                    }
+                }
+            }
+            else if (a.equals(Intent.ACTION_SHUTDOWN)) {
+            /* Not redundant with the creation of upload file
+               in launchMetricCollection() - some monitors never
+               collect data directly but only listen to intents.
+               If only such monitors are active, we need to mark an upload
+               here. There is still a possible problem if only those were active
+               *and* a shutdown occurs because of long keypress or battery
+               removal... but in this case, there is really nothing we can do */
+                touchNeedUploadFile();
+                stopMonitors(); // Try and flush monitors on exit
+            }
+            else {
+                Log.e(TAG, "Received unrecognized intent: "+ a);
+            }
+        }
+
+        public void run() {
+            Intent i;
+
+            while (true) {
+                try {
+                    synchronized(msgQueue) {
+                        while (msgQueue.size() == 0)
+                            msgQueue.wait();
+                        i = msgQueue.poll();
+                    }
+                    receiverHandler(i);
+                }
+                catch (InterruptedException e) {
+                    Log.d(TAG, "Event handling loop interrupted.");
+                    break;
+                }
+            }
         }
     }
 }

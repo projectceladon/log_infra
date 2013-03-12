@@ -5,7 +5,10 @@ import android.content.Intent;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.content.IntentFilter;
+import java.util.List;
 
 /**
  * @author mohamed.zied.ben.hamouda@intel.com
@@ -20,10 +23,12 @@ public class WiFiMonitor extends Monitor {
     private static final String tag = "WiFiMonitor";
 
     public static final String strWifiStateEvent            = "WIFI_STATE_CHANGED";
+    public static final String strWifiAPStateEvent          = "WIFI_AP_STATE_CHANGED";
     public static final String strSupplicantStateEvent      = "SUPPLICANT_STATE_CHANGED";
     public static final String strSupplicantConnectEvent    = "SUPPLICANT_CONNECT_CHANGED";
     public static final String strRSSIEvent                 = "RSSI_CHANGED";
-
+    public static final String strScanEvent                 = "SCAN_EVENT";
+    public static final String strWiFiAvailability          = "WIFI_AVAILABILITY";
     /**
      * Constructor.
      * @param: None
@@ -41,7 +46,9 @@ public class WiFiMonitor extends Monitor {
         filter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
         filter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+        filter.addAction(WifiManager.WIFI_AP_STATE_CHANGED_ACTION);
         filter.addAction(WifiManager.RSSI_CHANGED_ACTION);
+        filter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
 
         // Register the filter
         ctx.registerReceiver(this, filter);
@@ -54,13 +61,14 @@ public class WiFiMonitor extends Monitor {
      */
     @Override
     public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
 
         // Case Intent=WIFI_STATE_CHANGED_ACTION
-        if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)){
+        if (action.equals(WifiManager.WIFI_STATE_CHANGED_ACTION)){
             handleWifiStateChanged(intent);
         }
         // Case Intent=SUPPLICANT_STATE_CHANGED_ACTION
-        else if (intent.getAction().equals(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION)) {
+        else if (action.equals(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION)) {
             handleSupplicantStateChanged(
             context,
             (SupplicantState) intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE),
@@ -68,13 +76,20 @@ public class WiFiMonitor extends Monitor {
             intent.getIntExtra(WifiManager.EXTRA_SUPPLICANT_ERROR, 0));
 
         // Case Intent=SUPPLICANT_CONNECTION_CHANGE_ACTION
-        } else if (intent.getAction().equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
+        } else if (action.equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
             handleSupplicantConnectionChanged(
             intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false));
 
       // Case of RSSI_CHANGED_ACTION
-        } else if (intent.getAction().equals(WifiManager.RSSI_CHANGED_ACTION)){
+        } else if (action.equals(WifiManager.RSSI_CHANGED_ACTION)){
             handleSignalChanged(intent.getIntExtra(WifiManager.EXTRA_NEW_RSSI, 0));
+        }
+        // Case scan results available
+        else if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(action)) {
+            handleScanResultsAvailable(context);
+        }
+        else if (WifiManager.WIFI_AP_STATE_CHANGED_ACTION.equals(action)) {
+            handleWifiApStateChanged(intent);
         }
     }
 
@@ -105,6 +120,35 @@ public class WiFiMonitor extends Monitor {
         // Report Event
         flush(strWifiStateEvent, msg, description);
     }
+
+    private void handleWifiApStateChanged(Intent intent) {
+
+        int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_AP_STATE,
+                                       WifiManager.WIFI_AP_STATE_FAILED);
+        String msg = "NO_STATE";
+        String description = "NONE";
+
+        switch(state){
+            case WifiManager.WIFI_AP_STATE_DISABLED:
+                msg = "WIFI_AP_STATE_DISABLED";
+                break;
+            case WifiManager.WIFI_AP_STATE_ENABLED:
+                msg = "WIFI_AP_STATE_ENABLED";
+                break;
+            case WifiManager.WIFI_AP_STATE_DISABLING:
+                msg = "WIFI_AP_STATE_DISABLING";
+                break;
+            case WifiManager.WIFI_AP_STATE_ENABLING:
+                msg = "WIFI_AP_STATE_ENABLING";
+                break;
+            default:
+                msg = "WIFI_STATE_UNKNOWN";
+                break;
+        }
+
+        flush(strWifiAPStateEvent, msg, description);
+    }
+
 
     private void handleSupplicantStateChanged(Context context, SupplicantState supplicantState, boolean hasError, int error) {
         String msg = null;
@@ -181,6 +225,30 @@ public class WiFiMonitor extends Monitor {
             aAPInfo = wifi.getConnectionInfo().toString();
         }
         return aAPInfo;
+    }
+
+    private void handleScanResultsAvailable (Context context) {
+        WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        boolean connected = false;
+        final List<WifiConfiguration> WifiConfigs = wifiMgr.getConfiguredNetworks();
+        for(WifiConfiguration config: WifiConfigs){
+            if(config.status == WifiConfiguration.Status.CURRENT){
+                connected = true;
+                break;
+            }
+        }
+
+        if(!connected){
+            final List<ScanResult> wifiList = wifiMgr.getScanResults();
+            for (ScanResult scanR: wifiList){
+                for(WifiConfiguration config: WifiConfigs){
+                    if(config.status == WifiConfiguration.Status.DISABLED) continue;
+                    if(config.status == WifiConfiguration.Status.ENABLED && config.BSSID == scanR.BSSID){
+                        flush(strScanEvent, strWiFiAvailability, config.SSID + " - " + config.BSSID);
+                    }
+                }
+            }
+        }
     }
 
     public void collectMetrics(){

@@ -19,9 +19,9 @@ public abstract class Monitor extends BroadcastReceiver {
     private static final boolean DBG  = true;
     private static final boolean VDBG = true;
 
-    private static final int metricNameLength           = 30;
-    private static final int metricValueLength          = 30;
-    private static final int metricDescriptionLength    = 1000;
+    private static final int metricNameLength           = 32;
+    private static final int metricValueLength          = 32;
+    private static final int metricDescriptionLength    = 512;
     private static final String SeparatorTag            = "\t";
 
     private String mMonitorFileName;
@@ -106,21 +106,30 @@ public abstract class Monitor extends BroadcastReceiver {
      * @param metricName: metric name, metricValue: metric value, metricDesc: metric description
      */
     public void flush(String metricName, String metricValue, String metricDesc) {
+        // Format output and write it in a CSV file
+        String aOutput = getCurrentTimeStamp() + SeparatorTag
+             + String.format("%1$-" + metricNameLength + "s", metricName) + SeparatorTag
+             + String.format("%1$-" + metricValueLength + "s", metricValue) + SeparatorTag
+             + String.format("%1$-" + metricDescriptionLength + "s", metricDesc);
+
         synchronized(mLock) {
             nbr_metric_items_to_flush++;
 
-           // Format output and write it in a CSV file
-            String aOutput = getCurrentTimeStamp() + SeparatorTag
-                + String.format("%1$-" + metricNameLength + "s", metricName) + SeparatorTag
-                + String.format("%1$-" + metricValueLength + "s", metricValue) + SeparatorTag
-                + String.format("%1$-" + metricDescriptionLength + "s", metricDesc);
+            if (myOutputFilePrintWriter != null) { // Did someone stop the monitor behind our back ?
+                myOutputFilePrintWriter.println(aOutput);
 
-            myOutputFilePrintWriter.println(aOutput);
-
-            if (nbr_metric_items_to_flush == MAX_FLUSH_ITEMS_COUNT) {
-                nbr_metric_items_to_flush = 1;
-                myOutputFilePrintWriter.flush();
+                if (nbr_metric_items_to_flush == MAX_FLUSH_ITEMS_COUNT) {
+                    nbr_metric_items_to_flush = 1;
+                    myOutputFilePrintWriter.flush();
+                }
             }
+        }
+    }
+
+    public void forceFlush() {
+        synchronized(mLock) {
+            nbr_metric_items_to_flush = 1;
+            myOutputFilePrintWriter.flush();
         }
     }
 

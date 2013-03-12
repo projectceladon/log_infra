@@ -162,7 +162,7 @@ public class NetworkingMonitor extends Monitor {
         return aAPInfo;
     }
 
-    public void collectMetrics(){
+    public synchronized void collectMetrics(){
 
         // TCP stats
         flush(strStatUpdate, strTCPstats, getTcpStats());
