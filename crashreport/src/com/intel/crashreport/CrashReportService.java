@@ -464,7 +464,7 @@ public class CrashReportService extends Service {
 											DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 											dayDate = DAY_DF.format(event.getDate());
 											fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-											Log.i("Service:uploadEvent : Upload of "+event);
+											Log.i("Service:uploadEvent : Logfile upload of "+event);
 											if (event.getEventName().equals("APLOG")) {
 												showProgressBar();
 												updateProgressBar(0);
@@ -497,6 +497,7 @@ public class CrashReportService extends Service {
 												throw new ProtocolException();
 											}
 										} else
+											Log.w("Service:uploadEvent : logfile EVENT"+event.getEventId()+".zip is not available for upload");
 											cursor.moveToNext();
 
 										if(db.isThereEventToUpload()) {

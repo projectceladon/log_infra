@@ -23,9 +23,12 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import com.intel.phonedoctor.utils.FileOps;
 
 import android.content.Context;
 
@@ -33,70 +36,117 @@ public class CrashLogs {
 
 	private static final int BUFFER_SIZE = 1024;
 
+	/**
+	 * Compress a crashlog directory content and return it as a zipped file. If this zipped file
+	 * already exists in the application cache directory, this file directly returned.
+	 *
+	 * @param context is the current application context
+	 * @param crashDir is the crashlog directory to be returned as a compressed zip file.
+	 * @param eventId is the id of the event associated to the input crashlog directory.
+	 * @return the crashlog directory compressed as a zipped file named "EVENTeventId.zip"
+	 */
 	public static File getCrashLogsFile(Context context, String crashDir, String eventId) {
-		try {
-			if (crashDir != null){
-				if (!crashDir.isEmpty()){
-					Log.d("getCrashLogsFile: using cachedir");
-					File cacheDir = context.getCacheDir();
-					if ((cacheDir != null) && cacheDir.exists()) {
-						String crashLogsFileName = "EVENT"+eventId+".zip";
-						File crashLogsFile = new File(cacheDir, crashLogsFileName);
-						crashLogsFile.deleteOnExit();
-						if (crashLogsFile.exists())
-							return crashLogsFile;
-						else {
-							return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
+		if ((crashDir == null) || (crashDir.isEmpty())) {
 			return null;
 		}
-		return null;
+		File cacheDir = context.getCacheDir();
+		if ((cacheDir == null) || !cacheDir.exists() ) {
+			return null;
+		}
+		String crashLogsFileName = "EVENT"+eventId+".zip";
+		File crashLogsFile = new File(cacheDir, crashLogsFileName);
+		crashLogsFile.deleteOnExit();
+		if (crashLogsFile.exists()) {
+		//A crashlog zipped file already exists in cache directory
+			Log.d("getCrashLogsFile: "+crashLogsFileName+" exists in cachedir");
+			try {
+				if (FileOps.isValidZipFile(crashLogsFile))
+					return crashLogsFile;
+				else {
+					Log.w("CrashLogs: unvalid zip file in cache dir: "+crashLogsFile.getName());
+				}
+			} catch (IOException e) {
+				Log.w("CrashLogs: can't read zip file in cache dir: "+crashLogsFile.getName());
+			}
+			if (!crashLogsFile.delete())
+				Log.w("CrashLogs: can't delete file: "+crashLogsFile.getName());
+		}
+		//Nominal case : the crashlog directory needs to be compressed and returned as a zipped file
+		Log.d("getCrashLogsFile: start "+crashLogsFileName+" creation");
+		try {
+			return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
 	}
 
-	private static File createCrashLogsZip(String crashDirPath, String fileName, File outDir) {
+	/**
+	 * Write a zip file from the input crash directory crashDirPath. This file is named fileName
+	 * and stored in outDir directory
+	 *
+	 * @param crashDirPath is the path of the directory to compress
+	 * @param fileName is a string defining the name of the zip file to create. It shall NOT be null.
+	 * @param outDir is the directory where the output zip file will be stored. It shall exist and NOT be null.
+	 * @return the created zip file
+	 * @throws IllegalArgumentException if crashDirPath is not an existing directory
+	 */
+	private static File createCrashLogsZip(String crashDirPath, String fileName, File outDir) throws IllegalArgumentException {
+		File crashDir = new File(crashDirPath);
+		if ( !(crashDir.exists() && crashDir.isDirectory()) ) {
+			Log.w("CrashLogs: createCrashLogsZip input "+crashDirPath+" arg doesn't exist or is not a directory");
+			throw new IllegalArgumentException();
+		}
+		File crashLogsFile = new File(outDir, fileName); //fileName necessary not null
+		File fileList[] = crashDir.listFiles();          //fileList necessary not null
 		try {
-			File crashDir = new File(crashDirPath);
-			if ((crashDir != null) && crashDir.exists() && crashDir.isDirectory()) {
-				File fileList[] = crashDir.listFiles();
-				if (fileList != null) {
-					File crashLogsFile = new File(outDir, fileName);
-					BufferedInputStream origin = null;
-					ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
-					if (out != null) {
-						byte data[] = new byte[BUFFER_SIZE];
-
-						for(int i=0; i < fileList.length; i++) {
-							Log.d("Compress Adding: " + fileList[i].getName());
-							FileInputStream fi = new FileInputStream(fileList[i]);
-							origin = new BufferedInputStream(fi, BUFFER_SIZE);
-							ZipEntry entry = new ZipEntry(fileList[i].getName());
-							out.putNextEntry(entry);
-							int count;
-							while ((count = origin.read(data)) != -1)
-								out.write(data, 0, count);
-							origin.close();
-						}
-						out.close();
-						return crashLogsFile;
-					} else {
-						Log.w("CrashLogs: Can't create zip file : "+crashLogsFile);
-						return null;
-					}
-				} else {
-					Log.w("CrashLogs: No files in : "+crashDirPath);
-					return null;
+			writeCrashLogsZip(crashLogsFile, fileList);
+			if (FileOps.isValidZipFile(crashLogsFile))
+				return crashLogsFile;
+			else
+				Log.w("CrashLogs: unvalid zip file : "+crashLogsFile.getName());
+		} catch (FileNotFoundException e) {
+			Log.w("CrashLogs: file read error ", e);
+		} catch (IOException e) { //catches all IOExceptions concerning stream and zip entries operations
+			Log.w("CrashLogs: IOException when writing in zipfile: "+crashLogsFile.getName(), e);
+		}
+		if (!crashLogsFile.delete())
+			Log.w("CrashLogs: can't delete file: "+crashLogsFile.getName());
+		return null;
+	}
+	
+	/**
+	 * Write files from fileList in crashLogsFile under zip format
+	 * @param crashLogsFile is the zip file storing files from fileList. It shall NOT be null.
+	 * @param fileList is the list of files to store in the zip file crashLogsFile. It shall NOT be null.
+	 * @throws FileNotFoundException if crashLogsFile can't be read
+	 * @throws IOException if an error occurs when storing an entry in zip file
+	 */
+	private static void writeCrashLogsZip(File crashLogsFile, File fileList[]) throws FileNotFoundException, IOException {
+		BufferedInputStream origin = null;
+		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
+		try {
+			byte data[] = new byte[BUFFER_SIZE];
+			for(int i=0; i < fileList.length; i++) {
+				Log.d("Compress Adding: " + fileList[i].getName());
+				
+				if (!(fileList[i].exists() && fileList[i].canRead() && (fileList[i].getName().length() < Integer.MAX_VALUE))){
+					Log.w("CrashLogs: can't read file "+fileList[i].getName()+" to be added in "+crashLogsFile.getName());
+					throw new FileNotFoundException(fileList[i].getName());
 				}
-			} else {
-				Log.w("CrashLogs: Error when creating zip of : "+crashDirPath);
-				return null;
-			}
-		} catch(Exception e) {
-			Log.w("CrashLogs: Error when creating zip of : "+crashDirPath);
-			return null;
+				FileInputStream fi = new FileInputStream(fileList[i]);
+				origin = new BufferedInputStream(fi, BUFFER_SIZE);
+				ZipEntry entry = new ZipEntry(fileList[i].getName());
+				out.putNextEntry(entry);
+				int count;
+				while ((count = origin.read(data)) != -1)
+					out.write(data, 0, count);
+				origin.close();
+				}
+		}
+		finally {
+			out.close();
+			if (origin != null)
+				origin.close();
 		}
 	}
 }

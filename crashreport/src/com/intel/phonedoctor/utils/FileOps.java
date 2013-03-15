@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+
 
 /**
  * This class is intended to store helper methods on files (File Operations)
@@ -60,5 +63,21 @@ public class FileOps {
         out.close();
         in.close();
     }
-
+    /**
+     * Check if the input file is a valid zip file.
+     *
+     * @param file to check
+     * @return true is the file is a valid Zip file. False otherwise.
+     * @throws IOException when zip integrity check fails.
+     */
+    public static boolean isValidZipFile(final File file) throws IOException {
+        ZipFile zipFile = null;
+        try {
+            zipFile = new ZipFile(file);
+            zipFile.close();
+            return true;
+        } catch (ZipException e) {
+            return false;
+        }
+    }
 }
