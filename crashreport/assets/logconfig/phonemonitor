@@ -1,6 +1,6 @@
 {
     "description":"Phone Monitor Service",
-    "type": "normal",
+    "type": "default",
     "config": [
         {
             "type":"intent",

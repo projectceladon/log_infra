@@ -80,10 +80,10 @@ public class ConfigManager implements IConfigServiceClient {
 
         for(ConfigStatus cs:allStatus) {
             LogConfig mLog = mConfigLoader.getConfig(cs.getName());
-            if (mLog != null)
-                cs.setLogConfig(mLog);
-
             if (mLog != null) {
+                cs.setLogConfig(mLog);
+                Log.d("LogConfig", "Checking config : " + cs.getName());
+
                 if(mStorage.isFirstBoot()) {
                     if(mLog.isAppliedByDefault()) {
                         Log.d("LogConfig", "First boot, get default configs");
@@ -101,9 +101,12 @@ public class ConfigManager implements IConfigServiceClient {
                             Log.d("LogConfig", "Get applied configs");
                             cs.setState(ConfigState.TO_ON);
                             mPersistConfigs.add(cs);
+                        } else if (mLog.isAppliedByDefault()) {
+                            Log.d("LogConfig", "New default config, add it to persist list");
+                            cs.setState(ConfigState.TO_ON);
+                            mPersistConfigs.add(cs);
                         }
                     }
-
                 }
             }
         }
