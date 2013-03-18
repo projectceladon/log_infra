@@ -62,19 +62,22 @@
             android:key="@string/settings_bugzilla_user_last_name_key"
             android:defaultValue="@string/settings_bugzilla_user_last_name_value_default"
             android:summary="@string/settings_bugzilla_user_last_name_summary"
-            android:title="@string/settings_bugzilla_user_last_name_title" />
+            android:title="@string/settings_bugzilla_user_last_name_title"
+            android:inputType="text|textNoSuggestions" />
 
         <EditTextPreference
             android:key="@string/settings_bugzilla_user_first_name_key"
             android:defaultValue="@string/settings_bugzilla_user_first_name_value_default"
             android:summary="@string/settings_bugzilla_user_first_name_summary"
-            android:title="@string/settings_bugzilla_user_first_name_title" />
+            android:title="@string/settings_bugzilla_user_first_name_title"
+            android:inputType="text|textNoSuggestions" />
 
         <EditTextPreference
             android:key="@string/settings_bugzilla_user_email_key"
             android:defaultValue="@string/settings_bugzilla_user_email_value_default"
             android:summary="@string/settings_bugzilla_user_email_summary"
-            android:title="@string/settings_bugzilla_user_email_title" />
+            android:title="@string/settings_bugzilla_user_email_title"
+            android:inputType="textEmailAddress|textNoSuggestions" />
 
     </PreferenceCategory>
 

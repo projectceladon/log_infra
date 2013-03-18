@@ -49,18 +49,7 @@ public class BugzillaSummaryActivity extends Activity {
 				alert.setMessage("A background request of new bugzilla creation has been submitted.");
 				alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int id) {
-						finish();
-						if (!fromGallery) {
-							Intent intent = new Intent(context,CrashReportHome.class);
-							intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-							startActivity(intent);
-						}
-						else {
-							Intent startMain = new Intent(Intent.ACTION_MAIN);
-							startMain.addCategory(Intent.CATEGORY_HOME);
-							startMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-							startActivity(startMain);
-						}
+						comeBack();
 					}
 				});
 				alert.show();
@@ -83,6 +72,7 @@ public class BugzillaSummaryActivity extends Activity {
 
 	@Override
 	public void onResume() {
+		super.onResume();
 		TextView infos = (TextView) findViewById(R.id.bugzilla_summary_text);
 		CrashReport app = (CrashReport)getApplicationContext();
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
@@ -95,7 +85,10 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
 		text += "With Aplogs attached";
 		infos.setText(text);
-		super.onResume();
+		if(bugzillaStorage.getSummary().equals("") || bugzillaStorage.getBugType().equals("") || bugzillaStorage.getComponent().equals("")
+				|| bugzillaStorage.getSeverity().equals("") || bugzillaStorage.getDescription().equals("")){
+			comeBack();
+		}
 	}
 
 	@Override
@@ -114,58 +107,60 @@ public class BugzillaSummaryActivity extends Activity {
 
 			CrashReport app = (CrashReport)getApplicationContext();
 			BugStorage bugzillaStorage = app.getBugzillaStorage();
-			String line = "";
-			if (bugzillaStorage.getLogLevel()>0){
-				line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
+			if(!bugzillaStorage.getSummary().equals("") && !bugzillaStorage.getDescription().equals("")){
+				String line = "";
+				if (bugzillaStorage.getLogLevel()>0){
+					line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
+					sArguments.add(line);
+				}
+				line = "SUMMARY="+bugzillaStorage.getSummary()+"\n";
 				sArguments.add(line);
-			}
-			line = "SUMMARY="+bugzillaStorage.getSummary()+"\n";
-			sArguments.add(line);
-			line = "TYPE="+bugzillaStorage.getBugType()+"\n";
-			sArguments.add(line);
-			Boolean bzMode = new ApplicationPreferences(app).isBugzillaModuleInTestMode();
-			if (!bzMode) {
-				String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
-				String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
-				if( componentText.length == componentValues.length) {
-					for (int i=0; i<componentText.length;i++) {
-						if(componentText[i].equals(bugzillaStorage.getComponent())) {
-							line = "COMPONENT="+componentValues[i]+ "\n";
-							break;
+				line = "TYPE="+bugzillaStorage.getBugType()+"\n";
+				sArguments.add(line);
+				Boolean bzMode = new ApplicationPreferences(app).isBugzillaModuleInTestMode();
+				if (!bzMode) {
+					String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
+					String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
+					if( componentText.length == componentValues.length) {
+						for (int i=0; i<componentText.length;i++) {
+							if(componentText[i].equals(bugzillaStorage.getComponent())) {
+								line = "COMPONENT="+componentValues[i]+ "\n";
+								break;
+							}
 						}
 					}
 				}
-			}
-			else
-				line = "COMPONENT=Test Component\n";
-			sArguments.add(line);
-			line = "SEVERITY="+bugzillaStorage.getSeverity()+"\n";
-			sArguments.add(line);
-			String strDescription = bugzillaStorage.getDescription();
-			strDescription = strDescription.replace("\n", "\\n");
-			line = "DESCRIPTION="+strDescription+"\n";
-			sArguments.add(line);
-			if(bugzillaStorage.getBugHasScreenshot()) {
-				ArrayList<String> screenshots = bugzillaStorage.getScreenshotPath();
-				for(String screenshot:screenshots) {
-					line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+screenshot+"\n";
+				else
+					line = "COMPONENT=Test Component\n";
+				sArguments.add(line);
+				line = "SEVERITY="+bugzillaStorage.getSeverity()+"\n";
+				sArguments.add(line);
+				String strDescription = bugzillaStorage.getDescription();
+				strDescription = strDescription.replace("\n", "\\n");
+				line = "DESCRIPTION="+strDescription+"\n";
+				sArguments.add(line);
+				if(bugzillaStorage.getBugHasScreenshot()) {
+					ArrayList<String> screenshots = bugzillaStorage.getScreenshotPath();
+					for(String screenshot:screenshots) {
+						line = "SCREENSHOT=/mnt/sdcard/Pictures/Screenshots/"+screenshot+"\n";
+						sArguments.add(line);
+					}
+				}
+				line = "USERFIRSTNAME="+app.getUserFirstName()+"\n";
+				sArguments.add(line);
+				line = "USERLASTNAME="+app.getUserLastName()+"\n";
+				sArguments.add(line);
+				line = "USEREMAIL="+app.getUserEmail()+"\n";
+				sArguments.add(line);
+				if (bzMode) {
+					line = "TEST=true\n";
 					sArguments.add(line);
 				}
-			}
-			line = "USERFIRSTNAME="+app.getUserFirstName()+"\n";
-			sArguments.add(line);
-			line = "USERLASTNAME="+app.getUserLastName()+"\n";
-			sArguments.add(line);
-			line = "USEREMAIL="+app.getUserEmail()+"\n";
-			sArguments.add(line);
-			if (bzMode) {
-				line = "TEST=true\n";
-				sArguments.add(line);
-			}
-			//Create a file to trigger crashlog daemon with arguments previously set
-			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
+				//Create a file to trigger crashlog daemon with arguments previously set
+				CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
 
-			bugzillaStorage.clearValues();
+				bugzillaStorage.clearValues();
+			}
 
 			return null;
 		}
@@ -180,8 +175,7 @@ public class BugzillaSummaryActivity extends Activity {
 
 	}
 
-	@Override
-	public void onBackPressed() {
+	public void comeBack() {
 		finish();
 		if (!fromGallery) {
 			Intent intent = new Intent(getApplicationContext(), CrashReportHome.class);
@@ -194,6 +188,11 @@ public class BugzillaSummaryActivity extends Activity {
 			startMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
 			startActivity(startMain);
 		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		comeBack();
 	}
 
 

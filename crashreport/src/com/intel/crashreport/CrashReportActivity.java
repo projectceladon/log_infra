@@ -39,26 +39,24 @@ public class CrashReportActivity extends PreferenceActivity {
         EditTextPreference editFirstName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_first_name_key));
         editFirstName.setOnPreferenceChangeListener(listener);
         EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
-        editMail.setOnPreferenceChangeListener(listener);
         app = (CrashReport)getApplicationContext();
-        editLastName.setText(app.getUserLastName());
-        editFirstName.setText(app.getUserFirstName());
         if(!app.getUserEmail().equals(""))
             editMail.setText(app.getUserEmail());
+        else editMail.setText(getString(R.string.settings_bugzilla_user_email_value_default));
+        editMail.setOnPreferenceChangeListener(listener);
     }
 
     private OnPreferenceChangeListener listener = new OnPreferenceChangeListener(){
 
         public boolean onPreferenceChange(Preference preference,
                 Object newValue) {
-            if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_last_name_key)))
-                app.setUserLastName((String)newValue);
-            else if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_first_name_key)))
-                app.setUserFirstName((String)newValue);
-            else if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_email_key))) {
-                String mail = (String)newValue;
-                if(mail.endsWith("@intel.com") && (mail.indexOf("@") == mail.lastIndexOf("@")) && (mail.indexOf("@")!=0))
-                    app.setUserEmail((String)newValue);
+            String sValue = (String)newValue;
+            sValue = sValue.trim();
+            newValue = sValue;
+
+            if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_email_key))) {
+                if(sValue.endsWith("@intel.com") && (sValue.indexOf("@") == sValue.lastIndexOf("@")) && (sValue.indexOf("@")!=0))
+                    return true;
                 else {
                     Toast.makeText(getApplicationContext(), "Wrong email address.", Toast.LENGTH_LONG).show();
                     return false;
@@ -67,4 +65,12 @@ public class CrashReportActivity extends PreferenceActivity {
             return true;
         }
     };
+
+    public void onPause() {
+        EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
+        if(editMail.getText().equals(getString(R.string.settings_bugzilla_user_email_value_default)))
+            editMail.setText("");
+        super.onPause();
+    }
+
 }

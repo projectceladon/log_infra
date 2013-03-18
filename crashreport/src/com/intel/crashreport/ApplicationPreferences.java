@@ -145,42 +145,42 @@ public class ApplicationPreferences {
 	 * @return
 	 */
 	public String getUserLastName() {
-		return appPrivatePrefs.getString(
+		return appSharedPrefs.getString(
 				mCtx.getString(R.string.settings_bugzilla_user_last_name_key),
 				mCtx.getString(R.string.settings_bugzilla_user_last_name_value_default));
 	}
 
 	public void setUserLastName(String lastname) {
-		privatePrefsEditor.putString(
+		sharedPrefsEditor.putString(
 				mCtx.getString(R.string.settings_bugzilla_user_last_name_key),
 				lastname);
-		privatePrefsEditor.commit();
+		sharedPrefsEditor.commit();
 	}
 
 	public String getUserFirstName() {
-		return appPrivatePrefs.getString(
+		return appSharedPrefs.getString(
 				mCtx.getString(R.string.settings_bugzilla_user_first_name_key),
 				mCtx.getString(R.string.settings_bugzilla_user_first_name_value_default));
 	}
 
 	public void setUserFirstName(String firstname) {
-		privatePrefsEditor.putString(
+		sharedPrefsEditor.putString(
 				mCtx.getString(R.string.settings_bugzilla_user_first_name_key),
 				firstname);
-		privatePrefsEditor.commit();
+		sharedPrefsEditor.commit();
 	}
 
 	public String getUserEmail() {
-		return appPrivatePrefs.getString(
+		return appSharedPrefs.getString(
 				mCtx.getString(R.string.settings_bugzilla_user_email_key),
-				mCtx.getString(R.string.settings_bugzilla_user_email_value_default));
+				"");
 	}
 
 	public void setUserEmail(String email) {
-		privatePrefsEditor.putString(
+		sharedPrefsEditor.putString(
 				mCtx.getString(R.string.settings_bugzilla_user_email_key),
 				email);
-		privatePrefsEditor.commit();
+		sharedPrefsEditor.commit();
 	}
 
 	/**

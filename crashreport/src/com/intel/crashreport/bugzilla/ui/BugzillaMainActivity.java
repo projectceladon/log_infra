@@ -274,7 +274,7 @@ public class BugzillaMainActivity extends Activity {
 	@Override
 	public void onStart() {
 		super.onStart();
-		if (app.getUserEmail().equals("")) {
+		if (app.getUserEmail().equals("") || app.getUserFirstName().equals("") || app.getUserLastName().equals("")) {
 			finish();
 			Intent intent = new Intent(getApplicationContext(),UserInformationsActivity.class);
 			startActivity(intent);
