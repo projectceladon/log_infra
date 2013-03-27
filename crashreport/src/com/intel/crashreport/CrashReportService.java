@@ -418,7 +418,6 @@ public class CrashReportService extends Service {
 		String dayDate;
 		Build myBuild;
 		boolean toContinue = false;
-
 		public void run() {
 			context = getApplicationContext();
 			myBuild = ((CrashReport) context).getMyBuild();
@@ -434,16 +433,19 @@ public class CrashReportService extends Service {
 					try {
 						db.open();
 						con.setupServerConnection();
-
 						//upload Events
 						do {
 							sendEvents(db, con, myBuild);
-
-							if ((toContinue = db.isThereEventToUpload()) == true) {
-								updateEventsSummary(db);
+							try {
+								if ((toContinue = db.isThereEventToUpload()) == true) {
+									updateEventsSummary(db);
+								}
+							} catch (SQLException e) {
+								/* In case of Db access error, skip and go to events logs uploading process*/
+								Log.w("Service:uploadEvent : Can't check if there is event to upload : Fail to access DB", e);
+								toContinue = false;
 							}
 						}while(toContinue);
-
 						//upload logs
 						String crashTypes[] = null;
 						if (prefs.isCrashLogsUploadEnable()) {
@@ -498,8 +500,7 @@ public class CrashReportService extends Service {
 											}
 										} else
 											Log.w("Service:uploadEvent : logfile EVENT"+event.getEventId()+".zip is not available for upload");
-											cursor.moveToNext();
-
+										cursor.moveToNext();
 										if(db.isThereEventToUpload()) {
 											cursor.close();
 											updateEventsSummary(db);
@@ -511,7 +512,6 @@ public class CrashReportService extends Service {
 												nMgr.notifyUploadingLogs(cursor.getCount());
 											}
 											else break;
-
 										}
 									}
 									nMgr.cancelNotifUploadingLogs();

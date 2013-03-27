@@ -199,43 +199,47 @@ public class CrashReport extends Application {
 						HistoryEvent histEvent = new HistoryEvent(histEventLine);
 						historyEventCorrupted |= histEvent.isCorrupted();
 						PDStatus.INSTANCE.setHistoryEventCorrupted(historyEventCorrupted);
-						if (histEvent.getEventId().replaceAll("0", "").length() != 0) {
-							if (!db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId())) {
-								event = new Event(histEvent, myBuild);
-								blackLister.cleanRain(event.getDate());
-								if (!blackLister.blackList(event)) {
-									//Manage full Dropbox case before adding an event
-								    PhoneInspector.getInstance(getApplicationContext()).manageFullDropBox();
+						if ((histEvent.getEventId().replaceAll("0", "").length() != 0) && !histEvent.getEventName().contentEquals("DELETE")){
+							try {
+								if (!db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId())){
+									event = new Event(histEvent, myBuild);
+									blackLister.cleanRain(event.getDate());
+									if (!blackLister.blackList(event)) {
+										//Manage full Dropbox case before adding an event
+									    PhoneInspector.getInstance(getApplicationContext()).manageFullDropBox();
 
-									long ret = db.addEvent(event);
-									if (ret == -1)
-										Log.w(from+": Event error when added to DB, " + event.toString());
-									else if (ret == -2)
-										Log.w(from+": Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
-									else if (ret == -3)
-										Log.w(from+": Event " +event.toString() + " with wrong date, addition in DB canceled");
-									else {
-										if (event.getEventName().contentEquals("REBOOT")) {
-											if (event.getType().contentEquals("SWUPDATE")){
-												db.deleteEventsBeforeUpdate(event.getEventId());
-											}else{
-												db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
+										long ret = db.addEvent(event);
+										if (ret == -1)
+											Log.w(from+": Event error when added to DB, " + event.toString());
+										else if (ret == -2)
+											Log.w(from+": Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
+										else if (ret == -3)
+											Log.w(from+": Event " +event.toString() + " with wrong date, addition in DB canceled");
+										else {
+											if (event.getEventName().contentEquals("REBOOT")) {
+												if (event.getType().contentEquals("SWUPDATE")){
+													db.deleteEventsBeforeUpdate(event.getEventId());
+												}else{
+													db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
+												}
+											}
+											if (event.getEventName().equals("BZ")) {
+												BZFile bzfile = new BZFile(event.getCrashDir());
+												db.addBZ(event.getEventId(), bzfile, event.getDate());
+												Log.d(from+": BZ added in DB, " + histEvent.getEventId());
+											}
+											Log.d(from+": Event successfully added to DB, " + event.toString());
+											if (!event.isDataReady()) {
+												Timer timer = new Timer(true);
+												timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), CRASH_POSTPONE_DELAY*1000);
 											}
 										}
-										if (event.getEventName().equals("BZ")) {
-											BZFile bzfile = new BZFile(event.getCrashDir());
-											db.addBZ(event.getEventId(), bzfile, event.getDate());
-											Log.d(from+": BZ added in DB, " + histEvent.getEventId());
-										}
-										Log.d(from+": Event successfully added to DB, " + event.toString());
-										if (!event.isDataReady()) {
-											Timer timer = new Timer(true);
-											timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), CRASH_POSTPONE_DELAY*1000);
-										}
 									}
-								}
-							} else
-								Log.d(from+": Event already in DB, " + histEvent.getEventId());
+								} else
+									Log.d(from+": Event already in DB, " + histEvent.getEventId());
+						} catch (SQLException e) {
+							Log.e(from+": Can't access database. Skip treatment of event " + histEvent.getEventId(), e);
+						}
 						} else
 							Log.d(from+": Event ignored ID:" + histEvent.getEventId());
 					}

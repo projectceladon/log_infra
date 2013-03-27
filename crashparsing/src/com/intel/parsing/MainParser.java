@@ -561,7 +561,7 @@ public class MainParser{
 									//and shall necessary be an 8 hex characters long string
 									sTmp = simpleAwk(sCurLine,sFaultAddrSeparator, 1);
 									if (sTmp != null){
-										sTmp = sTmp.substring(0, 7);
+										sTmp = sTmp.substring(0, 8);
 										if (sTmp.matches(sHexCharactersPattern)){
 											sFaultAddress = sTmp;
 										}

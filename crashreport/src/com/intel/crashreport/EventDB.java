@@ -346,6 +346,8 @@ public class EventDB {
 		} else {
 			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
+		/* Only logs for events already uploaded*/
+		bQuery.append(" and "+KEY_UPLOAD+"='1'");
 		Log.d("fetchNotUploadedLogs : Query string = " +bQuery.toString() );
 		return fetchEventFromWhereQuery(bQuery.toString());
 
@@ -393,7 +395,7 @@ public class EventDB {
 		return event;
 	}
 
-	public Boolean isEventInDb(String eventId) {
+	public Boolean isEventInDb(String eventId) throws SQLException {
 		return isEventExistFromWhereQuery(KEY_ID + "='" + eventId + "'");
 	}
 
@@ -409,13 +411,13 @@ public class EventDB {
 		return sExcludedType;
 	}
 
-	public Boolean isThereEventToUpload() {
+	public Boolean isThereEventToUpload() throws SQLException {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1'");
 		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
 		return isEventExistFromWhereQuery(bQuery.toString());
 	}
 
-	public Boolean isThereEventToUpload(String crashTypes[]) {
+	public Boolean isThereEventToUpload(String crashTypes[]) throws SQLException {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0'");
 		bQuery.append(" or ("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
 		appendQueryForCrashTypes(crashTypes,bQuery);
@@ -451,7 +453,7 @@ public class EventDB {
 		return getNumberFromWhereQuery(bQuery.toString());
 	}
 
-	public Boolean isThereEventToUploadNoReboot() {
+	public Boolean isThereEventToUploadNoReboot() throws SQLException {
 		return isEventExistFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "<>'REBOOT' AND "+KEY_DATA_READY + "='1'");
 	}
 
@@ -459,21 +461,16 @@ public class EventDB {
 		return isEventExistFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='REBOOT'");
 	}
 
-	private Boolean isEventExistFromWhereQuery(String whereQuery) {
+	private Boolean isEventExistFromWhereQuery(String whereQuery) throws SQLException {
 		Cursor mCursor;
 		Boolean ret;
-		try {
-			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				ret = mCursor.moveToFirst();
-				mCursor.close();
-				return ret;
-			}
-		} catch (SQLException e) {
-			Log.d("isEventExistFromWhereQuery : " + e.getMessage());
-			return false;
+		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
+				whereQuery, null,
+				null, null, null, null);
+		if (mCursor != null) {
+			ret = mCursor.moveToFirst();
+			mCursor.close();
+			return ret;
 		}
 		return false;
 	}
@@ -594,7 +591,7 @@ public class EventDB {
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
-	public boolean isThereEventToNotify(){
+	public boolean isThereEventToNotify() throws SQLException {
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
 				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
 				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
@@ -655,7 +652,7 @@ public class EventDB {
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
-	public boolean eventDataAreReady(String eventId){
+	public boolean eventDataAreReady(String eventId) throws SQLException {
 		String whereQuery = KEY_ID+"='"+eventId+"' and "+KEY_DATA_READY+"=1";
 		return isEventExistFromWhereQuery(whereQuery);
 	}
@@ -968,20 +965,23 @@ public class EventDB {
 		return false;
 	}
 
-	public boolean isEventInBlackList(String eventId) {
+	/**
+	 * Check if the input event is in the Black_Events database
+	 *
+	 * @param eventId is the event to check
+	 * @return true is the event is in the Black_Events db. False otherwise
+	 * @throws SQLException
+	 */
+	public boolean isEventInBlackList(String eventId) throws SQLException{
 		Cursor mCursor;
 		Boolean ret;
-		try {
-			mCursor = mDb.query(true, DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID},
-					KEY_ID + " = '" + eventId + "'", null,
-					null, null, null, null);
-			if (mCursor != null) {
-				ret = mCursor.moveToFirst();
-				mCursor.close();
-				return ret;
-			}
-		} catch (SQLException e) {
-			Log.e("isEventInBlackList : " + e.getMessage());
+		mCursor = mDb.query(true, DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID},
+				KEY_ID + " = '" + eventId + "'", null,
+				null, null, null, null);
+		if (mCursor != null) {
+			ret = mCursor.moveToFirst();
+			mCursor.close();
+			return ret;
 		}
 		return false;
 	}
@@ -1079,7 +1079,7 @@ public class EventDB {
 		return checkNewRain(event, -1);
 	}
 
-	public boolean isOriginExist(String origin) {
+	public boolean isOriginExist(String origin) throws SQLException {
 		String query = KEY_ORIGIN + " = '" + origin + "'";
 		return isEventExistFromWhereQuery(query);
 	}
