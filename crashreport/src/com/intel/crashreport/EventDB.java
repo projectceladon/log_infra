@@ -1084,4 +1084,14 @@ public class EventDB {
 		return isEventExistFromWhereQuery(query);
 	}
 
+	/**
+	 * Search in database if an event having its 'origin' attribute beginning with
+	 * input 'originBasename' exists.
+	 * @param originBasename is a event origin basename file
+	 * @return true if a maching element is found in DB. False otherwise.
+	 */
+	public boolean isOriginBasenameExist(String originBasename) {
+		String query = KEY_ORIGIN + " LIKE '" + originBasename + "%'";
+		return isEventExistFromWhereQuery(query);
+	}
 }

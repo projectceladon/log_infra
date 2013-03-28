@@ -156,9 +156,14 @@ public class Event {
 				setImei(crashFile.getImei());
 			else setImei(readImeiFromSystem());
 			uptime = crashFile.getUptime();
-			if(type.equals("ANR")) {
-				AnrEvent anrFile = new AnrEvent(crashDir);
-				origin = anrFile.getTraceFileId();
+			/* Get origin logfile name for dropbox events (only) to manage duplicate */
+			if (this.isDropboxEvent()) {
+				try {
+					DropboxEvent dropboxFile = new DropboxEvent(crashDir, type);
+					origin = dropboxFile.getDropboxFileName();
+				} catch (FileNotFoundException e) {
+					Log.w(toString() + ", origin dropbox logfile not found, path: " + crashDir);
+				}
 			}
 		} catch (FileNotFoundException e) {
 			eventId = histevent.getEventId();
@@ -169,8 +174,6 @@ public class Event {
 			readDeviceIdFromFile();
 			imei = readImeiFromSystem();
 			Log.w(toString() + ", Crashfile not found, path: " + crashDir);
-		} catch (IOException e) {
-			Log.w(toString() + ", can not find ANR origin");
 		}
 	}
 
@@ -579,4 +582,29 @@ public class Event {
 		this.pdStatus = pdStatus;
 	}
 
+	/**
+	 * Indicates if the event is a Dropbox event.
+	 *
+	 * @return true if the event is a Dropbox event. False otherwise.
+	 */
+	public boolean isDropboxEvent() {
+		return ((type.equals("JAVACRASH") || type.equals("ANR") || type.equals("UIWDT")));
+	}
+
+	/**
+	 * Indicates if the event is a Dropbox event detected in full Dropbox condition.
+	 *
+	 * @return true if the event is a Dropbox event detected in full Dropbox condition. False otherwise.
+	 */
+	public boolean isFullDropboxEvent() {
+		return (isDropboxEvent() && data0.equals("full dropbox"));
+	}
+
+	/**
+	 * Indicates if the kind of the event is allowed to be included in a rain of crashes.
+	 * @return true if the kind of the event is subject to rain mechanism. False otherwise.
+	 */
+	public boolean isRainEventKind() {
+		return ((type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")));
+	}
 }

@@ -19,12 +19,9 @@
 
 package com.intel.crashreport;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 
 import android.content.Context;
@@ -32,6 +29,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 
 public class BlackLister {
+	private static final String module = "BlackLister: ";
 	private EventDB db;
 	private static Context mCtxt;
 
@@ -44,29 +42,27 @@ public class BlackLister {
 		mCtxt = aContext;
 	}
 
-	public boolean blackList(Event event){
-		if(event.getType().equals("TOMBSTONE")) {
-			return blackListTombstone(event);
-		}
-		if(event.getType().equals("JAVACRASH")) {
-			return blackListJavacrash(event);
-		}
-		if (event.getType().equals("ANR")) {
-			return blackListAnr(event);
+	/**
+	 * Checks if the input event should be blacklisted because
+	 * included in a rain of crashes or duplicated.
+	 *
+	 * @param event is the input event to check.
+	 * @return true if the event has been blacklisted. False otherwise.
+	 * @throws SQLException
+	 */
+	public boolean blackList(Event event) throws SQLException {
+		/* Manage duplicate dropbox events*/
+		if(blackListDuplicate(event))
+			return true;
+		/* Manage rain events*/
+		if (event.isRainEventKind()) {
+			return blackListCrash(event);
 		}
 		return false;
 	}
 
 	public void setDb(EventDB mDb) {
 		db = mDb;
-	}
-
-	public boolean blackListTombstone(Event event) {
-		return blackListCrash(event);
-	}
-
-	public boolean blackListJavacrash(Event event) {
-		return blackListCrash(event);
 	}
 
 	public boolean blackListCrash(Event event) {
@@ -99,32 +95,6 @@ public class BlackLister {
 			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
 		}
 		return result;
-	}
-
-	public boolean blackListAnr(Event event) {
-		try{
-			if(!event.getOrigin().equals("") && db.isOriginExist(event.getOrigin())){
-				//db.addBlackEvent(event, "FAKE");
-				String crashdir = event.getCrashDir();
-				event.setData4("DUPLICATE");
-				if(!crashdir.equals("")) {
-					try {
-						changeCrashType(crashdir,"DUPLICATE");
-					} catch (FileNotFoundException e) {
-						Log.e("BlackLister:blackListAnr:crashfile is not present "+crashdir);
-					}
-					catch(IOException e){
-						Log.e("BlackLister:blackListAnr:write problem in crashfile "+crashdir);
-					}
-				}
-				Log.w("BlackLister: event "+event.getEventId()+" is DUPLICATE");
-			}
-			return blackListCrash(event);
-		}
-		catch(SQLException e){
-			Log.e("BlackLister:blackListAnr: can't open database "+e.getMessage());
-		}
-		return false;
 	}
 
 	public void cleanRain(Date date) {
@@ -175,5 +145,45 @@ public class BlackLister {
 				}
 			}
 		}
+	}
+
+	/**
+	 * This function blacklists 2 kinds of duplicate dropbox events :
+	 *  - duplicates generated when full dropbox condition is encountered and where all
+	 *    logfiles in dropbox directory are renamed with *.lost suffixe
+	 *  - duplicates when a same dropbox (with origin file name identical) event is detected twice
+	 * The event is blacklisted if detected as DUPLICATE.
+	 * Note : it is assumed each dropbox logfile name is unique thanks to the timestamp it contains.
+	 *
+	 * @param event to check.
+	 * @return true is the event is duplicate. False otherwise.
+	 * @throws SQLException
+	 */
+	public boolean blackListDuplicate(Event event) throws SQLException {
+
+		boolean isEventDuplicate = false;
+
+		if (event.isDropboxEvent() && !event.getOrigin().equals("")) {
+			/* 1st case : a same dropbox event detected twice (with origin file name identical)*/
+			if (db.isOriginExist(event.getOrigin())) {
+				isEventDuplicate = true;
+				Log.d(module + "blackListDuplicate: event "+event.getEventId()+ " : origin file "+event.getOrigin()+ " already in DB");
+			}
+			/* 2nd case : an event already in DB but with its dropbox logfiles renamed with *.lost suffix */
+			if (!isEventDuplicate && event.isFullDropboxEvent() && event.getOrigin().endsWith(".lost")) {
+				String originBasename = event.getOrigin().substring(0, event.getOrigin().indexOf(".lost"));
+				if(db.isOriginBasenameExist(originBasename)) {
+					isEventDuplicate = true;
+					Log.d(module + "blackListDuplicate: event "+event.getEventId()+ " : origin basename file "+originBasename+ " already in DB");
+				}
+			}
+			if (isEventDuplicate) {
+				db.addBlackEvent(event, "DUPLICATE");
+				Log.i(module +"event "+event.getEventId()+" is DUPLICATE");
+				//the event is blacklisted so its crashlog directory shall be removed
+				CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
+			}
+		}
+		return isEventDuplicate;
 	}
 }

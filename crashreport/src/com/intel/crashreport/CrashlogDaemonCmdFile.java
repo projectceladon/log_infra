@@ -75,7 +75,7 @@ public class CrashlogDaemonCmdFile {
 	 * @param Arguments shall contains line(s) written in the file
 	 * @param aContext is the caller context
 	 */
-	public static void CreateCrashlogdCmdFile(Command CmdType, ArrayList<String> Arguments, Context aContext) {
+	public static synchronized void CreateCrashlogdCmdFile(Command CmdType, ArrayList<String> Arguments, Context aContext) {
 
 		String sfilePath ="";
 		switch (CmdType) {
