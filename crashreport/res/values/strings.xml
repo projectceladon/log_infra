@@ -124,5 +124,6 @@
     <string name="upload_log_ALL">All logs</string>
     <string name="upload_log_DEFAULT">Default number of logs</string>
     <string name="select_upload">Number of log to upload :</string>
-
+    <string name="extra_data_upload">Extra data to report :</string>
+    <string name="extra_data_thermal">include thermal report</string>
 </resources>

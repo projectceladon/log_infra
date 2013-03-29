@@ -19,21 +19,16 @@
 
 package com.intel.crashreport;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
@@ -43,6 +38,9 @@ public class UploadAplogActivity extends Activity{
 
 	public static int ALL_LOGS_VALUE = 21;
 	public static String LOG_PATH = "/logs";
+	public static final String COLLECT_ACTION = "com.intel.phonemonitor.COLLECT_METRICS_ACTION";
+	public static final String UPLOAD_ACTION = "com.intel.phonemonitor.UPLOAD_METRICS_ACTION";
+	public static final String COLLECT_LIST_EXTRA = "com.intel.phonemonitor.COLLECT_LIST_EXTRA";
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -70,6 +68,22 @@ public class UploadAplogActivity extends Activity{
 		}
 	}
 
+	public void manageThermalData(){
+		//step 1 : request for thermal metrics collection
+		CharSequence[] monitorArray = { "Thermal"};
+		Intent iCollect = new Intent(COLLECT_ACTION);
+		iCollect.putExtra(COLLECT_LIST_EXTRA, monitorArray);
+		sendBroadcast(iCollect);
+		//step2 : create INFO ExtraData
+		CustomizableEventData mEvent = EventGenerator.INSTANCE.getEmptyInfoEvent();
+		mEvent.setType("EXTRA_REPORT");
+		mEvent.setData0("THERMAL");
+		EventGenerator.INSTANCE.generateEvent(mEvent);
+		//step 3 : request for upload to phone monitor
+		Intent iUpload = new Intent(UPLOAD_ACTION);
+		sendBroadcast(iUpload);
+	}
+
 	private class AplogListener implements  View.OnClickListener {
 		public void onClick(View v) {
 			RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radiogroup_upload);
@@ -82,16 +96,22 @@ public class UploadAplogActivity extends Activity{
 
 			switch (checkedRadioButton) {
 			case R.id.radioButtonDefault : aplogSelected = "(with default number of aplog)";
-				iNbLog = -1;
-				break;
+			iNbLog = -1;
+			break;
 			case R.id.radioButtonAll : aplogSelected = "(with all aplog)";
-				iNbLog = ALL_LOGS_VALUE;
-				break;
+			iNbLog = ALL_LOGS_VALUE;
+			break;
 			}
 
+			CheckBox thermalCheck = (CheckBox) findViewById(R.id.checkBoxThermal);
 			new UploadAplogTask(iNbLog, context).execute();
 			AlertDialog alert = new AlertDialog.Builder(context).create();
-			alert.setMessage("A background request of log upload has been created. \n " + aplogSelected);
+			String sMessage = "A background request of log upload has been created. \n " + aplogSelected;
+			if (thermalCheck.isChecked()){
+				manageThermalData();
+				sMessage +=  "\n Thermal data report requested." ;
+			}
+			alert.setMessage(sMessage);
 			alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int id) {
 					curActivity.finish();
