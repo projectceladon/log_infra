@@ -147,7 +147,8 @@ public class StartServiceActivity extends Activity {
 			if (lvEvent != null)
 			{
 				eventAdapter.setListEvent(listEvent);
-				lvEvent.invalidateViews();
+				eventAdapter.notifyDataSetChanged();
+				//lvEvent.invalidateViews();
 			}
 	}
 

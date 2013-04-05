@@ -309,7 +309,7 @@ public class Event {
 		}
 		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
 				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
-				convertDateForServer(this.date), lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
+				this.date, lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
 				aDevice, this.iRowID,this.pdStatus );
 
 		return event;
@@ -465,6 +465,7 @@ public class Event {
 	}
 
 	public String getDateAsString() {
+		EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return EVENT_DF.format(date);
 	}
 
@@ -526,21 +527,6 @@ public class Event {
 
 	public void setDataReady(boolean dataReady) {
 		this.dataReady = dataReady;
-	}
-
-	public static Date convertDateForServer(Date date){
-		Date cDate = null;
-		//need to use local dateFormat to avoid bad display of date
-		SimpleDateFormat local_df = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
-		local_df.setTimeZone(TimeZone.getTimeZone("GMT"));
-		String displayDate = local_df.format(date);
-		try {
-			local_df.setTimeZone(TimeZone.getTimeZone("CET"));
-			cDate = local_df.parse(displayDate);
-		} catch (ParseException e) {
-			cDate = new Date();
-		}
-		return cDate;
 	}
 
 	public boolean isUploaded() {

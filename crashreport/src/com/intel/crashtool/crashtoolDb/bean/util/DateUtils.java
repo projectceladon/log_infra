@@ -24,6 +24,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -58,6 +59,7 @@ public class DateUtils {
 
 		String result = null;
 		if (date != null) {
+			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 			result = formatter.format(date);
 		}
 		return result;
@@ -97,6 +99,7 @@ public class DateUtils {
 		Date result = null;
 		try {
 			if (date != null) {
+				formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 				result = formatter.parse(date);
 			}
 		} catch (ParseException e) {
