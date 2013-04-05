@@ -179,12 +179,15 @@ public enum EventGenerator {
 	}
 
 	public String getImei() {
-		TelephonyManager tm = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
+		String deviceId;
 		try {
-			String deviceId = tm.getDeviceId();
-			return deviceId;
+			TelephonyManager tm = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
+			deviceId = tm.getDeviceId();
 		}catch(NullPointerException e){
 			return "";
 		}
+		if(deviceId == null)
+			deviceId = "";
+		return deviceId;
 	}
 }
