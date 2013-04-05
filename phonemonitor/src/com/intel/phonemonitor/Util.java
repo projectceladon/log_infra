@@ -107,25 +107,41 @@ public class Util {
     /* Pretty inefficient... but this is meant to work on relatively small files, so
        we probably do not care */
     public static String stringFromFile(String fname) {
+        String str = "";
+        DataInputStream in = null;
+
         try {
             FileInputStream fstream = new FileInputStream(fname);
-            DataInputStream in = new DataInputStream(fstream);
+            in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String strLine;
-            String str = "";
 
             while ((strLine = br.readLine()) != null) {
                 str = str + strLine + "\n";
             }
-            in.close();
-            /* Crude way of stripping the last \n */
-            return str.substring(0, str.length()-1);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             return "";
         } catch (IOException e) {
             e.printStackTrace();
             return "";
+        } finally {
+            try {
+                if (in != null)
+                    in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return "";
+            }
+            /* Crude way of stripping the last \n.
+               First test could also be done by catching
+               StringIndexOutOfBoundsException */
+            if (str.length() > 0) {
+                return str.substring(0, str.length()-1);
+            }
+            else {
+                return "";
+            }
         }
     }
 
