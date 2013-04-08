@@ -49,8 +49,7 @@ public class PowerMonitor extends Monitor {
     /* Since BatteryStatsImpl provides a dumper taking directly a PrintWriter as input
        we do not reuse the parent class flush method, but directly tap into the parent
        class PrintWriter. Yes, this is ugly. No we do not care. */
-    public synchronized void collectMetrics() {
-        PrintWriter pw = myOutputFilePrintWriter;
+    public void collectMetrics() {
         refreshStats();
         String midPmuStates  = Util.stringFromFile("/sys/kernel/debug/mid_pmu_states");
         String midPmuStats   = Util.stringFromFile("/sys/kernel/debug/pmu_stats_log");
@@ -71,7 +70,11 @@ public class PowerMonitor extends Monitor {
         flush("Content", "", "\n" + irqStats);
         flush("WAKEUP_SOURCES_STATS", "", "");
         flush("Content", "", "\n" + wakeupSources);
-        mStats.dumpLocked(pw);
-        myOutputFilePrintWriter.flush();
+        synchronized(mLock) {
+            if (myOutputFilePrintWriter != null) {
+                mStats.dumpLocked(myOutputFilePrintWriter);
+                myOutputFilePrintWriter.flush();
+            }
+        }
     }
 }
