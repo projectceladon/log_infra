@@ -33,7 +33,9 @@ public class PowerMonitor extends Monitor {
     /* We won't reinvent the wheel here, since Android is providing a very good power stat
        gathering API. */
     // Below code is shamelessly copied from Settings app
-    private void refreshStats() {
+    private boolean refreshStats() {
+        boolean res = true;
+
         try {
             byte[] data = mBatteryInfo.getStatistics();
             Parcel parcel = Parcel.obtain();
@@ -41,16 +43,20 @@ public class PowerMonitor extends Monitor {
             parcel.setDataPosition(0);
             mStats = com.android.internal.os.BatteryStatsImpl.CREATOR.createFromParcel(parcel);
             mStats.distributeWorkLocked(BatteryStats.STATS_SINCE_UNPLUGGED);
-        } catch (RemoteException e) {
-            android.util.Log.e(TAG, "RemoteException:", e);
+        } catch (Exception e) { // On some rare occurences, the Parcel cannot be filled
+            android.util.Log.e(TAG, "Caught exception while trying to retrieve power stats");
+            e.printStackTrace();
+            res = false;
         }
+
+        return res;
     }
 
     /* Since BatteryStatsImpl provides a dumper taking directly a PrintWriter as input
        we do not reuse the parent class flush method, but directly tap into the parent
        class PrintWriter. Yes, this is ugly. No we do not care. */
     public void collectMetrics() {
-        refreshStats();
+        if (!refreshStats()) return;
         String midPmuStates  = Util.stringFromFile("/sys/kernel/debug/mid_pmu_states");
         String midPmuStats   = Util.stringFromFile("/sys/kernel/debug/pmu_stats_log");
         String upTime        = Util.stringFromFile("/proc/uptime");
