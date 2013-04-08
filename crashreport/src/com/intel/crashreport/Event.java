@@ -55,6 +55,8 @@ public class Event {
 	private boolean dataReady = true;
 	private boolean uploaded = false;
 	private boolean logUploaded = false;
+	/*Define event validity : not valid if a mandatory attribute is missing */
+	private boolean valid = true;
 
 
 	private int iRowID;
@@ -593,5 +595,13 @@ public class Event {
 	 */
 	public boolean isRainEventKind() {
 		return ((type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")));
+	}
+
+	public void setValid(boolean validity) {
+		this.valid = validity;
+	}
+
+	public boolean isValid() {
+		return this.valid;
 	}
 }

@@ -21,6 +21,7 @@ package com.intel.commands.crashinfo.subcommand;
 
 import java.util.ArrayList;
 
+import com.intel.commands.crashinfo.CrashInfo;
 import com.intel.commands.crashinfo.DBManager;
 import com.intel.commands.crashinfo.ISubCommand;
 import com.intel.commands.crashinfo.option.OptionData;
@@ -31,6 +32,10 @@ public class UploadState implements ISubCommand {
 
 	String[] myArgs;
 	Options myOptions;
+
+	public static final String OPTION_UPLOADED_LOG = "--log";
+	public static final String OPTION_INVALID_EVENT = "--invalid-event";
+	public static final String OPTION_INVALID_LOG = "--invalid-log";
 
 	public UploadState(){
 
@@ -67,13 +72,37 @@ public class UploadState implements ISubCommand {
 	private int updateUploadByID(int rowId){
 		DBManager aDB = new DBManager(true);
 		boolean bLog = false;
+		boolean bLogInvalid = false;
+		boolean bEventInvalid = false;
 		ArrayList<OptionData> mySubOptions = myOptions.getSubOptions();
+		/* Get input options*/
 		for (OptionData aSubOption : mySubOptions) {
-			if (aSubOption.getKey().equals("--log")){
-				bLog = true;
-			}
+			bLog |= aSubOption.getKey().equals(OPTION_UPLOADED_LOG);
+			bEventInvalid |= aSubOption.getKey().equals(OPTION_INVALID_EVENT);
+			bLogInvalid |= aSubOption.getKey().equals(OPTION_INVALID_LOG);
 		}
-		aDB.updateUploadStateByID(rowId, bLog);
+		/* Displays options incompatibility error messages if necessary and exits*/
+		if (bLog && bEventInvalid) {
+			System.out.println(CrashInfo.Module+ "Error : option \"" + OPTION_UPLOADED_LOG + "\" is incompatible with option \"" + OPTION_INVALID_EVENT + "\"");
+			return -1;
+		}
+		if (bLog && bLogInvalid) {
+			System.out.println(CrashInfo.Module+ "Error : option \"" + OPTION_UPLOADED_LOG + "\" is incompatible with option \"" + OPTION_INVALID_LOG + "\"");
+			return -1;
+		}
+		if (bEventInvalid && bLogInvalid) {
+			System.out.println(CrashInfo.Module+ "Error : option \"" + OPTION_INVALID_LOG + "\" is incompatible with option \"" + OPTION_INVALID_EVENT + "\"");
+			return -1;
+		}
+		/* Performs actions*/
+		if (bEventInvalid)
+			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.EVENT_INVALID);
+		else if (bLogInvalid)
+			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.LOG_INVALID);
+		else if (bLog)
+			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.LOG_UPLOADED);
+		else
+			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.EVENT_UPLOADED);
 		return 0;
 	}
 
@@ -82,7 +111,9 @@ public class UploadState implements ISubCommand {
 		myArgs = subArgs;
 		myOptions = new Options(subArgs, "uploadState enable to update upload state in database");
 		myOptions.addMainOption("--filter-id", "-i",  "(\\d)*", true, Multiplicity.ONCE, "ID to change for upload state");
-		myOptions.addSubOption("--log", "-l",  "", false, Multiplicity.ZERO_OR_ONE, "Indicate if a log file is uploaded");
+		myOptions.addSubOption(OPTION_UPLOADED_LOG, "-l",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event logfile upload state to Uploaded");
+		myOptions.addSubOption(OPTION_INVALID_EVENT, "",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event and logfile upload state to Invalid");
+		myOptions.addSubOption(OPTION_INVALID_LOG, "",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event logfile upload state to Invalid");
 	}
 
 	@Override

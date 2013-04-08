@@ -17,8 +17,10 @@ public class BZ {
 	private ArrayList<String> screenshots;
 	private boolean isUploaded = false;
 	private boolean logsAreUploaded = false;
+	private boolean isValid = true;
 	private Date creationDate;
 	private Date uploadDate;
+	public static final int INVALID_STATE = -1;
 	public static final int UPLOADED_STATE = 0;
 	public static final int NOT_UPLOADED_STATE = 3;
 	public static final int PENDING_STATE = 2;
@@ -81,6 +83,14 @@ public class BZ {
 		logsAreUploaded = (up == 1);
 	}
 
+	public void setValidity(boolean validity) {
+		isValid = validity;
+	}
+
+	public boolean isValid() {
+		return isValid;
+	}
+
 	public String getEventId() {
 		return eventId;
 	}
@@ -130,13 +140,13 @@ public class BZ {
 	}
 
 	public int getState() {
+		if (!isValid)
+			return INVALID_STATE;
 		if(isUploaded && logsAreUploaded)
 			return UPLOADED_STATE;
 		if(isUploaded)
 			return PENDING_STATE;
 		return NOT_UPLOADED_STATE;
 	}
-
-
 
 }

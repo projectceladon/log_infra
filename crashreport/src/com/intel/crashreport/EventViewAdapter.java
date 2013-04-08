@@ -67,7 +67,11 @@ public class EventViewAdapter extends BaseAdapter {
 				String sDate = aEvent.getDateAsString();
 				holder.date.setText(sDate);
 
-				if (aEvent.isDataReady()){
+				if (!aEvent.isValid()){
+					holder.state.setText("invalid");
+					holder.state.setTextColor(Color.MAGENTA);
+				}
+				else if (aEvent.isDataReady()){
 					if (aEvent.isUploaded()){
 						if (aEvent.isLogUploaded() || aEvent.getCrashDir().equals("")){
 							holder.state.setText("OK - uploaded") ;
@@ -81,7 +85,8 @@ public class EventViewAdapter extends BaseAdapter {
 						holder.state.setTextColor(Color.RED);
 					}
 
-				}else{
+				}
+				else{
 					holder.state.setText("not ready");
 					holder.state.setTextColor(Color.CYAN);
 				}
