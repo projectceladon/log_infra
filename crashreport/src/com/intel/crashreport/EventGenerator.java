@@ -123,6 +123,7 @@ public enum EventGenerator {
 						event.getType() + event.getDateAsString();
 
 				event.setEventId(sha1Hash(SHA1String));
+				PDStatus.INSTANCE.setContext(mContext);
 				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.INSERTION_TIME));
 
 				db.addEvent(event);

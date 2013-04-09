@@ -326,9 +326,14 @@ public enum PDStatus {
 			 */
 			public String computeValue() {
 				String result = "3G:";
-				ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-				NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-				result = result.concat(networkInfo.isConnected()?"1":"0");
+				try{
+					ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+					result = result.concat(networkInfo.isConnected()?"1":"0");
+				}
+				catch(NullPointerException e){
+					result = result.concat("x");
+				}
 				return result;
 			}
 		});
@@ -412,7 +417,8 @@ public enum PDStatus {
 				if(m == PDSTATUS_TIME.UPLOAD_TIME && (label == STATUS_LABEL.WIFI || label == STATUS_LABEL.DATA)) {
 					result = label.computeValue();
 					if(event.getPdStatus().length() >= (count + label.getCharactersNumber())) {
-						if(event.getPdStatus().substring(count, count+label.getCharactersNumber()).endsWith(":0")) {
+						if(event.getPdStatus().substring(count, count+label.getCharactersNumber()).endsWith(":0")
+								|| event.getPdStatus().substring(count, count+label.getCharactersNumber()).endsWith(":x")) {
 							if(result.endsWith(":1")) result = result.replaceFirst(":1", ":2");
 						}
 						if(event.getPdStatus().substring(count, count+label.getCharactersNumber()).endsWith(":1")) {
