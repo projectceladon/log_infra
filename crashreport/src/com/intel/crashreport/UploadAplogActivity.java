@@ -89,7 +89,7 @@ public class UploadAplogActivity extends Activity{
 				break;
 			}
 
-			new UploadAplogTask(iNbLog).execute();
+			new UploadAplogTask(iNbLog, context).execute();
 			AlertDialog alert = new AlertDialog.Builder(context).create();
 			alert.setMessage("A background request of log upload has been created. \n " + aplogSelected);
 			alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
@@ -101,33 +101,4 @@ public class UploadAplogActivity extends Activity{
 		}
 	}
 
-
-	private class UploadAplogTask extends AsyncTask<Void, Void, Void> {
-		private int m_iLog = -1;
-
-		public UploadAplogTask(int iLog){
-			m_iLog = iLog;
-		}
-
-		@Override
-		protected Void doInBackground(Void... params) {
-
-			//Create a file to trigger crashlog daemon
-			String sArgument = "";
-			if (m_iLog > 0)
-				sArgument="APLOG=" + m_iLog + "\n";
-			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.APLOG, sArgument, context);
-
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(Void... params) {
-		}
-
-		protected void onPostExecute(Void... params) {
-
-		}
-
-	}
 }

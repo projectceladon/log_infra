@@ -63,6 +63,7 @@
     <string name="settings_event_report_management_value_default">uploadImmediately</string>
 
     <string name="settings_event_data_category_title">Event data</string>
+    <string name="settings_event_data_category_key">settings_event_data</string>
 
     <string name="settings_event_data_enable_key">settings_event_data_enable</string>
     <string name="settings_event_data_enable_title">Event data report</string>

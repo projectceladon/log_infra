@@ -107,14 +107,14 @@ public class Event {
 		this.crashDir = crashDir;
 	}
 
-	public Event(HistoryEvent histEvent, String myBuild) {
-		fillEvent(histEvent, myBuild);
+	public Event(HistoryEvent histEvent, String myBuild, boolean isUserBuild) {
+		fillEvent(histEvent, myBuild, isUserBuild);
 		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
 	}
 
-	private void fillEvent(HistoryEvent histEvent, String myBuild) {
+	private void fillEvent(HistoryEvent histEvent, String myBuild, boolean isUserBuild) {
 		if (histEvent.getEventName().equals("CRASH"))
-			fillCrashEvent(histEvent, myBuild);
+			fillCrashEvent(histEvent, myBuild, isUserBuild);
 		else if (histEvent.getEventName().equals("REBOOT"))
 			fillRebootEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("UPTIME"))
@@ -133,7 +133,7 @@ public class Event {
 			fillInfoEvent(histEvent, myBuild);
 	}
 
-	private void fillCrashEvent(HistoryEvent histevent, String myBuild) {
+	private void fillCrashEvent(HistoryEvent histevent, String myBuild, boolean isUserBuild) {
 		crashDir = histevent.getOption();
 		try {
 			CrashFile crashFile = new CrashFile(crashDir);
@@ -141,7 +141,8 @@ public class Event {
 			eventName = histevent.getEventName();
 			type = histevent.getType();
 			if (type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")) {
-				dataReady = false;
+				if(isUserBuild)
+					dataReady = false;
 			}
 			data0 = crashFile.getData0();
 			data1 = crashFile.getData1();
