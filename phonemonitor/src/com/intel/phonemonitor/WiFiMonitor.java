@@ -231,6 +231,10 @@ public class WiFiMonitor extends Monitor {
         WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         boolean connected = false;
         final List<WifiConfiguration> WifiConfigs = wifiMgr.getConfiguredNetworks();
+
+        if (WifiConfigs == null)
+            return;
+
         for(WifiConfiguration config: WifiConfigs){
             if(config.status == WifiConfiguration.Status.CURRENT){
                 connected = true;
