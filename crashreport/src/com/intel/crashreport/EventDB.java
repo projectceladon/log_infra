@@ -526,6 +526,14 @@ public class EventDB {
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
+	public boolean updateEventCrashdir(String eventId, String crashDir) {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_CRASHDIR, crashDir);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+	}
+
 	private int convertDateForDb(Date date) {
 		if (date==null) {
 			return -1;

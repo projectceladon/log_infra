@@ -113,7 +113,7 @@ public class UploadState implements ISubCommand {
 		myOptions.addMainOption("--filter-id", "-i",  "(\\d)*", true, Multiplicity.ONCE, "ID to change for upload state");
 		myOptions.addSubOption(OPTION_UPLOADED_LOG, "-l",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event logfile upload state to Uploaded");
 		myOptions.addSubOption(OPTION_INVALID_EVENT, "",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event and logfile upload state to Invalid");
-		myOptions.addSubOption(OPTION_INVALID_LOG, "",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event logfile upload state to Invalid");
+		myOptions.addSubOption(OPTION_INVALID_LOG, "",  "", false, Multiplicity.ZERO_OR_ONE, "Set Event upload state to Uploaded and logfile upload state to Invalid");
 	}
 
 	@Override

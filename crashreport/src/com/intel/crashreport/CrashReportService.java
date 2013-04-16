@@ -35,6 +35,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteException;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -466,7 +467,7 @@ public class CrashReportService extends Service {
 											DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 											dayDate = DAY_DF.format(event.getDate());
 											fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-											Log.i("Service:uploadEvent : Logfile upload of "+event);
+											Log.i("Service:uploadEvent : Upload crashlog of "+event);
 											if (event.getEventName().equals("APLOG")) {
 												showProgressBar();
 												updateProgressBar(0);
@@ -499,7 +500,7 @@ public class CrashReportService extends Service {
 												throw new ProtocolException();
 											}
 										} else
-											Log.w("Service:uploadEvent : logfile EVENT"+event.getEventId()+".zip is not available for upload");
+											Log.d("Service:uploadEvent : No crashlog to upload for "+event);
 										cursor.moveToNext();
 										if(db.isThereEventToUpload()) {
 											cursor.close();
