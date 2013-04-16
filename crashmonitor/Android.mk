@@ -19,7 +19,8 @@ LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES:= ../../../log_capture/crashlog/crashlogd.c \
-  ../../../log_capture/crashlog/mmgr_source.c
+  ../../../log_capture/crashlog/mmgr_source.c \
+  ../../../log_capture/crashlog/config.c
 
 LOCAL_C_INCLUDES += \
   $(TARGET_OUT_HEADERS)/IFX-modem
