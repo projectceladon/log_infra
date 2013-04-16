@@ -141,7 +141,7 @@ public class Event {
 			eventName = histevent.getEventName();
 			type = histevent.getType();
 			if (type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")) {
-				if(isUserBuild)
+				if(!isUserBuild)
 					dataReady = false;
 			}
 			data0 = crashFile.getData0();
