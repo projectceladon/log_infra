@@ -138,10 +138,13 @@ public class BlackLister {
 	public void changeCrashType(String crashDir,String reason) throws IOException,FileNotFoundException{
 		File logData = new File(crashDir);
 		if (logData.exists() && logData.isDirectory()) {
-			for(File file:logData.listFiles()){
-				if(file.getName().equals("crashfile")){
-					CrashFile crashfile = new CrashFile(crashDir,false);
-					crashfile.writeCrashFile(reason);
+			File logDataFiles[] = logData.listFiles();
+			if (logDataFiles != null) {
+				for(File file:logDataFiles){
+					if(file.getName().equals("crashfile")){
+						CrashFile crashfile = new CrashFile(crashDir,false);
+						crashfile.writeCrashFile(reason);
+					}
 				}
 			}
 		}
