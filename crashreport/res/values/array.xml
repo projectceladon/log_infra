@@ -113,11 +113,15 @@
 	<string-array name="reportBugzillaComponentValues">
 		<item>_User_Trials</item>
 		<item>_Triage_general</item>
+		<item>Iron_Bay_Testers</item>
+		<item>Iron_Bay_Admins</item>
 	</string-array>
 
 	<string-array name="reportBugzillaComponentText">
 		<item>_User_Trials (DSP Testers)</item>
 		<item>_Triage_general</item>
+		<item>Iron Bay Testers</item>
+		<item>Iron Bay Admins</item>
 	</string-array>
 
 </resources>
