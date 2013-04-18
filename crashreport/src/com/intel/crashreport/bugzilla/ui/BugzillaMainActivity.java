@@ -236,7 +236,7 @@ public class BugzillaMainActivity extends Activity {
 		}
 
 		if ((null != intent) && (null != intent.getAction()) && intent.getAction().equals(Intent.ACTION_VIEW)) {
-			if(intent.getType().startsWith("image/")){
+			if(intent.resolveType(context).startsWith("image/")){
 				Uri imageUri = intent.getData();
 				String fileName="unknown";
 				if (imageUri.getScheme().toString().compareTo("content")==0)
