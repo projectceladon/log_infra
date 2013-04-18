@@ -68,7 +68,6 @@ public class StartServiceActivity extends Activity {
 	private ApplicationPreferences appPrefs;
 	private int dialog_value = 0;
 	private TextView text;
-	private TextView summaryText;
 	private Button cancelButton;
 	private ViewStub waitStub;
 	private ProgressBar progressBar;
@@ -229,16 +228,20 @@ public class StartServiceActivity extends Activity {
 			progressBar.setVisibility(View.GONE);
 	}
 
+	/**
+	 * Create the Dialog windows that prompts the user to select an uploading mode for events not yet uploaded.
+	 * The user choice is validated once he has clicked on positive button ("OK")
+	 * @return the Dialog built.
+	 */
 	public Dialog createAskForUploadDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("PSI Phone Doctor management");
-		builder.setSingleChoiceItems(R.array.uploadStateDialogText, 0, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int item) {
-				dialog_value = item;
-			}
-		});
+		builder.setSingleChoiceItems(R.array.uploadStateDialogText, DIALOG_REP_NOW, null); /*Don't need listener on checked items*/
 		builder.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
+				/*Once user choice is validated, the single checked item is got. If checked item position is invalid, default value is "REPORT NOW"*/
+				dialog_value = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
+				dialog_value = dialog_value == android.widget.AbsListView.INVALID_POSITION ? DIALOG_REP_NOW : dialog_value;
 				doActionAfterSelectUploadState(DIALOG_REP_READ);
 			}
 		});
