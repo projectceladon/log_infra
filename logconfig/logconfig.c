@@ -72,6 +72,10 @@ void apply_set_prop_cmd(int socket) {
 
   // read prop
   prop = malloc((prop_length + 1) * sizeof(char));
+  if(!prop) {
+    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    return;
+  }
   if (read(socket, prop, prop_length) < 0) {
     LOGE("read failed: %s\n", strerror(errno));
     goto out_free_prop;
@@ -89,6 +93,10 @@ void apply_set_prop_cmd(int socket) {
 
   // read value
   value = malloc((value_length + 1) * sizeof(char));
+  if(!value) {
+    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    goto out_free_prop;
+  }
   if (read(socket, value, value_length) < 0) {
     LOGE("read failed: %s\n", strerror(errno));
     goto out_free_value;
@@ -147,6 +155,10 @@ void apply_write_fs_cmd(int socket) {
 
   // read path
   path = malloc((path_length + 1) * sizeof(char));
+  if(!path) {
+    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    return;
+  }
   if (read(socket, path, path_length) < 0) {
     LOGE("read failed: %s\n", strerror(errno));
     goto out_free_path;
@@ -164,6 +176,10 @@ void apply_write_fs_cmd(int socket) {
 
   // read value
   value = malloc((value_length + 1) * sizeof(char));
+  if(!value) {
+    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    goto out_free_path;
+  }
   if (read(socket, value, value_length) < 0) {
     LOGE("read failed: %s\n", strerror(errno));
     goto out_free_value;
@@ -190,6 +206,7 @@ void apply_write_fs_cmd(int socket) {
     goto out_free_value;
   }
   if (write(fd, value, value_length) < 0) {
+    close(fd);
     LOGE("write in file failed: %s\n", strerror(errno));
     goto out_free_value;
   }
