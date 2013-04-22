@@ -10,9 +10,7 @@ import com.intel.crashreport.UploadAplogActivity;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.SystemProperties;
 import android.provider.MediaStore;
-import android.provider.MediaStore.MediaColumns;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -23,6 +21,7 @@ import android.text.method.TextKeyListener;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -43,6 +42,7 @@ public class BugzillaMainActivity extends Activity {
 	private CrashReport app;
 	private Context context = this;
 	private static String TYPE_DEFAULT_VALUE = "medium";
+	private static String ENHANCEMENT_SEVERITY = "enhancement";
 
 
 	@Override
@@ -130,36 +130,34 @@ public class BugzillaMainActivity extends Activity {
 
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		bz_severity.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaSeverityValues, R.layout.spinner_bugzilla_item));
+		bz_severity.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View v,
+					int posSel, long arg3) {
+				Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
+				ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
+				int pos = adapter.getPosition(ENHANCEMENT_SEVERITY);
+				if( pos >= 0 && posSel >= 0) {
+					if(posSel == pos)
+						hideSelectAplogDepth();
+					else
+						displaySelectAplogDepth();
+				}
+
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+			}
+
+		});
 
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
 		bz_types.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaTypeValues, R.layout.spinner_bugzilla_item));
 
 		Spinner bz_components = (Spinner) findViewById(R.id.bz_component_list);
 		bz_components.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaComponentText, R.layout.spinner_bugzilla_item));
-
-		RadioButton rdDef = (RadioButton) findViewById(R.id.bz_radioButtonDefault);
-		RadioButton rdAll = (RadioButton) findViewById(R.id.bz_radioButtonAll);
-
-		if(app.isUserBuild()) {
-			rdDef.setVisibility(View.GONE);
-			rdAll.setVisibility(View.GONE);
-			TextView rdLabel = (TextView)findViewById(R.id.bz_textViewSelect);
-			rdLabel.setVisibility(View.GONE);
-		}
-		else {
-			LogTimeProcessing process = new LogTimeProcessing(UploadAplogActivity.LOG_PATH);
-
-			long lDefHour = process.getDefaultLogHour();
-			long lAllHour = process.getLogHourByNumber(UploadAplogActivity.ALL_LOGS_VALUE);
-
-			if (lDefHour > 1 ){
-				rdDef.setText(rdDef.getText() + " ("+ lDefHour + " Hours of log)");
-			}
-
-			if (lAllHour > 1 ){
-				rdAll.setText(rdAll.getText() + " ("+ lAllHour + " Hours of log)");
-			}
-		}
 
 	}
 
@@ -340,21 +338,27 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
+
 		int iNbLog =-1;
-		if(!app.isUserBuild()) {
-			RadioGroup radioGroup = (RadioGroup) findViewById(R.id.bz_radiogroup_upload);
+		if(!((String)bz_severity.getSelectedItem()).equals(ENHANCEMENT_SEVERITY)) {
+			if(!app.isUserBuild()) {
+
+				RadioGroup radioGroup = (RadioGroup) findViewById(R.id.bz_radiogroup_upload);
 
 
-			int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
+				int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
 
 
-			switch (checkedRadioButton) {
-			case R.id.bz_radioButtonDefault : iNbLog = -1;
-			break;
-			case R.id.bz_radioButtonAll :  iNbLog = UploadAplogActivity.ALL_LOGS_VALUE;
-			break;
+				switch (checkedRadioButton) {
+				case R.id.bz_radioButtonDefault : iNbLog = -1;
+				break;
+				case R.id.bz_radioButtonAll :  iNbLog = UploadAplogActivity.ALL_LOGS_VALUE;
+				break;
+				}
 			}
 		}
+		else
+			iNbLog = 0;
 
 
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
@@ -367,6 +371,51 @@ public class BugzillaMainActivity extends Activity {
 		bugzillaStorage.setBugLogLevel(iNbLog);
 		if(pictureBox.isChecked())
 			bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
+	}
+
+	public void displaySelectAplogDepth() {
+		RadioButton rdDef = (RadioButton) findViewById(R.id.bz_radioButtonDefault);
+		RadioButton rdAll = (RadioButton) findViewById(R.id.bz_radioButtonAll);
+		TextView rdLabel = (TextView)findViewById(R.id.bz_textViewSelect);
+
+		if(app.isUserBuild() && rdDef.isShown()) {
+			rdDef.setVisibility(View.GONE);
+			rdAll.setVisibility(View.GONE);
+			rdLabel.setVisibility(View.GONE);
+		}
+		else {
+			if(!rdDef.isShown()) {
+				rdDef.setVisibility(View.VISIBLE);
+				rdAll.setVisibility(View.VISIBLE);
+				rdLabel.setVisibility(View.VISIBLE);
+			}
+
+			LogTimeProcessing process = new LogTimeProcessing(UploadAplogActivity.LOG_PATH);
+
+			long lDefHour = process.getDefaultLogHour();
+			long lAllHour = process.getLogHourByNumber(UploadAplogActivity.ALL_LOGS_VALUE);
+
+			if (lDefHour > 1 ){
+				rdDef.setText(getResources().getText(R.string.upload_log_DEFAULT) + " ("+ lDefHour + " Hours of log)");
+			}
+
+			if (lAllHour > 1 ){
+				rdAll.setText(getResources().getText(R.string.upload_log_ALL) + " ("+ lAllHour + " Hours of log)");
+			}
+		}
+
+	}
+
+	public void hideSelectAplogDepth() {
+		RadioButton rdDef = (RadioButton) findViewById(R.id.bz_radioButtonDefault);
+		RadioButton rdAll = (RadioButton) findViewById(R.id.bz_radioButtonAll);
+		TextView rdLabel = (TextView)findViewById(R.id.bz_textViewSelect);
+
+		if(rdDef.isShown()) {
+			rdDef.setVisibility(View.GONE);
+			rdAll.setVisibility(View.GONE);
+			rdLabel.setVisibility(View.GONE);
+		}
 	}
 
 
