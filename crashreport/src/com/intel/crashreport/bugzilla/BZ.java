@@ -135,6 +135,10 @@ public class BZ {
 		 creationDate = date;
 	}
 
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
 	public void setUploadDate(Date date) {
 		uploadDate = date;
 	}

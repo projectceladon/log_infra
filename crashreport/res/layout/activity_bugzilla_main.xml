@@ -134,6 +134,23 @@
         android:textCursorDrawable="@null"
         android:textSize="22sp" />
 
+    <TextView
+        android:id="@+id/bz_time_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_time"
+        android:textSize="24sp"
+        android:textColor="#ffffff" />
+
+    <Spinner
+        android:id="@+id/bz_time_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
+
     <RadioGroup android:layout_width="fill_parent"
         android:layout_height="wrap_content" android:orientation="vertical"
         android:id="@+id/bz_radiogroup_upload">

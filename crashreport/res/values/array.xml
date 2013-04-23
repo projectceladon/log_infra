@@ -124,4 +124,15 @@
 		<item>Iron Bay Admins</item>
 	</string-array>
 
+	<string-array name="reportBugzillaTimeValues">
+	    <item>seconds</item>
+		<item>minutes</item>
+		<item>half an hour</item>
+		<item>hour</item>
+		<item>day</item>
+		<item>week</item>
+		<item>month</item>
+		<item>year</item>
+	</string-array>
+
 </resources>

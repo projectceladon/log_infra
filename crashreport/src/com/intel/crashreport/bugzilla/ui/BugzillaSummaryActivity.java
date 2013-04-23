@@ -76,7 +76,9 @@ public class BugzillaSummaryActivity extends Activity {
 		text += bugzillaStorage.getSummary() + "\n \n";
 		text += "Component : "+bugzillaStorage.getComponent()+ "\n";
 		text += "Severity : "+bugzillaStorage.getSeverity()+ "\n";
-		text += "Description : "+bugzillaStorage.getDescription()+ "\n \n";
+		text += "Description : "+bugzillaStorage.getDescription()+ "\n";
+		if(!bugzillaStorage.getTime().equals(""))
+			text += "Issue occured in last " +  bugzillaStorage.getTime()+ ".\n \n";
 		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
 		text += (bugzillaStorage.getLogLevel() == 0)?"Without":"With";
 		text += " Aplogs attached";
@@ -133,6 +135,10 @@ public class BugzillaSummaryActivity extends Activity {
 				sArguments.add(line);
 				String strDescription = bugzillaStorage.getDescription();
 				strDescription = strDescription.replace("\n", "\\n");
+				if(!strDescription.endsWith("\\n"))
+					strDescription += "\\n";
+				if(!bugzillaStorage.getTime().equals(""))
+					strDescription += "Issue occured in last " + bugzillaStorage.getTime();
 				line = "DESCRIPTION="+strDescription+"\n";
 				sArguments.add(line);
 				if(bugzillaStorage.getBugHasScreenshot()) {

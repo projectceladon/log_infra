@@ -718,7 +718,7 @@ public class EventDB {
 				KEY_SEVERITY+" as "+KEY_SEVERITY+", "+KEY_BZ_TYPE+" as "+KEY_BZ_TYPE+", "+KEY_BZ_COMPONENT+" as "+KEY_BZ_COMPONENT+", "+KEY_SCREENSHOT+" as "+KEY_SCREENSHOT+", "+
 				KEY_UPLOAD+" as "+KEY_UPLOAD+", "+KEY_UPLOADLOG+" as "+KEY_UPLOADLOG+", "+
 				KEY_UPLOAD_DATE+" as "+KEY_UPLOAD_DATE+", "+KEY_CREATION_DATE+" as "+KEY_CREATION_DATE+", "+KEY_SCREENSHOT_PATH+ " as "+KEY_SCREENSHOT_PATH+" from "+DATABASE_TABLE+" e,"+DATABASE_BZ_TABLE+" bz "+
-				"where bz."+KEY_ID+" = "+"e."+KEY_ID;
+				"where bz."+KEY_ID+" = "+"e."+KEY_ID + " order by "+KEY_CREATION_DATE+" DESC";
 		cursor = mDb.rawQuery(whereQuery, null);
 		if (cursor != null)
 			cursor.moveToFirst();

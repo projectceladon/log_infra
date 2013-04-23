@@ -139,10 +139,14 @@ public class BugzillaMainActivity extends Activity {
 				ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
 				int pos = adapter.getPosition(ENHANCEMENT_SEVERITY);
 				if( pos >= 0 && posSel >= 0) {
-					if(posSel == pos)
+					if(posSel == pos) {
 						hideSelectAplogDepth();
-					else
+						hideBzTimeSelection();
+					}
+					else {
 						displaySelectAplogDepth();
+						displayBzTimeSelection();
+					}
 				}
 
 			}
@@ -159,6 +163,9 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_components = (Spinner) findViewById(R.id.bz_component_list);
 		bz_components.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaComponentText, R.layout.spinner_bugzilla_item));
 
+		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
+		bz_time.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaTimeValues, R.layout.spinner_bugzilla_item));
+
 	}
 
 	@Override
@@ -171,6 +178,7 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
+		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		RadioButton radioButtonAll = (RadioButton) findViewById(R.id.bz_radioButtonAll);
 		RadioButton radioButtonDef = (RadioButton) findViewById(R.id.bz_radioButtonDefault);
 		galleryAdapter = (ScreenshotAdapter)screenshot.getAdapter();
@@ -192,6 +200,11 @@ public class BugzillaMainActivity extends Activity {
 			pos = adapter.getPosition(bugzillaStorage.getComponent());
 			if( pos >= 0)
 				bz_component.setSelection(pos);
+
+			adapter = (ArrayAdapter)bz_time.getAdapter();
+			pos = adapter.getPosition(bugzillaStorage.getTime());
+			if( pos >= 0)
+				bz_time.setSelection(pos);
 
 			adapter = (ArrayAdapter)bz_severity.getAdapter();
 			pos = adapter.getPosition(bugzillaStorage.getSeverity());
@@ -337,6 +350,7 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
+		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
 
 		int iNbLog =-1;
@@ -367,6 +381,9 @@ public class BugzillaMainActivity extends Activity {
 		bugzillaStorage.setBugType((String)bz_types.getSelectedItem());
 		bugzillaStorage.setComponent((String)bz_component.getSelectedItem());
 		bugzillaStorage.setBugSeverity((String)bz_severity.getSelectedItem());
+		if(!((String)bz_severity.getSelectedItem()).equals(ENHANCEMENT_SEVERITY))
+			bugzillaStorage.setBugTime((String)bz_time.getSelectedItem());
+		else bugzillaStorage.setBugTime("");
 		bugzillaStorage.setBugHasScreenshot(pictureBox.isChecked());
 		bugzillaStorage.setBugLogLevel(iNbLog);
 		if(pictureBox.isChecked())
@@ -415,6 +432,34 @@ public class BugzillaMainActivity extends Activity {
 			rdDef.setVisibility(View.GONE);
 			rdAll.setVisibility(View.GONE);
 			rdLabel.setVisibility(View.GONE);
+		}
+	}
+
+	/**
+	 * @brief display the dropdown list that allows the user
+	 * to select a time information about the issue occurance
+	 */
+	public void displayBzTimeSelection() {
+		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
+		TextView bz_time_label = (TextView)findViewById(R.id.bz_time_view);
+
+		if(!bz_time_label.isShown()) {
+			bz_time.setVisibility(View.VISIBLE);
+			bz_time_label.setVisibility(View.VISIBLE);
+		}
+	}
+
+	/**
+	 * @brief hide the dropdown list that allows the user
+	 * to select a time information about the issue occurance
+	 */
+	public void hideBzTimeSelection() {
+		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
+		TextView bz_time_label = (TextView)findViewById(R.id.bz_time_view);
+
+		if(bz_time_label.isShown()) {
+			bz_time.setVisibility(View.GONE);
+			bz_time_label.setVisibility(View.GONE);
 		}
 	}
 
