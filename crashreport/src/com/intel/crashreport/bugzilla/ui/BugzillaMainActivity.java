@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.text.method.TextKeyListener;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -63,6 +64,10 @@ public class BugzillaMainActivity extends Activity {
 			}
 
 		});
+
+		EditText summary = (EditText)findViewById(R.id.bz_summary_text);
+		TextKeyListener tListener = TextKeyListener.getInstance(false, TextKeyListener.Capitalize.SENTENCES);
+		summary.setKeyListener(tListener);
 
 		CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
 		pictureBox.setOnCheckedChangeListener(new OnCheckedChangeListener(){
