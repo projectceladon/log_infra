@@ -20,10 +20,14 @@
 package com.intel.crashreport;
 
 import android.os.Bundle;
+import android.os.SystemProperties;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceCategory;
+import android.view.View;
 import android.widget.Toast;
 
 public class CrashReportActivity extends PreferenceActivity {
@@ -34,6 +38,12 @@ public class CrashReportActivity extends PreferenceActivity {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.menu);
         setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+        app = (CrashReport)getApplicationContext();
+        if(app.isUserBuild()) {
+            CheckBoxPreference wifiPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_connection_wifi_only_key));
+            PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
+            dataPreferences.removePreference(wifiPreference);
+        }
         EditTextPreference editLastName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_last_name_key));
         editLastName.setOnPreferenceChangeListener(listener);
         EditTextPreference editFirstName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_first_name_key));

@@ -32,6 +32,7 @@ import android.util.Log;
 public class CrashInfo {
 
 	public static final String TAG_HEADER= "<crashinfo>";
+	public static final String Module = "crashinfo : ";
 
 	/**
 	 * Crashinfo command
@@ -97,7 +98,7 @@ public class CrashInfo {
 		usage.append("                 status [--uptime]\n");
 		usage.append("                 buildid [--spec]\n");
 		usage.append("                 clean [--filter-id --filter-time]\n");
-		usage.append("                 uploadstate [--filter-id --log]\n");
+		usage.append("                 uploadstate [--filter-id --invalid-(event/log) --log]\n");
 		usage.append("                 analyzeevent [--help for parameter list]\n");
 		usage.append("                 getbz\n");
 

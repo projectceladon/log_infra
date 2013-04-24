@@ -386,6 +386,7 @@ public class EventDB {
 		event.setUptime(cursor.getString(cursor.getColumnIndex(KEY_UPTIME)));
 		event.setCrashDir(cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR)));
 		event.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))==1);
+		event.setValid(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))!=-1);
 		event.setDataReady(cursor.getInt(cursor.getColumnIndex(KEY_DATA_READY))==1);
 		event.setLogUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG))==1);
 		event.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
@@ -728,6 +729,7 @@ public class EventDB {
 		if (bz.hasScreenshot()) {
 			bz.setScreenshots(cursor.getString(cursor.getColumnIndex(KEY_SCREENSHOT_PATH)));
 		}
+		bz.setValidity(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))!=-1);
 		bz.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD)));
 		bz.setLogsUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG)));
 		if (bz.logsAreUploaded()) {

@@ -10,6 +10,7 @@ import com.intel.crashreport.UploadAplogActivity;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemProperties;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
 import android.app.Activity;
@@ -31,6 +32,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.Gallery;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class BugzillaMainActivity extends Activity {
@@ -57,7 +59,7 @@ public class BugzillaMainActivity extends Activity {
 				galleryAdapter.updateItem(view);
 				CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
 				pictureBox.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
-				                                 +galleryAdapter.getScreenshotsSelected().size() + ")");
+												+galleryAdapter.getScreenshotsSelected().size() + ")");
 			}
 
 		});
@@ -133,18 +135,27 @@ public class BugzillaMainActivity extends Activity {
 		RadioButton rdDef = (RadioButton) findViewById(R.id.bz_radioButtonDefault);
 		RadioButton rdAll = (RadioButton) findViewById(R.id.bz_radioButtonAll);
 
-		LogTimeProcessing process = new LogTimeProcessing(UploadAplogActivity.LOG_PATH);
+		if(app.isUserBuild()) {
+			rdDef.setVisibility(View.GONE);
+			rdAll.setVisibility(View.GONE);
+			TextView rdLabel = (TextView)findViewById(R.id.bz_textViewSelect);
+			rdLabel.setVisibility(View.GONE);
+		}
+		else {
+			LogTimeProcessing process = new LogTimeProcessing(UploadAplogActivity.LOG_PATH);
 
-		long lDefHour = process.getDefaultLogHour();
-		long lAllHour = process.getLogHourByNumber(UploadAplogActivity.ALL_LOGS_VALUE);
+			long lDefHour = process.getDefaultLogHour();
+			long lAllHour = process.getLogHourByNumber(UploadAplogActivity.ALL_LOGS_VALUE);
 
-		if (lDefHour > 1 ){
-			rdDef.setText(rdDef.getText() + " ("+ lDefHour + " Hours of log)");
+			if (lDefHour > 1 ){
+				rdDef.setText(rdDef.getText() + " ("+ lDefHour + " Hours of log)");
+			}
+
+			if (lAllHour > 1 ){
+				rdAll.setText(rdAll.getText() + " ("+ lAllHour + " Hours of log)");
+			}
 		}
 
-		if (lAllHour > 1 ){
-			rdAll.setText(rdAll.getText() + " ("+ lAllHour + " Hours of log)");
-		}
 	}
 
 	@Override
@@ -183,10 +194,12 @@ public class BugzillaMainActivity extends Activity {
 			pos = adapter.getPosition(bugzillaStorage.getSeverity());
 			if( pos >= 0)
 				bz_severity.setSelection(pos);
-			if (bugzillaStorage.getLogLevel() > 0){
-				radioButtonAll.setChecked(true);
-			}else{
-				radioButtonDef.setChecked(true);
+			if(!app.isUserBuild()) {
+				if (bugzillaStorage.getLogLevel() > 0){
+					radioButtonAll.setChecked(true);
+				}else{
+					radioButtonDef.setChecked(true);
+				}
 			}
 
 
@@ -322,18 +335,20 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
-
-		RadioGroup radioGroup = (RadioGroup) findViewById(R.id.bz_radiogroup_upload);
-
-
-		int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
 		int iNbLog =-1;
+		if(!app.isUserBuild()) {
+			RadioGroup radioGroup = (RadioGroup) findViewById(R.id.bz_radiogroup_upload);
 
-		switch (checkedRadioButton) {
-		case R.id.bz_radioButtonDefault : iNbLog = -1;
-		break;
-		case R.id.bz_radioButtonAll :  iNbLog = UploadAplogActivity.ALL_LOGS_VALUE;
-		break;
+
+			int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
+
+
+			switch (checkedRadioButton) {
+			case R.id.bz_radioButtonDefault : iNbLog = -1;
+			break;
+			case R.id.bz_radioButtonAll :  iNbLog = UploadAplogActivity.ALL_LOGS_VALUE;
+			break;
+			}
 		}
 
 

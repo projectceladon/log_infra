@@ -45,4 +45,16 @@
         android:layout_height="wrap_content"
         android:text="@string/upload_log_button" />
 
+    <TextView
+            android:id="@+id/textViewExtra"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/extra_data_upload" />
+
+    <CheckBox
+        android:id="@+id/checkBoxThermal"
+        android:layout_width="275dp"
+        android:layout_height="wrap_content"
+        android:text="@string/extra_data_thermal" />
+
 </LinearLayout>

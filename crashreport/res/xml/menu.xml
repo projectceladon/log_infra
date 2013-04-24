@@ -28,7 +28,8 @@
         android:entryValues="@array/uploadStateMenuValues" />
 
     <PreferenceCategory
-        android:title="@string/settings_event_data_category_title">
+        android:title="@string/settings_event_data_category_title"
+        android:key="@string/settings_event_data_category_key" >
 
         <CheckBoxPreference
             android:key="@string/settings_event_data_enable_key"

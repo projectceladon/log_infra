@@ -27,6 +27,7 @@ import com.intel.phonedoctor.Constants;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 
 public class ApplicationPreferences {
@@ -216,6 +217,9 @@ public class ApplicationPreferences {
 	 * @return true if event data are uploaded through WiFi only, else false.
 	 */
 	public Boolean isWifiOnlyForEventData() {
+		if(isUserBuild()) {
+			return true;
+		}
 		return appSharedPrefs.getBoolean(
 			mCtx.getString(R.string.settings_connection_wifi_only_key),
 			Boolean.valueOf(mCtx.getString(R.string.settings_connection_wifi_only_value_default)));
@@ -261,6 +265,18 @@ public class ApplicationPreferences {
 		privatePrefsEditor.putInt("newTriggerFileIndex", ((index+1) % 999));
 		privatePrefsEditor.commit();
 		return index;
+	}
+
+	/**
+	 * @brief Provides information to know if the build used is an user build
+	 *
+	 * Provides information to know if the build used is an user build.
+	 *
+	 * @return true if the build is an user build and false else.
+	 */
+	public boolean isUserBuild() {
+		String buildType = SystemProperties.get("ro.build.type", "user");
+		return buildType.equals("user");
 	}
 
 }

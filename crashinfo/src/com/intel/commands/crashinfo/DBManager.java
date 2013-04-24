@@ -99,6 +99,9 @@ public class DBManager {
 
 	public static enum EventLevel{BASE,DETAIL,FULL};
 
+	/*Define possible values for event uploaded/logUploaded state in DB*/
+	public enum eventUploadState {EVENT_UPLOADED, LOG_UPLOADED, EVENT_INVALID, LOG_INVALID};
+
 	private SQLiteDatabase myDB;
 
 	public DBManager() {
@@ -442,11 +445,35 @@ public class DBManager {
 		myDB.update(DATABASE_EVENTS_TABLE, updateValue, KEY_ROWID+ "=" + iIdToClean,null);
 	}
 
-	public void updateUploadStateByID(int iIdToUpdate, boolean bUploadLog){
+	/**
+	 * Upload in DB the upload state of the event defined by the input iIdToUpdate
+	 * and as following :
+	 *  - EVENT_UPLOADED  => 'uploaded' =  1
+	 *  - LOG_UPLOADED    => 'uploaded' =  1 & 'logsUploaded' =  1
+	 *  - EVENT_INVALID   => 'uploaded' = -1 & 'logsUploaded' = -1
+	 *  - LOG_INVALID     => 'uploaded' =  1 & 'logsUploaded' = -1
+	 * @param iIdToUpdate is id of the event to update
+	 * @param state
+	 */
+	public void updateUploadStateByID(int iIdToUpdate, eventUploadState state){
 		ContentValues updateValue = new ContentValues();
-		updateValue.put(KEY_UPLOAD,"1");
-		if (bUploadLog){
+
+		switch (state) {
+		case EVENT_UPLOADED:
+			updateValue.put(KEY_UPLOAD,"1");
+			break;
+		case LOG_UPLOADED:
+			updateValue.put(KEY_UPLOAD,"1");
 			updateValue.put(KEY_UPLOADLOG,"1");
+			break;
+		case EVENT_INVALID:
+			updateValue.put(KEY_UPLOAD,"-1");
+			updateValue.put(KEY_UPLOADLOG,"-1");
+			break;
+		case LOG_INVALID:
+			updateValue.put(KEY_UPLOAD,"1");
+			updateValue.put(KEY_UPLOADLOG,"-1");
+			break;
 		}
 		myDB.update(DATABASE_EVENTS_TABLE, updateValue, KEY_ROWID+ "=" + iIdToUpdate,null);
 	}

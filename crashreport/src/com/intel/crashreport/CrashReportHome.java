@@ -6,8 +6,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemProperties;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -38,6 +40,10 @@ public class CrashReportHome extends Activity {
 		});
 
 		Button button_logconfig = (Button) findViewById(R.id.button_logconfig);
+		CrashReport app = (CrashReport) getApplicationContext();
+		if(app.isUserBuild()) {
+			button_logconfig.setVisibility(View.GONE);
+		}
 		// Attach a click listener for launching the system settings.
 		button_logconfig.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -49,8 +55,21 @@ public class CrashReportHome extends Activity {
 		Button button_aplogs = (Button) findViewById(R.id.button_report_aplogs);
 		button_aplogs.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), UploadAplogActivity.class);
-				startActivity(intent);
+				CrashReport app = (CrashReport) getApplicationContext();
+				if(app.isUserBuild()) {
+					new UploadAplogTask(context).execute();
+					AlertDialog alert = new AlertDialog.Builder(context).create();
+					alert.setMessage("A background request of log upload has been created. \n ");
+					alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+						}
+					});
+					alert.show();
+				}
+				else {
+					Intent intent = new Intent(getApplicationContext(), UploadAplogActivity.class);
+					startActivity(intent);
+				}
 			}
 		});
 

@@ -32,6 +32,7 @@ import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
+import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -181,6 +182,8 @@ public class CrashReport extends Application {
 		BlackLister blackLister = new BlackLister(getApplicationContext());
 		PhoneInspector phoneInspector;
 		boolean historyEventCorrupted = false;
+		boolean result;
+
 
 		db = new EventDB(getApplicationContext());
 		myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
@@ -189,7 +192,8 @@ public class CrashReport extends Application {
 
 		try {
 			db.open();
-			blackLister.setDb(db);
+			if(!isUserBuild())
+				blackLister.setDb(db);
 			histFile = new HistoryEventFile();
 
 			while (histFile.hasNext()) {
@@ -201,12 +205,20 @@ public class CrashReport extends Application {
 						PDStatus.INSTANCE.setHistoryEventCorrupted(historyEventCorrupted);
 						if ((histEvent.getEventId().replaceAll("0", "").length() != 0) && !histEvent.getEventName().contentEquals("DELETE")){
 							try {
-								if (!db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId())){
-									event = new Event(histEvent, myBuild);
-									blackLister.cleanRain(event.getDate());
-									if (!blackLister.blackList(event)) {
+								if(isUserBuild())
+									result = !db.isEventInDb(histEvent.getEventId());
+								else
+									result = !db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId());
+								if (result) {
+									event = new Event(histEvent, myBuild, isUserBuild());
+									if(!isUserBuild())
+										blackLister.cleanRain(event.getDate());
+									result = true;
+									if(!isUserBuild())
+										result = !blackLister.blackList(event);
+									if (result) {
 										//Manage full Dropbox case before adding an event
-									    PhoneInspector.getInstance(getApplicationContext()).manageFullDropBox();
+										PhoneInspector.getInstance(getApplicationContext()).manageFullDropBox();
 
 										long ret = db.addEvent(event);
 										if (ret == -1)
@@ -237,9 +249,9 @@ public class CrashReport extends Application {
 									}
 								} else
 									Log.d(from+": Event already in DB, " + histEvent.getEventId());
-						} catch (SQLException e) {
-							Log.e(from+": Can't access database. Skip treatment of event " + histEvent.getEventId(), e);
-						}
+							} catch (SQLException e) {
+								Log.e(from+": Can't access database. Skip treatment of event " + histEvent.getEventId(), e);
+							}
 						} else
 							Log.d(from+": Event ignored ID:" + histEvent.getEventId());
 					}
@@ -258,5 +270,17 @@ public class CrashReport extends Application {
 			throw e;
 		}
 
+	}
+
+	/**
+	 * @brief Checks if the build is an user build or not
+	 *
+	 * Checks if the build is an user build or not
+	 *
+	 * @return true is the build is an user build, false else
+	 */
+	public boolean isUserBuild() {
+		ApplicationPreferences prefs = new ApplicationPreferences(this);
+		return prefs.isUserBuild();
 	}
 }
