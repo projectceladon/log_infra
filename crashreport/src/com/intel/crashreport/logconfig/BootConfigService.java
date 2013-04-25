@@ -24,10 +24,10 @@ public class BootConfigService extends Service implements IConfigServiceClient {
     private Handler mHandler;
     private ConfigManager mConfigManager;
 
-    private Runnable applyPersistantConfigs = new Runnable() {
+    private Runnable applyPersistentConfigs = new Runnable() {
         public void run() {
             mConfigManager = ConfigManager.getInstance(BootConfigService.this);
-            List<ConfigStatus> mPersistConfigs = mConfigManager.getPersistantConfigList();
+            List<ConfigStatus> mPersistConfigs = mConfigManager.getPersistentConfigList();
             mClient.applyConfigList(mPersistConfigs);
         }
     };
@@ -38,7 +38,7 @@ public class BootConfigService extends Service implements IConfigServiceClient {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i("LogConfig", "Logconfig Boot service start");
         mClient = new ConfigServiceClient(this);
-        mHandler.post(applyPersistantConfigs);
+        mHandler.post(applyPersistentConfigs);
         return START_NOT_STICKY;
     }
 

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.os.Looper;
 import android.util.Log;
 
+import com.intel.crashreport.logconfig.Storage.StorableConfigState;
 import com.intel.crashreport.logconfig.bean.ConfigStatus;
 import com.intel.crashreport.logconfig.bean.ConfigStatus.ConfigState;
 import com.intel.crashreport.logconfig.bean.LogConfig;
@@ -43,7 +44,7 @@ public class ConfigManager implements IConfigServiceClient {
 
     private ArrayList<ConfigStatus> loadBaseConfigStatusList() {
         List<String> mConfigNames = mConfigLoader.getList();
-        List<String> mConfigAppliedNames = mStorage.getAppliedConfigs();
+        List<String> mConfigAppliedNames = mStorage.getAppliedConfigs(StorableConfigState.ENABLED);
         ArrayList<ConfigStatus> mConfigStatusList = new ArrayList<ConfigStatus>();
         for (String configName : mConfigNames) {
             ConfigStatus cs = new ConfigStatus(configName);
@@ -63,19 +64,34 @@ public class ConfigManager implements IConfigServiceClient {
         return mConfigStatusList;
     }
 
+    /**
+     * Save logconfigs state in sharedpreferences.
+     * A logconfig is saved as enabled if its state is 'ON'
+     * A logconfig is saved as disabled if its state is 'OFF'
+     */
     public void saveConfigStatus() {
-        ArrayList<String> mConfigAppliedNames = new ArrayList<String>();
+        ArrayList<String> mEnabledConfigAppliedNames = new ArrayList<String>();
+        ArrayList<String> mDisabledConfigAppliedNames = new ArrayList<String>();
         for (ConfigStatus cs : getConfigStatusList()) {
             if (cs.getState() == ConfigState.ON)
-                mConfigAppliedNames.add(cs.getName());
+                mEnabledConfigAppliedNames.add(cs.getName());
+            else if (cs.getState() == ConfigState.OFF)
+                mDisabledConfigAppliedNames.add(cs.getName());
         }
-        mStorage.saveAppliedConfigs(mConfigAppliedNames);
+        mStorage.saveAppliedConfigs(mEnabledConfigAppliedNames, mDisabledConfigAppliedNames);
     }
 
-    public List<ConfigStatus> getPersistantConfigList() {
-        Log.d("LogConfig", "Get persistant configs");
+    /**
+     * Returns the persistent logconfigs status list. All logconfig of which
+     * state has been previously saved in preferences are seen as 'persistent'.
+     * Only 'LOCK' logconfig are not saved in persistent logconfigs.
+     * @return the persistent logconfigs status list
+     */
+    public List<ConfigStatus> getPersistentConfigList() {
+        Log.d("LogConfig", "Get persistent configs");
         List<ConfigStatus> mPersistConfigs = new ArrayList<ConfigStatus>();
-        List<String> mPersistConfigNames = mStorage.getAppliedConfigs();
+        List<String> mEnabledPersistConfigNames = mStorage.getAppliedConfigs(StorableConfigState.ENABLED);
+        List<String> mDisabledPersistConfigNames = mStorage.getAppliedConfigs(StorableConfigState.DISABLED);
         List<ConfigStatus> allStatus = getConfigStatusList();
 
         for(ConfigStatus cs:allStatus) {
@@ -83,34 +99,29 @@ public class ConfigManager implements IConfigServiceClient {
             if (mLog != null) {
                 cs.setLogConfig(mLog);
                 Log.d("LogConfig", "Checking config : " + cs.getName());
-
-                if(mStorage.isFirstBoot()) {
-                    if(mLog.isAppliedByDefault()) {
-                        Log.d("LogConfig", "First boot, get default configs");
-                        cs.setState(ConfigState.TO_ON);
-                        mPersistConfigs.add(cs);
-                    }
+                /*Retrieve logconfigs in the following order :
+                 * - lock (new or not)
+                 * - persistent enabled/disabled
+                 * - default (new logconfig)*/
+                if(mLog.isLockConfig()) {
+                    Log.d("LogConfig", "Lock config, apply it");
+                    mPersistConfigs.add(cs);
                 }
-                else {
-                    if(mLog.isLockConfig()) {
-                        Log.d("LogConfig", "Get Lock configs");
-                        mPersistConfigs.add(cs);
-                    }
-                    else if (mPersistConfigNames != null) {
-                        if (mPersistConfigNames.contains(cs.getName())) {
-                            Log.d("LogConfig", "Get applied configs");
-                            cs.setState(ConfigState.TO_ON);
-                            mPersistConfigs.add(cs);
-                        } else if (mLog.isAppliedByDefault()) {
-                            Log.d("LogConfig", "New default config, add it to persist list");
-                            cs.setState(ConfigState.TO_ON);
-                            mPersistConfigs.add(cs);
-                        }
-                    }
+                else if (mEnabledPersistConfigNames != null && mEnabledPersistConfigNames.contains(cs.getName())) {
+                    Log.d("LogConfig", "Enabled persistent config, apply it");
+                    cs.setState(ConfigState.TO_ON);
+                    mPersistConfigs.add(cs); /*Apply ON*/
+                }
+                else if (mDisabledPersistConfigNames != null && mDisabledPersistConfigNames.contains(cs.getName())) {
+                    Log.d("LogConfig", "Disabled persistent config"); /*don't apply OFF config*/
+                }
+                else if (mLog.isAppliedByDefault()) {
+                    Log.d("LogConfig", "New Default config, add it to persist list and apply it");
+                    cs.setState(ConfigState.TO_ON); /*Apply new default config*/
+                    mPersistConfigs.add(cs);
                 }
             }
         }
-
         return mPersistConfigs;
     }
 

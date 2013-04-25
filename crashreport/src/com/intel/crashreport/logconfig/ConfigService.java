@@ -66,9 +66,10 @@ public class ConfigService extends Service {
                     try {
                         applyConfig(config);
                         rMsg = Message.obtain(null, MSG_CONFIG_APPLIED);
-                    } catch (Exception e1) {
+                    } catch (IllegalStateException e1) {
                         // if service failed to apply config
                         rMsg = Message.obtain(null, MSG_CONFIG_APPLY_FAILED);
+                        Log.i("LogConfig", "Exception : "+e1.getMessage());
                     }
                     rMsg.replyTo = mMessenger;
                     Messenger mClient = msg.replyTo;
@@ -88,7 +89,7 @@ public class ConfigService extends Service {
         }
     }
 
-    private void applyConfig(ConfigStatus config) throws Exception {
+    private void applyConfig(ConfigStatus config) throws IllegalStateException {
         Log.i("LogConfig", "applying config: " + config.getName());
         List<LogSetting> mSettings = config.getSettingsToApply();
         if (mSettings != null) {

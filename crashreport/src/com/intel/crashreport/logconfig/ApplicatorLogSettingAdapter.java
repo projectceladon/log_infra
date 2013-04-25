@@ -1,7 +1,5 @@
-
 package com.intel.crashreport.logconfig;
 
-import android.os.SystemProperties;
 import android.util.Log;
 
 import com.intel.crashreport.logconfig.LogConfigClient.CommandLogConfigAdapter;
