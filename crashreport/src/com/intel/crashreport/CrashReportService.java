@@ -477,17 +477,19 @@ public class CrashReportService extends Service {
 												db.updateEventLogToUploaded(event.getEventId());
 												Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 												crashLogs.delete();
-												if (event.getEventName().equals("APLOG")) {
-													updateProgressBar(0);
-													hideProgressBar();
-													File aplogData = new File(event.getCrashDir());
-													if (aplogData.exists()) {
-														if (aplogData.isDirectory()) {
-															for(File file:aplogData.listFiles()){
+												if (event.getEventName().equals("APLOG") || event.getEventName().equals("BZ") ) {
+													if (event.getEventName().equals("APLOG")) {
+														updateProgressBar(0);
+														hideProgressBar();
+													}
+													File data = new File(event.getCrashDir());
+													if (data.exists()) {
+														if (data.isDirectory()) {
+															for(File file:data.listFiles()){
 																file.delete();
 															}
 														}
-														aplogData.delete();
+														data.delete();
 													}
 												}
 												cursor.moveToNext();

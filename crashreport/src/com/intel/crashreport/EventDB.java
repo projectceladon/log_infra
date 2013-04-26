@@ -675,7 +675,8 @@ public class EventDB {
 	}
 
 	public void deleteEventsBeforeUpdate(String eventId){
-		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')";
+		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')"
+				           + " and "+KEY_NAME+"<> 'BZ'";
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
 	}
 
