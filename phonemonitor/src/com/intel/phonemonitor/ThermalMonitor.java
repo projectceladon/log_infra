@@ -1,8 +1,8 @@
 package com.intel.phonemonitor;
 
 import java.io.File;
+
 import android.thermal.ThermalZone;
-import android.thermal.ThermalManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -31,11 +31,11 @@ public class ThermalMonitor extends Monitor {
 
     private void handleThermalStateChanged(Intent intent) {
         // Code shamelessly copied from framework/base/core/android/thermal/ThermalCoolingMAnager.java
-        String zoneName = intent.getStringExtra(ThermalManager.EXTRA_NAME);
-        int thermZone = intent.getIntExtra(ThermalManager.EXTRA_ZONE, 0);
-        int thermState = intent.getIntExtra(ThermalManager.EXTRA_STATE, 0);
-        int thermEvent = intent.getIntExtra(ThermalManager.EXTRA_EVENT, 0);
-        int zoneTemp = intent.getIntExtra(ThermalManager.EXTRA_TEMP, 0);
+        String zoneName = intent.getStringExtra(ThermalZone.EXTRA_NAME);
+        int thermZone = intent.getIntExtra(ThermalZone.EXTRA_ZONE, 0);
+        int thermState = intent.getIntExtra(ThermalZone.EXTRA_STATE, 0);
+        int thermEvent = intent.getIntExtra(ThermalZone.EXTRA_EVENT, 0);
+        int zoneTemp = intent.getIntExtra(ThermalZone.EXTRA_TEMP, 0);
 
         String msg = zoneName  + "," +
                      thermZone + "," +
