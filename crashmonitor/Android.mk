@@ -23,12 +23,13 @@ LOCAL_SRC_FILES:= ../../../log_capture/crashlog/crashlogd.c \
   ../../../log_capture/crashlog/config.c
 
 LOCAL_C_INCLUDES += \
-  $(TARGET_OUT_HEADERS)/IFX-modem
+  $(TARGET_OUT_HEADERS)/IFX-modem \
+  $(TARGET_OUT_HEADERS)/logreader
 
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE:= crashmonitor
 
 LOCAL_UNSTRIPPED_PATH := $(TARGET_ROOT_OUT_UNSTRIPPED)
 
-LOCAL_SHARED_LIBRARIES:= libc libcutils libmmgrcli
+LOCAL_SHARED_LIBRARIES:= libc libcutils libmmgrcli liblogreader
 include $(BUILD_EXECUTABLE)
