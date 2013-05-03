@@ -18,7 +18,7 @@ public abstract class Monitor extends BroadcastReceiver {
 
     private static final boolean DBG  = true;
     private static final boolean VDBG = true;
-
+    private static final int timeStampLength            = 24;
     private static final int metricNameLength           = 32;
     private static final int metricValueLength          = 32;
     private static final int metricDescriptionLength    = 512;
@@ -113,7 +113,7 @@ public abstract class Monitor extends BroadcastReceiver {
      */
     public void flush(String metricName, String metricValue, String metricDesc) {
         // Format output and write it in a CSV file
-        String aOutput = getCurrentTimeStamp() + SeparatorTag
+        String aOutput = String.format("%1$-" + timeStampLength + "s", getCurrentTimeStamp()) + SeparatorTag
              + String.format("%1$-" + metricNameLength + "s", metricName) + SeparatorTag
              + String.format("%1$-" + metricValueLength + "s", metricValue) + SeparatorTag
              + String.format("%1$-" + metricDescriptionLength + "s", metricDesc);

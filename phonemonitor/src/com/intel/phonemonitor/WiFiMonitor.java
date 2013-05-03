@@ -229,26 +229,57 @@ public class WiFiMonitor extends Monitor {
 
     private void handleScanResultsAvailable (Context context) {
         WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        boolean connected = false;
-        final List<WifiConfiguration> WifiConfigs = wifiMgr.getConfiguredNetworks();
 
-        if (WifiConfigs == null)
+        // Check if we are already connected to an AP
+        if(wifiMgr.getConnectionInfo().getNetworkId() != -1){
             return;
-
-        for(WifiConfiguration config: WifiConfigs){
-            if(config.status == WifiConfiguration.Status.CURRENT){
-                connected = true;
-                break;
-            }
         }
 
-        if(!connected){
-            final List<ScanResult> wifiList = wifiMgr.getScanResults();
-            for (ScanResult scanR: wifiList){
-                for(WifiConfiguration config: WifiConfigs){
-                    if(config.status == WifiConfiguration.Status.DISABLED) continue;
-                    if(config.status == WifiConfiguration.Status.ENABLED && config.BSSID == scanR.BSSID){
-                        flush(strScanEvent, strWiFiAvailability, config.SSID + " - " + config.BSSID);
+        // Check if we are already conncted to an Access
+        // To do that, we check the configs against the scanned APs
+        final List<WifiConfiguration> WifiConfigs = wifiMgr.getConfiguredNetworks();
+
+        if(WifiConfigs != null){
+            for(WifiConfiguration config: WifiConfigs){
+
+                // Check config is NOT Null
+                if (config == null) continue;
+
+                if(config.status != WifiConfiguration.Status.ENABLED) {
+                   continue;
+                }
+
+                // Check whether we should connect to the AP
+                final List<ScanResult> wifiList = wifiMgr.getScanResults();
+
+                if(wifiList != null){
+                    for (ScanResult scanR: wifiList){
+
+                        // Check scanR is NOT Null
+                        if(scanR == null) continue;
+
+                        // if BSSID is specified, check BSSID
+                        if(config.BSSID != null){
+                            if(scanR.BSSID != null
+                                && !scanR.BSSID.isEmpty()
+                                && !config.BSSID.isEmpty()){
+                                if(scanR.BSSID.equals(config.BSSID)){
+                                    flush(strScanEvent, strWiFiAvailability, "WIFI_CONNECTION_REQUESTED_TO_BSSID: [" + config.SSID + "-" + config.BSSID + "]");
+                                }
+                            }
+                        }
+                        // Else we check SSID
+                        else{
+                            if(scanR.SSID != null
+                                && config.SSID != null
+                                && !scanR.SSID.isEmpty()
+                                && !config.SSID.isEmpty()){
+                                String scanSSID = "\""+scanR.SSID + "\"";
+                                if(scanSSID.equals(config.SSID)){
+                                    flush(strScanEvent, strWiFiAvailability, "WIFI_CONNECTION_REQUESTED_TO_SSID: [" + scanR.SSID + "-" + scanR.BSSID + "]");
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -13,6 +13,9 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
+import java.net.SocketException;
 
 public class NetworkingMonitor extends Monitor {
 
@@ -24,6 +27,7 @@ public class NetworkingMonitor extends Monitor {
     public static final String strTCPstats                  = "TCP";
     public static final String strUDPstats                  = "UDP";
     public static final String strWLANstats                 = "WLAN";
+    public static final String strPhonestats                = "PHONE";
     public static final String strNetstats                  = "NetStat";
     public static final String strConnectivityChange        = "CONNECTIVITY_CHANGED";
     public static final String strConnectWiFiOn             = "WIFI_CONNECTIVITY_ON";
@@ -75,34 +79,9 @@ public class NetworkingMonitor extends Monitor {
 
         NetworkInfo networkInfo = (NetworkInfo)intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 
-        // Case the connection type is WiFi
-        if(networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI){
-
-            boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-
-            if (noConnectivity) {
-
-                // NOT_CONNECTED to WiFi;
-                flush(strConnectivityChange, strConnectWiFiOff, networkInfo.toString());
-            } else if (networkInfo.isConnected()){
-
-                // CONNECTED to WiFi; Report stats
-                flush(strConnectivityChange, strConnectWiFiOn, networkInfo.toString());
-                collectMetrics();
-            }
-            // Case the connection type is Mobile
-        } else if(networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_MOBILE){
-            boolean noConnectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
-
-            if (noConnectivity) {
-
-                // NOT connected to Mobile network
-                flush(strConnectivityChange, strConnectMobileOff, networkInfo.toString());
-            } else if (networkInfo.isConnected()){
-
-                // Connected to Mobile network
-                flush(strConnectivityChange, strConnectMobileOff, networkInfo.toString());
-            }
+        if (networkInfo != null){
+           flush(strConnectivityChange, networkInfo.getTypeName(), networkInfo.toString());
+           collectMetrics();
         }
     }
 
@@ -173,8 +152,14 @@ public class NetworkingMonitor extends Monitor {
         // WLAN stats
         flush(strStatUpdate, strWLANstats, getWlanStats());
 
+        // Telephony interface stats
+        flush(strStatUpdate, strPhonestats, getRmnetStats());
+
         // Netstats
         flush(strStatUpdate, strNetstats, getNetStats());
+
+        // Network Interfaces
+        flush(strStatUpdate, strNetstats, "ifconfg:" + getNetworkInterfaces());
     }
 
     private String getTcpStats() {
@@ -261,6 +246,32 @@ public class NetworkingMonitor extends Monitor {
         return aStat;
     }
 
+    private String getRmnetStats() {
+
+        String aStat = "NONE";
+        BufferedReader bufferedReader = null;
+
+        try {
+
+        //Construct the BufferedReader object
+            bufferedReader = new BufferedReader(new FileReader("/proc/net/dev"));
+            aStat = grep("rmnet0:", bufferedReader);
+
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            //Close the BufferedReader
+            try {
+                if (bufferedReader != null) bufferedReader.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return aStat;
+    }
+
     private String getNetStats() {
 
         String aStat = "NONE";
@@ -316,5 +327,41 @@ public class NetworkingMonitor extends Monitor {
             aDhcpInfo = wifi.getDhcpInfo().toString();
         }
         return aDhcpInfo;
+    }
+
+    public String getNetworkInterfaces() {
+        String networkInterfaces = "None";
+        Enumeration<NetworkInterface> interfaces = null;
+        try {
+            interfaces = NetworkInterface.getNetworkInterfaces();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+
+        if (interfaces != null){
+            int i=0;
+            while(interfaces.hasMoreElements()){
+
+                NetworkInterface ifc=(NetworkInterface)interfaces.nextElement();
+
+                boolean is_up = false;
+                try{
+                    is_up = ifc.isUp();
+                } catch (SocketException e) {
+                    continue;
+                }
+
+                // Check interface is up
+                if(!is_up) continue;
+                i++;
+                if(i == 1){
+                    networkInterfaces = ifc.toString();
+                }
+                else{
+                    networkInterfaces += "," + ifc.toString();
+                }
+            }
+        }
+        return networkInterfaces;
     }
 }

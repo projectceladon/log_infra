@@ -173,6 +173,11 @@ public class MonitorMasterService extends Service {
                                              new ThermalMonitor(),
                                              true,
                                              "thermalmonitor.txt"));
+        fullMonitorList.add(new LocalMonitor("PhoneActions",
+                                             0,
+                                             new PhoneActionsMonitor(),
+                                             true,
+                                             "phoneactionsmonitor.txt"));
 /*        fullMonitorList.add(new LocalMonitor("Telephony",
                                              6 * 60,
                                              new TelephonyMonitor(),
