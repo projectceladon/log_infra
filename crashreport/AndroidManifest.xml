@@ -77,7 +77,8 @@
 			</intent-filter>
 		</service>
 
-		<activity android:name="StartServiceActivity">
+		<activity android:name="StartServiceActivity"
+		    android:launchMode="singleTop">
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.START_SERVICE"></action>
 				<category android:name="android.intent.category.DEFAULT"></category>

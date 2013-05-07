@@ -20,7 +20,6 @@
 package com.intel.crashreport;
 
 
-import java.net.ProtocolException;
 import java.util.ArrayList;
 
 import android.app.Activity;
@@ -203,7 +202,8 @@ public class StartServiceActivity extends Activity {
 
 	private void doUnbindService() {
 		if (app.isActivityBounded()) {
-			unbindService(mConnection);
+			if(mService != null && app.isServiceStarted())
+				unbindService(mConnection);
 			mService = null;
 			app.setActivityBounded(false);
 			app.setActivity(null);

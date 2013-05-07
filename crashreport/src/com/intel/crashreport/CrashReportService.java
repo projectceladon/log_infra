@@ -98,6 +98,11 @@ public class CrashReportService extends Service {
 		return START_NOT_STICKY;
 	}
 
+	public void onDestroy() {
+		app.setServiceStarted(false);
+		super.onDestroy();
+	}
+
 	@Override
 	public IBinder onBind(Intent arg0) {
 		Log.d("Service: onBind");
