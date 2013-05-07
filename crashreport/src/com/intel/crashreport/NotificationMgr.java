@@ -19,11 +19,15 @@
 
 package com.intel.crashreport;
 
+import com.intel.crashreport.GcmMessage.GCM_ACTION;
+import com.intel.crashreport.specific.EventDB;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.database.SQLException;
 
 public class NotificationMgr {
 
@@ -32,6 +36,7 @@ public class NotificationMgr {
 	private static final int NOTIF_UPLOAD_ID = 2;
 	private static final int NOTIF_CRITICAL_EVENT_ID = 3;
 	private static final int NOTIF_UPLOAD_WIFI_ONLY_ID = 4;
+	public static final int NOTIF_CRASHTOOL = 5;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
@@ -177,6 +182,34 @@ public class NotificationMgr {
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
 		clearNonCriticalNotification();
 		mNotificationManager.notify(NOTIF_CRITICAL_EVENT_ID, notification);
+	}
+
+	public void notifyGcmMessage(int nbMessages, GcmMessage message) {
+		CharSequence tickerText = "PhoneDoctor notification";
+		CharSequence contentTitle = message.getTitle();
+		CharSequence contentText = message.getText();
+		if(nbMessages > 1) {
+			tickerText = "PhoneDoctor notifications ("+nbMessages+")";
+			contentTitle = "PhoneDoctor notifications";
+			contentText = nbMessages+" messages.Some actions are required";
+		}
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.icon_phonedoctor;
+		long when = System.currentTimeMillis();
+		Notification notification = new Notification(icon, tickerText, when);
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		Intent notificationIntent = new Intent(context, GcmMessageDialog.class);
+		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+		notificationIntent.putExtra("rowId", message.getRowId());
+
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		mNotificationManager.notify(NOTIF_CRASHTOOL, notification);
+	}
+
+	public void clearGcmNotification() {
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NOTIF_CRASHTOOL);
 	}
 
 }

@@ -244,7 +244,8 @@ public class Event extends GeneralEvent{
 		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
 
-	public com.intel.crashtoolserver.bean.Event getEventForServer(com.intel.crashreport.specific.Build build) {
+	public com.intel.crashtoolserver.bean.Event getEventForServer(com.intel.crashreport.specific.Build build, String sToken) {
+
 		com.intel.crashtoolserver.bean.Event event;
 		long lUptime = convertUptime(this.uptime);
 		com.intel.crashreport.specific.Build mBuild;
@@ -259,7 +260,9 @@ public class Event extends GeneralEvent{
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
 		//GCM not fully implemented
-		String sTokenGCM = "";
+
+		String sTokenGCM = sToken;
+
 		String sSPID = getSPIDFromFile();
 		if (sSSN.equals("")){
 			aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented if property empty*/, sTokenGCM, sSPID);

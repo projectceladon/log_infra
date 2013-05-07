@@ -24,6 +24,10 @@ public class GeneralNotificationReceiver extends BroadcastReceiver {
 			iStartCrashReport.startCrashReport(context);
 		} else if (intent.getAction().equals(networkStateChangeIntent)) {
 			Log.d("NotificationReceiver: networkStateChangeIntent");
+			//first, we need to check GCM token
+			CrashReport app = (CrashReport)context.getApplicationContext();
+			if(app.isGcmEnabled())
+				app.checkTokenGCM();
 			iStartCrashReport.startCrashReport(context);
 		} else if (intent.getAction().equals(alarmNotificationIntent)) {
 			Log.d("NotificationReceiver: alarmNotificationIntent");

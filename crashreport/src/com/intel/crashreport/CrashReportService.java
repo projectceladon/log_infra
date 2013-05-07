@@ -101,6 +101,7 @@ public class CrashReportService extends Service {
 		return START_NOT_STICKY;
 	}
 
+	@Override
 	public void onDestroy() {
 		app.setServiceStarted(false);
 		super.onDestroy();
@@ -372,7 +373,7 @@ public class CrashReportService extends Service {
 				}
 				event = db.fillEventFromCursor(cursor);
 				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.UPLOAD_TIME));
-				com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild);
+				com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild, app.getTokenGCM());
 				if (con.sendEvent(sEvent)) {
 					db.updateEventToUploaded(event.getEventId());
 					db.updatePDStatus(event.getPdStatus(), event.getEventId());

@@ -19,7 +19,10 @@
 
 package com.intel.crashreport;
 
+import com.intel.crashreport.specific.EventGenerator;
+
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -29,6 +32,7 @@ import android.widget.Toast;
 public class GeneralCrashReportActivity extends PreferenceActivity {
 
     protected CrashReport app;
+    private static Boolean gcmEnabled = null;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,7 +49,26 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
             editMail.setText(app.getUserEmail());
         else editMail.setText(getString(R.string.settings_bugzilla_user_email_value_default));
         editMail.setOnPreferenceChangeListener(listener);
+
+        CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
+        checkGcm.setOnPreferenceChangeListener(gcmListener);
+        if(null == gcmEnabled)
+            gcmEnabled = checkGcm.isChecked();
     }
+
+    private OnPreferenceChangeListener gcmListener = new OnPreferenceChangeListener(){
+
+        public boolean onPreferenceChange(Preference preference,
+                Object newValue) {
+            if((Boolean)newValue){
+                Log.i("GeneralCrashReportActivity:GCM set to ON");
+                app.checkTokenGCM();
+            }
+            else
+                Log.i("GeneralCrashReportActivity:GCM set to OFF");
+            return true;
+        }
+    };
 
     private OnPreferenceChangeListener listener = new OnPreferenceChangeListener(){
 
@@ -66,6 +89,21 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
             return true;
         }
     };
+
+    public void onDestroy() {
+        CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
+        if(gcmEnabled != checkGcm.isChecked()) {
+            if(checkGcm.isChecked()){
+                GcmEvent.INSTANCE.enableGcm();
+                app.checkTokenGCM();
+            }
+            else {
+                GcmEvent.INSTANCE.disableGcm();
+            }
+        }
+        gcmEnabled = null;
+        super.onDestroy();
+    }
 
     public void onPause() {
         EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));

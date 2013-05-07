@@ -35,6 +35,12 @@
         android:text="@string/menu_bugzilla"
         android:textSize="24sp"/>
 
+    <Button
+        android:id="@+id/button_list_gcm_messages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_gcm_list" />
+
 
 
 </LinearLayout>

@@ -302,4 +302,31 @@ public class ApplicationPreferences {
 		privatePrefsEditor.putBoolean(settings_private_full_dropbox_api_available, false);
 	}
 
+	/**
+	 * Chekc is the GCM Messaging system is enabled
+	 * @return True if GCM Messaging is enabled
+	 */
+	public Boolean isGcmEnable() {
+		return appSharedPrefs.getBoolean(
+			mCtx.getString(R.string.settings_gcm_activation_key),
+			Boolean.valueOf(mCtx.getString(R.string.settings_gcm_activation_value_default)));
+	}
+
+	/**
+	 * Get the GCM token ID
+	 * @return GCM Token ID
+	 */
+	public String getGcmToken() {
+		return appPrivatePrefs.getString(mCtx.getString(R.string.settings_private_app_gcm_token_key), "");
+	}
+
+	/**
+	 * Store the GCM token in a shared preferences
+	 * @param token The GCM token
+	 */
+	public void setGcmToken(String token) {
+		privatePrefsEditor.putString(mCtx.getString(R.string.settings_private_app_gcm_token_key), token);
+		privatePrefsEditor.commit();
+	}
+
 }

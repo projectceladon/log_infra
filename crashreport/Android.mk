@@ -23,6 +23,14 @@ include $(CLEAR_VARS)
 LOCAL_PACKAGE_NAME := CrashReport
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
+LOCAL_STATIC_JAVA_LIBRARIES := libgcmforpd
 LOCAL_JAVA_LIBRARIES := com.google.gson crashparsing
 LOCAL_CERTIFICATE := platform
 include $(BUILD_PACKAGE)
+
+include $(CLEAR_VARS)
+
+LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := \
+	libgcmforpd:lib/gcm.jar \
+
+include $(BUILD_MULTI_PREBUILT)

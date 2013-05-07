@@ -35,6 +35,9 @@
     <string name="settings_private_bugzilla_test_mode_key">settings_private_bugzilla_test_mode</string>
     <string name="settings_private_bugzilla_test_mode_value">false</string>
 
+    <!-- GCM token id -->
+    <string name="settings_private_app_gcm_token_key">settings_private_app_gcm_token</string>
+
 
 <!-- UI values -->
     <string name="upload_state_item_index">upload_state_item_index</string>
@@ -55,6 +58,7 @@
     <string name="persistant_text">Configuration persistant</string>
     <string name="menu_aplogs">Upload my logs</string>
     <string name="menu_bugzilla">Report a bug</string>
+    <string name="menu_gcm_list">Check my GCM messages</string>
 
     <!-- Settings Activity -->
     <string name="settings_event_report_management_key">settings_event_report_management</string>
@@ -98,6 +102,12 @@
     <string name="settings_bugzilla_user_email_summary">Intel user email</string>
     <string name="settings_bugzilla_user_email_value_default">\@intel.com</string>
 
+    <string name="settings_communication_category_title">Communication</string>
+    <string name="settings_gcm_activation_key">settings_gcm_activation</string>
+    <string name="settings_gcm_activation_title">GCM Messaging</string>
+    <string name="settings_gcm_activation_summary">Activate the GCM Messaging system</string>
+    <string name="settings_gcm_activation_value_default">true</string>
+
     <!-- Bugzilla part-->
     <string name="title_activity_bugzilla_main">BugzillaMainActivity</string>
     <string name="bugzilla_title">Summary :</string>
@@ -127,4 +137,8 @@
     <string name="select_upload">Number of log to upload :</string>
     <string name="extra_data_upload">Extra data to report :</string>
     <string name="extra_data_thermal">include thermal report</string>
+
+    <!-- GCM part -->
+    <string name="gcm_list_title">Messages received:</string>
+    <string name="gcm_list_ok">Take action</string>
 </resources>

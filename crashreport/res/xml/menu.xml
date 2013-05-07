@@ -82,4 +82,15 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="@string/settings_communication_category_title">
+
+        <CheckBoxPreference
+            android:key="@string/settings_gcm_activation_key"
+            android:title="@string/settings_gcm_activation_title"
+            android:summary="@string/settings_gcm_activation_summary"
+            android:defaultValue="@string/settings_gcm_activation_value_default" />
+
+    </PreferenceCategory>
+
 </PreferenceScreen>

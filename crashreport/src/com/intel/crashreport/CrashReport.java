@@ -22,12 +22,16 @@ package com.intel.crashreport;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
+
 import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.EventGenerator;
 
 import com.intel.crashreport.StartServiceActivity;
+import com.google.android.gcm.GCMRegistrar;
+import com.intel.crashreport.bugzilla.BZFile;
+
 
 import android.app.Application;
 import android.content.SharedPreferences;
@@ -49,6 +53,7 @@ public class CrashReport extends Application {
 	public static StartServiceActivity boundedActivity = null;
 	private ArrayList<CrashReportRequest> requestList;
 
+	@Override
 	public void onCreate() {
 		super.onCreate();
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
@@ -89,6 +94,9 @@ public class CrashReport extends Application {
 				Log.w("CrashReport: update of critical crash db failed");
 			}
 		}
+		//first try to register GCM TOKEN
+		if(privatePrefs.isGcmEnable())
+			checkTokenGCM();
 	}
 
 	public boolean isCheckEventsServiceStarted(){
@@ -194,6 +202,7 @@ public class CrashReport extends Application {
 		return prefs.isUserBuild();
 	}
 
+
 	/**
 	 * @brief Add a request in the list of requests
 	 *
@@ -231,5 +240,44 @@ public class CrashReport extends Application {
 
 	public boolean isServiceRelaunched() {
 		return serviceRelaunched;
+	}
+
+	public void checkTokenGCM(){
+		GCMRegistrar.checkDevice(this);
+		final String regId = GCMRegistrar.getRegistrationId(this);
+		if (regId.equals("")) {
+			// Automatically registers application on startup.
+			Log.d("not registered, trying...");
+			GCMRegistrar.register(this, GCMIntentService.SENDER_ID);
+		} else {
+			// Device is already registered on GCM, check server.
+			if (GCMRegistrar.isRegisteredOnServer(this)) {
+				// Skips registration.
+				Log.d( "Already registered");
+				Log.d("GCM TOKEN = " + regId);
+				ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+				if(!regId.equals(privatePrefs.getGcmToken())) {
+						privatePrefs.setGcmToken(regId);
+						GcmEvent.INSTANCE.registerGcm(regId);
+				}
+			}else{
+				//there is a problem, need to unregister/register
+				GCMRegistrar.unregister(this);
+				GCMRegistrar.register(this, GCMIntentService.SENDER_ID);
+				Log.d("not registered on server...");
+			}
+		}
+	}
+
+	public String getTokenGCM(){
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		if(privatePrefs.isGcmEnable())
+			return privatePrefs.getGcmToken();
+		else return "";
+	}
+
+	public boolean isGcmEnabled() {
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
+		return privatePrefs.isGcmEnable();
 	}
 }

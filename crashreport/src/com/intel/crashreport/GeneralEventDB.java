@@ -19,7 +19,10 @@
 
 package com.intel.crashreport;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -45,7 +48,8 @@ public class GeneralEventDB {
 	private static final String DATABASE_BZ_TABLE = "bz_events";
 	protected static final String DATABASE_BLACK_EVENTS_TABLE = "black_events";
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
-	protected static final int DATABASE_VERSION = 10;
+	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
+	protected static final int DATABASE_VERSION = 11;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -84,6 +88,9 @@ public class GeneralEventDB {
 	public static final String KEY_LAST_FIBONACCI = "last_fibo";
 	public static final String KEY_NEXT_FIBONACCI = "next_fibo";
 	public static final String KEY_RAINID = "raindId";
+	public static final String KEY_GCM_DATA = "data";
+	public static final String KEY_GCM_TITLE = "title";
+	public static final String KEY_GCM_TEXT = "text";
 	public static final String OTHER_EVENT_NAMES = "'STATS','APLOG','BZ','INFO','ERROR'";
 
 	private static final String DATABASE_CREATE =
@@ -175,6 +182,16 @@ public class GeneralEventDB {
 					KEY_CREATION_DATE + " integer, "+
 					KEY_SCREENSHOT_PATH + " text); ";
 
+	private static final String DATABASE_GCM_MESSAGES_CREATE =
+			"create table " + DATABASE_GCM_MESSAGES_TABLE + "(" +
+					KEY_ROWID + " integer primary key autoincrement, " +
+					KEY_GCM_TITLE + " text not null," +
+					KEY_GCM_TEXT + " text," +
+					KEY_TYPE + " text not null," +
+					KEY_GCM_DATA + " text, " +
+					KEY_DATE + " integer not null, " +
+					KEY_NOTIFIED + " integer);";
+
 	private DatabaseHelper mDbHelper;
 	protected SQLiteDatabase mDb;
 
@@ -194,6 +211,7 @@ public class GeneralEventDB {
 			db.execSQL(DATABASE_BZ_CREATE);
 			db.execSQL(DATABASE_BLACK_EVENTS_CREATE);
 			db.execSQL(DATABASE_RAIN_CREATE);
+			db.execSQL(DATABASE_GCM_MESSAGES_CREATE);
 		}
 
 		@Override
@@ -207,6 +225,7 @@ public class GeneralEventDB {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_GCM_MESSAGES_TABLE);
 			onCreate(db);
 		}
 
@@ -221,6 +240,7 @@ public class GeneralEventDB {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_GCM_MESSAGES_TABLE);
 			onCreate(db);
 		}
 	}
@@ -801,5 +821,190 @@ public class GeneralEventDB {
 	public boolean isOriginBasenameExist(String originBasename) {
 		String query = KEY_ORIGIN + " LIKE '" + originBasename + "%'";
 		return isEventExistFromWhereQuery(query);
+	}
+
+	/**
+	 * Add a new GCM Message in the database
+	 * @param title Title of the message
+	 * @param text The text of the message
+	 * @param type The type of the message
+	 * @return the result of the database insertion request
+	 */
+	public long addGcmMessage(String title, String text, String type) {
+		return addGcmMessage(title, text, type, "");
+	}
+
+	/**
+	 * Add a new GCM Message in the database
+	 * @param title Title of the message
+	 * @param text The text of the message
+	 * @param type The type of the message
+	 * @param data The action to do in case of action message.
+	 * @return the result of the database insertion request
+	 */
+	public long addGcmMessage(String title, String text, String type, String data) {
+		ContentValues initialValues = new ContentValues();
+
+		initialValues.put(KEY_GCM_TITLE, title);
+		initialValues.put(KEY_GCM_TEXT, text);
+		initialValues.put(KEY_TYPE, type);
+		initialValues.put(KEY_GCM_DATA, data);
+		initialValues.put(KEY_NOTIFIED, 0);
+
+		Date date= new Date();
+		SimpleDateFormat EVENT_DF_GEN = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
+		String displayDate = EVENT_DF_GEN.format(date);
+		try {
+			EVENT_DF_GEN.setTimeZone(TimeZone.getTimeZone("GMT"));
+			date = EVENT_DF_GEN.parse(displayDate);
+		} catch (ParseException e) {
+			date = new Date();
+		}
+		initialValues.put(KEY_DATE,convertDateForDb(date));
+
+		return mDb.insert(DATABASE_GCM_MESSAGES_TABLE, null, initialValues);
+	}
+
+	/**
+	 * Get the list of all GCM Messages not cancelled by the user
+	 * @return GCM Messages list
+	 */
+	public Cursor fetchAllGcmMessages() {
+		return mDb.query(DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
+				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, null, null, null, null, KEY_ROWID+" DESC");
+	}
+
+	/**
+	 * Get the GCM messages that the notification hasn't been cancelled.
+	 * @return GCM messages not cancelled
+	 * @throws SQLException
+	 */
+	public Cursor fetchNewGcmMessages() throws SQLException {
+		Cursor mCursor;
+		String whereQuery = KEY_NOTIFIED+"=0";
+
+		mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
+				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, whereQuery, null,
+				null, null, KEY_ROWID+" DESC", null);
+		if (mCursor != null) {
+			mCursor.moveToFirst();
+		}
+		return mCursor;
+	}
+
+	/**
+	 * Get a GcmMessage object from a GCM_MESSAGES_TABLE cursor
+	 * @param cursor a GCM_MESSAGES_TABLE cursor
+	 * @return the GcmMessage object associated with the cursor
+	 */
+	public GcmMessage fillGCMFromCursor(Cursor cursor) {
+
+		Date date = convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
+		GcmMessage message = new GcmMessage(cursor.getInt(cursor.getColumnIndex(KEY_ROWID)),
+				cursor.getString(cursor.getColumnIndex(KEY_GCM_TITLE)),
+				cursor.getString(cursor.getColumnIndex(KEY_GCM_TEXT)),
+				cursor.getString(cursor.getColumnIndex(KEY_TYPE)),
+				cursor.getString(cursor.getColumnIndex(KEY_GCM_DATA)),
+				cursor.getInt(cursor.getColumnIndex(KEY_NOTIFIED))==1,
+				date);
+
+		return message;
+	}
+
+	/**
+	 * Delete a gcm message in the GCM_MESSAGES_TABLE
+	 * @param id The row id of the message
+	 * @return True if the delete works
+	 */
+	public boolean deleteGcmMessage(int id) {
+
+	return mDb.delete(DATABASE_GCM_MESSAGES_TABLE, KEY_ROWID + "='" + id + "'", null) > 0;
+	}
+
+	/**
+	 * Update the status of a GCM Message
+	 * @param id rowId of the message
+	 * @return True if the update succeed
+	 */
+	public boolean updateGcmMessageToCancelled(int id) {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_NOTIFIED, 1);
+
+		return mDb.update(DATABASE_GCM_MESSAGES_TABLE, args, KEY_ROWID + "=" + id + "", null) > 0;
+	}
+
+	/**
+	 * Get the number of GCM Messages which have whereQuery specification
+	 * @param whereQuery GCM Messages sepecification
+	 * @return number of GCM Messages
+	 */
+	private int getNumberFromWhereQueryForGcm(String whereQuery) {
+		Cursor mCursor;
+		int count;
+		try {
+			mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID},
+					whereQuery, null,
+					null, null, null, null);
+			if (mCursor != null) {
+				count = mCursor.getCount();
+				mCursor.close();
+				return count;
+			}
+		} catch (SQLException e) {
+			return 0;
+		}
+		return 0;
+	}
+
+	/**
+	 * Get the number of new GCM Messages
+	 * @return number of GCM Messages
+	 */
+	public int getNewGcmMessagesNumber() {
+		return getNumberFromWhereQueryForGcm(KEY_NOTIFIED + "='0'");
+	}
+
+	/**
+	 * Get the id of the last GCM message received
+	 * @return the id of the last GCM message
+	 */
+	public int getLastGCMRowId() {
+		Cursor mCursor;
+		try {
+			mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID},
+					KEY_NOTIFIED + "='0'", null,
+					null, null, KEY_ROWID+" DESC", "1");
+			if (mCursor != null) {
+				mCursor.moveToFirst();
+				int rowId = mCursor.getInt(0);
+				mCursor.close();
+				return rowId;
+			}
+		} catch (SQLException e) {
+			return -1;
+		}
+		return -1;
+	}
+
+	/**
+	 * Get a GcmMessage with its rowId
+	 * @param rowId the row id of the gcm message to get
+	 * @return the gcm message
+	 */
+	public GcmMessage getGcmMessageFromId(int rowId) {
+		Cursor mCursor;
+		String whereQuery = KEY_ROWID+"="+rowId;
+		GcmMessage message = null;
+
+		mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
+				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, whereQuery, null,
+				null, null, null, null);
+		if (mCursor != null) {
+			mCursor.moveToFirst();
+			message = fillGCMFromCursor(mCursor);
+			mCursor.close();
+		}
+		return message;
 	}
 }

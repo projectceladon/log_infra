@@ -54,6 +54,15 @@ public class GeneralCrashReportHome extends Activity {
 				startActivity(intent);
 			}
 		});
+
+		Button button_list_gcm = (Button) findViewById(R.id.button_list_gcm_messages);
+		button_list_gcm.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				Intent intent = new Intent(getApplicationContext(), ListGcmMessagesActivity.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+			}
+		});
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 	}
 

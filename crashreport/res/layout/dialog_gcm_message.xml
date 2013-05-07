@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/dialog_gcm_content_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/dialog_gcm_button_cancel"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_weight="1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/alert_dialog_cancel" />
+
+        <Button
+            android:id="@+id/dialog_gcm_button_ok"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_weight="1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gcm_list_ok" />
+
+    </LinearLayout>
+    <Button
+            android:id="@+id/dialog_gcm_button_validate"
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/alert_dialog_ok"
+            android:layout_gravity="center" />
+
+</LinearLayout>
