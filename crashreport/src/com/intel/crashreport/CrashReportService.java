@@ -61,22 +61,23 @@ public class CrashReportService extends Service {
 	private final IBinder mBinder = new LocalBinder();
 	private Logger logger = new Logger();
 	private static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
+	private static final String MODULE = "CrashReportService";
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		app = (CrashReport)getApplicationContext();
-		Log.d("Service: created");
+		Log.d(MODULE+": created");
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d("Service: onStartCommand");
+		Log.d(MODULE+": onStartCommand");
 		if (app.isServiceStarted()) {
-			Log.d("Service: Already started: stop");
+			Log.d(MODULE+": Already started: stop");
 			stopSelf();
 		} else {
-			Log.d("Service: Not already started");
+			Log.d(MODULE+": Not already started");
 			handlerThread = new HandlerThread("CrashReportService_Thread");
 			handlerThread.start();
 			while(!handlerThread.isAlive()) {};
@@ -84,13 +85,13 @@ public class CrashReportService extends Service {
 			if (handlerThreadLooper != null) {
 				serviceHandler = new ServiceHandler(handlerThreadLooper);
 				app.setServiceStarted(true);
-				this.serviceState = ServiceState.Init;
+				this.serviceState = ServiceState.ProcessEvent;
 				logger.clearLog();
 				Build myBuild = new Build();
 				myBuild.fillBuildWithSystem();
 				app.setMyBuild(myBuild);
 				if (!intent.getBooleanExtra("fromActivity", false))
-					this.serviceHandler.sendEmptyMessageDelayed(ServiceMsg.startProcessEvents, 100);
+					this.serviceHandler.sendEmptyMessageDelayed(ServiceMsg.successProcessEvents, 100);
 			} else {
 				stopService();
 			}
@@ -105,18 +106,18 @@ public class CrashReportService extends Service {
 
 	@Override
 	public IBinder onBind(Intent arg0) {
-		Log.d("Service: onBind");
+		Log.d(MODULE+": onBind");
 		return mBinder;
 	}
 
 	@Override
 	public boolean onUnbind(Intent intent) {
-		Log.d("Service: onUnbind");
+		Log.d(MODULE+": onUnbind");
 		return false;
 	}
 
 	private void stopService() {
-		Log.d("Stop Service");
+		Log.d(MODULE+":Stop Service");
 		app.setServiceStarted(false);
 		handlerThread.quit();
 		stopSelf();
@@ -138,13 +139,13 @@ public class CrashReportService extends Service {
 		public void run() {
 
 			try {
-				app.checkEvents("Service");
+				app.checkEvents(MODULE);
 				serviceHandler.sendEmptyMessage(ServiceMsg.successProcessEvents);
 			} catch (FileNotFoundException e) {
-				Log.w("Service: history_event file not found");
+				Log.w(MODULE+": history_event file not found");
 				serviceHandler.sendEmptyMessage(ServiceMsg.failProcessEvents);
 			} catch (SQLException e) {
-				Log.w("Service: db Exception");
+				Log.w(MODULE+": db Exception");
 				serviceHandler.sendEmptyMessage(ServiceMsg.failProcessEvents);
 			}
 		}
@@ -156,7 +157,7 @@ public class CrashReportService extends Service {
 			prefs = new ApplicationPreferences(getApplicationContext());
 			String uploadState = prefs.getUploadState();
 			if ( SystemProperties.get("persist.crashreport.disabled", "0").equals("1")) {
-				Log.d("Service: Property persist.crashreport.disabled set to 1");
+				Log.d(MODULE+": Property persist.crashreport.disabled set to 1");
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 			}
 			else{
@@ -191,7 +192,7 @@ public class CrashReportService extends Service {
 					String crashTypes[] = null;
 					if (prefs.isCrashLogsUploadEnable())
 						crashTypes = prefs.getCrashLogsUploadTypes();
-					else Log.d("Service:isThereEventToUpload : upload logs disabled");
+					else Log.d(MODULE+":isThereEventToUpload : upload logs disabled");
 					if (db.isThereEventToUpload(crashTypes)) {
 						Message msg = Message.obtain();
 						msg.what = ServiceMsg.eventToUpload;
@@ -203,7 +204,7 @@ public class CrashReportService extends Service {
 				}
 				db.close();
 			} catch (SQLException e) {
-				Log.w("Service:isThereEventToUpload : Fail to open DB");
+				Log.w(MODULE+":isThereEventToUpload : Fail to open DB");
 				serviceHandler.sendEmptyMessage(ServiceMsg.noEventToUpload);
 			}
 
@@ -258,14 +259,14 @@ public class CrashReportService extends Service {
 			if (app.isActivityBounded()) {
 				if( SystemProperties.get("persist.crashreport.disabled", "0").equals("1") ) {
 					sendMsgToActivity("Warning : Background Upload is disabled due to property persist.crashreport.disabled set to 1");
-					Log.d("Service: Property persist.crashreport.disabled set to 1");
+					Log.d(MODULE+": Property persist.crashreport.disabled set to 1");
 					serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 				} else {
 					Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
 					getApplicationContext().sendBroadcast(askForUploadIntent);
 				}
 			} else {
-				Log.w("R:askForUpload: Activity not bounded to service");
+				Log.w(MODULE+":askForUpload: Activity not bounded to service");
 			}
 		}
 	};
@@ -294,13 +295,13 @@ public class CrashReportService extends Service {
 			int uptimeNumber = db.getNewUptimeNumber();
 			nMgr.notifyEventToUpload(crashNumber, uptimeNumber);
 		} catch (SQLException e) {
-			Log.w("Service:notifyEventToUpload : Fail to access DB", e);
+			Log.w(MODULE+":notifyEventToUpload : Fail to access DB", e);
 		}
 		db.close();
 	}
 
 	private void registerNetworkStateReceiver() {
-		Log.d("CrashReportService: registerNetworkStateReceiver");
+		Log.d(MODULE+": registerNetworkStateReceiver");
 		PackageManager pm = app.getPackageManager();
 		pm.setComponentEnabledSetting(new ComponentName(app, NetworkStateReceiver.class), PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
 	}
@@ -379,10 +380,10 @@ public class CrashReportService extends Service {
 				if (con.sendEvent(sEvent)) {
 					db.updateEventToUploaded(event.getEventId());
 					db.updatePDStatus(event.getPdStatus(), event.getEventId());
-					Log.i("Service:uploadEvent : Success upload of " + event);
+					Log.i(MODULE+":uploadEvent : Success upload of " + event);
 					cursor.moveToNext();
 				} else {
-					Log.w("Service:uploadEvent : Fail upload of " + event);
+					Log.w(MODULE+":uploadEvent : Fail upload of " + event);
 					cursor.close();
 					throw new ProtocolException();
 				}
@@ -448,7 +449,7 @@ public class CrashReportService extends Service {
 								}
 							} catch (SQLException e) {
 								/* In case of Db access error, skip and go to events logs uploading process*/
-								Log.w("Service:uploadEvent : Can't check if there is event to upload : Fail to access DB", e);
+								Log.w(MODULE+":uploadEvent : Can't check if there is event to upload : Fail to access DB", e);
 								toContinue = false;
 							}
 						}while(toContinue);
@@ -472,7 +473,7 @@ public class CrashReportService extends Service {
 											DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 											dayDate = DAY_DF.format(event.getDate());
 											fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-											Log.i("Service:uploadEvent : Upload crashlog of "+event);
+											Log.i(MODULE+":uploadEvent : Upload crashlog of "+event);
 											if (event.getEventName().equals("APLOG")) {
 												showProgressBar();
 												updateProgressBar(0);
@@ -480,7 +481,7 @@ public class CrashReportService extends Service {
 
 											if (con.sendLogsFile(fileInfo, runThread)) {
 												db.updateEventLogToUploaded(event.getEventId());
-												Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
+												Log.d(MODULE+":uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 												crashLogs.delete();
 												if (event.getEventName().equals("APLOG") || event.getEventName().equals("BZ") ) {
 													if (event.getEventName().equals("APLOG")) {
@@ -503,11 +504,11 @@ public class CrashReportService extends Service {
 													updateProgressBar(0);
 													hideProgressBar();
 												}
-												Log.w("Service:uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
+												Log.w(MODULE+":uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
 												throw new ProtocolException();
 											}
 										} else
-											Log.d("Service:uploadEvent : No crashlog to upload for "+event);
+											Log.d(MODULE+":uploadEvent : No crashlog to upload for "+event);
 										cursor.moveToNext();
 										if(db.isThereEventToUpload()) {
 											cursor.close();
@@ -526,28 +527,28 @@ public class CrashReportService extends Service {
 								}
 								if (cursor != null)
 									cursor.close();
-								Log.i("Service:uploadEvent : Upload files finished");
+								Log.i(MODULE+":uploadEvent : Upload files finished");
 							}
 						}
-						else Log.i("Service:uploadEvent : logs upload disabled");
+						else Log.i(MODULE+":uploadEvent : logs upload disabled");
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
 					} catch (InterruptedException e) {
-						Log.i("Service:uploadEvent : upload interrupted");
+						Log.i(MODULE+":uploadEvent : upload interrupted");
 						serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
 					} catch (SQLException e) {
-						Log.w("Service:uploadEvent : Fail to access DB", e);
+						Log.w(MODULE+":uploadEvent : Fail to access DB", e);
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
 					} catch (ProtocolException e) {
-						Log.w("Service:uploadEvent:ProtocolException", e);
+						Log.w(MODULE+":uploadEvent:ProtocolException", e);
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 					} catch (UnknownHostException e) {
-						Log.w("Service:uploadEvent:UnknownHostException", e);
+						Log.w(MODULE+":uploadEvent:UnknownHostException", e);
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 					} catch (InterruptedIOException e) {
-						Log.w("Service:uploadEvent:InterruptedIOException", e);
+						Log.w(MODULE+":uploadEvent:InterruptedIOException", e);
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 					} catch (IOException e) {
-						Log.w("Service:uploadEvent:IOException", e);
+						Log.w(MODULE+":uploadEvent:IOException", e);
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 					}
 				}
@@ -568,9 +569,9 @@ public class CrashReportService extends Service {
 				if (con != null)
 					con.closeServerConnection();
 			} catch (IOException e) {
-				Log.w("Service: close connection exception", e);
+				Log.w(MODULE+": close connection exception", e);
 			} catch (NullPointerException e) {
-				Log.w("Service: close connection exception", e);
+				Log.w(MODULE+": close connection exception", e);
 			}
 			if (db != null)
 				db.close();

@@ -129,7 +129,7 @@ public enum EventGenerator {
 				db.addEvent(event);
 				db.close();
 				if (toNotify) {
-					Intent intent = new Intent("com.intel.crashreport.intent.CRASH_NOTIFY");
+					Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
 					mContext.sendBroadcast(intent);
 				}
 			} catch (Exception e) {

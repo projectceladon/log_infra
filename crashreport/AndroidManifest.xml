@@ -56,6 +56,12 @@
 			<intent-filter>
 				<action android:name="android.intent.action.DROPBOX_ENTRY_ADDED" />
 			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.RELAUNCH_SERVICE" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.START_CRASHREPORT" />
+			</intent-filter>
 		</receiver>
 
 		<receiver
@@ -84,6 +90,12 @@
 				<category android:name="android.intent.category.DEFAULT"></category>
 			</intent-filter>
 		</activity>
+
+		<service android:name=".CheckEventsService">
+			<intent-filter>
+				<action android:name="com.intel.crashreport.CheckEventsService"></action>
+			</intent-filter>
+		</service>
 
 		<activity android:name="NotifyEventActivity"/>
 

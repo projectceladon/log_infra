@@ -38,8 +38,11 @@ public class NotificationReceiver extends BroadcastReceiver {
 	private static final String alarmNotificationIntent = "com.intel.crashreport.intent.ALARM_NOTIFY";
 	private static final String crashLogsCopyFinishedIntent = "com.intel.crashreport.intent.CRASH_LOGS_COPY_FINISHED";
 	private static final String eventIdExtra = "com.intel.crashreport.extra.EVENT_ID";
+	private static final String relaunchCheckEventsService = "com.intel.crashreport.intent.RELAUNCH_SERVICE";
+	private static final String startCrashReportService = "com.intel.crashreport.intent.START_CRASHREPORT";
 
 	private static final Intent crashReportStartServiceIntent = new Intent("com.intel.crashreport.CrashReportService");
+	private static final Intent checkEventsServiceIntent = new Intent("com.intel.crashreport.CheckEventsService");
 	private static final Intent phoneInspectorStartServiceIntent = new Intent("com.intel.crashreport.PhoneInspectorService");
 
 	//PhoneInspectorService intent type
@@ -50,19 +53,35 @@ public class NotificationReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		CrashReport app = (CrashReport)context.getApplicationContext();
 		if (intent.getAction().equals(crashNotificationIntent)) {
 			Log.d("NotificationReceiver: crashNotificationIntent");
-			startCrashReport(context);
+			app.addRequest(new CrashReportRequest());
+			if(!app.isCheckEventsServiceStarted())
+				context.startService(checkEventsServiceIntent);
+
 		} else if (intent.getAction().equals(bootCompletedIntent)) {
 			Log.d("NotificationReceiver: bootCompletedIntent");
-			startCrashReport(context);
+			app.addRequest(new CrashReportRequest());
+			if(!app.isCheckEventsServiceStarted())
+				context.startService(checkEventsServiceIntent);
 
 			//Add type to intent and send it
 			phoneInspectorStartServiceIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
 			context.startService(phoneInspectorStartServiceIntent);
 		} else if (intent.getAction().equals(networkStateChangeIntent)) {
 			Log.d("NotificationReceiver: networkStateChangeIntent");
-			startCrashReport(context);
+			if(!app.isServiceStarted())
+				context.startService(crashReportStartServiceIntent);
+		} else if (intent.getAction().equals(startCrashReportService)) {
+			Log.d("NotificationReceiver: startCrashReportService");
+			if(!app.isServiceStarted())
+				context.startService(crashReportStartServiceIntent);
+		} else if (intent.getAction().equals(relaunchCheckEventsService)) {
+			Log.d("NotificationReceiver: relaunchCheckEventsService");
+			app.setServiceRelaunched(false);
+			if(!app.isCheckEventsServiceStarted())
+				context.startService(checkEventsServiceIntent);
 		} else if (intent.getAction().equals(crashLogsCopyFinishedIntent)){
 			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
 			if (intent.hasExtra(eventIdExtra)) {
@@ -84,7 +103,8 @@ public class NotificationReceiver extends BroadcastReceiver {
 					}
 					db.close();
 					if(isPresent) {
-						startCrashReport(context);
+						if(!app.isServiceStarted())
+							context.startService(crashReportStartServiceIntent);
 					}
 				}
 			}
@@ -94,7 +114,8 @@ public class NotificationReceiver extends BroadcastReceiver {
 			String uploadState = prefs.getUploadState();
 			if ((uploadState != null) && uploadState.contentEquals("uploadReported"))
 				prefs.setUploadStateToAsk();
-			startCrashReport(context);
+			if(!app.isServiceStarted())
+				context.startService(crashReportStartServiceIntent);
 
 		//Intent indicating a new entry has been added to the dropbox
 		} else if (intent.getAction().equals(DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED)) {
@@ -107,50 +128,6 @@ public class NotificationReceiver extends BroadcastReceiver {
 
 			context.startService(phoneInspectorStartServiceIntent);
 		}
-	}
-
-	public void startCrashReport(Context context) {
-		CrashReport app = (CrashReport)context.getApplicationContext();
-		if (!app.isServiceStarted())
-			context.startService(crashReportStartServiceIntent);
-		else {
-			CheckEventsTask checkTask = new CheckEventsTask(app);
-			checkTask.result = goAsync();
-			checkTask.execute();
-		}
-	}
-
-	private class CheckEventsTask extends AsyncTask<Void, Void, Void> {
-
-		private CrashReport app;
-		protected PendingResult result;
-
-		public CheckEventsTask(CrashReport app){
-			this.app = app;
-		}
-
-		protected Void doInBackground(Void... params) {
-			try {
-				app.checkEvents("NotificationReceiver");
-			} catch (FileNotFoundException e) {
-				Log.w("NotificationReceiver: history_event file not found");
-			} catch (SQLException e) {
-				Log.w("NotificationReceiver: db Exception");
-			}
-			if (result != null){
-				result.finish();
-			}
-			return null;
-		}
-
-		@Override
-		protected void onProgressUpdate(Void... params) {
-		}
-
-		protected void onPostExecute(Void... params) {
-
-		}
-
 	}
 
 }

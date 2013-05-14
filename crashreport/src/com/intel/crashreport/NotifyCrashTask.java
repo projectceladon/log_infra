@@ -53,7 +53,7 @@ public class NotifyCrashTask extends TimerTask{
 		}
 
 		if (isPresent) {
-			Intent intent = new Intent("com.intel.crashreport.intent.CRASH_NOTIFY");
+			Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
 			context.sendBroadcast(intent);
 		}
 

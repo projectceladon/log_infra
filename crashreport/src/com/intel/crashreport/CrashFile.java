@@ -69,8 +69,18 @@ public class CrashFile {
 		fillCrashFile(crashFile);
 		if(toParse) {
 			//if data are not present, we try to generate it
+			if(type.equals("")) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				fillCrashFile(crashFile);
+			}
 			if (bMissingData0 && bMissingData1 && bMissingData2)
 			{
+
 				Log.i(type + ": Missing Data, try to regenerate crashfile in " + path);
 				if (!type.equals("")){
 					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei,dataReady);

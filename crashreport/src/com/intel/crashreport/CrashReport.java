@@ -20,6 +20,7 @@
 package com.intel.crashreport;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Timer;
 
 import com.intel.crashreport.bugzilla.BZFile;
@@ -38,18 +39,22 @@ import android.preference.PreferenceManager;
 public class CrashReport extends Application {
 
 	private Boolean serviceStarted = false;
+	private Boolean checkEventsServiceStarted = false;
 	private Boolean tryingToConnect = false;
 	private Boolean activityBounded = false;
 	private Boolean wifiOnly = false;
+	private Boolean serviceRelaunched = false;
 	private Build myBuild;
 	private BugStorage bugzillaStorage;
 	public static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
 	public static Activity boundedActivity = null;
+	private ArrayList<CrashReportRequest> requestList;
 
 	public void onCreate() {
 		super.onCreate();
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
 		bugzillaStorage = new BugStorage(this);
+		requestList = new ArrayList<CrashReportRequest>();
 		String version = this.getString(R.string.app_version);
 		EventGenerator.INSTANCE.setContext(getApplicationContext());
 		if (!privatePrefs.getVersion().contentEquals(version)) {
@@ -85,9 +90,18 @@ public class CrashReport extends Application {
 		}
 	}
 
+	public boolean isCheckEventsServiceStarted(){
+		return checkEventsServiceStarted;
+	}
+
+	public void setCheckEventsServiceStarted(Boolean s){
+		checkEventsServiceStarted = s;
+	}
+
 	public boolean isServiceStarted(){
 		return serviceStarted;
 	}
+
 	public void setServiceStarted(Boolean s){
 		serviceStarted = s;
 		if( (false == serviceStarted) && (null != boundedActivity) ) {
@@ -282,5 +296,44 @@ public class CrashReport extends Application {
 	public boolean isUserBuild() {
 		ApplicationPreferences prefs = new ApplicationPreferences(this);
 		return prefs.isUserBuild();
+	}
+
+	/**
+	 * @brief Add a request in the list of requests
+	 *
+	 * Add a request in the list of requests
+	 *
+	 * @param request: the request to add
+	 */
+	public synchronized void addRequest(CrashReportRequest request) {
+		requestList.add(request);
+	}
+
+	/**
+	 * @brief Get the number of pending requests
+	 *
+	 * Get the number of pending requests
+	 *
+	 * @return number of pending requests
+	 */
+	public synchronized int getRequestListCount() {
+		return requestList.size();
+	}
+
+	/**
+	 * @brief Clear the list of requests
+	 *
+	 * Clear the list of requests
+	 */
+	public synchronized void emptyList() {
+		requestList.clear();
+	}
+
+	public void setServiceRelaunched(Boolean relaunched) {
+		serviceRelaunched = relaunched;
+	}
+
+	public boolean isServiceRelaunched() {
+		return serviceRelaunched;
 	}
 }

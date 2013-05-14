@@ -398,7 +398,7 @@ public class StartServiceActivity extends Activity {
 				app.setActivityBounded(true);
 				if (needToStartService) {
 					needToStartService = false;
-					mService.sendMessage(ServiceMsg.startProcessEvents);
+					mService.sendMessage(ServiceMsg.successProcessEvents);
 				}
 				if (mService.isServiceUploading()) {
 					cancelButton.setEnabled(true);
