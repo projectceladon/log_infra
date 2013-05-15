@@ -1,0 +1,22 @@
+{
+    "description":"Dump bluetooth traffic to file",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.bt.dump",
+                "value":"ON"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.bt.dump",
+                "value":"OFF"
+            }
+        }
+    ]
+}
