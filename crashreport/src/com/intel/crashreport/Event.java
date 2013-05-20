@@ -145,6 +145,9 @@ public class Event {
 			if (type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")) {
 				if(!isUserBuild)
 					dataReady = false;
+			}else if (crashFile.getDataReady() == 0){
+				if(!isUserBuild)
+					dataReady = false;
 			}
 			data0 = crashFile.getData0();
 			data1 = crashFile.getData1();

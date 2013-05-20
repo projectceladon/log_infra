@@ -1,6 +1,10 @@
 package com.intel.crashreport.bugzilla.ui;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 import com.intel.crashreport.Log;
 import com.intel.crashreport.R;
@@ -21,10 +25,14 @@ public class BugzillaViewAdapter extends BaseAdapter{
     private static String TAG = "BugzillaViewAdapter";
     private ArrayList<BZ> listBz;
 
+    private final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
+
+
     static class ViewHolder {
         TextView summary;
         TextView description;
         TextView state;
+        TextView time;
     }
 
     public BugzillaViewAdapter(Context context) {
@@ -62,6 +70,7 @@ public class BugzillaViewAdapter extends BaseAdapter{
             holder.summary = (TextView)convertView.findViewById(R.id.bugzilla_view_summary);
             holder.description = (TextView)convertView.findViewById(R.id.bugzilla_view_description);
             holder.state = (TextView)convertView.findViewById(R.id.bugzilla_view_state);
+            holder.time = (TextView)convertView.findViewById(R.id.bugzilla_view_time);
             convertView.setTag(holder);
         }
         else {
@@ -79,7 +88,7 @@ public class BugzillaViewAdapter extends BaseAdapter{
                 text += description + "\n";
                 text += "Component : "+ bz.getComponent() + "\n";
                 text += "Severity : " + bz.getSeverity() + "\n";
-                text += "Bug type : " + bz.getType() + "\n";
+                text += "Bug type : " + bz.getType();
                 holder.description.setText(text);
                 //holder.state.setTextColor(0xFF0000);
                 switch(bz.getState()) {
@@ -100,6 +109,10 @@ public class BugzillaViewAdapter extends BaseAdapter{
                         holder.state.setTextColor(Color.RED);
                         break;
                 }
+
+                EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
+                text = "BZ created on : "+EVENT_DF.format(bz.getCreationDate());
+                holder.time.setText(text);
             }
         }
         Log.w(TAG+":getView "+position);

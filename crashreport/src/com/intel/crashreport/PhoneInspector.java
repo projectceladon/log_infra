@@ -18,6 +18,9 @@
  */
 package com.intel.crashreport;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import android.content.Context;
 import android.os.DropBoxManager;
 import android.os.SystemProperties;
@@ -75,15 +78,65 @@ public class PhoneInspector {
      * logs could be stored in /logs partition rather than in /data partition
      */
     public void manageFullDropBox() {
+        ApplicationPreferences mAppPrefs = new ApplicationPreferences(mCtx);
+        if (!mAppPrefs.isFullDropboxMethodAvailable()) {
+            Log.w("DropBoxManager.isFull() method not available");
+            return;
+        }
 
-        if (mDropBoxManager.isFull()) {
+        Method dbmIsFullM = getDropBoxManagerIsFullMethod();
+        if (dbmIsFullM == null) {
+            Log.w("DropBoxManager.isFull() method not available, save it");
+            mAppPrefs.setFullDropboxMethodNotAvailable();
+            return;
+        }
+
+        Boolean isFull = getDropBoxManagerIsFullValue(mDropBoxManager, dbmIsFullM);
+        if (isFull == null) {
+            mAppPrefs.setFullDropboxMethodNotAvailable();
+            return;
+        }
+
+        if (isFull) {
             Log.i(Module + "DropBox full");
             SystemProperties.set(FULL_DROPBOX_PROP, LOW_MEM_MODE);
-        }
-        else {
+        } else {
             Log.d(Module + "DropBox not full");
             SystemProperties.set(FULL_DROPBOX_PROP, NOMINAL_MODE);
         }
+    }
+
+    /**
+     * Return isFull() method of DropBoxManager class
+     *
+     * @return isFull() method, null if not found
+     */
+    private static Method getDropBoxManagerIsFullMethod() {
+        Class<DropBoxManager> cl = DropBoxManager.class;
+        try {
+            return cl.getMethod("isFull", (Class[]) null);
+        } catch (NoSuchMethodException e) {}
+        return null;
+    }
+
+    /**
+     * Return DropBoxManager.isFull() value
+     *
+     * @param mDBM DropBoxManager instance
+     * @param isFull DropBoxManager.isFull() method
+     * @return true or false according to the value, null if not available
+     */
+    private static Boolean getDropBoxManagerIsFullValue(DropBoxManager mDBM, Method isFull) {
+        try {
+            return (Boolean) isFull.invoke(mDBM, (Object[]) null);
+        } catch (IllegalArgumentException e) {
+            Log.e("DropBoxManager.isFull() method invoke fail", e);
+        } catch (IllegalAccessException e) {
+            Log.e("DropBoxManager.isFull() method invoke fail", e);
+        } catch (InvocationTargetException e) {
+            Log.e("DropBoxManager.isFull() method invoke fail", e);
+        }
+        return null;
     }
 
 }

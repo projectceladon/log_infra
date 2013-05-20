@@ -47,6 +47,7 @@ public class CrashFile {
 	private String uptime = "";
 	private String modem = "";
 	private String board = "";
+	private int dataReady = 1;
 
 	private File crashFile;
 
@@ -72,7 +73,7 @@ public class CrashFile {
 			{
 				Log.i(type + ": Missing Data, try to regenerate crashfile in " + path);
 				if (!type.equals("")){
-					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei);
+					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei,dataReady);
 					if (aParser.execParsing() == 0){
 						crashFile = openCrashFile(path);
 						fillCrashFile(crashFile);
@@ -103,6 +104,7 @@ public class CrashFile {
 			record.write("MODEM="+modem+"\n");
 			record.write("BOARD="+board+"\n");
 			record.write("TYPE="+type+"_"+reason+"\n");
+			record.write("DATA_READY="+ dataReady+"\n");
 			record.write("DATA0="+data0+"\n");
 			record.write("DATA1="+data1+"\n");
 			record.write("DATA2="+data2+"\n");
@@ -161,7 +163,14 @@ public class CrashFile {
 						board = value;
 					else if (name.equals("TYPE"))
 						type = value;
-					else if (name.equals("DATA0")){
+					else if (name.equals("DATA_READY")){
+						try{
+							dataReady = Integer.parseInt(value);
+						}catch (NumberFormatException e){
+							//default value is ready => 1
+							dataReady=1;
+						}
+					}else if (name.equals("DATA0")){
 						bMissingData0 = false;
 						data0 = value;
 					}
@@ -322,5 +331,13 @@ public class CrashFile {
 
 	public void setImei(String imei) {
 		this.imei = imei;
+	}
+
+	public int getDataReady() {
+		return dataReady;
+	}
+
+	public void setDataReady(int dataReady) {
+		this.dataReady = dataReady;
 	}
 }

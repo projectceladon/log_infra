@@ -133,6 +133,7 @@ public class CrashReportHome extends Activity {
 
 	public void startCrashReport() {
 		Intent intent = new Intent(getApplicationContext(), CrashReportActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 	}
 

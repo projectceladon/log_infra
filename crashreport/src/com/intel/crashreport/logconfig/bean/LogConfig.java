@@ -11,6 +11,10 @@ public class LogConfig {
     private String type;
     private List<LogSetting> config;
     private List<LogSetting> rollBackConfig;
+    /*LogConfig types values are :
+     * - lock    : value is locked to ON value and can't be modified
+     * - normal  : value is OFF at first boot and value updated by user is stored for next reboot
+     * - default : value is ON at first boot and value updated by user is stored for next reboot*/
     public static String LOCK_TYPE = "lock";
     public static String NORMAL_TYPE = "normal";
     public static String DEFAULT_TYPE = "default";

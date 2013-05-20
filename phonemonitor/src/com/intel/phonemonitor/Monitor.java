@@ -33,9 +33,9 @@ public abstract class Monitor extends BroadcastReceiver {
     private int nbr_metric_items_to_flush;
 
     /** Output file */
-    protected PrintWriter myOutputFilePrintWriter = null;
+    protected PrintWriter myOutputFilePrintWriter;
 
-    protected Object mLock = new Object();
+    protected Object mLock = new Object(); // Used to protect monitor file writes
 
     /**
      * Constructor.
@@ -52,13 +52,16 @@ public abstract class Monitor extends BroadcastReceiver {
 
         nbr_metric_items_to_flush = 0;
         mMonitorFileName = fName;
+        myOutputFilePrintWriter = null;
 
-        // Open the output file
-        try {
-            myOutputFilePrintWriter = new PrintWriter(new FileWriter(mMonitorFileName, append));
-        }
-        catch(Exception e){
-            e.printStackTrace();
+        synchronized (mLock) {
+            // Open the output file
+            try {
+                myOutputFilePrintWriter = new PrintWriter(new FileWriter(mMonitorFileName, append));
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -68,8 +71,10 @@ public abstract class Monitor extends BroadcastReceiver {
      */
     public void stop(Context ctx) {
         synchronized(mLock) {
-            myOutputFilePrintWriter.flush();
-            myOutputFilePrintWriter.close();
+            if (myOutputFilePrintWriter != null) {
+                myOutputFilePrintWriter.flush();
+                myOutputFilePrintWriter.close();
+            }
             myOutputFilePrintWriter = null;
         }
     }
@@ -85,10 +90,11 @@ public abstract class Monitor extends BroadcastReceiver {
             if (myOutputFilePrintWriter != null) { // Monitor already stopped ?
                 myOutputFilePrintWriter.flush();
                 myOutputFilePrintWriter.close();
+
                 // Recreate the output file
                 try {
                     myOutputFilePrintWriter = new PrintWriter(new FileWriter(mMonitorFileName));
-                } catch(Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -129,7 +135,9 @@ public abstract class Monitor extends BroadcastReceiver {
     public void forceFlush() {
         synchronized(mLock) {
             nbr_metric_items_to_flush = 1;
-            myOutputFilePrintWriter.flush();
+            if (myOutputFilePrintWriter != null) {
+                myOutputFilePrintWriter.flush();
+            }
         }
     }
 

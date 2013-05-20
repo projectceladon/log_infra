@@ -1,9 +1,5 @@
 package com.intel.crashreport.bugzilla.ui;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import com.intel.crashreport.ApplicationPreferences;
@@ -14,7 +10,6 @@ import com.intel.crashreport.R;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -81,9 +76,12 @@ public class BugzillaSummaryActivity extends Activity {
 		text += bugzillaStorage.getSummary() + "\n \n";
 		text += "Component : "+bugzillaStorage.getComponent()+ "\n";
 		text += "Severity : "+bugzillaStorage.getSeverity()+ "\n";
-		text += "Description : "+bugzillaStorage.getDescription()+ "\n \n";
+		text += "Description : "+bugzillaStorage.getDescription()+ "\n";
+		if(!bugzillaStorage.getTime().equals(""))
+			text += "Issue occured in last " +  bugzillaStorage.getTime()+ ".\n \n";
 		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
-		text += "With Aplogs attached";
+		text += (bugzillaStorage.getLogLevel() == 0)?"Without":"With";
+		text += " Aplogs attached";
 		infos.setText(text);
 		if(bugzillaStorage.getSummary().equals("") || bugzillaStorage.getBugType().equals("") || bugzillaStorage.getComponent().equals("")
 				|| bugzillaStorage.getSeverity().equals("") || bugzillaStorage.getDescription().equals("")){
@@ -109,7 +107,7 @@ public class BugzillaSummaryActivity extends Activity {
 			BugStorage bugzillaStorage = app.getBugzillaStorage();
 			if(!bugzillaStorage.getSummary().equals("") && !bugzillaStorage.getDescription().equals("")){
 				String line = "";
-				if (bugzillaStorage.getLogLevel()>0){
+				if (bugzillaStorage.getLogLevel()>=0){
 					line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
 					sArguments.add(line);
 				}
@@ -137,6 +135,10 @@ public class BugzillaSummaryActivity extends Activity {
 				sArguments.add(line);
 				String strDescription = bugzillaStorage.getDescription();
 				strDescription = strDescription.replace("\n", "\\n");
+				if(!strDescription.endsWith("\\n"))
+					strDescription += "\\n";
+				if(!bugzillaStorage.getTime().equals(""))
+					strDescription += "Issue occured in last " + bugzillaStorage.getTime();
 				line = "DESCRIPTION="+strDescription+"\n";
 				sArguments.add(line);
 				if(bugzillaStorage.getBugHasScreenshot()) {

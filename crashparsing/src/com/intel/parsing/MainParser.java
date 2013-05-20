@@ -26,9 +26,15 @@ public class MainParser{
 	private String sDate = "";
 	private String sImei = "";
 	private Writer myOutput = null;
+	private int iDataReady = 1;
 
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
 			String aBuild, String aBoard, String aDate, String aImei){
+		this(aOutput,aTag,aCrashID,aUptime,aBuild,aBoard,aDate,aImei,1);
+	}
+
+	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
+			String aBuild, String aBoard, String aDate, String aImei, int aData_Ready){
 		sOutput = aOutput;
 		sTag = aTag;
 		sCrashID = aCrashID;
@@ -37,7 +43,7 @@ public class MainParser{
 		sBoard = aBoard;
 		sDate = aDate;
 		sImei = aImei;
-
+		iDataReady = aData_Ready;
 	}
 
 	public int execParsing(){
@@ -190,7 +196,7 @@ public class MainParser{
 			bResult &= appendToCrashfile( "BOARD=" + aBoard);
 			bResult &= appendToCrashfile( "IMEI=" + aImei);
 			bResult &= appendToCrashfile( "TYPE=" + aTag);
-
+			bResult &= appendToCrashfile( "DATA_READY=" + iDataReady);
 
 		} catch (Exception e) {
 			System.err.println( "prepare_crashfile : " + e);

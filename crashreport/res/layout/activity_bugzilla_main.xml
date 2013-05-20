@@ -40,7 +40,7 @@
         android:layout_alignParentRight="true"
         android:autoText="false"
         android:background="#d8eef9"
-        android:inputType="text|textCapSentences|textNoSuggestions"
+        android:inputType="text|textCapSentences"
         android:lines="1"
         android:maxLines="1"
         android:textColor="#105372"
@@ -126,12 +126,30 @@
         android:autoText="false"
         android:background="#d8eef9"
         android:gravity="left|top"
-        android:inputType="textMultiLine|textNoSuggestions|textCapSentences"
+        android:inputType="textMultiLine|textCapSentences"
+        android:maxLength="255"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
         android:textColor="#105372"
         android:textCursorDrawable="@null"
-        android:textSize="22sp"
-        android:paddingRight="1dp"
-        android:paddingLeft="1dp" />
+        android:textSize="22sp" />
+
+    <TextView
+        android:id="@+id/bz_time_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_time"
+        android:textSize="24sp"
+        android:textColor="#ffffff" />
+
+    <Spinner
+        android:id="@+id/bz_time_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
 
     <RadioGroup android:layout_width="fill_parent"
         android:layout_height="wrap_content" android:orientation="vertical"

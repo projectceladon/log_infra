@@ -62,17 +62,23 @@ public class ConfigStatus {
             setState(ConfigState.ON);
     }
 
+    /**
+     * Returns the settings to apply for the configStatus depending on its current
+     * state.
+     * @return the settings list to apply.
+     * @throws IllegalStateException if ConfigStatus state is OFF.
+     */
     public List<LogSetting> getSettingsToApply() throws IllegalStateException {
         if (mState == ConfigState.TO_ON || mState == ConfigState.LOCKED_ON)
             return getLogConfig().getConfig();
-        else if (mState == ConfigState.TO_OFF || mState == ConfigState.LOCKED_OFF)
+        else if (mState == ConfigState.TO_OFF)
             return getLogConfig().getRollBackConfig();
         else
             throw new IllegalStateException("ConfigStatus not in a good state : " + mState);
     }
 
     public enum ConfigState {
-        OFF, TO_ON, ON, TO_OFF, LOCKED_ON, LOCKED_OFF
+        OFF, TO_ON, ON, TO_OFF, LOCKED_ON
     }
 
 }

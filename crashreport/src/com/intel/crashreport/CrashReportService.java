@@ -35,6 +35,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteException;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -95,6 +96,11 @@ public class CrashReportService extends Service {
 			}
 		}
 		return START_NOT_STICKY;
+	}
+
+	public void onDestroy() {
+		app.setServiceStarted(false);
+		super.onDestroy();
 	}
 
 	@Override
@@ -466,7 +472,7 @@ public class CrashReportService extends Service {
 											DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 											dayDate = DAY_DF.format(event.getDate());
 											fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-											Log.i("Service:uploadEvent : Logfile upload of "+event);
+											Log.i("Service:uploadEvent : Upload crashlog of "+event);
 											if (event.getEventName().equals("APLOG")) {
 												showProgressBar();
 												updateProgressBar(0);
@@ -476,17 +482,19 @@ public class CrashReportService extends Service {
 												db.updateEventLogToUploaded(event.getEventId());
 												Log.d("Service:uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
 												crashLogs.delete();
-												if (event.getEventName().equals("APLOG")) {
-													updateProgressBar(0);
-													hideProgressBar();
-													File aplogData = new File(event.getCrashDir());
-													if (aplogData.exists()) {
-														if (aplogData.isDirectory()) {
-															for(File file:aplogData.listFiles()){
+												if (event.getEventName().equals("APLOG") || event.getEventName().equals("BZ") ) {
+													if (event.getEventName().equals("APLOG")) {
+														updateProgressBar(0);
+														hideProgressBar();
+													}
+													File data = new File(event.getCrashDir());
+													if (data.exists()) {
+														if (data.isDirectory()) {
+															for(File file:data.listFiles()){
 																file.delete();
 															}
 														}
-														aplogData.delete();
+														data.delete();
 													}
 												}
 												cursor.moveToNext();
@@ -499,7 +507,7 @@ public class CrashReportService extends Service {
 												throw new ProtocolException();
 											}
 										} else
-											Log.w("Service:uploadEvent : logfile EVENT"+event.getEventId()+".zip is not available for upload");
+											Log.d("Service:uploadEvent : No crashlog to upload for "+event);
 										cursor.moveToNext();
 										if(db.isThereEventToUpload()) {
 											cursor.close();

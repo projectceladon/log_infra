@@ -526,6 +526,14 @@ public class EventDB {
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
+	public boolean updateEventCrashdir(String eventId, String crashDir) {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_CRASHDIR, crashDir);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+	}
+
 	private int convertDateForDb(Date date) {
 		if (date==null) {
 			return -1;
@@ -667,7 +675,8 @@ public class EventDB {
 	}
 
 	public void deleteEventsBeforeUpdate(String eventId){
-		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')";
+		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')"
+				           + " and "+KEY_NAME+"<> 'BZ'";
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
 	}
 
@@ -709,7 +718,7 @@ public class EventDB {
 				KEY_SEVERITY+" as "+KEY_SEVERITY+", "+KEY_BZ_TYPE+" as "+KEY_BZ_TYPE+", "+KEY_BZ_COMPONENT+" as "+KEY_BZ_COMPONENT+", "+KEY_SCREENSHOT+" as "+KEY_SCREENSHOT+", "+
 				KEY_UPLOAD+" as "+KEY_UPLOAD+", "+KEY_UPLOADLOG+" as "+KEY_UPLOADLOG+", "+
 				KEY_UPLOAD_DATE+" as "+KEY_UPLOAD_DATE+", "+KEY_CREATION_DATE+" as "+KEY_CREATION_DATE+", "+KEY_SCREENSHOT_PATH+ " as "+KEY_SCREENSHOT_PATH+" from "+DATABASE_TABLE+" e,"+DATABASE_BZ_TABLE+" bz "+
-				"where bz."+KEY_ID+" = "+"e."+KEY_ID;
+				"where bz."+KEY_ID+" = "+"e."+KEY_ID + " order by "+KEY_CREATION_DATE+" DESC";
 		cursor = mDb.rawQuery(whereQuery, null);
 		if (cursor != null)
 			cursor.moveToFirst();

@@ -6,6 +6,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -50,6 +51,10 @@ public class LogConfigAdapter extends BaseAdapter {
 
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
+        /*Retrieve config state*/
+        ConfigStatus config = getMyConfigStatus(position);
+        ConfigState cState = config.getState();
+
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.logconfig_item, null);
             holder = new ViewHolder();
@@ -57,20 +62,18 @@ public class LogConfigAdapter extends BaseAdapter {
                     .findViewById(R.id.textView_description_logconfig);
             holder.configDescription.setOnClickListener(configStatusItemListener);
             holder.configEnabled = (Switch) convertView.findViewById(R.id.switch_enabled);
+            holder.configEnabled.setTag(config.getName());
+            holder.configEnabled.setChecked(cState == ConfigState.ON || cState == ConfigState.TO_ON || cState == ConfigState.LOCKED_ON);
             holder.configEnabled.setOnCheckedChangeListener(configStatusSwitchListener);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
+            holder.configEnabled.setTag(config.getName());
+            holder.configEnabled.setChecked(cState == ConfigState.ON || cState == ConfigState.TO_ON || cState == ConfigState.LOCKED_ON);
         }
-
-        ConfigStatus config = getMyConfigStatus(position);
-        ConfigState cState = config.getState();
-
         holder.configDescription.setText(config.getDescription());
         holder.configDescription.setTag(config.getName());
-        holder.configEnabled.setTag(config.getName());
-        holder.configEnabled.setChecked(cState == ConfigState.ON || cState == ConfigState.TO_ON || cState == ConfigState.LOCKED_ON);
-        holder.configEnabled.setEnabled(cState == ConfigState.ON || cState == ConfigState.OFF || cState == ConfigState.LOCKED_OFF);
+        holder.configEnabled.setEnabled(cState == ConfigState.ON || cState == ConfigState.OFF);
         return convertView;
     }
 
@@ -91,10 +94,14 @@ public class LogConfigAdapter extends BaseAdapter {
             ConfigStatus mConfigStatus =
                     mConfigManager.getConfigStatus((String) ((Switch) buttonView).getTag());
             ConfigState mState = mConfigStatus.getState();
+            /*Compare switch button state to the associated config state
+             * and update/apply setting if necessary*/
             if (mState == ConfigState.OFF && isChecked)
                 mConfigStatus.setState(ConfigState.TO_ON);
             else if (mState == ConfigState.ON && !isChecked)
                 mConfigStatus.setState(ConfigState.TO_OFF);
+            else
+                return; /*No config to apply*/
             List<String> mConfigNames = new ArrayList<String>();
             mConfigNames.add(mConfigStatus.getName());
             mConfigManager.applyConfigs(mConfigNames);
