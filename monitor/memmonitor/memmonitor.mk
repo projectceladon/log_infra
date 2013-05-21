@@ -1,5 +1,5 @@
 # memmonitor
-MONITOR_DEBUG_PATH := $(TOP)/device/intel/PRIVATE/log_infra/monitor/memmonitor
+MONITOR_DEBUG_PATH := $(TOP)/vendor/intel/tools/PRIVATE/log_infra/monitor/memmonitor
 
 PRODUCT_COPY_FILES += $(MONITOR_DEBUG_PATH)/do_gather.sh:/system/bin/do_gather.sh
 PRODUCT_COPY_FILES += $(MONITOR_DEBUG_PATH)/memmonitor_hours.sh:/system/bin/memmonitor_hours.sh
