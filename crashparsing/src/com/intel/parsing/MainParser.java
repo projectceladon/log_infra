@@ -349,6 +349,7 @@ public class MainParser{
 			String sPanic= "";
 			boolean bDataFound = false;
 			boolean bCommFound = false;
+			boolean bCandidateCommFound = false;
 			boolean bPanicFound = false;
 
 			try{
@@ -365,6 +366,10 @@ public class MainParser{
 						if (sTmp != null){
 							sData = sTmp;
 							bDataFound = true;
+							if (bCandidateCommFound){
+								//BZ91174 : we use last "comm" found
+								bCommFound = true;
+							}
 						}
 					}
 
@@ -372,7 +377,13 @@ public class MainParser{
 						sTmp = simpleGrepAwk(patternComm, sCurLine, " ", 1);
 						if (sTmp != null){
 							sComm = sTmp;
-							bCommFound = true;
+							//BZ91174 : considered found only when data "SS:EP" is found
+							//if it is not found, we keep value but continue seeking pattern
+							if (bDataFound){
+								bCommFound = true;
+							}else{
+								bCandidateCommFound = true;
+							}
 						}
 					}
 
