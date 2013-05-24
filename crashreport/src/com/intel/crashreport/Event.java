@@ -21,7 +21,6 @@ package com.intel.crashreport;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -308,10 +307,13 @@ public class Event {
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
+		//GCM not fully implemented
+		String sTokenGCM = "";
+		String sSPID = getSPIDFromFile();
 		if (sSSN.equals("")){
-			aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented if property empty*/);
+			aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented if property empty*/, sTokenGCM, sSPID);
 		}else{
-			aDevice = new Device(this.deviceId, this.imei, sSSN);
+			aDevice = new Device(this.deviceId, this.imei, sSSN, sTokenGCM, sSPID);
 		}
 		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
 				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
@@ -343,6 +345,20 @@ public class Event {
 			scan.close();
 		} catch (FileNotFoundException e) {
 			Log.w("CrashReportService: deviceId not set");
+		}
+		return sResult;
+	}
+
+	public static String getSPIDFromFile() {
+		String sResult = "";
+		File spidFile = new File("/logs/" + "spid.txt");
+		try {
+			Scanner scan = new Scanner(spidFile);
+			if (scan.hasNext())
+				sResult = scan.nextLine();
+			scan.close();
+		} catch (FileNotFoundException e) {
+			Log.w("CrashReportService: spid not set");
 		}
 		return sResult;
 	}

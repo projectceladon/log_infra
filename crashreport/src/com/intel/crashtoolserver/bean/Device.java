@@ -48,6 +48,9 @@ public class Device implements Serializable {
 	private String location;
 	private String tag;
 	private Date lastUpdatedDate;
+	private String gcmToken;
+	private String spid;
+	private TracmorDevice tracmorDevice;
 
 	public Device() {
 		// do nothing
@@ -61,8 +64,9 @@ public class Device implements Serializable {
 	 */
 	@Deprecated
 	public Device(String deviceId, String imei) {
-		this(deviceId, imei, null, null, null, null, null, null);
+		this(deviceId, imei, null, null, null, null, null, null, null, null);
 	}
+
 
 	/**
 	 *
@@ -78,7 +82,7 @@ public class Device implements Serializable {
 	public Device(String deviceId, String imei, String pid, String owner, String location,
 			String tag, Date lastUpdatedDate) {
 
-		this(deviceId, imei, pid, owner, location, tag, lastUpdatedDate, null);
+		this(deviceId, imei, pid, owner, location, tag, lastUpdatedDate, null, null, null);
 	}
 
 	/**
@@ -88,11 +92,21 @@ public class Device implements Serializable {
 	 * @param ssn
 	 */
 	public Device(String deviceId, String imei, String ssn) {
-		this(deviceId, imei, null, null, null, null, null, ssn);
+		this(deviceId, imei, null, null, null, null, null, ssn, null, null);
 	}
 
 	/**
-	 *
+	 * @param deviceId
+	 * @param imei
+	 * @param ssn
+	 * @param gcmToken
+	 * @param spid
+	 */
+	public Device(String deviceId, String imei, String ssn, String gcmToken, String spid) {
+		this(deviceId, imei, null, null, null, null, null, ssn, gcmToken, spid);
+	}
+
+	/**
 	 * @param deviceId
 	 * @param imei
 	 * @param pid
@@ -101,9 +115,11 @@ public class Device implements Serializable {
 	 * @param tag
 	 * @param lastUpdatedDate
 	 * @param ssn
+	 * @param gcmToken
+	 * @param spid
 	 */
 	private Device(String deviceId, String imei, String pid, String owner, String location,
-			String tag, Date lastUpdatedDate, String ssn) {
+			String tag, Date lastUpdatedDate, String ssn, String gcmToken, String spid) {
 
 		this.deviceId = deviceId;
 		this.imei = imei;
@@ -117,6 +133,8 @@ public class Device implements Serializable {
 		}
 		this.lastUpdatedDate = lastUpdatedDate;
 		this.ssn = ssn;
+		this.gcmToken = gcmToken;
+		this.spid = spid;
 	}
 
 	public String getSsn() {
@@ -235,14 +253,39 @@ public class Device implements Serializable {
 		this.id = id;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	public TracmorDevice getTracmorDevice() {
+		return tracmorDevice;
+	}
+
+	public void setTracmorDevice(TracmorDevice tracmorDevice) {
+		this.tracmorDevice = tracmorDevice;
+	}
+
+	public String getGcmToken() {
+		return gcmToken;
+	}
+
+	public void setGcmToken(String gcmToken) {
+		this.gcmToken = gcmToken;
+	}
+
+	public String getSpid() {
+		return spid;
+	}
+
+	public void setSpid(String spid) {
+		this.spid = spid;
+	}
+
 	@Override
 	public String toString() {
-		return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei + ", pid=" + pid
-				+ ", hwType=" + hwType + ", platform=" + platform + ", ssn=" + ssn + ", team="
-				+ team + ", domain=" + domain + ", owner=" + owner + ", location=" + location
-				+ ", tag=" + tag + ", lastUpdatedDate=" + lastUpdatedDate + "]";
+		return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei
+				+ ", pid=" + pid + ", hwType=" + hwType + ", platform="
+				+ platform + ", ssn=" + ssn + ", team=" + team + ", domain="
+				+ domain + ", owner=" + owner + ", location=" + location
+				+ ", tag=" + tag + ", lastUpdatedDate=" + lastUpdatedDate
+				+ ", gcmToken=" + gcmToken + ", spid=" + spid
+				+ ", tracmorDevice=" + tracmorDevice + "]";
 	}
 }
+
