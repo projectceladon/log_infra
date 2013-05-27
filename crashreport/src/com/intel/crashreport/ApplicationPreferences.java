@@ -32,9 +32,9 @@ import android.preference.PreferenceManager;
 
 public class ApplicationPreferences {
 	private static final String APP_PRIVATE_PREFS = "crashReportPrivatePreferences";
-	private SharedPreferences appPrivatePrefs;
+	protected SharedPreferences appPrivatePrefs;
 	private SharedPreferences appSharedPrefs;
-	private Editor privatePrefsEditor;
+	protected Editor privatePrefsEditor;
 	private Editor sharedPrefsEditor;
 	private Context mCtx;
 

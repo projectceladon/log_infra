@@ -7,7 +7,8 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.intel.crashreport.CustomizableEventData;
-import com.intel.crashreport.EventGenerator;
+import com.intel.crashreport.GeneralEventGenerator;
+import com.intel.crashreport.specific.EventGenerator;
 
 public class KratosSessionInfoReceiver extends BroadcastReceiver {
     private static final String TAG = "KratosSessionInfoReceiver";
@@ -35,13 +36,13 @@ public class KratosSessionInfoReceiver extends BroadcastReceiver {
                 mEvent.setType(EVENT_TYPE_KRATOS);
                 mEvent.setData0(EVENT_DATA0_KRATOS_SESSION_UPLOAD);
                 mEvent.setData1(EVENT_ERROR_NO_LINK);
-                EventGenerator.INSTANCE.generateEvent(mEvent);
+                GeneralEventGenerator.INSTANCE.generateEvent(mEvent);
             } else {
                 CustomizableEventData mEvent = EventGenerator.INSTANCE.getEmptyInfoEvent();
                 mEvent.setType(EVENT_TYPE_KRATOS);
                 mEvent.setData0(EVENT_DATA0_KRATOS_SESSION_UPLOAD);
                 mEvent.setData1(EVENT_LINK_TAG + sessionARTLink);
-                EventGenerator.INSTANCE.generateEvent(mEvent);
+                GeneralEventGenerator.INSTANCE.generateEvent(mEvent);
             }
         }
     }

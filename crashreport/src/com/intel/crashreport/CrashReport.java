@@ -21,16 +21,19 @@ package com.intel.crashreport;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Timer;
 
-import com.intel.crashreport.bugzilla.BZFile;
-import com.intel.crashreport.bugzilla.ui.BugStorage;
+import com.intel.crashreport.bugzilla.ui.common.BugStorage;
+import com.intel.crashreport.specific.Build;
+import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.specific.EventGenerator;
+
 import com.intel.crashreport.StartServiceActivity;
 
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
+
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -43,7 +46,6 @@ public class CrashReport extends Application {
 	private Boolean serviceRelaunched = false;
 	private Build myBuild;
 	private BugStorage bugzillaStorage;
-	public static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
 	public static StartServiceActivity boundedActivity = null;
 	private ArrayList<CrashReportRequest> requestList;
 
@@ -54,6 +56,7 @@ public class CrashReport extends Application {
 		requestList = new ArrayList<CrashReportRequest>();
 		String version = this.getString(R.string.app_version);
 		EventGenerator.INSTANCE.setContext(getApplicationContext());
+
 		if (!privatePrefs.getVersion().contentEquals(version)) {
 			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
 			Editor editor = sharedPrefs.edit();
@@ -176,106 +179,6 @@ public class CrashReport extends Application {
 
 	public BugStorage getBugzillaStorage() {
 		return bugzillaStorage;
-	}
-
-	public void checkEvents(String from) throws FileNotFoundException,SQLException{
-		HistoryEventFile histFile;
-		String histEventLine;
-		EventDB db;
-		String myBuild;
-		Event event;
-		NotificationMgr nMgr;
-		BlackLister blackLister = new BlackLister(getApplicationContext());
-		PhoneInspector phoneInspector;
-		boolean historyEventCorrupted = false;
-		boolean result;
-
-
-		db = new EventDB(getApplicationContext());
-		myBuild = ((CrashReport) getApplicationContext()).getMyBuild().toString();
-		nMgr = new NotificationMgr(getApplicationContext());
-		PDStatus.INSTANCE.setContext(getApplicationContext());
-
-		try {
-			db.open();
-			if(!isUserBuild())
-				blackLister.setDb(db);
-			histFile = new HistoryEventFile();
-
-			while (histFile.hasNext()) {
-				synchronized(this){
-					histEventLine = histFile.getNextEvent();
-					if (histEventLine.length() != 0) {
-						HistoryEvent histEvent = new HistoryEvent(histEventLine);
-						historyEventCorrupted |= histEvent.isCorrupted();
-						PDStatus.INSTANCE.setHistoryEventCorrupted(historyEventCorrupted);
-						if ((histEvent.getEventId().replaceAll("0", "").length() != 0) && !histEvent.getEventName().contentEquals("DELETE")){
-							try {
-								if(isUserBuild())
-									result = !db.isEventInDb(histEvent.getEventId());
-								else
-									result = !db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId());
-								if (result) {
-									event = new Event(histEvent, myBuild, isUserBuild());
-									if(!isUserBuild())
-										blackLister.cleanRain(event.getDate());
-									result = true;
-									if(!isUserBuild())
-										result = !blackLister.blackList(event);
-									if (result) {
-										//Manage full Dropbox case before adding an event
-										PhoneInspector.getInstance(getApplicationContext()).manageFullDropBox();
-
-										long ret = db.addEvent(event);
-										if (ret == -1)
-											Log.w(from+": Event error when added to DB, " + event.toString());
-										else if (ret == -2)
-											Log.w(from+": Event name " +histEvent.getEventName() + " unkown, addition in DB canceled");
-										else if (ret == -3)
-											Log.w(from+": Event " +event.toString() + " with wrong date, addition in DB canceled");
-										else {
-											if (event.getEventName().contentEquals("REBOOT")) {
-												if (event.getType().contentEquals("SWUPDATE")){
-													db.deleteEventsBeforeUpdate(event.getEventId());
-												}else{
-													db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
-												}
-											}
-											if (event.getEventName().equals("BZ")) {
-												BZFile bzfile = new BZFile(event.getCrashDir());
-												db.addBZ(event.getEventId(), bzfile, event.getDate());
-												Log.d(from+": BZ added in DB, " + histEvent.getEventId());
-											}
-											Log.d(from+": Event successfully added to DB, " + event.toString());
-											if (!event.isDataReady()) {
-												Timer timer = new Timer(true);
-												timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), CRASH_POSTPONE_DELAY*1000);
-											}
-										}
-									}
-								} else
-									Log.d(from+": Event already in DB, " + histEvent.getEventId());
-							} catch (SQLException e) {
-								Log.e(from+": Can't access database. Skip treatment of event " + histEvent.getEventId(), e);
-							}
-						} else
-							Log.d(from+": Event ignored ID:" + histEvent.getEventId());
-					}
-				}
-			}
-
-			if (db.isThereEventToNotify()) {
-				nMgr.notifyCriticalEvent(db.getCriticalEventsNumber());
-			}
-
-			db.close();
-		} catch (FileNotFoundException e) {
-			db.close();
-			throw e;
-		} catch (SQLException e) {
-			throw e;
-		}
-
 	}
 
 	/**

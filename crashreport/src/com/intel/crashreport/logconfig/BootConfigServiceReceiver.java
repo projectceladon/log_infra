@@ -6,7 +6,6 @@ import com.intel.crashreport.CrashReport;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.SystemProperties;
 
 public class BootConfigServiceReceiver extends BroadcastReceiver {
 

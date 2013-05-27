@@ -34,7 +34,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import com.intel.crashreport.CustomizableEventData;
-import com.intel.crashreport.EventGenerator;
+import com.intel.crashreport.GeneralEventGenerator;
+import com.intel.crashreport.specific.EventGenerator;
 import com.intel.phonedoctor.utils.FileOps;
 
 import android.app.IntentService;
@@ -108,7 +109,7 @@ public class EventReceiverService extends IntentService {
             File inFile = new File(mExtra);
             if (inFile.exists() && !inFile.isDirectory()) {
                 try {
-                    File outDir = EventGenerator.INSTANCE.getNewEventDirectory();
+                    File outDir = GeneralEventGenerator.INSTANCE.getNewEventDirectory();
                     mEvent.setCrashDir(outDir.getAbsolutePath());
                     retrieveFileToDirectory(inFile, outDir);
                 } catch (FileNotFoundException e) {
@@ -121,7 +122,7 @@ public class EventReceiverService extends IntentService {
 
         // Generate event
         if (mEvent != null)
-            EventGenerator.INSTANCE.generateEvent(mEvent);
+            GeneralEventGenerator.INSTANCE.generateEvent(mEvent);
     }
 
     /**

@@ -46,6 +46,11 @@ public class Constants {
     /**
      * Critical size in bytes for the logs partition
      * */
-	public static final int LOGS_CRITICAL_SIZE = 20000000;
+    public static final int LOGS_CRITICAL_SIZE = 20000000;
+
+    /**
+     * crash delay postpone in sec
+     */
+    public static final int CRASH_POSTPONE_DELAY = 120;
 
 }

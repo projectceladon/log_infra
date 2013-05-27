@@ -19,7 +19,6 @@
 
 package com.intel.crashreport;
 
-
 import java.util.ArrayList;
 
 import android.app.Activity;
@@ -50,6 +49,8 @@ import android.widget.TextView;
 
 import com.intel.crashreport.CrashReportService.LocalBinder;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
+import com.intel.crashreport.specific.Event;
+import com.intel.crashreport.specific.EventDB;
 
 public class StartServiceActivity extends Activity {
 

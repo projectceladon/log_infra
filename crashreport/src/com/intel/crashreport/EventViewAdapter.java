@@ -2,6 +2,8 @@ package com.intel.crashreport;
 
 import java.util.ArrayList;
 
+import com.intel.crashreport.specific.Event;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;

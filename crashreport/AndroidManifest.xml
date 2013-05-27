@@ -22,11 +22,11 @@
 		<uses-library android:name="com.google.gson" />
 		<uses-library android:name="crashparsing" />
 		<activity
-			android:name=".CrashReportActivity"
+			android:name=".specific.CrashReportActivity"
 			android:label="@string/label" />
 
 		<activity
-			android:name=".CrashReportHome"
+			android:name=".specific.CrashReportHome"
 			android:label="@string/label" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -35,26 +35,26 @@
 		</activity>
 
 		<receiver
-			android:name=".NotificationReceiver">
+			android:name="com.intel.crashreport.specific.NotificationReceiver">
 			<intent-filter>
 				<action android:name="android.intent.action.BOOT_COMPLETED" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED"></action>
-			</intent-filter>
-			<intent-filter>
-				<action android:name="com.intel.crashreport.intent.CRASH_NOTIFY" />
-				<category android:name="android.intent.category.ALTERNATIVE" />
-			</intent-filter>
-			<intent-filter>
-				<action android:name="com.intel.crashreport.intent.ALARM_NOTIFY" />
+				<action android:name="android.intent.action.DROPBOX_ENTRY_ADDED" />
 			</intent-filter>
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.CRASH_LOGS_COPY_FINISHED" />
 				<category android:name="android.intent.category.ALTERNATIVE" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="android.intent.action.DROPBOX_ENTRY_ADDED" />
+				<action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED"></action>
+			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.ALARM_NOTIFY" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.CRASH_NOTIFY" />
+				<category android:name="android.intent.category.ALTERNATIVE" />
 			</intent-filter>
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.RELAUNCH_SERVICE" />
@@ -77,7 +77,7 @@
 			</intent-filter>
 		</service>
 
-		<service android:name=".PhoneInspectorService">
+		<service android:name=".specific.PhoneInspectorService">
 			<intent-filter>
 				<action android:name="com.intel.crashreport.PhoneInspectorService"></action>
 			</intent-filter>
@@ -91,9 +91,9 @@
 			</intent-filter>
 		</activity>
 
-		<service android:name=".CheckEventsService">
+		<service android:name="com.intel.crashreport.specific.CheckEventsService">
 			<intent-filter>
-				<action android:name="com.intel.crashreport.CheckEventsService"></action>
+				<action android:name="com.intel.crashreport.specific.CheckEventsService"></action>
 			</intent-filter>
 		</service>
 
@@ -112,7 +112,7 @@
 		<service android:name=".logconfig.ConfigService" />
 
 
-        <activity android:name=".bugzilla.ui.BugzillaMainActivity" >
+        <activity android:name=".bugzilla.ui.common.BugzillaMainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -126,10 +126,10 @@
                 <data android:mimeType="image/png" />
             </intent-filter>
         </activity>
-        <activity android:name=".bugzilla.ui.BugzillaSummaryActivity" />
-        <activity android:name=".bugzilla.ui.UserInformationsActivity" />
-        <activity android:name=".bugzilla.ui.ListBugzillaActivity" />
-        <activity android:name=".UploadAplogActivity" />
+        <activity android:name=".bugzilla.ui.common.BugzillaSummaryActivity" />
+        <activity android:name=".bugzilla.ui.common.UserInformationsActivity" />
+        <activity android:name=".bugzilla.ui.common.ListBugzillaActivity" />
+        <activity android:name=".specific.UploadAplogActivity" />
 
         <!-- Declare dedicated receivers to catch events from other applications -->
         <receiver android:name=".receivers.KratosSessionInfoReceiver" >

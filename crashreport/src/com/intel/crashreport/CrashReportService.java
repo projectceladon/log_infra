@@ -35,7 +35,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteException;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -43,12 +42,15 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
-import android.preference.PreferenceManager;
 import android.os.SystemProperties;
 import java.util.TimeZone;
 
-import com.intel.crashreport.PDStatus.PDSTATUS_TIME;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
+import com.intel.crashreport.specific.Build;
+import com.intel.crashreport.specific.Event;
+import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.specific.PDStatus;
+import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashtoolserver.bean.FileInfo;
 
 public class CrashReportService extends Service {
@@ -137,17 +139,7 @@ public class CrashReportService extends Service {
 	private Runnable processEvent = new Runnable(){
 
 		public void run() {
-
-			try {
-				app.checkEvents(MODULE);
-				serviceHandler.sendEmptyMessage(ServiceMsg.successProcessEvents);
-			} catch (FileNotFoundException e) {
-				Log.w(MODULE+": history_event file not found");
-				serviceHandler.sendEmptyMessage(ServiceMsg.failProcessEvents);
-			} catch (SQLException e) {
-				Log.w(MODULE+": db Exception");
-				serviceHandler.sendEmptyMessage(ServiceMsg.failProcessEvents);
-			}
+			serviceHandler.sendEmptyMessage(ServiceMsg.successProcessEvents);
 		}
 	};
 

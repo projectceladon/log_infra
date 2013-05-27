@@ -26,6 +26,9 @@ import android.widget.TextView;
 import android.database.Cursor;
 import java.util.*;
 
+import com.intel.crashreport.specific.Event;
+import com.intel.crashreport.specific.EventDB;
+
 
 public class NotifyEventActivity extends Activity {
 
