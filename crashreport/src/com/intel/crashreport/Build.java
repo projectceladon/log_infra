@@ -18,11 +18,17 @@
  */
 
 package com.intel.crashreport;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+
 import android.os.SystemProperties;
 
 public class Build {
 
 	private static final int FIELD_NUMBER = 10;
+	private static final String PATH_MODEMID = "/logs/modemid.txt";
 
 	private String buildId = "";
 	private String fingerPrint = "";
@@ -48,6 +54,7 @@ public class Build {
 		this.scufwVersion = scufwVersion;
 		this.punitVersion = punitVersion;
 		this.valhooksVersion = valhooksVersion;
+		consolidateModemVersion();
 	}
 
 	public Build(String longBuildId) {
@@ -65,6 +72,7 @@ public class Build {
 					this.scufwVersion = buildFields[7];
 					this.punitVersion = buildFields[8];
 					this.valhooksVersion = buildFields[9];
+					consolidateModemVersion();
 				}
 			}
 		}
@@ -83,6 +91,7 @@ public class Build {
 		this.scufwVersion = getProperty("sys.scu.version");
 		this.punitVersion = getProperty("sys.punit.version");
 		this.valhooksVersion = getProperty("sys.valhooks.version");
+		consolidateModemVersion();
 	}
 
 	public com.intel.crashtoolserver.bean.Build getBuildForServer() {
@@ -108,6 +117,30 @@ public class Build {
 		return "";
 	}
 
+	private void consolidateModemVersion(){
+		//for crashtool identification, we need to be sure modem version is present
+		if (modemVersion.equals("")){
+			//fill it with modemid.txt
+			BufferedReader modemid;
+			try {
+				modemid = new BufferedReader(new FileReader(PATH_MODEMID));
+			} catch (FileNotFoundException e1) {
+				// no file, just return
+				return;
+			}
+			try {
+				String sTmp = modemid.readLine();
+				if (sTmp != null){
+					modemVersion = sTmp;
+				}
+				modemid.close();
+			} catch (IOException e) {
+				Log.w(" consolidateModemVersion :" + e.getMessage());
+			}
+		}
+	}
+
+	@Override
 	public String toString() {
 		return this.buildId+","+this.fingerPrint+","+this.kernelVersion+","+this.buildUserHostname+","+
 				this.modemVersion+","+this.ifwiVersion+","+this.iafwVersion+","+this.scufwVersion+","+
