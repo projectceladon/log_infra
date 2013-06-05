@@ -231,6 +231,7 @@ public class Event {
 			data3 = aParseFile.getValueByName("DATA3");
 			data4 = aParseFile.getValueByName("DATA4");
 			data5 = aParseFile.getValueByName("DATA5");
+			dataReady = !aParseFile.getValueByName("DATAREADY").equals("0");
 		}
 	}
 
