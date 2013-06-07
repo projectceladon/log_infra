@@ -184,8 +184,7 @@ public class StartServiceActivity extends Activity {
 	@Override
 	public void onBackPressed() {
 		Log.d("StartServiceActivity: onBackPressed");
-		if(askDialog != null)askDialog.dismiss();
-		askDialog = null;
+		hideDialog();
 		super.onBackPressed();
 	}
 
@@ -259,13 +258,15 @@ public class StartServiceActivity extends Activity {
 		builder.setPositiveButton(R.string.alert_dialog_yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				appPrefs.setUploadStateToUpload();
-				mService.sendMessage(ServiceMsg.uploadImmadiately);
+				if(mService != null && app.isServiceStarted())
+					mService.sendMessage(ServiceMsg.uploadImmadiately);
 			}
 		});
 		builder.setNegativeButton(R.string.alert_dialog_no, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				appPrefs.setUploadStateToAsk();
-				mService.sendMessage(ServiceMsg.uploadImmadiately);
+				if(mService != null && app.isServiceStarted())
+					mService.sendMessage(ServiceMsg.uploadImmadiately);
 			}
 		});
 		return builder.create();
@@ -292,7 +293,8 @@ public class StartServiceActivity extends Activity {
 			break;
 		case DIALOG_ASK_UPLOAD_SAVE_ID:
 			appPrefs.setUploadStateToAsk();
-			mService.sendMessage(ServiceMsg.uploadDisabled);
+			if(mService != null && app.isServiceStarted())
+				mService.sendMessage(ServiceMsg.uploadDisabled);
 			break;
 		default:
 			break;
@@ -306,26 +308,28 @@ public class StartServiceActivity extends Activity {
 		else
 			value = response;
 
-		switch (value) {
-		case DIALOG_REP_NOW:
-			String uploadStatePref = appPrefs.getUploadState();
-			if (uploadStatePref.contentEquals("uploadImmediately"))
-				mService.sendMessage(ServiceMsg.uploadImmadiately);
-			else
-				displayDialog(DIALOG_ASK_UPLOAD_SAVE_ID);
-			break;
-		case DIALOG_REP_POSTPONE:
-			appPrefs.setUploadStateToReport();
-			mService.sendMessage(ServiceMsg.uploadReported);
-			break;
-		case DIALOG_REP_NEVER:
-			appPrefs.setUploadStateToNeverButNotify();
-			mService.sendMessage(ServiceMsg.uploadDisabled);
-			break;
-		default:
-			appPrefs.setUploadStateToAsk();
-			mService.sendMessage(ServiceMsg.uploadDisabled);
-			break;
+		if(mService != null && app.isServiceStarted()) {
+			switch (value) {
+			case DIALOG_REP_NOW:
+				String uploadStatePref = appPrefs.getUploadState();
+				if (uploadStatePref.contentEquals("uploadImmediately"))
+					mService.sendMessage(ServiceMsg.uploadImmadiately);
+				else
+					displayDialog(DIALOG_ASK_UPLOAD_SAVE_ID);
+				break;
+			case DIALOG_REP_POSTPONE:
+				appPrefs.setUploadStateToReport();
+				mService.sendMessage(ServiceMsg.uploadReported);
+				break;
+			case DIALOG_REP_NEVER:
+				appPrefs.setUploadStateToNeverButNotify();
+				mService.sendMessage(ServiceMsg.uploadDisabled);
+				break;
+			default:
+				appPrefs.setUploadStateToAsk();
+				mService.sendMessage(ServiceMsg.uploadDisabled);
+				break;
+			}
 		}
 	}
 
@@ -409,21 +413,7 @@ public class StartServiceActivity extends Activity {
 
 		public void onServiceDisconnected(ComponentName name) {
 			Log.d("StartServiceActivity: onServiceDisconnected");
-			FragmentTransaction ft = getFragmentManager().beginTransaction();
-			Fragment prev = getFragmentManager().findFragmentByTag("dialog");
-			if (prev != null) {
-				ft.remove(prev);
-			}
-			ft.addToBackStack(null);
-			if(null != askDialog)
-				askDialog.dismiss();
-			askDialog = null;
-			mService = null;
-			unregisterMsgReceiver();
-			if (app.isActivityBounded())
-				app.setActivityBounded(false);
-			cancelButton.setEnabled(false);
-			hidePleaseWait();
+			onKillService();
 		}
 
 	};
@@ -436,6 +426,28 @@ public class StartServiceActivity extends Activity {
 		public static final String uploadProgressBar = "com.intel.crashreport.uploadProgressBarView";
 		public static final String showProgressBar = "com.intel.crashreport.showProgressBarView";
 		public static final String hideProgressBar = "com.intel.crashreport.hideProgressBarView";
+	}
+
+	public void onKillService() {
+		hideDialog();
+		mService = null;
+		unregisterMsgReceiver();
+		if (app.isActivityBounded())
+			app.setActivityBounded(false);
+		cancelButton.setEnabled(false);
+		hidePleaseWait();
+	}
+
+	public void hideDialog() {
+		FragmentTransaction ft = getFragmentManager().beginTransaction();
+		Fragment prev = getFragmentManager().findFragmentByTag("dialog");
+		if (prev != null) {
+			ft.remove(prev);
+		}
+		ft.addToBackStack(null);
+		if(null != askDialog)
+			askDialog.dismiss();
+		askDialog = null;
 	}
 
 }

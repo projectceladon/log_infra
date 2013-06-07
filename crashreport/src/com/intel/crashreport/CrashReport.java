@@ -25,15 +25,12 @@ import java.util.Timer;
 
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.bugzilla.ui.BugStorage;
+import com.intel.crashreport.StartServiceActivity;
 
-import android.app.Activity;
 import android.app.Application;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
-import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -47,7 +44,7 @@ public class CrashReport extends Application {
 	private Build myBuild;
 	private BugStorage bugzillaStorage;
 	public static final int CRASH_POSTPONE_DELAY = 120; // crash delay postpone in sec
-	public static Activity boundedActivity = null;
+	public static StartServiceActivity boundedActivity = null;
 	private ArrayList<CrashReportRequest> requestList;
 
 	public void onCreate() {
@@ -105,12 +102,7 @@ public class CrashReport extends Application {
 	public void setServiceStarted(Boolean s){
 		serviceStarted = s;
 		if( (false == serviceStarted) && (null != boundedActivity) ) {
-			FragmentTransaction ft = boundedActivity.getFragmentManager().beginTransaction();
-			Fragment prev = boundedActivity.getFragmentManager().findFragmentByTag("dialog");
-			if (prev != null) {
-				ft.remove(prev);
-			}
-			ft.addToBackStack(null);
+			boundedActivity.onKillService();
 		}
 	}
 
@@ -129,7 +121,7 @@ public class CrashReport extends Application {
 		activityBounded = s;
 	}
 
-	public void setActivity(Activity activity) {
+	public void setActivity(StartServiceActivity activity) {
 		boundedActivity = activity;
 	}
 
