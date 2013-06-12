@@ -1,0 +1,41 @@
+# /etc/profile: system-wide .profile file for the Bourne shells
+echo
+echo -n "begin mount devices..."
+echo
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t tmpfs mdev /dev
+/bin/mkdir /dev/pts
+/bin/mount -t devpts devpts /dev/pts
+/bin/echo /bin/mdev > /proc/sys/kernel/hotplug
+/bin/mdev -s
+"please use actual partition to replace it"
+/bin/mount -t ext4 /dev/sda10 /data
+#/bin/mount -t ext4 /dev/mmcblk0p8 /data
+echo
+echo -n "mount end."
+sleep 1
+mkdir -p /data/media/logs/kdump
+touch /data/media/logs/kdump/kdumphappened
+echo
+echo -n "copy kdump..."
+echo
+if
+  /bin/cp /proc/vmcore /data/media/logs/kdump/kdumpfile.core
+then
+  /bin/sync
+  echo
+  echo -n "kdumpfile done."
+  touch /data/media/logs/kdump/kdumpfinished
+  echo
+fi
+PATH=/bin
+export PATH
+#specify "noreboot" in cmdline to stay in crash kernel
+if ! busybox grep -q noreboot /proc/cmdline; then
+  echo -n "rebooting..."
+  busybox reboot
+fi
+export PS1="[KDUMP]# "
+echo
+
