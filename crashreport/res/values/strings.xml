@@ -19,7 +19,7 @@
 <resources>
 <!-- App settings -->
     <string name="app_name">PSI Phone Doctor</string>
-    <string name="app_version">1.5.1</string>
+    <string name="app_version">1.6.0</string>
 
     <!-- Private settings -->
 
