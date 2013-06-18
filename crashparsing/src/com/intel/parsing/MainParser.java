@@ -17,6 +17,7 @@ public class MainParser{
 
 	public static final String PATH_UUID = "/logs/uuid.txt";
 
+	private final static String[] NEW_BOARD_FABRIC = {"saltbay","bodegabay"};
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
@@ -143,9 +144,23 @@ public class MainParser{
 
 				if(sTag.equals("FABRICERR") || sTag.equals("MEMERR") || sTag.equals("INSTERR")
 						|| sTag.equals("SRAMECCERR") || sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE")){
-					if (!fabricerr(sOutput)){
-						closeOutput();
-						return -1;
+					boolean bUseNewFabric = false;
+					for (String sBoardNew : NEW_BOARD_FABRIC){
+						if (sBoardNew.equals(sBoard)){
+							bUseNewFabric = true;
+							break;
+						}
+					}
+					if (bUseNewFabric){
+						if (!newFabricerr(sOutput)){
+							closeOutput();
+							return -1;
+						}
+					}else{
+						if (!fabricerr(sOutput)){
+							closeOutput();
+							return -1;
+						}
 					}
 				}
 
@@ -514,6 +529,123 @@ public class MainParser{
 			}
 			catch(Exception e) {
 				System.err.println( "fabricerr : " + e);
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return bResult;
+	}
+
+	private boolean isDataLine(String sTestString){
+		//ignore "* " line
+		if (sTestString.startsWith("* ")){
+			return false;
+		}
+		//ignore "---------" line
+		if (sTestString.startsWith("---------")){
+			return false;
+		}
+		//ignore blank line
+		if (sTestString.trim().length() == 0){
+			return false;
+		}
+		return true;
+	}
+
+	private boolean newFabricerr(String aFolder){
+		boolean bResult = true;
+
+		String sFabricFile = fileGrepSearch(".*ipanic_fabric_err.*", aFolder);
+		if (sFabricFile != ""){
+			String sData0 = "";
+			String sData1 = "";
+			String sData2 = "";
+			boolean bData0_1Found = false;
+			boolean bPatternStart0_1Found = false;
+			boolean bData2Found = false;
+			int iSubData0Count=0;
+			int iSubData1Count=0;
+			boolean bSubData2Found = false;
+			int iSubData2Count=0;
+
+			try{
+				Pattern patternData0_1 = java.util.regex.Pattern.compile("Summary of Fabric Error detail:");
+				Pattern patternData2 = java.util.regex.Pattern.compile("Additional logs associated.*");
+				String sCurLine;
+
+				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
+				while ((sCurLine = bufFabricFile.readLine()) != null) {
+
+					if (!bData0_1Found){
+						//check sub data first
+						if (bPatternStart0_1Found){
+							//need to check that line is eligible for data content
+							if (isDataLine(sCurLine)){
+								//just concat the 2 following lines
+								if (iSubData0Count < 2){
+									if (!sData0.equals("")){
+										sData0 += " / ";
+									}
+									sData0 += sCurLine;
+									iSubData0Count++;
+								}else if (iSubData1Count < 2){
+									if (!sData1.equals("")){
+										sData1 += " / ";
+									}
+									sData1 += sCurLine;
+									iSubData1Count++;
+								}
+								if (iSubData1Count >= 2){
+									bData0_1Found = true;
+								}
+							}
+						}else{
+							String sTmpData0;
+							sTmpData0 = simpleGrepAwk(patternData0_1, sCurLine, "", 0);
+							if (sTmpData0 != null){
+								iSubData0Count = 0;
+								iSubData1Count = 0;
+								bPatternStart0_1Found = true;
+								sData0 = "";
+								sData1 = "";
+							}
+						}
+					}
+
+					if (!bData2Found){
+						//check sub data first
+						if (bSubData2Found){
+							if (isDataLine(sCurLine)){
+								//just concat 4 following lines
+								if (iSubData2Count < 4){
+									if (!sData2.equals("")){
+										sData2 += " / ";
+									}
+									sData2 += sCurLine;
+									iSubData2Count++;
+								}else{
+									bData2Found = true;
+								}
+							}
+						}else{
+							String sTmpData2;
+							sTmpData2 = simpleGrepAwk(patternData2, sCurLine, "", 0);
+							if (sTmpData2 != null){
+								iSubData2Count = 0;
+								bSubData2Found = true;
+								sData2 = "";
+							}
+						}
+					}
+				}
+
+				bResult &= appendToCrashfile("DATA0=" + sData0);
+				bResult &= appendToCrashfile("DATA1=" + sData1);
+				bResult &= appendToCrashfile("DATA2=" + sData2);
+				bufFabricFile.close();
+			}
+			catch(Exception e) {
+				System.err.println( "newfabricerr : " + e);
 				e.printStackTrace();
 				return false;
 			}
