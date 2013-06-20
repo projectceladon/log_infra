@@ -64,13 +64,15 @@ public class StartServiceActivity extends Activity {
 	private static final int DIALOG_REP_NEVER = 2;
 	private static final int DIALOG_REP_ABORT = 3;
 	private static final int DIALOG_REP_READ = 4;
+	private static final int DIALOG_UNKNOWN_VALUE = -1;
 	private static Boolean needToStartService = false;
 	private ApplicationPreferences appPrefs;
-	private int dialog_value = 0;
+	private static int dialog_value = 0;
 	private TextView text;
 	private Button cancelButton;
 	private ViewStub waitStub;
 	private ProgressBar progressBar;
+	private Button uploadEvents;
 	private static boolean instanceStateSaved = false;
 	private static boolean progressBarDisplayable = false;
 	private DialogFragment askDialog = null;
@@ -121,6 +123,21 @@ public class StartServiceActivity extends Activity {
 			   }
 			});
 		instanceStateSaved = false;
+
+		uploadEvents = (Button) findViewById(R.id.summary_events_upload_button);
+		if (uploadEvents != null)
+			uploadEvents.setOnClickListener(new OnClickListener() {
+				public void onClick(View v) {
+					if(DIALOG_REP_ABORT != dialog_value)
+						doActionAfterSelectUploadState(DIALOG_REP_READ);
+					else
+						displayDialog(DIALOG_ASK_UPLOAD_ID);
+
+				}
+			});
+		uploadEvents.setEnabled(false);
+		uploadEvents.setVisibility(View.GONE);
+
 	}
 
 	private void updateSummary() {
@@ -161,6 +178,16 @@ public class StartServiceActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+
+		Intent intent = getIntent();
+		if(null != intent){
+			if(intent.getBooleanExtra("com.intel.crashreport.extra.fromOutside", false)) {
+				dialog_value = DIALOG_UNKNOWN_VALUE;
+				intent.removeExtra("com.intel.crashreport.extra.fromOutside");
+				setIntent(intent);
+			}
+		}
+
 		if (!app.isServiceStarted()) {
 			needToStartService = true;
 			startService();
@@ -186,6 +213,10 @@ public class StartServiceActivity extends Activity {
 	public void onBackPressed() {
 		Log.d("StartServiceActivity: onBackPressed");
 		hideDialog();
+		if((null != mService) && mService.isServiceWaitForResponse()) {
+			appPrefs.setUploadStateToAsk();
+			mService.sendMessage(ServiceMsg.uploadDisabled);
+		}
 		super.onBackPressed();
 	}
 
@@ -247,6 +278,7 @@ public class StartServiceActivity extends Activity {
 		});
 		builder.setNegativeButton(R.string.alert_dialog_cancel, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
+				dialog_value = DIALOG_REP_ABORT;
 				doActionAfterSelectUploadState(DIALOG_REP_ABORT);
 			}
 		});
@@ -332,6 +364,9 @@ public class StartServiceActivity extends Activity {
 				break;
 			}
 		}
+		uploadEvents.setEnabled(false);
+		uploadEvents.setVisibility(View.GONE);
+
 	}
 
 	public void registerMsgReceiver() {
@@ -356,7 +391,29 @@ public class StartServiceActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equals(ServiceToActivityMsg.askForUpload)) {
-				displayDialog(DIALOG_ASK_UPLOAD_ID);
+				switch(dialog_value){
+				case DIALOG_UNKNOWN_VALUE:
+					displayDialog(DIALOG_ASK_UPLOAD_ID);
+					break;
+
+				case DIALOG_REP_NOW:
+					String uploadStatePref = appPrefs.getUploadState();
+					if (uploadStatePref.contentEquals("uploadImmediately")) {
+						doActionAfterSelectUploadState(DIALOG_REP_READ);
+						break;
+					}
+				case DIALOG_REP_ABORT:
+					uploadEvents.setEnabled(true);
+					uploadEvents.setVisibility(View.VISIBLE);
+					uploadEvents.setWidth(cancelButton.getWidth());
+					break;
+
+				case DIALOG_REP_NEVER:
+				case DIALOG_REP_POSTPONE:
+					doActionAfterSelectUploadState(DIALOG_REP_READ);
+					break;
+
+				}
 			} else if (intent.getAction().equals(ServiceToActivityMsg.updateLogTextView)) {
 				text.setText(mService.getLogger().getLog());
 				updateSummary();
@@ -408,6 +465,29 @@ public class StartServiceActivity extends Activity {
 				if (mService.isServiceUploading()) {
 					cancelButton.setEnabled(true);
 					showPleaseWait();
+				}
+
+				if(mService.isServiceWaitForResponse()) {
+					switch(dialog_value){
+
+					case DIALOG_REP_NOW:
+						String uploadStatePref = appPrefs.getUploadState();
+						if (uploadStatePref.contentEquals("uploadImmediately")) {
+							doActionAfterSelectUploadState(DIALOG_REP_READ);
+							break;
+						}
+					case DIALOG_REP_ABORT:
+						uploadEvents.setEnabled(true);
+						uploadEvents.setVisibility(View.VISIBLE);
+						uploadEvents.setWidth(cancelButton.getWidth());
+						break;
+
+					case DIALOG_REP_NEVER:
+					case DIALOG_REP_POSTPONE:
+						doActionAfterSelectUploadState(DIALOG_REP_READ);
+						break;
+
+					}
 				}
 			}
 		}

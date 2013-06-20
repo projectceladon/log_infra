@@ -45,7 +45,6 @@
 
         <TextView
             android:id="@+id/emptyText"
-            android:layout_weight="1.0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -56,6 +55,13 @@
             android:enabled="false"
             android:layout_gravity="center"
             android:text="@string/start_service_activity_cancel_report" />
+
+        <Button
+            android:id="@+id/summary_events_upload_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/upload_log_button" />
 
         <ListView
             android:id="@+id/listEventView"

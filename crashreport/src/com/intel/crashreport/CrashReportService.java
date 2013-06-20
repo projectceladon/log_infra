@@ -129,6 +129,10 @@ public class CrashReportService extends Service {
 		return (serviceState == ServiceState.UploadEvent);
 	}
 
+	public boolean isServiceWaitForResponse() {
+		return (serviceState == ServiceState.WaitForUploadResponse);
+	}
+
 	public void cancelDownload() {
 		if (serviceState == ServiceState.UploadEvent) {
 			if ((runThread != null) && runThread.isAlive())

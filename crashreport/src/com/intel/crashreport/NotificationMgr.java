@@ -77,6 +77,7 @@ public class NotificationMgr {
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
 		clearNonCriticalNotification();
@@ -92,6 +93,7 @@ public class NotificationMgr {
 		long when = System.currentTimeMillis();
 		Notification notification = new Notification(icon, tickerText, when);
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
@@ -120,6 +122,7 @@ public class NotificationMgr {
 		Notification notification = new Notification(icon, tickerText, when);
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
