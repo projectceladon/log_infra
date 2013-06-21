@@ -56,6 +56,7 @@ public class CrashReport extends Application {
 		requestList = new ArrayList<CrashReportRequest>();
 		String version = this.getString(R.string.app_version);
 		EventGenerator.INSTANCE.setContext(getApplicationContext());
+		GeneralEventGenerator.INSTANCE.setContext(getApplicationContext());
 
 		if (!privatePrefs.getVersion().contentEquals(version)) {
 			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
