@@ -111,6 +111,17 @@ public class BugzillaSummaryActivity extends Activity {
 					line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
 					sArguments.add(line);
 				}
+
+		        if(!app.isUserBuild()) {
+				String[] bplogTypesValues = getResources().getStringArray(R.array.reportBugzillaBplogTypeValues);
+				for (int j=0; j<bplogTypesValues.length;j++) {
+					if(bplogTypesValues[j].equals(bugzillaStorage.getBugType())) {
+						line = "BPLOG=1\n";
+						sArguments.add(line);
+						break;
+					}
+				}
+			}
 				line = "SUMMARY="+bugzillaStorage.getSummary()+"\n";
 				sArguments.add(line);
 				line = "TYPE="+bugzillaStorage.getBugType()+"\n";

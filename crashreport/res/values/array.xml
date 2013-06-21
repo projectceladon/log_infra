@@ -102,6 +102,11 @@
 		<item>Other</item>
 	</string-array>
 
+	<string-array name="reportBugzillaBplogTypeValues">
+		<item>Call drop</item>
+		<item>3G Data loss</item>
+	</string-array>
+
 	<string-array name="reportBugzillaSeverityValues">
 		<item>low</item>
 		<item>medium</item>

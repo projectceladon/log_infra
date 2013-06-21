@@ -90,6 +90,9 @@ public class BZFile {
 						else if (name.equals("APLOG")) {
 							//nothing to do
 						}
+						else if (name.equals("BPLOG")) {
+							//nothing to do
+						}
 						else
 							Log.w("BzFile: field name\"" + name + "\" not recognised");
 					}
