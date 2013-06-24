@@ -231,8 +231,17 @@ public class WiFiMonitor extends Monitor {
         WifiManager wifiMgr = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
         // Check if we are already connected to an AP
-        if(wifiMgr.getConnectionInfo().getNetworkId() != -1){
-            return;
+        try {
+            if (wifiMgr.getConnectionInfo().getNetworkId() != -1) {
+                return;
+            }
+        /* Very rarely the above call causes an exception in os.Parcel.read, when
+           trying to retrieve connection info. The issue is likely in the WifiManagerService
+           implementation, but we do not want our monitor to crash because of this
+           However, still print the stack trace for further debug */
+        } catch (NullPointerException e) {
+                e.printStackTrace();
+                return;
         }
 
         // Check if we are already conncted to an Access
