@@ -46,6 +46,8 @@ public class MonitorMasterService extends Service {
     private LinkedList<Intent> msgQueue;
     private IntentHandlingThread ht;
 
+    private boolean serviceRunning;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -61,11 +63,16 @@ public class MonitorMasterService extends Service {
         triggerFileName = STATDIR + "/" + PD_PACKAGE + "_trigger";
         msgQueue = new LinkedList<Intent>();
         ht = new IntentHandlingThread();
+        serviceRunning = false;
     }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
+        if (serviceRunning) // In case we receive multiple start events
+            return START_STICKY;
+
+        serviceRunning = true;
         boolean softStart = true; // true if we are not restarted after being killed by LMK
 
         if (createMonitorList()) {
@@ -79,7 +86,7 @@ public class MonitorMasterService extends Service {
             filter.addAction(NEXT_MONITOR_ACTION);
             filter.addAction(Intent.ACTION_SHUTDOWN);
 
-            ht.start();
+            if (!ht.isAlive()) ht.start();
             registerReceiver(mMasterReceiver, filter);
 
             setUploadAlarm(softStart);
@@ -101,6 +108,7 @@ public class MonitorMasterService extends Service {
         cancelUploadAlarm();
         // If killed by LMK - the receiver will be automatically destroyed.
         unregisterReceiver(mMasterReceiver);
+        serviceRunning = false;
     }
 
     private boolean isAllMonitorsEmpty() {
