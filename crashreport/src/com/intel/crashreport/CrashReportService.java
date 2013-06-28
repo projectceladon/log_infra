@@ -436,6 +436,7 @@ public class CrashReportService extends Service {
 					try {
 						db.open();
 						con.setupServerConnection();
+						int crashNumber = db.getNewCrashNumber();
 						//upload Events
 						do {
 							sendEvents(db, con, myBuild);
@@ -459,7 +460,7 @@ public class CrashReportService extends Service {
 								if (prefs.isWifiOnlyForEventData() && !con.getWifiConnectionAvailability()) {
 									nMgr.notifyEventDataWifiOnly(cursor.getCount());
 								} else {
-									nMgr.notifyUploadingLogs(cursor.getCount());
+									nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
 									while (!cursor.isAfterLast()) {
 										if (runThread.isInterrupted())
 											throw new InterruptedException();
@@ -508,13 +509,14 @@ public class CrashReportService extends Service {
 										cursor.moveToNext();
 										if(db.isThereEventToUpload()) {
 											cursor.close();
+											crashNumber = db.getNewCrashNumber();
 											updateEventsSummary(db);
 											sendEvents(db,con,myBuild);
 											crashTypes = prefs.getCrashLogsUploadTypes();
 											cursor = db.fetchNotUploadedLogs(crashTypes);
 											if ((cursor != null) && (cursor.getCount() != 0)) {
 												nMgr = new NotificationMgr(context);
-												nMgr.notifyUploadingLogs(cursor.getCount());
+												nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
 											}
 											else break;
 										}
