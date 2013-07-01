@@ -142,8 +142,10 @@ public class MainParser{
 					}
 				}
 
-				if(sTag.equals("FABRICERR") || sTag.equals("MEMERR") || sTag.equals("INSTERR")
-						|| sTag.equals("SRAMECCERR") || sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE")){
+				if (sTag.equals("FABRICERR") || sTag.equals("MEMERR") ||
+				    sTag.equals("INSTERR") || sTag.equals("SRAMECCERR") ||
+				    sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE") ||
+				    sTag.equals("FIRMWARE")) {
 					boolean bUseNewFabric = false;
 					for (String sBoardNew : NEW_BOARD_FABRIC){
 						if (sBoardNew.equals(sBoard)){
