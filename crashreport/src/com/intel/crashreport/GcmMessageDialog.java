@@ -72,7 +72,6 @@ public class GcmMessageDialog extends Activity{
 					Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
 				}
 			}
-
 		}
 		if(!result)
 			finish();
@@ -81,16 +80,8 @@ public class GcmMessageDialog extends Activity{
 	private OnClickListener okListener = new OnClickListener(){
 
 		public void onClick(View v) {
-			EventDB db = new EventDB(getApplicationContext());
-			try {
-				db.open();
-				db.updateGcmMessageToCancelled(rowId);
-				db.close();
-			}
-			catch (SQLException e){
-				Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
-			}
-
+			CrashReport app = (CrashReport)getApplicationContext();
+			app.takeGcmAction(rowId, type, data);
 			finish();
 		}
 

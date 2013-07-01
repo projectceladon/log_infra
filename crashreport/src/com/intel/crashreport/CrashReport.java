@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 
+import com.intel.crashreport.GcmMessage.GCM_ACTION;
 import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.EventDB;
@@ -34,10 +35,13 @@ import com.intel.crashreport.bugzilla.BZFile;
 
 
 import android.app.Application;
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
 
+import android.net.Uri;
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -279,5 +283,42 @@ public class CrashReport extends Application {
 	public boolean isGcmEnabled() {
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
 		return privatePrefs.isGcmEnable();
+	}
+
+	/**
+	 * Do the action associated with a Gcm message
+	 * - Open a web browser for an URL message
+	 * - Open an app for an APP message
+	 * - Nothing for a NONE message
+	 * @param message
+	 * @return true if the action has been done successfully
+	 */
+	public boolean takeGcmAction(int rowId, GCM_ACTION type, String data) {
+		boolean result = false;
+		EventDB db = new EventDB(getApplicationContext());
+		try {
+			db.open();
+			db.updateGcmMessageToCancelled(rowId);
+			result = true;
+			db.close();
+		}
+		catch (SQLException e){
+			Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
+		}
+
+		if(GCM_ACTION.GCM_URL == type) {
+			try {
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(data));
+				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intent);
+			}
+			catch (NullPointerException e) {
+				Log.w("CrashReport:takeGcmAction: no url:"+data);
+			}
+			catch (ActivityNotFoundException e) {
+				Log.w("CrashReport:takeGcmAction: bad url format:"+data);
+			}
+		}
+		return result;
 	}
 }

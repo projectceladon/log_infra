@@ -50,28 +50,8 @@ public class ListGcmMessagesActivity extends Activity {
 				if(GCM_ACTION.GCM_NONE != aMessage.getType()) {
 					alert.setButton(DialogInterface.BUTTON_POSITIVE,context.getString(R.string.gcm_list_ok), new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
-							switch(aMessage.getType()){
-
-							case GCM_APP:
-							case GCM_URL:
-							default:
-								break;
-
-							}
-							EventDB db = new EventDB(getApplicationContext());
-							boolean resultDelete = false;
-							try {
-								db.open();
-								resultDelete = db.updateGcmMessageToCancelled(aMessage.getRowId());
-								db.close();
-							}
-							catch (SQLException e){
-								Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
-								resultDelete = false;
-							}
-							if(resultDelete)
+							if(app.takeGcmAction(aMessage.getRowId(), aMessage.getType(), aMessage.getData()))
 								updateList();
-
 						}
 					});
 					alert.setButton(DialogInterface.BUTTON_NEGATIVE,context.getString(R.string.alert_dialog_cancel), new DialogInterface.OnClickListener() {
