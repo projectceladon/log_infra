@@ -37,6 +37,7 @@ public class NotificationMgr {
 	private static final int NOTIF_CRITICAL_EVENT_ID = 3;
 	private static final int NOTIF_UPLOAD_WIFI_ONLY_ID = 4;
 	public static final int NOTIF_CRASHTOOL = 5;
+	private static final int NOTIF_CRASH_EVENT_ID = 6;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
@@ -160,28 +161,59 @@ public class NotificationMgr {
 		mNotificationManager.cancel(NOTIF_UPLOAD_WIFI_ONLY_ID);
 	}
 
+	/**
+	 * Remove Critical events notification
+	 */
 	public void cancelNotifCriticalEvent(){
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		mNotificationManager.cancel(NOTIF_CRITICAL_EVENT_ID);
 	}
 
-	public void notifyCriticalEvent(int crashNumber){
+	/**
+	 * Remove no Critical events notification
+	 */
+	public void cancelNotifNoCriticalEvent(){
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		mNotificationManager.cancel(NOTIF_CRASH_EVENT_ID);
+	}
+
+	public void notifyCriticalEvent(int criticalEventNumber, int crashNumber){
+
+		ApplicationPreferences prefs = new ApplicationPreferences(context);
+
 		CharSequence tickerText = "Critical events occured";
-		CharSequence contentTitle = "Phone Doctor";
 		CharSequence contentText ;
-		if( crashNumber > 1)
-			contentText = crashNumber+" critical events occured";
-		else contentText = crashNumber+" critical event occured";
-		int icon = R.drawable.icon;
+		if( criticalEventNumber > 1)
+			contentText = criticalEventNumber+" critical events occured";
+		else contentText = "A critical event occured";
+
+		int icon = R.drawable.icon_critical;
+		if(criticalEventNumber > 0 || crashNumber > 0)
+			clearNonCriticalNotification();
+		if(criticalEventNumber > 0)
+			notifyCrashOrCriticalEvent(NOTIF_CRITICAL_EVENT_ID, icon, tickerText, contentText);
+
+		if(prefs.isNotificationForAllCrash() && (crashNumber > 0)) {
+			tickerText = "Crashes occured";
+			icon = R.drawable.icon_crash;
+			if( crashNumber > 1)
+				contentText = crashNumber+" crashes occured";
+			else contentText = "A crash occured";
+			notifyCrashOrCriticalEvent(NOTIF_CRASH_EVENT_ID, icon, tickerText, contentText);
+		}
+
+	}
+
+	public void notifyCrashOrCriticalEvent(int notifId, int icon, CharSequence tickerText, CharSequence contentText) {
 		long when = System.currentTimeMillis();
+		CharSequence contentTitle = "PSI Phone Doctor";
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification notification = new Notification(icon, tickerText, when);
 		Intent notificationIntent = new Intent(context, NotifyEventActivity.class);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-		clearNonCriticalNotification();
-		mNotificationManager.notify(NOTIF_CRITICAL_EVENT_ID, notification);
+		mNotificationManager.notify(notifId, notification);
 	}
 
 	public void notifyGcmMessage(int nbMessages, GcmMessage message) {

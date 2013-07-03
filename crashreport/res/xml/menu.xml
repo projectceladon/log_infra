@@ -54,6 +54,12 @@
             android:key="@string/settings_connection_wifi_only_key"
             android:dependency="@string/settings_event_data_enable_key" />
 
+        <CheckBoxPreference
+            android:title="@string/settings_all_crash_notification_title"
+            android:defaultValue="@string/settings_all_crash_notification_value_default"
+            android:summary="@string/settings_all_crash_notification_summary"
+            android:key="@string/settings_all_crash_notification_key" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

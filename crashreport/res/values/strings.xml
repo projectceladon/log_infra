@@ -85,6 +85,11 @@
     <string name="settings_connection_wifi_only_summary">Upload event data files through WiFi only</string>
     <string name="settings_connection_wifi_only_value_default">false</string>
 
+    <string name="settings_all_crash_notification_key">settings_all_crash_notification</string>
+    <string name="settings_all_crash_notification_title">All crash notification</string>
+    <string name="settings_all_crash_notification_summary">Display persistent notification for all crashes</string>
+    <string name="settings_all_crash_notification_value_default">false</string>
+
     <string name="settings_bugzilla_category_title">Bugzilla report settings</string>
 
     <string name="settings_bugzilla_user_last_name_key">settings_bugzilla_user_last_name</string>

@@ -1,21 +1,21 @@
 /* Phone Doctor (CLOTA)
-*
-* Copyright (C) Intel 2012
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*
-* Author: Charles-Edouard Vidoine <charles.edouardx.vidoine@intel.com>
-*/
+ *
+ * Copyright (C) Intel 2012
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Charles-Edouard Vidoine <charles.edouardx.vidoine@intel.com>
+ */
 
 package com.intel.crashreport.specific;
 
@@ -34,6 +34,7 @@ import android.os.Message;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.Logger;
@@ -247,8 +248,13 @@ public class CheckEventsService extends Service {
 				}
 			}
 
-			if (db.isThereEventToNotify()) {
-				nMgr.notifyCriticalEvent(db.getCriticalEventsNumber());
+
+
+			ApplicationPreferences prefs = new ApplicationPreferences(context);
+			boolean bNotifyAllCrashes = prefs.isNotificationForAllCrash();
+
+			if (db.isThereEventToNotify(bNotifyAllCrashes)) {
+				nMgr.notifyCriticalEvent(db.getCriticalEventsNumber(), db.getCrashToNotifyNumber());
 			}
 			if (db.isThereEventToUpload()){
 				if(!app.isServiceStarted())
@@ -348,8 +354,8 @@ public class CheckEventsService extends Service {
 
 		@Override
 		public void run() {
-				Intent intent = new Intent("com.intel.crashreport.intent.RELAUNCH_SERVICE");
-				context.sendBroadcast(intent);
+			Intent intent = new Intent("com.intel.crashreport.intent.RELAUNCH_SERVICE");
+			context.sendBroadcast(intent);
 		}
 	}
 

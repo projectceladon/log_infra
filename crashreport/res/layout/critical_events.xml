@@ -8,6 +8,13 @@
         android:id="@+id/criticalEventsView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="#fdbb13"
+    />
+    <TextView
+        android:id="@+id/crashEventsView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#ffda00"
     />
 
 </LinearLayout>

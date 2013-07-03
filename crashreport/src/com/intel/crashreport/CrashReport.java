@@ -19,7 +19,6 @@
 
 package com.intel.crashreport;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 
 
@@ -31,7 +30,6 @@ import com.intel.crashreport.specific.EventGenerator;
 
 import com.intel.crashreport.StartServiceActivity;
 import com.google.android.gcm.GCMRegistrar;
-import com.intel.crashreport.bugzilla.BZFile;
 
 
 import android.app.Application;
@@ -77,11 +75,19 @@ public class CrashReport extends Application {
 
 			resetCrashLogsUploadTypes();
 			EventDB db = new EventDB(this.getApplicationContext());
-
 			try {
 				db.open();
 				db.deleteAllTypes();
+				db.close();
+			} catch (SQLException e) {
+				Log.w("CrashReport: update of critical crash db failed");
+			}
+		}
 
+		EventDB db = new EventDB(this.getApplicationContext());
+		try {
+			db.open();
+			if(db.isTypeListEmpty()) {
 				db.deleteAllCriticalEvents();
 
 				db.addTypes(new String[]{"IPANIC","FABRICERR","IPANIC_SWWDT","IPANIC_HWWDT","MEMERR","INSTERR","SRAMECCERR","HWWDTLOGERR","MSHUTDOWN","UIWDT","WDT"},1);
@@ -93,14 +99,16 @@ public class CrashReport extends Application {
 				}
 
 				db.insertCricitalEvent("TOMBSTONE", "system_server", "", "", "", "", "");
-				db.close();
-			} catch (SQLException e) {
-				Log.w("CrashReport: update of critical crash db failed");
 			}
+			db.close();
+		} catch (SQLException e) {
+			Log.w("CrashReport: update of critical crash db failed");
 		}
+
 		//first try to register GCM TOKEN
 		if(privatePrefs.isGcmEnable())
 			checkTokenGCM();
+
 	}
 
 	public boolean isCheckEventsServiceStarted(){

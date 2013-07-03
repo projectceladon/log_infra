@@ -19,11 +19,20 @@
 
 package com.intel.crashreport.specific;
 
+import java.io.FileNotFoundException;
+
 import com.intel.crashreport.GeneralCrashReportActivity;
+import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.R;
 
+import android.content.Context;
+import android.content.BroadcastReceiver.PendingResult;
+import android.database.SQLException;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceChangeListener;
 
 import android.preference.PreferenceCategory;
 
@@ -37,6 +46,55 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
             PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
             dataPreferences.removePreference(wifiPreference);
         }
+        CheckBoxPreference crashNotificationPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_all_crash_notification_key));
+        crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
+    }
+
+    private OnPreferenceChangeListener changeNotificationListener = new OnPreferenceChangeListener(){
+
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            Boolean notifyAllCrashes = (Boolean)newValue;
+            if(notifyAllCrashes)
+                new NotifyEventsTask(getApplicationContext()).execute();
+            else {
+                NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
+                nMgr.cancelNotifNoCriticalEvent();
+            }
+            return true;
+        }
+
+    };
+
+    public class NotifyEventsTask extends AsyncTask<Void, Void, Void> {
+
+        private Context context;
+
+        public NotifyEventsTask(Context ctx){
+            context = ctx;
+        }
+
+        protected Void doInBackground(Void... params) {
+            EventDB db = new EventDB(context);
+            try {
+                db.open();
+                if (db.isThereEventToNotify(true)) {
+                    NotificationMgr nMgr = new NotificationMgr(context);
+                    nMgr.notifyCriticalEvent(db.getCriticalEventsNumber(), db.getCrashToNotifyNumber());
+                }
+                db.close();
+            } catch (SQLException e) {
+            throw e;
+           }
+           return null;
+        }
+
+        protected void onProgressUpdate(Void... params) {
+        }
+
+        protected void onPostExecute(Void... params) {
+
+        }
+
     }
 
 }

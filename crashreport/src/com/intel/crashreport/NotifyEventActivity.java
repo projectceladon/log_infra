@@ -22,6 +22,7 @@ package com.intel.crashreport;
 import android.app.Activity;
 import android.database.SQLException;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.database.Cursor;
 import java.util.*;
@@ -33,27 +34,30 @@ import com.intel.crashreport.specific.EventDB;
 public class NotifyEventActivity extends Activity {
 
 	private ApplicationPreferences appPrefs;
-	private TextView text;
+	private TextView crashText;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.critical_events);
 		appPrefs = new ApplicationPreferences(getApplicationContext());
-		text = (TextView) findViewById(R.id.criticalEventsView);
-		text.setText("");
+		TextView criticalText = (TextView) findViewById(R.id.criticalEventsView);
+		crashText = (TextView) findViewById(R.id.crashEventsView);
+		crashText.setVisibility(View.GONE);
+		criticalText.setVisibility(View.GONE);
 
 	}
 
-	public void printInfo(){
+	public void printInfo(boolean critical){
 		EventDB db = new EventDB(getApplicationContext());
 		Event event;
 		Cursor cursor;
+		TextView viewText;
 		HashMap<String,Integer> infos = new HashMap<String,Integer>();
 
 		try {
 			db.open();
-			cursor = db.fetchNotNotifiedEvents();
+			cursor = db.fetchNotNotifiedEvents(critical);
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
 					event = db.fillEventFromCursor(cursor);
@@ -71,25 +75,27 @@ public class NotifyEventActivity extends Activity {
 		} catch (SQLException e) {
 			Log.w("Service: db Exception");
 		}
-		text.setText("");
+		if(critical)
+			viewText = (TextView) findViewById(R.id.criticalEventsView);
+		else
+			viewText = (TextView) findViewById(R.id.crashEventsView);
 
+		if(infos.keySet().size() > 0)
+			viewText.setVisibility(View.VISIBLE);
+
+		viewText.setText("");
 		for ( String type : infos.keySet()){
-
-			if( infos.get(type) == 1)
-				text.append(infos.get(type)+" "+type+" crash occured\n");
-			else
-				text.append(infos.get(type)+" "+type+" crashes occured\n");
-
+			viewText.append(infos.get(type)+" "+type+" occured\n");
 		}
 	}
 
-	public void notifyEvents(){
+	public void notifyEvents(boolean critical){
 		EventDB db = new EventDB(getApplicationContext());
 		Event event;
 		Cursor cursor;
 		try {
 			db.open();
-			cursor = db.fetchNotNotifiedEvents();
+			cursor = db.fetchNotNotifiedEvents(critical);
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
 					event = db.fillEventFromCursor(cursor);
@@ -102,18 +108,26 @@ public class NotifyEventActivity extends Activity {
 		} catch (SQLException e) {
 			Log.w("Service: db Exception");
 		}
-		NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
-		nMgr.cancelNotifCriticalEvent();
 	}
 
 	protected void onResume() {
 		super.onResume();
-		printInfo();
+		printInfo(true);
+		if(appPrefs.isNotificationForAllCrash())
+			printInfo(false);
+		else
+			crashText.setVisibility(View.GONE);
 	}
 
 	public void onBackPressed() {
 		super.onBackPressed();
-		notifyEvents();
+		notifyEvents(true);
+		NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
+		nMgr.cancelNotifCriticalEvent();
+		if(appPrefs.isNotificationForAllCrash()) {
+			notifyEvents(false);
+			nMgr.cancelNotifNoCriticalEvent();
+		}
 	}
 
 }

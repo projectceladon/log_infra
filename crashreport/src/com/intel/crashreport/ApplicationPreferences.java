@@ -226,6 +226,18 @@ public class ApplicationPreferences {
 	}
 
 	/**
+	 * Return true if event data, formerly named crashlogs, must be uploaded through WiFi only.
+	 *
+	 * @return true if event data are uploaded through WiFi only, else false.
+	 */
+	public Boolean isNotificationForAllCrash() {
+		return appSharedPrefs.getBoolean(
+			mCtx.getString(R.string.settings_all_crash_notification_key),
+			Boolean.valueOf(mCtx.getString(R.string.settings_all_crash_notification_value_default)));
+	}
+
+
+	/**
 	 * Return the Crashtool server address, domain name.
 	 *
 	 * @return a String representing the Crashtool server address

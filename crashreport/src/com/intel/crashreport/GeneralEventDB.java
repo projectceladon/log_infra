@@ -508,24 +508,6 @@ public class GeneralEventDB {
 		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='REBOOT'");
 	}
 
-	private int getNumberFromWhereQuery(String whereQuery) {
-		Cursor mCursor;
-		int count;
-		try {
-			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				mCursor.close();
-				return count;
-			}
-		} catch (SQLException e) {
-			return 0;
-		}
-		return 0;
-	}
-
 	public boolean updateEventToUploaded(String eventId) {
 		ContentValues args = new ContentValues();
 
@@ -578,6 +560,28 @@ public class GeneralEventDB {
 		}
 	}
 
+	public Boolean isTypeListEmpty() throws SQLException {
+		return !isTypeExistFromWhereQuery(null);
+	}
+
+	private int getNumberFromWhereQuery(String whereQuery) {
+		Cursor mCursor;
+		int count;
+		try {
+			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
+					whereQuery, null,
+					null, null, null, null);
+			if (mCursor != null) {
+				count = mCursor.getCount();
+				mCursor.close();
+				return count;
+			}
+		} catch (SQLException e) {
+			return 0;
+		}
+		return 0;
+	}
+
 	public boolean updateEventToNotified(String eventId) {
 		ContentValues args = new ContentValues();
 
@@ -608,29 +612,57 @@ public class GeneralEventDB {
 		return isTypeExistFromWhereQuery(KEY_TYPE + "='" + type + "'");
 	}
 
-	public Cursor fetchNotNotifiedEvents() throws SQLException {
+	/**
+	 * Get all critical events or uncritical crashes depending on critical parameter value
+	 * @param critical true to get critical events, false to get uncritical crashes
+	 * @return critical events or uncritical crashes
+	 * @throws SQLException
+	 */
+	public Cursor fetchNotNotifiedEvents(boolean critical) throws SQLException {
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
 				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-				+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"="+(critical?"1":"0")+")"
+				+ (critical?" or":" and")+" ("+KEY_ID+(critical?"":" not")+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
-	public boolean isThereEventToNotify() throws SQLException {
-		String whereQuery = KEY_NOTIFIED+"='0' and "+
-				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-				+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+	/**
+	 * Check if there is events to be notified.
+	 * @param bAllCrashes true crashes events or critical events to notify, false only critical events to notify
+	 * @return true if there are events to notify
+	 * @throws SQLException
+	 */
+	public boolean isThereEventToNotify(boolean bAllCrashes) throws SQLException {
+
+		String whereQuery;
+		if (bAllCrashes){
+			//all events related to known event_type are used (corresponds to crashes)
+			whereQuery= KEY_NOTIFIED+"='0' and ("+
+					KEY_NAME+"='CRASH' "
+					+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+		}else{
+			//critical only
+			whereQuery= KEY_NOTIFIED+"='0' and "+
+					"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
+					DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
+					+ " or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+
+		}
 		return isEventExistFromWhereQuery(whereQuery);
 	}
 
-	public int getCriticalEventsNumber() {
+	/**
+	 * Get number of events to notify
+	 * @param crash true to get uncritical crashes number, false to get all critical events number
+	 * @return uncritical crashes number or critical events number
+	 */
+	public int getEventsToNotifyNumber(boolean crash) {
 		Cursor mCursor;
 		int count;
 		String whereQuery = KEY_NOTIFIED+"='0' and "+
 				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-				+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"="+(crash?"0":"1")+")"
+				+ (crash?" and":" or")+" ("+KEY_ID+" "+(crash?"not ":"")+"in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
 		try {
 			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
 					whereQuery, null,
@@ -644,6 +676,14 @@ public class GeneralEventDB {
 			return 0;
 		}
 		return 0;
+	}
+
+	public int getCriticalEventsNumber() {
+		return getEventsToNotifyNumber(false);
+	}
+
+	public int getCrashToNotifyNumber() {
+		return getEventsToNotifyNumber(true);
 	}
 
 
@@ -692,7 +732,7 @@ public class GeneralEventDB {
 
 	public void deleteEventsBeforeUpdate(String eventId){
 		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')"
-				           + " and "+KEY_NAME+"<> 'BZ'";
+				+ " and "+KEY_NAME+"<> 'BZ'";
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
 	}
 
