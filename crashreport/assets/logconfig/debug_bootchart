@@ -1,0 +1,22 @@
+{
+    "description":"Enable bootchart (!NEED BOARD REBOOT!)",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.bootchart",
+                "value":"ON"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.bootchart",
+                "value":"OFF"
+            }
+        }
+    ]
+}
