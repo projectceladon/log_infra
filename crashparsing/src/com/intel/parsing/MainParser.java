@@ -17,7 +17,7 @@ public class MainParser{
 
 	public static final String PATH_UUID = "/logs/uuid.txt";
 
-	private final static String[] NEW_BOARD_FABRIC = {"saltbay","bodegabay"};
+	private final static String[] LEGACY_BOARD_FABRIC = {"redhookbay","victoriabay"};
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
@@ -146,10 +146,10 @@ public class MainParser{
 				    sTag.equals("INSTERR") || sTag.equals("SRAMECCERR") ||
 				    sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE") ||
 				    sTag.equals("FIRMWARE")) {
-					boolean bUseNewFabric = false;
-					for (String sBoardNew : NEW_BOARD_FABRIC){
+					boolean bUseNewFabric = true;
+					for (String sBoardNew : LEGACY_BOARD_FABRIC){
 						if (sBoardNew.equals(sBoard)){
-							bUseNewFabric = true;
+							bUseNewFabric = false;
 							break;
 						}
 					}
@@ -562,6 +562,7 @@ public class MainParser{
 			String sData0 = "";
 			String sData1 = "";
 			String sData2 = "";
+			String sDataHole = "";
 			boolean bData0_1Found = false;
 			boolean bPatternStart0_1Found = false;
 			boolean bData2Found = false;
@@ -569,10 +570,14 @@ public class MainParser{
 			int iSubData1Count=0;
 			boolean bSubData2Found = false;
 			int iSubData2Count=0;
+			boolean bDataHoleFound = false;
+			boolean bSubDataHoleFound = false;
+			int iSubDataHoleCount=0;
 
 			try{
 				Pattern patternData0_1 = java.util.regex.Pattern.compile("Summary of Fabric Error detail:");
-				Pattern patternData2 = java.util.regex.Pattern.compile("Additional logs associated.*");
+				Pattern patternData2 = java.util.regex.Pattern.compile(".*ERROR LOG.*");
+				Pattern patternHole = java.util.regex.Pattern.compile(".*Address Hole.*");
 				String sCurLine;
 
 				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
@@ -581,24 +586,29 @@ public class MainParser{
 					if (!bData0_1Found){
 						//check sub data first
 						if (bPatternStart0_1Found){
-							//need to check that line is eligible for data content
-							if (isDataLine(sCurLine)){
-								//just concat the 2 following lines
-								if (iSubData0Count < 2){
-									if (!sData0.equals("")){
-										sData0 += " / ";
+							//search should stop if pattern Data2 has been found
+							if (bSubData2Found){
+								bData0_1Found = true;
+							}else{
+								//need to check that line is eligible for data content
+								if (isDataLine(sCurLine)){
+									//just concat the 2 following lines
+									if (iSubData0Count < 2){
+										if (!sData0.equals("")){
+											sData0 += " / ";
+										}
+										sData0 += sCurLine;
+										iSubData0Count++;
+									}else if (iSubData1Count < 2){
+										if (!sData1.equals("")){
+											sData1 += " / ";
+										}
+										sData1 += sCurLine;
+										iSubData1Count++;
 									}
-									sData0 += sCurLine;
-									iSubData0Count++;
-								}else if (iSubData1Count < 2){
-									if (!sData1.equals("")){
-										sData1 += " / ";
+									if (iSubData1Count >= 2){
+										bData0_1Found = true;
 									}
-									sData1 += sCurLine;
-									iSubData1Count++;
-								}
-								if (iSubData1Count >= 2){
-									bData0_1Found = true;
 								}
 							}
 						}else{
@@ -610,6 +620,34 @@ public class MainParser{
 								bPatternStart0_1Found = true;
 								sData0 = "";
 								sData1 = "";
+							}
+						}
+					}
+
+					if (!bDataHoleFound){
+						//check sub data first
+						if (bSubDataHoleFound){
+							if (isDataLine(sCurLine)){
+								//just concat 2 following lines
+								if (iSubDataHoleCount < 2){
+									if (!sDataHole.equals("")){
+										sDataHole += " / ";
+									}else{
+										sDataHole = "Address hole : ";
+									}
+									sDataHole += sCurLine;
+									iSubDataHoleCount++;
+								}else{
+									bDataHoleFound = true;
+								}
+							}
+						}else{
+							String sTmpDataHole;
+							sTmpDataHole = simpleGrepAwk(patternHole, sCurLine, "", 0);
+							if (sTmpDataHole != null){
+								iSubDataHoleCount = 0;
+								bSubDataHoleFound = true;
+								sDataHole = "";
 							}
 						}
 					}
@@ -639,6 +677,11 @@ public class MainParser{
 							}
 						}
 					}
+				}
+
+				//if present, dataHole should replace data2
+				if (bDataHoleFound) {
+					sData2 = sDataHole;
 				}
 
 				bResult &= appendToCrashfile("DATA0=" + sData0);
