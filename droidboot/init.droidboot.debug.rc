@@ -1,3 +1,8 @@
+on boot
+#  Mount debugfs for systrace settings
+    mount debugfs none /sys/kernel/debug
+    symlink /sys/kernel/debug /d
+
 on property:sys.adb.config=adb
     stop droidboot
     write /sys/module/g_android/parameters/fastboot 0

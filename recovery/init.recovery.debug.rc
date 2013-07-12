@@ -1,2 +1,5 @@
 on boot
+#  Mount debugfs for systrace settings
+    mount debugfs none /sys/kernel/debug
+    symlink /sys/kernel/debug /d
     setprop service.adb.enable 1
