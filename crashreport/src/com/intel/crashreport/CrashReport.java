@@ -21,25 +21,19 @@ package com.intel.crashreport;
 
 import java.util.ArrayList;
 
-
-import com.intel.crashreport.GcmMessage.GCM_ACTION;
 import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.EventGenerator;
 
 import com.intel.crashreport.StartServiceActivity;
-import com.google.android.gcm.GCMRegistrar;
-
 
 import android.app.Application;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
 
-import android.net.Uri;
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -66,6 +60,7 @@ public class CrashReport extends Application {
 		String version = this.getString(R.string.app_version);
 		EventGenerator.INSTANCE.setContext(getApplicationContext());
 		GeneralEventGenerator.INSTANCE.setContext(getApplicationContext());
+		GcmEvent.INSTANCE.setContext(getApplicationContext());
 
 		if (!privatePrefs.getVersion().contentEquals(version)) {
 			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -109,8 +104,7 @@ public class CrashReport extends Application {
 
 		//first try to register GCM TOKEN
 		if(privatePrefs.isGcmEnable())
-			checkTokenGCM();
-
+			GcmEvent.INSTANCE.checkTokenGCM();
 	}
 
 	public boolean isCheckEventsServiceStarted(){
@@ -264,33 +258,6 @@ public class CrashReport extends Application {
 		return serviceRelaunched;
 	}
 
-	public void checkTokenGCM(){
-		GCMRegistrar.checkDevice(this);
-		final String regId = GCMRegistrar.getRegistrationId(this);
-		if (regId.equals("")) {
-			// Automatically registers application on startup.
-			Log.d("not registered, trying...");
-			GCMRegistrar.register(this, GCMIntentService.SENDER_ID);
-		} else {
-			// Device is already registered on GCM, check server.
-			if (GCMRegistrar.isRegisteredOnServer(this)) {
-				// Skips registration.
-				Log.d( "Already registered");
-				Log.d("GCM TOKEN = " + regId);
-				ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
-				if(!regId.equals(privatePrefs.getGcmToken())) {
-						privatePrefs.setGcmToken(regId);
-						GcmEvent.INSTANCE.registerGcm(regId);
-				}
-			}else{
-				//there is a problem, need to unregister/register
-				GCMRegistrar.unregister(this);
-				GCMRegistrar.register(this, GCMIntentService.SENDER_ID);
-				Log.d("not registered on server...");
-			}
-		}
-	}
-
 	public String getTokenGCM(){
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
 		if(privatePrefs.isGcmEnable())
@@ -301,43 +268,6 @@ public class CrashReport extends Application {
 	public boolean isGcmEnabled() {
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(this);
 		return privatePrefs.isGcmEnable();
-	}
-
-	/**
-	 * Do the action associated with a Gcm message
-	 * - Open a web browser for an URL message
-	 * - Open an app for an APP message
-	 * - Nothing for a NONE message
-	 * @param message
-	 * @return true if the action has been done successfully
-	 */
-	public boolean takeGcmAction(int rowId, GCM_ACTION type, String data) {
-		boolean result = false;
-		EventDB db = new EventDB(getApplicationContext());
-		try {
-			db.open();
-			db.updateGcmMessageToCancelled(rowId);
-			result = true;
-			db.close();
-		}
-		catch (SQLException e){
-			Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
-		}
-
-		if(GCM_ACTION.GCM_URL == type) {
-			try {
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(data));
-				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(intent);
-			}
-			catch (NullPointerException e) {
-				Log.w("CrashReport:takeGcmAction: no url:"+data);
-			}
-			catch (ActivityNotFoundException e) {
-				Log.w("CrashReport:takeGcmAction: bad url format:"+data);
-			}
-		}
-		return result;
 	}
 
 	/**
@@ -355,4 +285,5 @@ public class CrashReport extends Application {
 	public boolean getNeedToUpload() {
 		return needToUpload;
 	}
+
 }

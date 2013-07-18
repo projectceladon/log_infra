@@ -50,7 +50,7 @@ public class ListGcmMessagesActivity extends Activity {
 				if(GCM_ACTION.GCM_NONE != aMessage.getType()) {
 					alert.setButton(DialogInterface.BUTTON_POSITIVE,context.getString(R.string.gcm_list_ok), new DialogInterface.OnClickListener() {
 						public void onClick(DialogInterface dialog, int id) {
-							if(app.takeGcmAction(aMessage.getRowId(), aMessage.getType(), aMessage.getData()))
+							if(GcmEvent.INSTANCE.takeGcmAction(aMessage.getRowId(), aMessage.getType(), aMessage.getData()))
 								updateList();
 						}
 					});

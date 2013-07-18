@@ -64,7 +64,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
                 Object newValue) {
             if((Boolean)newValue){
                 Log.i("GeneralCrashReportActivity:GCM set to ON");
-                app.checkTokenGCM();
+                GcmEvent.INSTANCE.checkTokenGCM();
             }
             else
                 Log.i("GeneralCrashReportActivity:GCM set to OFF");
@@ -107,7 +107,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
         if(gcmEnabled != checkGcm.isChecked()) {
             if(checkGcm.isChecked()){
                 GcmEvent.INSTANCE.enableGcm();
-                app.checkTokenGCM();
+                GcmEvent.INSTANCE.checkTokenGCM();
             }
             else {
                 GcmEvent.INSTANCE.disableGcm();

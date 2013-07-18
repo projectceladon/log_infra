@@ -27,7 +27,7 @@ public class GeneralNotificationReceiver extends BroadcastReceiver {
 			//first, we need to check GCM token
 			CrashReport app = (CrashReport)context.getApplicationContext();
 			if(app.isGcmEnabled())
-				app.checkTokenGCM();
+				GcmEvent.INSTANCE.checkTokenGCM();
 			Connector con = new Connector(context.getApplicationContext());
 			if(!con.getDataConnectionAvailability()) {
 				if(app.isServiceStarted()) {

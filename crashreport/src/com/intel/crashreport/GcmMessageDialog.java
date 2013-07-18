@@ -7,11 +7,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -36,7 +34,7 @@ public class GcmMessageDialog extends Activity{
 		ok = (Button)findViewById(R.id.dialog_gcm_button_ok);
 		ok.setOnClickListener(okListener);
 		validate = (Button)findViewById(R.id.dialog_gcm_button_validate);
-		validate.setOnClickListener(cancelListener);
+		validate.setOnClickListener(okListener);
 		contentView = (TextView)findViewById(R.id.dialog_gcm_content_view);
 	}
 
@@ -56,6 +54,7 @@ public class GcmMessageDialog extends Activity{
 						contentView.setText("Title : " + message.getTitle() + "\n" +
 								"Text : " +  message.getText() + "\n" );
 						type = message.getType();
+						data = "";
 						if(GCM_ACTION.GCM_NONE != type) {
 							data = message.getData();
 							validate.setVisibility(View.GONE);
@@ -80,8 +79,7 @@ public class GcmMessageDialog extends Activity{
 	private OnClickListener okListener = new OnClickListener(){
 
 		public void onClick(View v) {
-			CrashReport app = (CrashReport)getApplicationContext();
-			app.takeGcmAction(rowId, type, data);
+			GcmEvent.INSTANCE.takeGcmAction(rowId, type, data);
 			finish();
 		}
 

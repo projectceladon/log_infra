@@ -5,8 +5,6 @@ import java.util.Date;
 import java.util.EnumMap;
 import java.util.TimeZone;
 
-import android.content.Intent;
-
 public class GcmMessage {
 
 	public static String GCM_NONE_LABEL = "none";

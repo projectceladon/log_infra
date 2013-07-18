@@ -15,16 +15,12 @@
  */
 package com.intel.crashreport;
 
-
-import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
 import android.util.Log;
 
 import com.intel.crashreport.specific.EventDB;
-import com.intel.crashreport.specific.EventGenerator;
 
 import com.google.android.gcm.GCMBaseIntentService;
 import com.google.android.gcm.GCMRegistrar;
@@ -49,9 +45,11 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Log.i(TAG, "Device registered: regId = " + registrationId);
 		GCMRegistrar.setRegisteredOnServer(context, true);
 		//generating an info event to track this registration
-		GcmEvent.INSTANCE.registerGcm(registrationId);
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(context);
-		privatePrefs.setGcmToken(registrationId);
+		if(!registrationId.equals(privatePrefs.getGcmToken())) {
+			privatePrefs.setGcmToken(registrationId);
+			GcmEvent.INSTANCE.registerGcm(registrationId);
+		}
 	}
 
 	@Override
