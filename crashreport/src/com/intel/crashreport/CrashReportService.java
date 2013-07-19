@@ -444,6 +444,7 @@ public class CrashReportService extends Service {
 							try {
 								if ((toContinue = db.isThereEventToUpload()) == true) {
 									updateEventsSummary(db);
+									crashNumber += db.getNewCrashNumber();
 								}
 							} catch (SQLException e) {
 								/* In case of Db access error, skip and go to events logs uploading process*/

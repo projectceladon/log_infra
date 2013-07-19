@@ -57,7 +57,7 @@ public class NotificationMgr {
 		CharSequence tickerText;
 		CharSequence contentTitle = "PSI Phone Doctor";
 		CharSequence contentText;
-		boolean bDisplayNotification = false;
+
 		// notification should be displayed only if at least one crash is present
 		if ((crashNumber == 0) && (uptimeNumber != 0)) {
 			tickerText = "Uptime event";
@@ -65,17 +65,13 @@ public class NotificationMgr {
 		} else if ((crashNumber == 1) && (uptimeNumber == 0)) {
 			tickerText = "Crash event";
 			contentText = "1 Crash event to report";
-			bDisplayNotification = true;
 		} else if ((crashNumber == 1) && (uptimeNumber != 0)) {
-			bDisplayNotification = true;
 			tickerText = "Uptime and Crash events";
 			contentText = "Uptime and 1 Crash events to report";
 		} else if ((crashNumber > 1) && (uptimeNumber == 0)) {
-			bDisplayNotification = true;
 			tickerText = "Crash events";
 			contentText = crashNumber+" Crash events to report";
 		} else if ((crashNumber > 1) && (uptimeNumber != 0)) {
-			bDisplayNotification = true;
 			tickerText = "Uptime and Crash events";
 			contentText = "Uptime and "+crashNumber+" Crash events to report";
 		} else {
@@ -83,23 +79,19 @@ public class NotificationMgr {
 			contentText = "New events to upload";
 		}
 
-		if (bDisplayNotification){
-			NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-			int icon = R.drawable.icon;
-			long when = System.currentTimeMillis();
-			Notification notification = new Notification(icon, tickerText, when);
-			notification.flags |= Notification.FLAG_AUTO_CANCEL;
-			Intent notificationIntent = new Intent(context, StartServiceActivity.class);
-			notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
-			PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-			notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-			clearNonCriticalNotification();
-			mNotificationManager.notify(NOTIF_EVENT_ID, notification);
-		}else{
-			//no explicit notification but a warning log
-			Log.w(contentText.toString());
-		}
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.icon;
+		long when = System.currentTimeMillis();
+		Notification notification = new Notification(icon, tickerText, when);
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		clearNonCriticalNotification();
+		mNotificationManager.notify(NOTIF_EVENT_ID, notification);
+
 	}
 
 	public void notifyUploadingLogs(int logNumber, int crashNumber) {
