@@ -61,6 +61,7 @@ void apply_set_prop_cmd(int socket) {
   int value_length = 0;
   char *prop;
   char *value;
+  char old_value[PROPERTY_VALUE_MAX];
 
   // read prop_length
   if (read(socket, net_int.buf, sizeof(int)) < 0) {
@@ -115,10 +116,15 @@ void apply_set_prop_cmd(int socket) {
     LOGE("Error reading write file command\n");
   }
 
-  // set property
-  if (property_set(prop, value) < 0) {
-    LOGE("Could not set property %s:%s, err: %s\n",
-         prop, value, strerror(errno));
+  // set property if new value is empty or if different from current value
+  property_get(prop, old_value, "");
+  if ((strlen(value) == 0) || strcmp(old_value, value)) {
+    if (property_set(prop, value) < 0) {
+      LOGE("Could not set property %s:%s, err: %s\n",
+           prop, value, strerror(errno));
+    }
+  } else {
+    LOGD("Property %s has already value %s", prop, value);
   }
 
  out_free_value:
