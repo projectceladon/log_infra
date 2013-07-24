@@ -27,12 +27,21 @@ import android.os.Process;
 import android.util.Log;
 
 /**
- * Application that manage crash information
+ * Application managing crash information
  */
 public class CrashInfo {
 
 	public static final String TAG_HEADER= "<crashinfo>";
 	public static final String Module = "crashinfo : ";
+	/* Define the crashinfo version. Read by Crashinfo python library on host to
+	 * get available functionalities and to manage backward compatibilities between
+	 * Crashinfo running on device and CrashInfo python library running on host.
+	 * Versions descriptions :
+	 *  - Version 1 : - 'get_device' command added
+	 *                - JSON output format for get_device and get_event commands
+	 *                - Status command updated to return Api version
+	 */
+	public static final String API_VERSION = "1";
 
 	/**
 	 * Crashinfo command
@@ -94,13 +103,14 @@ public class CrashInfo {
 	 */
 	private void showUsage() {
 		StringBuffer usage = new StringBuffer();
-		usage.append("usage: crashinfo getevent [--detail --full --last --filter-(id/time/type/name) --uploaded) ]\n");
+		usage.append("usage: crashinfo getevent [--detail --full --last --filter-(id/time/type/name) --uploaded --json) ]\n");
 		usage.append("                 status [--uptime]\n");
 		usage.append("                 buildid [--spec]\n");
 		usage.append("                 clean [--filter-id --filter-time]\n");
 		usage.append("                 uploadstate [--filter-id --invalid-(event/log) --log]\n");
 		usage.append("                 analyzeevent [--help for parameter list]\n");
 		usage.append("                 getbz\n");
+		usage.append("                 getdevice [--json]\n");
 
 		System.err.println(usage.toString());
 	}
@@ -136,6 +146,9 @@ public class CrashInfo {
 			}
 			else if (sCurArg.equals("getbz")) {
 				mySubCommand = new GetBZ();
+			}
+			else if (sCurArg.equals("getdevice")) {
+				mySubCommand = new GetDevice();
 			}
 			if (mySubCommand != null){
 				mySubCommand.setArgs(getSubArgs());

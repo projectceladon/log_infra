@@ -33,9 +33,15 @@ import android.database.sqlite.SQLiteDatabase;
 import java.text.ParseException;
 import java.util.TimeZone;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.util.Map;
+import java.util.LinkedHashMap;
+
 public class DBManager {
 	private static final int COEF_S_TO_MS = 1000;
 	private final static SimpleDateFormat PARSE_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
+	private final static String SEPARATOR = " | ";
 
 	private static final String PATH_TO_DB ="/data/data/com.intel.crashreport/databases/eventlogs.db";
 	public static final String KEY_TYPE = "type";
@@ -43,6 +49,7 @@ public class DBManager {
 	private static final String DATABASE_EVENTS_TABLE = "events";
 	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
 	private static final String DATABASE_BZ_TABLE = "bz_events";
+	private static final String DATABASE_DEVICE_TABLE = "device";
 	public static final String KEY_CRITICAL = "critical";
 
 	public static final String KEY_ROWID = "_id";
@@ -56,8 +63,6 @@ public class DBManager {
 	public static final String KEY_DATA5 = "data5";
 	public static final String KEY_DATE = "date";
 	public static final String KEY_BUILDID = "buildId";
-	public static final String KEY_DEVICEID = "deviceId";
-	public static final String KEY_IMEI = "imei";
 	public static final String KEY_UPTIME = "uptime";
 	public static final String KEY_UPLOAD = "uploaded";
 	public static final String KEY_CRASHDIR = "crashdir";
@@ -74,7 +79,11 @@ public class DBManager {
 	public static final String KEY_CREATION_DATE = "creationDate";
 	public static final String KEY_UPLOAD_DATE = "uploadDate";
 	public static final String KEY_PDSTATUS = "pdStatus";
-
+	public static final String KEY_DEVICEID = "deviceId";
+	public static final String KEY_IMEI = "imei";
+	public static final String KEY_SSN = "ssn";
+	public static final String KEY_GCM_TOKEN = "gcmToken";
+	public static final String KEY_SPID = "spid";
 
 	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
 			+" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
@@ -101,6 +110,9 @@ public class DBManager {
 
 	/*Define possible values for event uploaded/logUploaded state in DB*/
 	public enum eventUploadState {EVENT_UPLOADED, LOG_UPLOADED, EVENT_INVALID, LOG_INVALID};
+
+	/* Define output format types*/
+	public static enum outputFormat {STANDARD, JSON};
 
 	private SQLiteDatabase myDB;
 
@@ -216,9 +228,16 @@ public class DBManager {
 	public void getEvent(EventLevel aLevel, ArrayList<OptionData> mySubOptions) throws Exception
 	{
 		Cursor mCursor;
+		String[] listColumns;
+		String sSelection = "";
+		String sLimit = null;
+		boolean bChangeOrder = false;
+		boolean bUseHeader = false;
+		boolean headerToPrint = true;
+		outputFormat format = outputFormat.STANDARD;
+
 		try {
 			//Defining columns to return
-			String[] listColumns;
 			switch(aLevel){
 			case BASE :
 				listColumns = new String[] {KEY_ROWID,KEY_ID, KEY_NAME,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2, KEY_DATE,KEY_CRASHDIR};
@@ -236,11 +255,9 @@ public class DBManager {
 				listColumns=null;
 			}
 
+			int [] indexListColumns = new int[listColumns.length];
+
 			//Defining selection depending on options
-			String sSelection = "";
-			String sLimit = null;
-			boolean bChangeOrder = false;
-			boolean bUseHeader = false;
 			for (OptionData aSubOption : mySubOptions) {
 				if (aSubOption.getKey().equals(GetEvent.OPTION_LAST)){
 					sLimit = "1";
@@ -279,9 +296,10 @@ public class DBManager {
 							throw new Exception("PARSE ERROR for : " + sTmpValue);
 						}
 					}
+				}else if (aSubOption.getKey().equals(GetEvent.OPTION_JSON)){
+					 format = outputFormat.JSON;
 				}
 			}
-
 			//execute query to database
 			String sOrderTag = " DESC";
 			if (bChangeOrder){
@@ -290,44 +308,54 @@ public class DBManager {
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, listColumns,
 					sSelection, null,
 					null, null, KEY_ROWID + sOrderTag, sLimit);
-			//header
+
 			if (mCursor != null) {
 				mCursor.moveToFirst();
-				int [] indexListColumns = new int[listColumns.length];
-				String sHeader="";
-				for (int i = 0; i < indexListColumns.length; i++) {
-					indexListColumns[i] = mCursor.getColumnIndex(listColumns[i]);
-					if (i==0){
-						sHeader = listColumns[i];
-					}else{
-						sHeader += " | " + listColumns[i];
-					}
-				}
-				CrashInfo.outputCrashinfo(sHeader, bUseHeader);
-				//content
 				while (!mCursor.isAfterLast()) {
-					String sLine="";
-					for (int i = 0; i < listColumns.length; i++) {
-						String sColValue ="";
-						if (listColumns[i] == KEY_DATE){
-							long lDate = mCursor.getLong(indexListColumns[i]);
-							try {
-								Date date = new Date(lDate*COEF_S_TO_MS);
-								PARSE_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
-								sColValue = PARSE_DF.format(date);
-							} catch (Exception e) {
-								sColValue = "parse error"  ;
-							}
-						}else{
-							sColValue = mCursor.getString(indexListColumns[i]);
+					if ( format == outputFormat.JSON ) {
+						/* JSON output : create a Map with 'event' table content and print it as a JSON formatted string*/
+						Map <String, String> dbContent = new LinkedHashMap <String, String>();
+						for (String key : listColumns) {
+							if (key.equals(KEY_DATE))
+								dbContent.put(key, convertDate( mCursor.getLong(mCursor.getColumnIndex(key))));
+							else
+								dbContent.put(key, mCursor.getString(mCursor.getColumnIndex(key)));
 						}
-						if (i==0){
-							sLine = sColValue;
-						}else{
-							sLine += " | " + sColValue;
-						}
+						if ( printToJsonFormat(dbContent) != 0 )
+							break;
 					}
-					CrashInfo.outputCrashinfo(sLine,bUseHeader);
+					else {
+						/* STANDARD text output*/
+						String sLine="";
+						/* Print header only once */
+						if ( headerToPrint ) {
+							String sHeader="";
+							for (int i = 0; i < indexListColumns.length; i++) {
+								indexListColumns[i] = mCursor.getColumnIndex(listColumns[i]);
+								if (i==0){
+									sHeader = listColumns[i];
+								}else{
+									sHeader += " | " + listColumns[i];
+								}
+							}
+							CrashInfo.outputCrashinfo(sHeader, bUseHeader);
+							headerToPrint = false;
+						}
+						/* Print column content */
+						for (int i = 0; i < listColumns.length; i++) {
+							String sColValue ="";
+							if (listColumns[i] == KEY_DATE)
+								sColValue = convertDate(mCursor.getLong(indexListColumns[i]));
+							else
+								sColValue = mCursor.getString(indexListColumns[i]);
+							if (i==0){
+								sLine = sColValue;
+							}else{
+								sLine += " | " + sColValue;
+							}
+						}
+						CrashInfo.outputCrashinfo(sLine,bUseHeader);
+					}
 					mCursor.moveToNext();
 				}
 				mCursor.close();
@@ -555,5 +583,82 @@ public class DBManager {
 		}
 
 		return iResultUpTime;
+	}
+
+	/**
+	 * Returns all elements contained in the 'device' table of CrashReport DB.
+	 * @return a cursor to the first and only row of the 'device' table
+	 */
+	public Cursor fetchDeviceInfo() {
+		Cursor cursor;
+		String whereQuery = "Select * from "+DATABASE_DEVICE_TABLE;
+		cursor = myDB.rawQuery(whereQuery, null);
+		if (cursor != null)
+			cursor.moveToFirst();
+		return cursor;
+	}
+
+	/**
+	 * Prints the 'device' database table under the specified format.
+	 * @param format the desired output format (standard text or JSON)
+	 */
+	public void getDeviceInfo(outputFormat format) {
+
+		Cursor mCursor;
+		mCursor = fetchDeviceInfo();
+
+		if (mCursor != null) {
+			/* Cursor already points to the only one line of 'device' table that is assumed to be always up-to-date*/
+			if ( format == outputFormat.JSON ) {
+				/* JSON output : create a Map with 'device' table content and print it as a JSON formatted string*/
+				Map <String, String> dbContent = new LinkedHashMap <String, String>();
+				for (String infoName : mCursor.getColumnNames())
+					dbContent.put(infoName, mCursor.getString(mCursor.getColumnIndex(infoName)));
+				printToJsonFormat(dbContent);
+			}
+			else {
+				/* STANDARD output : print all 'device' table column names and their text value */
+				String sHeader = "";
+				String sContent = "";
+				int iNbColumn = mCursor.getColumnCount()-1;
+				for (String infoName : mCursor.getColumnNames()) {
+					/* Don't add a separator for the last column*/
+					sHeader += infoName + (mCursor.getColumnIndex(infoName) == iNbColumn ? "" : SEPARATOR);
+					sContent += mCursor.getString(mCursor.getColumnIndex(infoName)) + (mCursor.getColumnIndex(infoName) == iNbColumn ? "" : SEPARATOR);
+				}
+				System.out.println(sHeader);
+				System.out.println(sContent);
+			}
+			mCursor.close();
+		}
+	}
+
+	/**
+	 * Prints the given object under JSON format.
+	 * @param src the object to print under JSON format
+	 */
+	public int printToJsonFormat(Object src) {
+		try {
+			/* Json convert and print */
+			GsonBuilder gsonBuilder = new GsonBuilder();
+			Gson gson = gsonBuilder.create();
+			System.out.println(gson.toJson(src));
+			return 0;
+		} catch(NoClassDefFoundError e) {
+			System.err.println( CrashInfo.Module+ "can't convert to JSON format : " + e);
+			return -1;
+		}
+	}
+
+	/**
+	 * Converts a date defined in seconds and under long format to
+	 * a human readable date under string format.
+	 * @param date date defined in seconds
+	 * @return human readable date
+	 */
+	private String convertDate( long date ) {
+		Date convertedDate = new Date(date * COEF_S_TO_MS);
+		PARSE_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
+		return PARSE_DF.format(convertedDate);
 	}
 }

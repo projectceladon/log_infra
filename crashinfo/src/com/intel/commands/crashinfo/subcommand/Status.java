@@ -21,6 +21,7 @@ package com.intel.commands.crashinfo.subcommand;
 
 import java.util.concurrent.TimeUnit;
 
+import com.intel.commands.crashinfo.CrashInfo;
 import com.intel.commands.crashinfo.DBManager;
 import com.intel.commands.crashinfo.ISubCommand;
 import com.intel.commands.crashinfo.option.OptionData;
@@ -85,6 +86,7 @@ public class Status implements ISubCommand {
 		try {
 			displayDbstatus();
 			System.out.println("Main Path for logs : " + PATH_LOGS);
+			System.out.println("Api version : "  + CrashInfo.API_VERSION);
 		}catch (Exception e) {
 			System.out.println("Exception : "+e.toString());
 			return -1;

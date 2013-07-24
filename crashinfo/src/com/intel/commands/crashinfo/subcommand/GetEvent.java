@@ -39,6 +39,7 @@ public class GetEvent implements ISubCommand {
 	public static final String OPTION_LAST = "--last";
 	public static final String OPTION_REVERSE= "--reverse";
 	public static final String OPTION_HEADER= "--header";
+	public static final String OPTION_JSON = "--json";
 
 	String[] myArgs;
 	Options myOptions;
@@ -79,10 +80,11 @@ public class GetEvent implements ISubCommand {
 		myOptions.addSubOption(OPTION_ID, "-i", "(\\d)*", true, Multiplicity.ZERO_OR_ONE, "Filter by row_id given");
 		myOptions.addSubOption(OPTION_TYPE, "-t", ".*", true, Multiplicity.ZERO_OR_ONE, "Filter by type given");
 		myOptions.addSubOption(OPTION_NAME, "-n", ".*", true, Multiplicity.ZERO_OR_ONE, "Filter by name given");
-		myOptions.addSubOption(OPTION_UPLOADED, "-u", "0|1", true, Multiplicity.ZERO_OR_ONE, "Filter by event uploaded or not depending on value given");
+		myOptions.addSubOption(OPTION_UPLOADED, "-u", "0|1", true, Multiplicity.ZERO_OR_ONE, "Filter by event uploaded or not depending on value given (0 or 1)");
 		myOptions.addSubOption(OPTION_TIME, "-t", ".*", true, Multiplicity.ZERO_OR_ONE, "Filter by event occured after time given (time format example:2012-05-29/13:33:41)");
 		myOptions.addSubOption(OPTION_REVERSE, "-r", "", false, Multiplicity.ZERO_OR_ONE, "Change display order");
 		myOptions.addSubOption(OPTION_HEADER, "-a", "", false, Multiplicity.ZERO_OR_ONE, "Add crashinfo TAG at beginning of the output");
+		myOptions.addSubOption(OPTION_JSON, "-j", "", false, Multiplicity.ZERO_OR_ONE, "Output under GSON format");
 	}
 
 	@Override
