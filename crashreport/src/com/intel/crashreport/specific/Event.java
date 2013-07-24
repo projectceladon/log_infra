@@ -343,4 +343,9 @@ public class Event extends GeneralEvent{
 		return ((type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")));
 	}
 
+	public static String getSpid() {
+		return getSPIDFromFile();
+	}
+
+
 }

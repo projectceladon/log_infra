@@ -19,8 +19,10 @@
 
 package com.intel.crashreport;
 
+import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.EventGenerator;
 
+import android.database.SQLException;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
@@ -66,6 +68,16 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
             }
             else
                 Log.i("GeneralCrashReportActivity:GCM set to OFF");
+            EventDB db = new EventDB(getApplicationContext());
+            try {
+                db.open();
+                ApplicationPreferences privatePrefs = new ApplicationPreferences(getApplicationContext());
+                db.updateDeviceToken(((Boolean)newValue?privatePrefs.getGcmToken():""));
+                db.close();
+            }
+            catch(SQLException e) {
+                Log.e("GeneralCrashReportActivity:gcmListener: Fail to access DB.");
+            }
             return true;
         }
     };

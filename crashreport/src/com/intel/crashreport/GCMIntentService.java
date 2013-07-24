@@ -59,9 +59,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Log.i(TAG, "Device unregistered");
 		GCMRegistrar.setRegisteredOnServer(context, false);
 		//generating an info event to track this unregistration
-		GcmEvent.INSTANCE.unregisterGcm();
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(context);
 		privatePrefs.setGcmToken("");
+		GcmEvent.INSTANCE.unregisterGcm();
 	}
 
 	@Override

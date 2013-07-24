@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.intel.crashreport.bugzilla.BZ;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.specific.Event;
+import com.intel.crashtoolserver.bean.Device;
 
 public class GeneralEventDB {
 
@@ -49,7 +50,8 @@ public class GeneralEventDB {
 	protected static final String DATABASE_BLACK_EVENTS_TABLE = "black_events";
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
 	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
-	protected static final int DATABASE_VERSION = 11;
+	protected static final String DATABASE_DEVICE_TABLE = "device";
+	protected static final int DATABASE_VERSION = 12;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -91,6 +93,9 @@ public class GeneralEventDB {
 	public static final String KEY_GCM_DATA = "data";
 	public static final String KEY_GCM_TITLE = "title";
 	public static final String KEY_GCM_TEXT = "text";
+	public static final String KEY_DEVICE_SSN = "ssn";
+	public static final String KEY_DEVICE_TOKEN = "gcmToken";
+	public static final String KEY_DEVICE_SPID = "spid";
 	public static final String OTHER_EVENT_NAMES = "'STATS','APLOG','BZ','INFO','ERROR'";
 
 	private static final String DATABASE_CREATE =
@@ -192,6 +197,14 @@ public class GeneralEventDB {
 					KEY_DATE + " integer not null, " +
 					KEY_NOTIFIED + " integer);";
 
+	private static final String DATABASE_DEVICE_CREATE =
+			"create table " + DATABASE_DEVICE_TABLE + "(" +
+					KEY_DEVICEID + " text primary key, " +
+					KEY_IMEI + " text not null, " +
+					KEY_DEVICE_SSN + " text, " +
+					KEY_DEVICE_TOKEN + " text, " +
+					KEY_DEVICE_SPID + " text);";
+
 	private DatabaseHelper mDbHelper;
 	protected SQLiteDatabase mDb;
 
@@ -212,6 +225,7 @@ public class GeneralEventDB {
 			db.execSQL(DATABASE_BLACK_EVENTS_CREATE);
 			db.execSQL(DATABASE_RAIN_CREATE);
 			db.execSQL(DATABASE_GCM_MESSAGES_CREATE);
+			db.execSQL(DATABASE_DEVICE_CREATE);
 		}
 
 		@Override
@@ -226,6 +240,7 @@ public class GeneralEventDB {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_GCM_MESSAGES_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_DEVICE_TABLE);
 			onCreate(db);
 		}
 
@@ -241,6 +256,7 @@ public class GeneralEventDB {
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
 			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_GCM_MESSAGES_TABLE);
+			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_DEVICE_TABLE);
 			onCreate(db);
 		}
 	}
@@ -295,7 +311,8 @@ public class GeneralEventDB {
 		}
 		initialValues.put(KEY_ORIGIN, origin);
 		initialValues.put(KEY_PDSTATUS, pdStatus);
-
+		CrashReport app = (CrashReport)mCtx;
+		updateDeviceInformation(deviceId,imei,GeneralEvent.getSSN(),app.getTokenGCM(),Event.getSpid());
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
 	}
 
@@ -1047,4 +1064,84 @@ public class GeneralEventDB {
 		}
 		return message;
 	}
+
+	/**
+	 * Add a device in the database
+	 * @param deviceId the device id of the board
+	 * @param imei the imei of the board
+	 * @param ssn the ssn of the board
+	 * @param token the token of the board
+	 * @param spid the spid of the board
+	 * @return the result of the database insertion request
+	 */
+	public long addDevice(String deviceId, String imei, String ssn, String token, String spid) {
+		ContentValues initialValues = new ContentValues();
+
+		initialValues.put(KEY_DEVICEID, deviceId);
+		initialValues.put(KEY_IMEI, imei);
+		initialValues.put(KEY_DEVICE_SSN, ssn);
+		initialValues.put(KEY_DEVICE_TOKEN, token);
+		initialValues.put(KEY_DEVICE_SPID, spid);
+
+		return mDb.insert(DATABASE_DEVICE_TABLE, null, initialValues);
+	}
+
+	/**
+	 * Check is a device exists in the database
+	 * @param deviceId The device id
+	 * @return true if the device exists
+	 * @throws SQLException
+	 */
+	protected Boolean isDeviceExist() throws SQLException {
+		Cursor mCursor;
+		Boolean ret;
+		mCursor = mDb.query(true, DATABASE_DEVICE_TABLE, new String[] {KEY_DEVICEID},
+				null, null,
+				null, null, null, null);
+		if (mCursor != null) {
+			ret = mCursor.moveToFirst();
+			mCursor.close();
+			return ret;
+		}
+		return false;
+	}
+
+	/**
+	 * Update the device information
+	 * @param deviceId the device id of the board
+	 * @param imei the imei of the board
+	 * @param ssn the ssn of the board
+	 * @param token the token of the board
+	 * @param spid the spid of the board
+	 * @return True if the update succeed
+	 */
+	public boolean updateDeviceInformation(String deviceId, String imei, String ssn, String token, String spid) {
+
+		if(isDeviceExist()) {
+			ContentValues args = new ContentValues();
+			args.put(KEY_DEVICEID, deviceId);
+			args.put(KEY_IMEI, imei);
+			args.put(KEY_DEVICE_SSN, ssn);
+			args.put(KEY_DEVICE_TOKEN, token);
+			args.put(KEY_DEVICE_SPID, spid);
+			return mDb.update(DATABASE_DEVICE_TABLE, args, null, null) > 0;
+		}
+		else {
+			long result = addDevice(deviceId, imei, ssn, token, spid);
+			return (result!=-1);
+		}
+
+	}
+
+	/**
+	 * Update the GCM token of the device
+	 * @param gcmToken the current gcm token
+	 * @return true if operation succeed
+	 */
+	public boolean updateDeviceToken(String gcmToken) {
+		ContentValues args = new ContentValues();
+		args.put(KEY_DEVICE_TOKEN, gcmToken);
+		return mDb.update(DATABASE_DEVICE_TABLE, args, null, null) > 0;
+	}
+
 }
