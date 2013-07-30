@@ -416,6 +416,13 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA0=" + sData);
 				bResult &= appendToCrashfile("DATA1=" + sComm );
 				bResult &= appendToCrashfile("DATA2=" + sPanic );
+				if (sIPanicFile.contains("emmc_ipanic_console")){
+					bResult &= appendToCrashfile("DATA3=emmc");
+				} else {
+					if (sIPanicFile.contains("ram_ipanic_console")){
+						bResult &= appendToCrashfile("DATA3=ram");
+					}
+				}
 				bufPanicFile.close();
 			}
 			catch(Exception e) {
