@@ -38,6 +38,7 @@ public class NotificationMgr {
 	private static final int NOTIF_UPLOAD_WIFI_ONLY_ID = 4;
 	public static final int NOTIF_CRASHTOOL = 5;
 	private static final int NOTIF_CRASH_EVENT_ID = 6;
+	public static final int NOTIF_BIGDATA_ID = 7;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
@@ -51,6 +52,7 @@ public class NotificationMgr {
 		mNotificationManager.cancel(NOTIF_EVENT_ID);
 		mNotificationManager.cancel(NOTIF_UPLOAD_ID);
 		mNotificationManager.cancel(NOTIF_UPLOAD_WIFI_ONLY_ID);
+		mNotificationManager.cancel(NOTIF_BIGDATA_ID);
 	}
 
 	public void notifyEventToUpload(int crashNumber, int uptimeNumber) {
@@ -143,6 +145,24 @@ public class NotificationMgr {
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
 		clearNonCriticalNotification();
 		mNotificationManager.notify(NOTIF_UPLOAD_WIFI_ONLY_ID, notification);
+	}
+
+	public void notifyConnectWifiOrMpta() {
+		CharSequence tickerText = "Phone Doctor event data to upload";
+		CharSequence contentTitle = "Connect WiFi or use MPTA";
+		CharSequence contentText = "You have too big(>10MB) data files to upload.\n\nPlease connect to WiFi or use MPTA to upload";
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.icon;
+		long when = System.currentTimeMillis();
+		Notification notification = new Notification(icon, tickerText, when);
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
+		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
+		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		clearNonCriticalNotification();
+		mNotificationManager.notify(NOTIF_BIGDATA_ID, notification);
 	}
 
 	/**

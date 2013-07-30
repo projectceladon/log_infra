@@ -60,6 +60,7 @@ public class GeneralEvent {
 	protected int iRowID;
 	protected String origin = "";
 	protected String pdStatus = "";
+	protected int logsSize = 0;
 
 	public GeneralEvent() {}
 
@@ -376,5 +377,13 @@ public class GeneralEvent {
 
 	public boolean isValid() {
 		return this.valid;
+	}
+
+	public int getLogsSize() {
+		return logsSize;
+	}
+
+	public void setLogsSize(int size) {
+		logsSize = size;
 	}
 }

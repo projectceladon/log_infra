@@ -53,4 +53,9 @@ public class Constants {
      */
     public static final int CRASH_POSTPONE_DELAY = 120;
 
+    /**
+     * Maximum crashlogs size to upload over 3G (10Mo)
+     */
+    public static final int WIFI_LOGS_SIZE = 10 * 1024 * 1024;
+
 }

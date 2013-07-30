@@ -60,6 +60,7 @@ public class CrashLogs {
 		}
 		String crashLogsFileName = "EVENT"+eventId+".zip";
 		File crashLogsFile = new File(cacheDir, crashLogsFileName);
+		boolean unvailableDirectory = false;
 		crashLogsFile.deleteOnExit();
 		if (crashLogsFile.exists()) {
 			//A crashlog zipped file already exists in cache directory
@@ -81,8 +82,11 @@ public class CrashLogs {
 		try {
 			return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
 		} catch (IllegalArgumentException e) {
-			return null;
+			unvailableDirectory = true;
 		} catch (UnsupportedOperationException e) {
+			unvailableDirectory = true;
+		}
+		if(unvailableDirectory){
 			/* Event crashdir is empty so remove it in Event DB to avoid processing it again*/
 			EventDB db = new EventDB(context);
 			if (db != null)
@@ -92,8 +96,8 @@ public class CrashLogs {
 				db.close();
 				Log.i("CrashLogs: event "+eventId+" \'crashdir\' key reset in Event database");
 			}
-			return null;
 		}
+		return null;
 	}
 
 	/**
@@ -173,5 +177,25 @@ public class CrashLogs {
 			if (origin != null)
 				origin.close();
 		}
+	}
+
+	/**
+	 * Get the size of a given directory
+	 * @param repository The directory
+	 * @return size of a given directory
+	 */
+	public static int getCrashLogsSize(Context context, String repository, String eventId) {
+		int totalSize = 0;
+		try{
+			File logsToUpload = getCrashLogsFile(context, repository, eventId);
+			if(logsToUpload != null) {
+				totalSize = (int)logsToUpload.length();
+				logsToUpload.delete();
+			}
+		}
+		catch(SQLException e){
+			Log.e("CrashLogs:getCrashLogsSize: can't access Database");
+		}
+		return totalSize;
 	}
 }

@@ -252,6 +252,22 @@ public enum PDStatus {
 				return result;
 			}
 		}),
+		BIG_DATA (PDSTATUS_TIME.UPLOAD_TIME, 1, new PDStatusInterface(){
+			/**
+			 * @brief Data are too big(>10M) or not to be uploaded without wifi.
+			 * @return String : B if data are too big, 0 else,x at the event database insertion time
+			 * or if there is no logs.
+			 */
+			public String computeValue() {
+				String result = "x";
+				if(event.getCrashDir() != null){
+					if(!event.getCrashDir().isEmpty() && (event.getLogsSize() >= Constants.WIFI_LOGS_SIZE))
+						result = "B";
+					else result = "0";
+				}
+				return result;
+			}
+		}),
 		WIFI_ONLY (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 			/**
 			 * @brief Check if logs have to be upload only over a Wifi connection.
@@ -287,7 +303,7 @@ public enum PDStatus {
 				return result;
 			}
 		}),
-		BYTE33 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
+		BYTE32 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 
 			public String computeValue() {
 				return " ";
@@ -311,7 +327,7 @@ public enum PDStatus {
 				return result;
 			}
 		}),
-		BYTE29 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
+		BYTE28 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 
 			public String computeValue() {
 				return " ";

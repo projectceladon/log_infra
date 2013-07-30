@@ -52,6 +52,7 @@ import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.PDStatus;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashtoolserver.bean.FileInfo;
+import com.intel.phonedoctor.Constants;
 
 public class CrashReportService extends Service {
 
@@ -425,8 +426,12 @@ public class CrashReportService extends Service {
 		String dayDate;
 		Build myBuild;
 		boolean toContinue = false;
+		boolean newLogsToUpload = false;
+		boolean needsWifi = false;
+		CrashReport app;
 		public void run() {
 			context = getApplicationContext();
+			app = (CrashReport)context;
 			myBuild = ((CrashReport) context).getMyBuild();
 			prefs = new ApplicationPreferences(context);
 			db = new EventDB(context);
@@ -456,6 +461,7 @@ public class CrashReportService extends Service {
 							}
 						}while(toContinue);
 						//upload logs
+						app.setNeedToUpload(false);
 						String crashTypes[] = null;
 						if (prefs.isCrashLogsUploadEnable()) {
 							crashTypes = prefs.getCrashLogsUploadTypes();
@@ -464,6 +470,9 @@ public class CrashReportService extends Service {
 								nMgr = new NotificationMgr(context);
 								if (prefs.isWifiOnlyForEventData() && !con.getWifiConnectionAvailability()) {
 									nMgr.notifyEventDataWifiOnly(cursor.getCount());
+								} else if(!db.isThereLogToUploadWithoutWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
+									needsWifi = true;
+									nMgr.notifyConnectWifiOrMpta();
 								} else {
 									nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
 									while (!cursor.isAfterLast()) {
@@ -472,56 +481,76 @@ public class CrashReportService extends Service {
 										event = db.fillEventFromCursor(cursor);
 										crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
 										if (crashLogs != null) {
-											DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
-											dayDate = DAY_DF.format(event.getDate());
-											fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-											Log.i(MODULE+":uploadEvent : Upload crashlog of "+event);
-											if (event.getEventName().equals("APLOG")) {
-												showProgressBar();
-												updateProgressBar(0);
-											}
+											if((crashLogs.length() >= Constants.WIFI_LOGS_SIZE) && !con.getWifiConnectionAvailability())
+												needsWifi = true;
+											else {
+												DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
+												dayDate = DAY_DF.format(event.getDate());
+												fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
+												Log.i(MODULE+":uploadEvent : Upload crashlog of "+event);
+												if (event.getEventName().equals("APLOG")) {
+													showProgressBar();
+													updateProgressBar(0);
+												}
 
-											if (con.sendLogsFile(fileInfo, runThread)) {
-												db.updateEventLogToUploaded(event.getEventId());
-												Log.d(MODULE+":uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
-												crashLogs.delete();
-												if (event.getEventName().equals("APLOG") || event.getEventName().equals("BZ") ) {
+												if (con.sendLogsFile(fileInfo, runThread)) {
+													db.updateEventLogToUploaded(event.getEventId());
+													Log.d(MODULE+":uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
+													crashLogs.delete();
+													if (event.getEventName().equals("APLOG") || event.getEventName().equals("BZ") ) {
+														if (event.getEventName().equals("APLOG")) {
+															updateProgressBar(0);
+															hideProgressBar();
+														}
+														File data = new File(event.getCrashDir());
+														if (data.exists()) {
+															if (data.isDirectory()) {
+																for(File file:data.listFiles()){
+																	file.delete();
+																}
+															}
+															data.delete();
+														}
+													}
+												} else {
 													if (event.getEventName().equals("APLOG")) {
 														updateProgressBar(0);
 														hideProgressBar();
 													}
-													File data = new File(event.getCrashDir());
-													if (data.exists()) {
-														if (data.isDirectory()) {
-															for(File file:data.listFiles()){
-																file.delete();
-															}
-														}
-														data.delete();
-													}
+													Log.w(MODULE+":uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
+													throw new ProtocolException();
 												}
-												cursor.moveToNext();
-											} else {
-												if (event.getEventName().equals("APLOG")) {
-													updateProgressBar(0);
-													hideProgressBar();
-												}
-												Log.w(MODULE+":uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
-												throw new ProtocolException();
 											}
 										} else
 											Log.d(MODULE+":uploadEvent : No crashlog to upload for "+event);
 										cursor.moveToNext();
+										newLogsToUpload = false;
 										if(db.isThereEventToUpload()) {
 											cursor.close();
 											crashNumber = db.getNewCrashNumber();
 											updateEventsSummary(db);
 											sendEvents(db,con,myBuild);
+											newLogsToUpload = true;
+										}
+										if(app.getNeedToUpload()) {
+											app.setNeedToUpload(false);
+											newLogsToUpload = true;
+										}
+										if(newLogsToUpload || cursor.isAfterLast()) {
+											needsWifi = false;
+											if(!cursor.isClosed())
+												cursor.close();
 											crashTypes = prefs.getCrashLogsUploadTypes();
-											cursor = db.fetchNotUploadedLogs(crashTypes);
-											if ((cursor != null) && (cursor.getCount() != 0)) {
-												nMgr = new NotificationMgr(context);
-												nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
+											if(db.isThereEventToUpload(crashTypes)) {
+												cursor = db.fetchNotUploadedLogs(crashTypes);
+												if ((cursor != null) && (cursor.getCount() != 0)) {
+													nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
+													if(!db.isThereLogToUploadWithoutWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
+														needsWifi = true;
+														break;
+													}
+												}
+												else break;
 											}
 											else break;
 										}
@@ -564,8 +593,12 @@ public class CrashReportService extends Service {
 				serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
 			}
 
-			if (nMgr != null)
-				nMgr.cancelNotifUploadingLogs();
+			if (nMgr != null){
+				if(needsWifi)
+					nMgr.notifyConnectWifiOrMpta();
+				else
+					nMgr.cancelNotifUploadingLogs();
+			}
 			if (cursor != null)
 				cursor.close();
 			try {

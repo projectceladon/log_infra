@@ -50,6 +50,7 @@ public class CrashReport extends Application {
 	private Boolean activityBounded = false;
 	private Boolean wifiOnly = false;
 	private Boolean serviceRelaunched = false;
+	private Boolean needToUpload = false;
 	private Build myBuild;
 	private BugStorage bugzillaStorage;
 	public static StartServiceActivity boundedActivity = null;
@@ -337,5 +338,21 @@ public class CrashReport extends Application {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Set the value of needToUpload
+	 * @param ntou value of needToUpload
+	 */
+	public synchronized void setNeedToUpload(Boolean ntou) {
+		needToUpload = ntou;
+	}
+
+	/**
+	 * Get the value of needToUpload
+	 * @return
+	 */
+	public boolean getNeedToUpload() {
+		return needToUpload;
 	}
 }

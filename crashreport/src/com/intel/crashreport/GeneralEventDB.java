@@ -36,6 +36,7 @@ import com.intel.crashreport.bugzilla.BZ;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.specific.Event;
 import com.intel.crashtoolserver.bean.Device;
+import com.intel.phonedoctor.Constants;
 
 public class GeneralEventDB {
 
@@ -96,6 +97,7 @@ public class GeneralEventDB {
 	public static final String KEY_DEVICE_SSN = "ssn";
 	public static final String KEY_DEVICE_TOKEN = "gcmToken";
 	public static final String KEY_DEVICE_SPID = "spid";
+	public static final String KEY_LOGS_SIZE = "logsSize";
 	public static final String OTHER_EVENT_NAMES = "'STATS','APLOG','BZ','INFO','ERROR'";
 
 	private static final String DATABASE_CREATE =
@@ -121,7 +123,8 @@ public class GeneralEventDB {
 					KEY_NOTIFIED + " integer, "+
 					KEY_DATA_READY + " integer, "+
 					KEY_ORIGIN + " text, " +
-					KEY_PDSTATUS + " text " + ");";
+					KEY_PDSTATUS + " text, " +
+					KEY_LOGS_SIZE + " integer);";
 
 	private static final String DATABASE_TYPE_CREATE =
 			"create table " + DATABASE_TYPE_TABLE + " ("+
@@ -304,11 +307,14 @@ public class GeneralEventDB {
 		initialValues.put(KEY_CRASHDIR, crashDir);
 		initialValues.put(KEY_UPLOADLOG, 0);
 		initialValues.put(KEY_NOTIFIED, 0);
-		if (bDataReady){
+		if(bDataReady)
 			initialValues.put(KEY_DATA_READY, 1);
-		} else {
+		else
 			initialValues.put(KEY_DATA_READY, 0);
-		}
+		if (bDataReady && !crashDir.isEmpty())
+			initialValues.put(KEY_LOGS_SIZE, CrashLogs.getCrashLogsSize(mCtx,crashDir,eventId));
+		else
+			initialValues.put(KEY_LOGS_SIZE, 0);
 		initialValues.put(KEY_ORIGIN, origin);
 		initialValues.put(KEY_PDSTATUS, pdStatus);
 		CrashReport app = (CrashReport)mCtx;
@@ -347,7 +353,7 @@ public class GeneralEventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS}, null, null, null, null, null);
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, null, null, null, null, null);
 	}
 
 	public Cursor fetchLastNEvents(String sNlimit) {
@@ -355,7 +361,7 @@ public class GeneralEventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS}, null, null, null, null,
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, null, null, null, null,
 				KEY_ROWID + " DESC",sNlimit);
 	}
 
@@ -392,7 +398,7 @@ public class GeneralEventDB {
 		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
 				KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
-				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS}, whereQuery, null,
+				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, whereQuery, null,
 				null, null, null, null);
 		if (mCursor != null) {
 			mCursor.moveToFirst();
@@ -424,6 +430,7 @@ public class GeneralEventDB {
 		event.setLogUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG))==1);
 		event.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
 		event.setPdStatus(cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS)));
+		event.setLogsSize(cursor.getInt(cursor.getColumnIndex(KEY_LOGS_SIZE)));
 
 
 		return event;
@@ -452,7 +459,7 @@ public class GeneralEventDB {
 	}
 
 	public Boolean isThereEventToUpload(String crashTypes[]) throws SQLException {
-		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0'");
+		StringBuilder bQuery = new StringBuilder("("+KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1')");
 		bQuery.append(" or ("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
 		appendQueryForCrashTypes(crashTypes,bQuery);
 		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
@@ -545,6 +552,8 @@ public class GeneralEventDB {
 		ContentValues args = new ContentValues();
 
 		args.put(KEY_CRASHDIR, crashDir);
+		if(crashDir.isEmpty())
+			args.put(KEY_LOGS_SIZE, 0);
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
@@ -730,6 +739,15 @@ public class GeneralEventDB {
 		ContentValues args = new ContentValues();
 
 		args.put(KEY_DATA_READY, 1);
+		try{
+			String crashDir = getEventCrashDir(eventId);
+			if(!crashDir.isEmpty()){
+				args.put(KEY_LOGS_SIZE, CrashLogs.getCrashLogsSize(mCtx, crashDir, eventId));
+			}
+		}
+		catch(SQLException e){
+			Log.e("GeneralEventDB:updateEventDataReady: can't access database");
+		}
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
@@ -751,6 +769,44 @@ public class GeneralEventDB {
 		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')"
 				+ " and "+KEY_NAME+"<> 'BZ'";
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
+	}
+
+	/**
+	 * Get the crashlogs repository of an event
+	 * @param eventId event id of the crashlogs event repository to search
+	 * @return crashlogs repository
+	 * @throws SQLException
+	 */
+	public String getEventCrashDir(String eventId) throws SQLException{
+		String crashDir = "";
+		Cursor cursor = mDb.query(true,DATABASE_TABLE, new String[] {KEY_CRASHDIR}, KEY_ID + "='"+eventId+"'", null, null, null,
+				null,null);
+		if (cursor != null) {
+			if(cursor.moveToFirst())
+				crashDir = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
+			cursor.close();
+		}
+		return crashDir;
+	}
+
+	public Boolean isThereLogToUploadWithoutWifi(String crashTypes[]) throws SQLException {
+		StringBuilder bQuery = new StringBuilder("");
+		bQuery.append("(("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0') or ");
+		if (crashTypes != null) {
+			String sExcludedType = getExcludeTypeInLine(crashTypes);
+
+			if (sExcludedType != "") {
+				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in ("+sExcludedType+") and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
+			} else {
+				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
+			}
+		} else {
+			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
+		}
+		/* Only logs for events already uploaded*/
+		bQuery.append(") and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR + "!='' and "+ KEY_LOGS_SIZE + "<"+Constants.WIFI_LOGS_SIZE);
+		Log.d("isThereLogToUploadWithoutWifi : Query string = " +bQuery.toString() );
+		return isEventExistFromWhereQuery(bQuery.toString());
 	}
 
 	public long addBZ(String eventId,BZFile bzfile,Date date) {

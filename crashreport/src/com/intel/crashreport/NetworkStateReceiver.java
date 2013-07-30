@@ -57,7 +57,9 @@ public class NetworkStateReceiver extends BroadcastReceiver {
 				Log.d("NetworkStateReceiver: connection available");
 				PackageManager pm = contextASync.getPackageManager();
 				pm.setComponentEnabledSetting(new ComponentName(contextASync, NetworkStateReceiver.class), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
-				contextASync.startService(new Intent(contextASync, CrashReportService.class));
+				CrashReport app = (CrashReport)contextASync.getApplicationContext();
+				if(!app.isServiceStarted())
+					contextASync.startService(new Intent(contextASync, CrashReportService.class));
 			}else{
 				Log.d("NetworkStateReceiver: connection not available");
 			}

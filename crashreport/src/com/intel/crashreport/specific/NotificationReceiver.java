@@ -113,6 +113,8 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 					if(isPresent) {
 						if(!app.isServiceStarted())
 							context.startService(crashReportStartServiceIntent);
+						else
+							app.setNeedToUpload(true);
 					}
 				}
 			}
