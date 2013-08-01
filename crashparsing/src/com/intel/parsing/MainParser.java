@@ -628,8 +628,8 @@ public class MainParser{
 						//check sub data first
 						if (bSubDataHoleFound){
 							if (isDataLine(sCurLine)){
-								//just concat 2 following lines
-								if (iSubDataHoleCount < 2){
+								//just concat 4 following lines
+								if (iSubDataHoleCount < 4){
 									if (!sDataHole.equals("")){
 										sDataHole += " / ";
 									}else{
