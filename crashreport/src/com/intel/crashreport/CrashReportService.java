@@ -87,6 +87,7 @@ public class CrashReportService extends Service {
 			if (handlerThreadLooper != null) {
 				serviceHandler = new ServiceHandler(handlerThreadLooper);
 				app.setServiceStarted(true);
+				app.setUploadService(this);
 				this.serviceState = ServiceState.ProcessEvent;
 				logger.clearLog();
 				Build myBuild = new Build();
@@ -104,6 +105,7 @@ public class CrashReportService extends Service {
 	@Override
 	public void onDestroy() {
 		app.setServiceStarted(false);
+		app.setUploadService(null);
 		super.onDestroy();
 	}
 
@@ -122,6 +124,7 @@ public class CrashReportService extends Service {
 	private void stopService() {
 		Log.d(MODULE+":Stop Service");
 		app.setServiceStarted(false);
+		app.setUploadService(null);
 		handlerThread.quit();
 		stopSelf();
 	}

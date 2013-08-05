@@ -71,7 +71,7 @@
 				<category android:name="android.intent.category.ALTERNATIVE" />
 			</intent-filter>
 			<intent-filter>
-				<action android:name="android.net.conn.BACKGROUND_DATA_SETTING_CHANGED"></action>
+				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"></action>
 			</intent-filter>
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.ALARM_NOTIFY" />

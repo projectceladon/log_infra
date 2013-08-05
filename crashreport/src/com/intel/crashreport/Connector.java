@@ -558,6 +558,9 @@ public class Connector {
 				return true;
 		} catch (IOException e) {
 			return false;
+		} catch (NullPointerException e) {
+			Log.w(Log.getStackTraceString(e));
+			return false;
 		}
 
 		return false;
@@ -599,6 +602,9 @@ public class Connector {
 					return true;
 			}
 		} catch (IOException e) {
+			Log.w(Log.getStackTraceString(e));
+			return false;
+		} catch (NullPointerException e) {
 			Log.w(Log.getStackTraceString(e));
 			return false;
 		}

@@ -9,7 +9,7 @@ public class GeneralNotificationReceiver extends BroadcastReceiver {
 	// am broadcast -n com.intel.crashreport/.NotificationReceiver -a com.intel.crashreport.intent.CRASH_NOTIFY -c android.intent.category.ALTERNATIVE
 	private static final String crashNotificationIntent = "com.intel.crashreport.intent.CRASH_NOTIFY";
 	protected static final String bootCompletedIntent = "android.intent.action.BOOT_COMPLETED";
-	private static final String networkStateChangeIntent = "android.net.conn.BACKGROUND_DATA_SETTING_CHANGED";
+	private static final String networkStateChangeIntent = "android.net.conn.CONNECTIVITY_CHANGE";
 	private static final String alarmNotificationIntent = "com.intel.crashreport.intent.ALARM_NOTIFY";
 
 	protected StartCrashReport iStartCrashReport;
@@ -28,7 +28,16 @@ public class GeneralNotificationReceiver extends BroadcastReceiver {
 			CrashReport app = (CrashReport)context.getApplicationContext();
 			if(app.isGcmEnabled())
 				app.checkTokenGCM();
-			iStartCrashReport.startCrashReport(context);
+			Connector con = new Connector(context.getApplicationContext());
+			if(!con.getDataConnectionAvailability()) {
+				if(app.isServiceStarted()) {
+					CrashReportService mService = app.getUploadService();
+					if((mService != null) && mService.isServiceUploading())
+						mService.cancelDownload();
+				}
+			}
+			else
+				iStartCrashReport.startCrashReport(context);
 		} else if (intent.getAction().equals(alarmNotificationIntent)) {
 			Log.d("NotificationReceiver: alarmNotificationIntent");
 			ApplicationPreferences prefs = new ApplicationPreferences(context);

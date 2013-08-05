@@ -54,6 +54,7 @@ public class CrashReport extends Application {
 	private BugStorage bugzillaStorage;
 	public static StartServiceActivity boundedActivity = null;
 	private ArrayList<CrashReportRequest> requestList;
+	private CrashReportService uploadService = null;
 
 	@Override
 	public void onCreate() {
@@ -128,6 +129,14 @@ public class CrashReport extends Application {
 		if( (false == serviceStarted) && (null != boundedActivity) ) {
 			boundedActivity.onKillService();
 		}
+	}
+
+	public void setUploadService(CrashReportService service) {
+		uploadService = service;
+	}
+
+	public CrashReportService getUploadService() {
+		return uploadService;
 	}
 
 	public boolean isTryingToConnect(){
