@@ -3,3 +3,6 @@ on boot
     mount debugfs none /sys/kernel/debug
     symlink /sys/kernel/debug /d
     setprop service.adb.enable 1
+# Set unsecure wipe mode
+    setprop ro.g_wipe_flag 2
+

@@ -2,6 +2,8 @@ on boot
 #  Mount debugfs for systrace settings
     mount debugfs none /sys/kernel/debug
     symlink /sys/kernel/debug /d
+# Set unsecure wipe mode
+    setprop ro.g_wipe_flag 2
 
 on property:sys.adb.config=adb
     stop droidboot
