@@ -48,6 +48,8 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 	public static final String DROPBOX_ENTRY_ADDED = "DROPBOX_ENTRY_ADDED";
 	public static final String BOOT_COMPLETED = "BOOT_COMPLETED";
 
+	private static boolean serviceIsRunning = false;
+
 	@Override
 	public void onReceive(Context context, Intent intent) {
 
@@ -73,8 +75,11 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			Log.d("NotificationReceiver: bootCompletedIntent");
 			super.onReceive(context, intent);
 			//Add type to intent and send it
-			phoneInspectorStartServiceIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
-			context.startService(phoneInspectorStartServiceIntent);
+			if(!serviceIsRunning) {
+				serviceIsRunning = true;
+				phoneInspectorStartServiceIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
+				context.startService(phoneInspectorStartServiceIntent);
+			}
 		} else if (intent.getAction().equals(startCrashReportService)) {
 			Log.d("NotificationReceiver: startCrashReportService");
 			iStartCrashReport.startUpload(context);
@@ -115,11 +120,14 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			Log.d("NotificationReceiver: dropBoxEntryAddedIntent");
 
 			//Add data to intent
-			phoneInspectorStartServiceIntent.putExtra(EXTRA_TYPE, DROPBOX_ENTRY_ADDED);
-			phoneInspectorStartServiceIntent.putExtra(DropBoxManager.EXTRA_TAG, intent.getStringExtra(DropBoxManager.EXTRA_TAG));
-			phoneInspectorStartServiceIntent.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
+			if(!serviceIsRunning) {
+				serviceIsRunning = true;
+				phoneInspectorStartServiceIntent.putExtra(EXTRA_TYPE, DROPBOX_ENTRY_ADDED);
+				phoneInspectorStartServiceIntent.putExtra(DropBoxManager.EXTRA_TAG, intent.getStringExtra(DropBoxManager.EXTRA_TAG));
+				phoneInspectorStartServiceIntent.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
 
-			context.startService(phoneInspectorStartServiceIntent);
+				context.startService(phoneInspectorStartServiceIntent);
+			}
 		} else {
 			super.onReceive(context, intent);
 		}
