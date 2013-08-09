@@ -105,7 +105,8 @@ public class CrashReportService extends Service {
 
 	@Override
 	public void onDestroy() {
-		app.setServiceStarted(false);
+		if(app.isServiceStarted())
+			app.setServiceStarted(false);
 		app.setUploadService(null);
 		super.onDestroy();
 	}

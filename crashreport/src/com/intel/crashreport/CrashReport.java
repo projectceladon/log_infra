@@ -127,7 +127,7 @@ public class CrashReport extends Application {
 
 	public void setServiceStarted(Boolean s){
 		serviceStarted = s;
-		if( (false == serviceStarted) && (null != boundedActivity) ) {
+		if( (false == serviceStarted) && (null != boundedActivity) && activityBounded) {
 			boundedActivity.onKillService();
 		}
 	}

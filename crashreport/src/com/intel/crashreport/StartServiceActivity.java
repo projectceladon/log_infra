@@ -79,6 +79,7 @@ public class StartServiceActivity extends Activity {
 	private EventViewAdapter eventAdapter;
 	private ListView lvEvent;
 	final Context context = this;
+	private static boolean alreadyRegistered = false;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -370,21 +371,27 @@ public class StartServiceActivity extends Activity {
 	}
 
 	public void registerMsgReceiver() {
-		Context appCtx = getApplicationContext();
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(ServiceToActivityMsg.askForUpload);
-		filter.addAction(ServiceToActivityMsg.updateLogTextView);
-		filter.addAction(ServiceToActivityMsg.uploadStarted);
-		filter.addAction(ServiceToActivityMsg.uploadFinished);
-		filter.addAction(ServiceToActivityMsg.uploadProgressBar);
-		filter.addAction(ServiceToActivityMsg.showProgressBar);
-		filter.addAction(ServiceToActivityMsg.hideProgressBar);
-		appCtx.registerReceiver(msgReceiver, filter);
+		if(!alreadyRegistered) {
+			Context appCtx = getApplicationContext();
+			IntentFilter filter = new IntentFilter();
+			filter.addAction(ServiceToActivityMsg.askForUpload);
+			filter.addAction(ServiceToActivityMsg.updateLogTextView);
+			filter.addAction(ServiceToActivityMsg.uploadStarted);
+			filter.addAction(ServiceToActivityMsg.uploadFinished);
+			filter.addAction(ServiceToActivityMsg.uploadProgressBar);
+			filter.addAction(ServiceToActivityMsg.showProgressBar);
+			filter.addAction(ServiceToActivityMsg.hideProgressBar);
+			appCtx.registerReceiver(msgReceiver, filter);
+			alreadyRegistered = true;
+		}
 	}
 
 	public void unregisterMsgReceiver() {
-		Context appCtx = getApplicationContext();
-		appCtx.unregisterReceiver(msgReceiver);
+		if(alreadyRegistered) {
+			Context appCtx = getApplicationContext();
+			appCtx.unregisterReceiver(msgReceiver);
+			alreadyRegistered = false;
+		}
 	}
 
 	private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
