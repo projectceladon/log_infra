@@ -58,4 +58,9 @@ public class Constants {
      */
     public static final int WIFI_LOGS_SIZE = 10 * 1024 * 1024;
 
+    /**
+     * Array defining event type whose log shall never be uploaded whatever
+     * the available connection type
+    */
+    public static final String[] INVALID_EVENT_LOGS = new String [] { "KDUMP" };
 }

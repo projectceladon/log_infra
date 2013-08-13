@@ -21,6 +21,7 @@ package com.intel.crashreport;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -305,7 +306,7 @@ public class GeneralEventDB {
 		initialValues.put(KEY_UPTIME, uptime);
 		initialValues.put(KEY_UPLOAD, 0);
 		initialValues.put(KEY_CRASHDIR, crashDir);
-		initialValues.put(KEY_UPLOADLOG, 0);
+		initialValues.put(KEY_UPLOADLOG, isEventLogsValid(type) ? 0 : -1);
 		initialValues.put(KEY_NOTIFIED, 0);
 		if(bDataReady)
 			initialValues.put(KEY_DATA_READY, 1);
@@ -1200,4 +1201,14 @@ public class GeneralEventDB {
 		return mDb.update(DATABASE_DEVICE_TABLE, args, null, null) > 0;
 	}
 
+	/**
+	 * Returns if the event log is valid or not depending on the event type.
+	 * This aims to never upload very large event logs whatever the
+	 * available connection type is.
+	 * @param eventType is the type of the event
+	 * @return true if the event log is valid by default. False otherwise.
+	 */
+	private static boolean isEventLogsValid( String eventType ) {
+		return ( !Arrays.asList(Constants.INVALID_EVENT_LOGS).contains(eventType) );
+	}
 }
