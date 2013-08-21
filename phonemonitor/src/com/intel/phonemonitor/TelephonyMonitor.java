@@ -7,7 +7,7 @@ import android.telephony.PhoneStateListener;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import android.telephony.gsm.GsmCellLocation;
-import com.android.internal.telephony.OemTelephonyConstants;
+import com.intel.internal.telephony.OemTelephony.OemTelephonyConstants;
 import android.telephony.CellLocation;
 import android.os.Message;
 import android.os.Handler;
