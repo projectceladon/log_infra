@@ -59,8 +59,8 @@ public class Constants {
     public static final int WIFI_LOGS_SIZE = 10 * 1024 * 1024;
 
     /**
-     * Array defining event type whose log shall never be uploaded whatever
-     * the available connection type
+     * Array defining event type that are automatically defined as invalid
+     * to prevent any log upload to crashtool server.
     */
-    public static final String[] INVALID_EVENT_LOGS = new String [] { "KDUMP" };
+    public static final String[] INVALID_EVENTS = new String [] { "KDUMP" };
 }

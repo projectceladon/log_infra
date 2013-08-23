@@ -304,7 +304,7 @@ public class GeneralEventDB {
 		initialValues.put(KEY_DEVICEID, deviceId);
 		initialValues.put(KEY_IMEI, imei);
 		initialValues.put(KEY_UPTIME, uptime);
-		initialValues.put(KEY_UPLOAD, 0);
+		initialValues.put(KEY_UPLOAD, isEventLogsValid(type) ? 0 : -1); /* Set event as invalid if needed */
 		initialValues.put(KEY_CRASHDIR, crashDir);
 		initialValues.put(KEY_UPLOADLOG, isEventLogsValid(type) ? 0 : -1);
 		initialValues.put(KEY_NOTIFIED, 0);
@@ -1209,6 +1209,6 @@ public class GeneralEventDB {
 	 * @return true if the event log is valid by default. False otherwise.
 	 */
 	private static boolean isEventLogsValid( String eventType ) {
-		return ( !Arrays.asList(Constants.INVALID_EVENT_LOGS).contains(eventType) );
+		return ( !Arrays.asList(Constants.INVALID_EVENTS).contains(eventType) );
 	}
 }
