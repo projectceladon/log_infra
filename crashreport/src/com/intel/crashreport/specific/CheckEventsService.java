@@ -31,8 +31,6 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
@@ -106,8 +104,9 @@ public class CheckEventsService extends Service {
 		handlerThread.quit();
 		if(app.getRequestListCount() > 0 && !app.isServiceRelaunched()) {
 			app.setServiceRelaunched(true);
-			Timer timer = new Timer();
-			timer.schedule(new RelaunchServiceTask(getApplicationContext()), Constants.CRASH_POSTPONE_DELAY*1000);
+			long lDelay = (long) Constants.CRASH_POSTPONE_DELAY*1000;
+			RelaunchServiceTask relaunchService = new RelaunchServiceTask(getApplicationContext(),lDelay);
+			relaunchService.start();
 		}
 		stopSelf();
 	}
@@ -233,8 +232,9 @@ public class CheckEventsService extends Service {
 										}
 										Log.d(from+": Event successfully added to DB, " + event.toString());
 										if (!event.isDataReady()) {
-											Timer timer = new Timer(true);
-											timer.schedule(new NotifyCrashTask(event.getEventId(),getApplicationContext()), Constants.CRASH_POSTPONE_DELAY*1000);
+											Long lDelay = (long) Constants.CRASH_POSTPONE_DELAY*1000;
+											NotifyCrashTask notify = new NotifyCrashTask(event.getEventId(),getApplicationContext(),lDelay);
+											notify.start();
 										}
 									}
 								}
@@ -343,21 +343,68 @@ public class CheckEventsService extends Service {
 		}
 	}
 
-	private class RelaunchServiceTask extends TimerTask{
+	public class NotifyCrashTask extends Thread{
+		private String eventId;
 		private Context context;
+		private boolean isPresent;
+		private long waitingTime;
 
-		public RelaunchServiceTask(Context ctx){
+		public NotifyCrashTask(String id,Context ctx, long delay){
 			super();
+			eventId = id;
 			context = ctx;
+			waitingTime = delay;
 
 		}
 
-		@Override
 		public void run() {
+			try {
+				sleep(waitingTime);
+			} catch (InterruptedException e1) {
+				Log.e("NotifyCrashTask:sleep failed");
+			}
+			EventDB db = new EventDB(context);
+			isPresent = false;
+
+			try {
+				db.open();
+				if (!db.eventDataAreReady(eventId)) {
+					db.updateEventDataReady(eventId);
+					isPresent = true;
+				}
+				db.close();
+			}catch (SQLException e) {
+				Log.w("NotifyCrashTask: Fail to access DB", e);
+			}
+
+			if (isPresent) {
+				Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
+				context.sendBroadcast(intent);
+			}
+
+		}
+	}
+
+
+	private class RelaunchServiceTask extends Thread{
+		private Context context;
+		private long waitingTime;
+
+		public RelaunchServiceTask(Context ctx, long delay){
+			super();
+			context = ctx;
+			waitingTime = delay;
+		}
+
+		public void run() {
+			try {
+				sleep(waitingTime);
+			} catch (InterruptedException e) {
+				Log.e("RelaunchServiceTask:sleep failed");
+			}
 			Intent intent = new Intent("com.intel.crashreport.intent.RELAUNCH_SERVICE");
 			context.sendBroadcast(intent);
 		}
 	}
-
 
 }
