@@ -321,9 +321,14 @@ public enum PDStatus {
 			 */
 			public String computeValue() {
 				String result = "W:";
-				ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-				NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-				result = result.concat(networkInfo.isConnected()?"1":"0");
+				try {
+					ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+					NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+					result = result.concat(networkInfo.isConnected()?"1":"0");
+				}
+				catch(NullPointerException e) {
+					result += "x";
+				}
 				return result;
 			}
 		}),
