@@ -370,7 +370,7 @@ public class StartServiceActivity extends Activity {
 
 	}
 
-	public void registerMsgReceiver() {
+	public synchronized void registerMsgReceiver() {
 		if(!alreadyRegistered) {
 			Context appCtx = getApplicationContext();
 			IntentFilter filter = new IntentFilter();
@@ -386,7 +386,7 @@ public class StartServiceActivity extends Activity {
 		}
 	}
 
-	public void unregisterMsgReceiver() {
+	public synchronized void unregisterMsgReceiver() {
 		if(alreadyRegistered) {
 			Context appCtx = getApplicationContext();
 			appCtx.unregisterReceiver(msgReceiver);
