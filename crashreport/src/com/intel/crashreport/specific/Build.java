@@ -24,12 +24,18 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
+import android.content.Context;
+
+import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.Log;
 
 public class Build extends GeneralBuild{
 
 	private static final String PATH_MODEMID = "/logs/modemid.txt";
+	private static final String WRONG_VALUE[] = {"","00.00","0000.0000"};
+	private Context ctx;
+
 	public Build(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname, String modemVersion,
 			String ifwiVersion, String iafwVersion, String scufwVersion, String punitVersion, String valhooksVersion) {
 		super(buildId, fingerPrint, kernelVersion, buildUserHostname, modemVersion,
@@ -42,12 +48,14 @@ public class Build extends GeneralBuild{
 		if (longBuildId != null) {
 			if (longBuildId.contains(",")) {
 				consolidateModemVersion();
+				checkBuild();
 			}
 		}
 	}
 
-	public Build() {
+	public Build(Context context) {
 		super();
+		ctx = context;
 	}
 
 	public void fillBuildWithSystem() {
@@ -62,6 +70,9 @@ public class Build extends GeneralBuild{
 		this.punitVersion = getProperty("sys.punit.version");
 		this.valhooksVersion = getProperty("sys.valhooks.version");
 		consolidateModemVersion();
+		consolidateBuildId();
+		ApplicationPreferences prefs = new ApplicationPreferences(ctx);
+		prefs.setBuild(super.toString());
 	}
 
 	private void consolidateModemVersion(){
@@ -85,6 +96,51 @@ public class Build extends GeneralBuild{
 				Log.w(" consolidateModemVersion :" + e.getMessage());
 			}
 		}
+	}
+
+	private void consolidateBuildId() {
+		if(isWrongValue(ifwiVersion) ||
+				isWrongValue(iafwVersion) ||
+				isWrongValue(scufwVersion) ||
+				isWrongValue(punitVersion) ||
+				isWrongValue(valhooksVersion) ) {
+			ApplicationPreferences prefs = new ApplicationPreferences(ctx);
+			String build = prefs.getBuild();
+			if(!build.isEmpty()) {
+				GeneralBuild oldBuild = new GeneralBuild(build);
+				if(isWrongValue(ifwiVersion))
+					ifwiVersion = oldBuild.getIfwiVersion();
+				if(isWrongValue(iafwVersion))
+					iafwVersion = oldBuild.getIafwVersion();
+				if(isWrongValue(scufwVersion))
+					scufwVersion = oldBuild.getScufwVersion();
+				if(isWrongValue(punitVersion))
+					punitVersion = oldBuild.getPunitVersion();
+				if(isWrongValue(valhooksVersion))
+					valhooksVersion = oldBuild.getValhooksVersion();
+			}
+		}
+	}
+
+	private void checkBuild() {
+		if(isWrongValue(ifwiVersion))
+			ifwiVersion = getProperty("sys.ifwi.version");
+		if(isWrongValue(iafwVersion))
+			iafwVersion = getProperty("sys.ia32.version");
+		if(isWrongValue(scufwVersion))
+			scufwVersion = getProperty("sys.scu.version");
+		if(isWrongValue(punitVersion))
+			punitVersion = getProperty("sys.punit.version");
+		if(isWrongValue(valhooksVersion))
+			valhooksVersion = getProperty("sys.valhooks.version");
+	}
+
+	private boolean isWrongValue(String value) {
+		for(int i=0; i<WRONG_VALUE.length; i++) {
+			if(value.equals(WRONG_VALUE[i]))
+				return true;
+		}
+		return false;
 	}
 
 }

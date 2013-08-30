@@ -77,7 +77,7 @@ public class CheckEventsService extends Service {
 				app.setCheckEventsServiceStarted(true);
 				this.serviceState = CheckEventsServiceState.Init;
 				logger.clearLog();
-				Build myBuild = new Build();
+				Build myBuild = new Build(getApplicationContext());
 				myBuild.fillBuildWithSystem();
 				app.setMyBuild(myBuild);
 				this.serviceHandler.sendEmptyMessageDelayed(ServiceMsg.startProcessEvents, 100);

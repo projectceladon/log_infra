@@ -38,6 +38,9 @@
     <!-- GCM token id -->
     <string name="settings_private_app_gcm_token_key">settings_private_app_gcm_token</string>
 
+    <!-- Build -->
+    <string name="settings_private_app_build_key">settings_private_app_build</string>
+
 
 <!-- UI values -->
     <string name="upload_state_item_index">upload_state_item_index</string>

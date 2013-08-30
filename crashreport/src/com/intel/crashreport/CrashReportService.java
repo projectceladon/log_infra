@@ -90,7 +90,7 @@ public class CrashReportService extends Service {
 				app.setUploadService(this);
 				this.serviceState = ServiceState.ProcessEvent;
 				logger.clearLog();
-				Build myBuild = new Build();
+				Build myBuild = new Build(getApplicationContext());
 				myBuild.fillBuildWithSystem();
 				app.setMyBuild(myBuild);
 				if (!intent.getBooleanExtra("fromActivity", false))

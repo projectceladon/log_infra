@@ -341,4 +341,21 @@ public class ApplicationPreferences {
 		privatePrefsEditor.commit();
 	}
 
+	/**
+	 * Get the Build fingerprint
+	 * @return build
+	 */
+	public String getBuild() {
+		return appPrivatePrefs.getString(mCtx.getString(R.string.settings_private_app_build_key), "");
+	}
+
+	/**
+	 * Store the Build fingerprint
+	 * @param build The build fingerprint
+	 */
+	public void setBuild(String build) {
+		privatePrefsEditor.putString(mCtx.getString(R.string.settings_private_app_build_key), build);
+		privatePrefsEditor.commit();
+	}
+
 }

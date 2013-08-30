@@ -74,7 +74,7 @@ public enum GeneralEventGenerator {
 				event.setData4(aEventData.getData4());
 				event.setData5(aEventData.getData5());
 				event.setCrashDir(aEventData.getCrashDir());
-				Build myBuild = new Build();
+				Build myBuild = new Build(mContext);
 				myBuild.fillBuildWithSystem();
 
 				event.setBuildId(myBuild.getBuildId());
