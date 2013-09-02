@@ -263,8 +263,18 @@ public class CrashReportService extends Service {
 					Log.d(MODULE+": Property persist.crashreport.disabled set to 1");
 					serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 				} else {
-					Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
-					getApplicationContext().sendBroadcast(askForUploadIntent);
+					ApplicationPreferences prefs = new ApplicationPreferences(getApplicationContext());
+					String uploadState = prefs.getUploadState();
+					if (uploadState.contentEquals("uploadImmediately"))
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadImmadiately);
+					else if (uploadState.contentEquals("uploadReported"))
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadReported);
+					else if (uploadState.contentEquals("uploadDisabled"))
+						serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
+					else {
+						Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
+						getApplicationContext().sendBroadcast(askForUploadIntent);
+					}
 				}
 			} else {
 				Log.w(MODULE+":askForUpload: Activity not bounded to service");

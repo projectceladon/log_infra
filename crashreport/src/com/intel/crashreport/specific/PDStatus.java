@@ -276,8 +276,8 @@ public enum PDStatus {
 			 */
 			public String computeValue() {
 				String result = "x";
-				CrashReport app = (CrashReport)context;
-				result = app.isWifiOnly()?"@":"0";
+				ApplicationPreferences prefs = new ApplicationPreferences(context);
+				result = prefs.isWifiOnlyForEventData()?"@":"0";
 				return result;
 			}
 		}),
