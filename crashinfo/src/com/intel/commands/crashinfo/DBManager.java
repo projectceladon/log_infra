@@ -252,7 +252,7 @@ public class DBManager {
 						KEY_DEVICEID,KEY_IMEI,KEY_NOTIFIED,KEY_DATA_READY,KEY_PDSTATUS};
 				break;
 			default :
-				listColumns=null;
+				listColumns = new String[]{};
 			}
 
 			int [] indexListColumns = new int[listColumns.length];
