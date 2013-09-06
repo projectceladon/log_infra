@@ -41,6 +41,9 @@
     <!-- Build -->
     <string name="settings_private_app_build_key">settings_private_app_build</string>
 
+    <!-- Event filter choice -->
+    <string name="settings_private_app_event_filter_key">settings_private_app_event_filter</string>
+
 
 <!-- UI values -->
     <string name="upload_state_item_index">upload_state_item_index</string>

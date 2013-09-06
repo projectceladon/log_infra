@@ -140,4 +140,10 @@
 		<item>year</item>
 	</string-array>
 
+	<string-array name="eventFilterText">
+	    <item>All events</item>
+		<item>All events excepted STATS</item>
+		<item>CRASH only</item>
+	</string-array>
+
 </resources>

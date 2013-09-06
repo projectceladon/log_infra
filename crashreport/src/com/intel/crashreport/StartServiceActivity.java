@@ -21,6 +21,8 @@ package com.intel.crashreport;
 
 import java.util.ArrayList;
 
+import android.app.ActionBar.OnNavigationListener;
+import android.app.ActionBar.Tab;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -35,6 +37,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
@@ -42,15 +45,18 @@ import android.view.View.OnClickListener;
 import android.view.ViewStub;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.intel.crashreport.CrashReportService.LocalBinder;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 import com.intel.crashreport.specific.Event;
 import com.intel.crashreport.specific.EventDB;
+import android.app.ActionBar;
 
 public class StartServiceActivity extends Activity {
 
@@ -81,9 +87,18 @@ public class StartServiceActivity extends Activity {
 	final Context context = this;
 	private static boolean alreadyRegistered = false;
 
+	public static enum EVENT_FILTER{
+		ALL,
+		INFO,
+		CRASH
+	}
+
+	private EVENT_FILTER search = EVENT_FILTER.ALL;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.main);
 		app = (CrashReport)getApplicationContext();
 		appPrefs = new ApplicationPreferences(getApplicationContext());
@@ -103,6 +118,15 @@ public class StartServiceActivity extends Activity {
 				}
 			});
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+		ActionBar actionBar = getActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+		SpinnerAdapter eventFilterAdapter = ArrayAdapter.createFromResource(this, R.array.eventFilterText,
+	            android.R.layout.simple_spinner_dropdown_item);
+		actionBar.setListNavigationCallbacks(eventFilterAdapter, eventFilterListener);
+		search = appPrefs.getFilterChoice();
+		actionBar.setSelectedNavigationItem(search.compareTo(EVENT_FILTER.ALL));
+		actionBar.setDisplayShowTitleEnabled(false);
+
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
 		progressBar = (ProgressBar) findViewById(R.id.progressAplog);
 		lvEvent = (ListView) findViewById(R.id.listEventView);
@@ -141,12 +165,24 @@ public class StartServiceActivity extends Activity {
 
 	}
 
+	private OnNavigationListener eventFilterListener = new OnNavigationListener() {
+		@Override
+		  public boolean onNavigationItemSelected(int position, long itemId) {
+			if ((position >= 0) && (position < EVENT_FILTER.values().length))
+				search = EVENT_FILTER.values()[position];
+			ApplicationPreferences prefs = new ApplicationPreferences(getApplicationContext());
+			prefs.setFilterChoice(search);
+			updateSummary();
+		    return true;
+		  }
+	};
+
 	private void updateSummary() {
 			ArrayList<Event> listEvent = new ArrayList<Event>();
 			EventDB db = new EventDB(getApplicationContext());
 			try {
 				db.open();
-				Cursor cursor = db.fetchLastNEvents("1000");
+				Cursor cursor = db.fetchLastNEvents("1000", search);
 				if (cursor != null) {
 					cursor.moveToFirst();
 					while (!cursor.isAfterLast()) {
@@ -182,11 +218,27 @@ public class StartServiceActivity extends Activity {
 
 		Intent intent = getIntent();
 		if(null != intent){
+
 			if(intent.getBooleanExtra("com.intel.crashreport.extra.fromOutside", false)) {
 				dialog_value = DIALOG_UNKNOWN_VALUE;
 				intent.removeExtra("com.intel.crashreport.extra.fromOutside");
-				setIntent(intent);
 			}
+
+			if(intent.hasExtra("com.intel.crashreport.extra.filter")){
+				if(intent.getStringExtra("com.intel.crashreport.extra.filter").equals(EVENT_FILTER.CRASH.name())) {
+					ActionBar actionBar = getActionBar();
+					actionBar.setSelectedNavigationItem(EVENT_FILTER.CRASH.compareTo(EVENT_FILTER.ALL));
+					intent.removeExtra("com.intel.crashreport.extra.filter");
+				}
+				notifyEvents(true);
+				NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
+				nMgr.cancelNotifCriticalEvent();
+				if(appPrefs.isNotificationForAllCrash()) {
+					notifyEvents(false);
+					nMgr.cancelNotifNoCriticalEvent();
+				}
+			}
+			setIntent(intent);
 		}
 
 		if (!app.isServiceStarted()) {
@@ -536,6 +588,27 @@ public class StartServiceActivity extends Activity {
 		if(null != askDialog)
 			askDialog.dismiss();
 		askDialog = null;
+	}
+
+	public void notifyEvents(boolean critical){
+		EventDB db = new EventDB(getApplicationContext());
+		Event event;
+		Cursor cursor;
+		try {
+			db.open();
+			cursor = db.fetchNotNotifiedEvents(critical);
+			if (cursor != null) {
+				while (!cursor.isAfterLast()) {
+					event = db.fillEventFromCursor(cursor);
+					db.updateEventToNotified(event.getEventId());
+					cursor.moveToNext();
+				}
+				cursor.close();
+			}
+			db.close();
+		} catch (SQLException e) {
+			Log.w("Service: db Exception");
+		}
 	}
 
 }

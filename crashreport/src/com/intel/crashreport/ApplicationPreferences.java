@@ -22,6 +22,7 @@ package com.intel.crashreport;
 import java.util.Arrays;
 import java.util.List;
 
+import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
 import com.intel.phonedoctor.Constants;
 
 import android.content.Context;
@@ -355,6 +356,22 @@ public class ApplicationPreferences {
 	 */
 	public void setBuild(String build) {
 		privatePrefsEditor.putString(mCtx.getString(R.string.settings_private_app_build_key), build);
+	}
+
+	/**
+	 * Get the event filter selected by the user
+	 * @return event filter
+	 */
+	public EVENT_FILTER getFilterChoice() {
+		return EVENT_FILTER.valueOf(appPrivatePrefs.getString(mCtx.getString(R.string.settings_private_app_event_filter_key), EVENT_FILTER.ALL.name()));
+	}
+
+	/**
+	 * Store the event filter chosen by the user in a shared preferences
+	 * @param choice the event filter
+	 */
+	public void setFilterChoice(EVENT_FILTER choice) {
+		privatePrefsEditor.putString(mCtx.getString(R.string.settings_private_app_event_filter_key), choice.name());
 		privatePrefsEditor.commit();
 	}
 

@@ -19,15 +19,13 @@
 
 package com.intel.crashreport;
 
-import com.intel.crashreport.GcmMessage.GCM_ACTION;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.database.SQLException;
 
 public class NotificationMgr {
 
@@ -84,15 +82,21 @@ public class NotificationMgr {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.icon;
 		long when = System.currentTimeMillis();
-		Notification notification = new Notification(icon, tickerText, when);
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, NOTIF_EVENT_ID, notificationIntent, 0);
+		Notification.Builder mBuilder =
+		        new Notification.Builder(context)
+				.setContentTitle(contentTitle)
+				.setContentText(contentText)
+				.setContentIntent(contentIntent)
+				.setAutoCancel(true)
+				.setTicker(tickerText)
+				.setWhen(when)
+				.setSmallIcon(icon);
 		clearNonCriticalNotification();
-		mNotificationManager.notify(NOTIF_EVENT_ID, notification);
+		mNotificationManager.notify(NOTIF_EVENT_ID, mBuilder.build());
 
 	}
 
@@ -104,14 +108,20 @@ public class NotificationMgr {
 			NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 			int icon = R.drawable.icon;
 			long when = System.currentTimeMillis();
-			Notification notification = new Notification(icon, tickerText, when);
 			Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 			notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
 			notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-			notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+			PendingIntent contentIntent = PendingIntent.getActivity(context, NOTIF_UPLOAD_ID, notificationIntent, 0);
+			Notification.Builder mBuilder =
+			        new Notification.Builder(context)
+					.setContentTitle(contentTitle)
+					.setContentText(contentText)
+					.setContentIntent(contentIntent)
+					.setWhen(when)
+					.setTicker(tickerText)
+					.setSmallIcon(icon);
 			clearNonCriticalNotification();
-			mNotificationManager.notify(NOTIF_UPLOAD_ID, notification);
+			mNotificationManager.notify(NOTIF_UPLOAD_ID, mBuilder.build());
 		}else{
 			//no explicit notification but a warning log
 			Log.w(contentText.toString());
@@ -136,15 +146,21 @@ public class NotificationMgr {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.icon;
 		long when = System.currentTimeMillis();
-		Notification notification = new Notification(icon, tickerText, when);
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, NOTIF_UPLOAD_WIFI_ONLY_ID, notificationIntent, 0);
+		Notification.Builder mBuilder =
+		        new Notification.Builder(context)
+				.setContentTitle(contentTitle)
+				.setContentText(contentText)
+				.setContentIntent(contentIntent)
+				.setWhen(when)
+				.setAutoCancel(true)
+				.setTicker(tickerText)
+				.setSmallIcon(icon);
 		clearNonCriticalNotification();
-		mNotificationManager.notify(NOTIF_UPLOAD_WIFI_ONLY_ID, notification);
+		mNotificationManager.notify(NOTIF_UPLOAD_WIFI_ONLY_ID, mBuilder.build());
 	}
 
 	public void notifyConnectWifiOrMpta() {
@@ -154,15 +170,21 @@ public class NotificationMgr {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.icon;
 		long when = System.currentTimeMillis();
-		Notification notification = new Notification(icon, tickerText, when);
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, NOTIF_BIGDATA_ID, notificationIntent, 0);
+		Notification.Builder mBuilder =
+		        new Notification.Builder(context)
+				.setContentTitle(contentTitle)
+				.setContentText(contentText)
+				.setContentIntent(contentIntent)
+				.setWhen(when)
+				.setAutoCancel(true)
+				.setTicker(tickerText)
+				.setSmallIcon(icon);
 		clearNonCriticalNotification();
-		mNotificationManager.notify(NOTIF_BIGDATA_ID, notification);
+		mNotificationManager.notify(NOTIF_BIGDATA_ID, mBuilder.build());
 	}
 
 	/**
@@ -220,12 +242,20 @@ public class NotificationMgr {
 		long when = System.currentTimeMillis();
 		CharSequence contentTitle = "PSI Phone Doctor";
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification(icon, tickerText, when);
-		Intent notificationIntent = new Intent(context, NotifyEventActivity.class);
+		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
+		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
+		notificationIntent.putExtra("com.intel.crashreport.extra.filter", EVENT_FILTER.CRASH.name());
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, 0);
-		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-		mNotificationManager.notify(notifId, notification);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, notifId, notificationIntent, 0);
+		Notification.Builder mBuilder =
+		        new Notification.Builder(context)
+				.setContentTitle(contentTitle)
+				.setContentText(contentText)
+				.setContentIntent(contentIntent)
+				.setWhen(when)
+				.setTicker(tickerText)
+				.setSmallIcon(icon);
+		mNotificationManager.notify(notifId, mBuilder.build());
 	}
 
 	public void notifyGcmMessage(int nbMessages, GcmMessage message) {
@@ -240,15 +270,21 @@ public class NotificationMgr {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		int icon = R.drawable.icon_phonedoctor;
 		long when = System.currentTimeMillis();
-		Notification notification = new Notification(icon, tickerText, when);
-		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		Intent notificationIntent = new Intent(context, GcmMessageDialog.class);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
 		notificationIntent.putExtra("rowId", message.getRowId());
 
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
-		mNotificationManager.notify(NOTIF_CRASHTOOL, notification);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, NOTIF_CRASHTOOL, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+		Notification.Builder mBuilder =
+		        new Notification.Builder(context)
+				.setContentTitle(contentTitle)
+				.setContentText(contentText)
+				.setContentIntent(contentIntent)
+				.setWhen(when)
+				.setAutoCancel(true)
+				.setTicker(tickerText)
+				.setSmallIcon(icon);
+		mNotificationManager.notify(NOTIF_CRASHTOOL, mBuilder.build());
 	}
 
 	public void clearGcmNotification() {

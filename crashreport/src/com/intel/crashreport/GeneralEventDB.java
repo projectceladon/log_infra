@@ -33,6 +33,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
 import com.intel.crashreport.bugzilla.BZ;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.specific.Event;
@@ -357,12 +358,18 @@ public class GeneralEventDB {
 				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, null, null, null, null, null);
 	}
 
-	public Cursor fetchLastNEvents(String sNlimit) {
+	public Cursor fetchLastNEvents(String sNlimit, EVENT_FILTER filter) {
 
+		String sQuery = null;
+
+		if(EVENT_FILTER.INFO == filter)
+			sQuery = KEY_NAME + "<> 'STATS'";
+		else if(EVENT_FILTER.CRASH == filter)
+			sQuery = KEY_NAME + "= 'CRASH'";
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, null, null, null, null,
+				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, sQuery, null, null, null,
 				KEY_ROWID + " DESC",sNlimit);
 	}
 
