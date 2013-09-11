@@ -506,7 +506,10 @@ public class GeneralEventDB {
 	protected Boolean isEventExistFromWhereQuery(String whereQuery) throws SQLException {
 		Cursor mCursor;
 		Boolean ret;
-		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
+
+                if (mDb == null) return false;
+
+                mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
 				whereQuery, null,
 				null, null, null, null);
 		if (mCursor != null) {
