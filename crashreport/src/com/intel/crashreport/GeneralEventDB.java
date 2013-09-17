@@ -444,6 +444,17 @@ public class GeneralEventDB {
 		return event;
 	}
 
+	/**
+	 *
+	 * @param eventId The event Id to search
+	 * @return The event searched
+	 * @throws SQLException
+	 */
+	public Cursor getEventFromId(String eventId) throws SQLException{
+		String whereQuery = KEY_ID + "='" + eventId +"'";
+		return fetchEventFromWhereQuery(whereQuery);
+	}
+
 	public Boolean isEventInDb(String eventId) throws SQLException {
 		return isEventExistFromWhereQuery(KEY_ID + "='" + eventId + "'");
 	}
@@ -565,6 +576,14 @@ public class GeneralEventDB {
 		args.put(KEY_CRASHDIR, crashDir);
 		if(crashDir.isEmpty())
 			args.put(KEY_LOGS_SIZE, 0);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+	}
+
+	public boolean updateEventField(String eventId, String field, String data) {
+		ContentValues args = new ContentValues();
+
+		args.put(field, data);
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}

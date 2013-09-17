@@ -141,6 +141,7 @@ public class Event extends GeneralEvent{
 		readDeviceIdFromFile();
 		imei = readImeiFromSystem();
 		uptime = histevent.getOption();
+		updateRebootReason();
 	}
 
 	private void fillUptimeEvent(HistoryEvent histevent, String myBuild) {
@@ -345,6 +346,24 @@ public class Event extends GeneralEvent{
 
 	public static String getSpid() {
 		return getSPIDFromFile();
+	}
+
+	/**
+	 * Read the eventfile to get the reboot reason (Data3,Data4).
+	 */
+	public void updateRebootReason() {
+		GenericParseFile aParseFile = null;
+		try{
+			aParseFile = new GenericParseFile("/logs/events", "eventfile_"+eventId);
+
+		}catch (FileNotFoundException e){
+			Log.w(toString() + ",eventfile couldn't be created: " + "/logs/events");
+		}
+		if(aParseFile != null){
+			data3 = aParseFile.getValueByName("DATA3");
+			data4 = aParseFile.getValueByName("DATA4");
+			dataReady = !aParseFile.getValueByName("DATAREADY").equals("0");
+		}
 	}
 
 
