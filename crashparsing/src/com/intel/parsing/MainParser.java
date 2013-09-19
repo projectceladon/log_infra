@@ -143,9 +143,9 @@ public class MainParser{
 				}
 
 				if (sTag.equals("FABRICERR") || sTag.equals("MEMERR") ||
-				    sTag.equals("INSTERR") || sTag.equals("SRAMECCERR") ||
-				    sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE") ||
-				    sTag.equals("FIRMWARE")) {
+						sTag.equals("INSTERR") || sTag.equals("SRAMECCERR") ||
+						sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE") ||
+						sTag.equals("FIRMWARE")) {
 					boolean bUseNewFabric = true;
 					for (String sBoardNew : LEGACY_BOARD_FABRIC){
 						if (sBoardNew.equals(sBoard)){
@@ -435,6 +435,21 @@ public class MainParser{
 						}
 					}
 				}
+
+				//filter step
+				// 1 - remove number after "/" pattern
+				if (sComm.contains("/")){
+					String sFilteredValue = simpleAwk(sComm, "/",0);
+					if (!sFilteredValue.isEmpty()){
+						sComm =  sFilteredValue;
+					}
+				}
+
+				// 2 - remove thread name if "Fatal exception in interrupt"
+				if (sPanic.contains("Fatal exception in interrupt")){
+					sComm = "";
+				}
+
 				bResult &= appendToCrashfile("DATA0=" + sData);
 				bResult &= appendToCrashfile("DATA1=" + sComm );
 				bResult &= appendToCrashfile("DATA2=" + sPanic );
