@@ -293,11 +293,15 @@ public class MainParser{
 		boolean bData1Found = false;
 		boolean bData2Found = false;
 		boolean bData3Found = false;
+		boolean bData4Found = false;
+		boolean bData5Found = false;
 
 		String sData0="";
 		String sData1="";
 		String sData2="";
 		String sData3="";
+		String sData4="";
+		String sData5="";
 		String sGenFile = fileGrepSearch(".*_crashdata", aFolder);
 		if (sGenFile != ""){
 			try{
@@ -305,6 +309,8 @@ public class MainParser{
 				Pattern patternData1 = java.util.regex.Pattern.compile("DATA1=.*");
 				Pattern patternData2 = java.util.regex.Pattern.compile("DATA2=.*");
 				Pattern patternData3 = java.util.regex.Pattern.compile("DATA3=.*");
+				Pattern patternData4 = java.util.regex.Pattern.compile("DATA4=.*");
+				Pattern patternData5 = java.util.regex.Pattern.compile("DATA5=.*");
 				BufferedReader bufGenFile = new BufferedReader(new FileReader(sGenFile));
 				String sCurLine;
 				while ((sCurLine = bufGenFile.readLine()) != null) {
@@ -337,11 +343,27 @@ public class MainParser{
 							bData3Found = true;
 						}
 					}
+					if (!bData4Found){
+						sTmp = simpleGrepAwk(patternData4, sCurLine, "=", 1);
+						if (sTmp != null){
+							sData4 = sTmp;
+							bData4Found = true;
+						}
+					}
+					if (!bData5Found){
+						sTmp = simpleGrepAwk(patternData5, sCurLine, "=", 1);
+						if (sTmp != null){
+							sData5 = sTmp;
+							bData5Found = true;
+						}
+					}
 				}
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sData1);
 				bResult &= appendToCrashfile("DATA2=" + sData2);
 				bResult &= appendToCrashfile("DATA3=" + sData3);
+				bResult &= appendToCrashfile("DATA4=" + sData4);
+				bResult &= appendToCrashfile("DATA5=" + sData5);
 				bufGenFile.close();
 			}
 			catch(Exception e) {
