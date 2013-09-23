@@ -927,22 +927,27 @@ public class MainParser{
 		boolean bResult = true;
 		bResult &= parseJavaCrashFile(".*_app_crash.*.txt.gz",".*_app_crash.*.txt",aFolder);
 		bResult &= parseJavaCrashFile("system_server_crash.*.txt.gz","system_server_crash.*.txt",aFolder);
+		bResult &= parseJavaCrashFile(".*_app_native_crash.*.txt.gz",".*_app_native_crash.*.txt",aFolder, true);
 		return bResult;
 	}
 
 	private boolean parseJavaCrashFile(String aFileZip, String aFileNormal, String aFolder){
+		return parseJavaCrashFile(aFileZip, aFileNormal, aFolder, false);
+	}
+
+	private boolean parseJavaCrashFile(String aFileZip, String aFileNormal, String aFolder, boolean nativ){
 		boolean bResult = true;
 		String sSysAppGZ = fileGrepSearch(aFileZip, aFolder);
 		try {
 			if (sSysAppGZ != ""){
 				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sSysAppGZ));
 				BufferedReader sysAppReader = new BufferedReader(new InputStreamReader (gzipInputStream));
-				bResult = extractJavaCrashData(sysAppReader);
+				bResult = extractJavaCrashData(sysAppReader, nativ);
 			}else{
 				String sSysApp = fileGrepSearch(aFileNormal, aFolder);
 				if (sSysApp != ""){
 					BufferedReader sysAppReader = new BufferedReader(new FileReader(sSysApp));
-					bResult = extractJavaCrashData(sysAppReader);
+					bResult = extractJavaCrashData(sysAppReader, nativ);
 				}
 			}
 		}catch(Exception e) {
@@ -1125,7 +1130,7 @@ public class MainParser{
 		return bResult;
 	}
 
-	private boolean extractJavaCrashData(BufferedReader aReader){
+	private boolean extractJavaCrashData(BufferedReader aReader, boolean nativ){
 		boolean bResult = true;
 		String sPID= "";
 		String sException= "";
@@ -1135,7 +1140,7 @@ public class MainParser{
 		int iStackCount = 0;
 
 		Pattern patternPID = java.util.regex.Pattern.compile(".*Process:.*");
-		Pattern patternJavaLang = java.util.regex.Pattern.compile("java.lang.*");
+		Pattern patternJavaLang = java.util.regex.Pattern.compile("java\\.lang.*");
 		Pattern patternStack = java.util.regex.Pattern.compile(".*at .*");
 		String sCurLine;
 		try {
@@ -1171,7 +1176,7 @@ public class MainParser{
 			}
 
 			bResult &= appendToCrashfile("DATA0=" + sPID);
-			bResult &= appendToCrashfile("DATA1=" + sException);
+			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + sException);
 			bResult &= appendToCrashfile("DATA2=" + sStack);
 			aReader.close();
 		}catch (Exception e) {
