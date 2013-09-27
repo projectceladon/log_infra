@@ -143,4 +143,12 @@ public class Build extends GeneralBuild{
 		return false;
 	}
 
+	public boolean testVersion() {
+		return !(isWrongValue(ifwiVersion) ||
+				isWrongValue(iafwVersion) ||
+				isWrongValue(scufwVersion) ||
+				isWrongValue(punitVersion) ||
+				isWrongValue(valhooksVersion));
+	}
+
 }

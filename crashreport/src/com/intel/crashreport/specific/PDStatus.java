@@ -268,6 +268,40 @@ public enum PDStatus {
 				return result;
 			}
 		}),
+		MTS_RUNNING (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface(){
+			/**
+			 * @brief MTS is running or not.
+			 * @return String : T if MTS is not running, 1 else,x if MTS doesn't exists.
+			 */
+			public String computeValue() {
+				String result = "x";
+				result = SystemProperties.get("init.svc.mtsp","x");
+				if(result.equals("running"))
+					result = "1";
+				else if (!result.equals("x"))
+					result = "T";
+				else {
+					result = SystemProperties.get("init.svc.mtso","x");
+					if(result.equals("running"))
+						result = "1";
+					else if (!result.equals("x"))
+						result = "T";
+				}
+				return result;
+			}
+		}),
+		FW_VERSION (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface(){
+			/**
+			 * @brief Test if Firmware versions are good or not.
+			 * @return String : V if one of the firmware version is wrong, 0 else.
+			 */
+			public String computeValue() {
+				String result = "x";
+				CrashReport app = (CrashReport)context;
+				result = app.getMyBuild().testVersion()?"0":"V";
+				return result;
+			}
+		}),
 		WIFI_ONLY (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 			/**
 			 * @brief Check if logs have to be upload only over a Wifi connection.
@@ -303,7 +337,7 @@ public enum PDStatus {
 				return result;
 			}
 		}),
-		BYTE32 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
+		BYTE30 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 
 			public String computeValue() {
 				return " ";
@@ -332,7 +366,7 @@ public enum PDStatus {
 				return result;
 			}
 		}),
-		BYTE28 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
+		BYTE26 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 
 			public String computeValue() {
 				return " ";

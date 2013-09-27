@@ -356,6 +356,7 @@ public class ApplicationPreferences {
 	 */
 	public void setBuild(String build) {
 		privatePrefsEditor.putString(mCtx.getString(R.string.settings_private_app_build_key), build);
+		privatePrefsEditor.commit();
 	}
 
 	/**
