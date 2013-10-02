@@ -316,42 +316,42 @@ public class MainParser{
 				while ((sCurLine = bufGenFile.readLine()) != null) {
 					String sTmp;
 					if (!bData0Found){
-						sTmp = simpleGrepAwk(patternData0, sCurLine, "=", 1);
+						sTmp = simpleGrepAwk(patternData0, sCurLine, "=", 1, true);
 						if (sTmp != null){
 							sData0 = sTmp;
 							bData0Found = true;
 						}
 					}
 					if (!bData1Found){
-						sTmp = simpleGrepAwk(patternData1, sCurLine, "=", 1);
+						sTmp = simpleGrepAwk(patternData1, sCurLine, "=", 1, true);
 						if (sTmp != null){
 							sData1 = sTmp;
 							bData1Found = true;
 						}
 					}
 					if (!bData2Found){
-						sTmp = simpleGrepAwk(patternData2, sCurLine, "=", 1);
+						sTmp = simpleGrepAwk(patternData2, sCurLine, "=", 1, true);
 						if (sTmp != null){
 							sData2 = sTmp;
 							bData2Found = true;
 						}
 					}
 					if (!bData3Found){
-						sTmp = simpleGrepAwk(patternData3, sCurLine, "=", 1);
+						sTmp = simpleGrepAwk(patternData3, sCurLine, "=", 1, true);
 						if (sTmp != null){
 							sData3 = sTmp;
 							bData3Found = true;
 						}
 					}
 					if (!bData4Found){
-						sTmp = simpleGrepAwk(patternData4, sCurLine, "=", 1);
+						sTmp = simpleGrepAwk(patternData4, sCurLine, "=", 1, true);
 						if (sTmp != null){
 							sData4 = sTmp;
 							bData4Found = true;
 						}
 					}
 					if (!bData5Found){
-						sTmp = simpleGrepAwk(patternData5, sCurLine, "=", 1);
+						sTmp = simpleGrepAwk(patternData5, sCurLine, "=", 1, true);
 						if (sTmp != null){
 							sData5 = sTmp;
 							bData5Found = true;
@@ -1251,28 +1251,11 @@ public class MainParser{
 	}
 
 	private String simpleGrepAwk(Pattern aPattern, String aLine, String sSeparator, int iReturnIndex){
-		Matcher simpleMatcher = aPattern.matcher(aLine);
-		String sResult = null;
-		if (simpleMatcher.find()){
-			String sGroup = simpleMatcher.group();
-			if (sSeparator.equals("")){
-				sResult = sGroup;
-			}else {
-				sResult = simpleAwk(sGroup,sSeparator,iReturnIndex);
-			}
-		}
-		return sResult;
+		return simpleGrepAwk(aPattern, aLine, sSeparator, iReturnIndex, false);
 	}
 
 	private String simpleAwk(String aString, String sSeparator, int iReturnIndex){
-		String sResult = null;
-		if (aString != null){
-			String[] splitString = aString.split(sSeparator);
-			if (splitString.length > iReturnIndex ){
-				sResult = splitString[iReturnIndex];
-			}
-		}
-		return sResult;
+		return simpleAwk(aString, sSeparator, iReturnIndex, false);
 	}
 
 	private String advancedAwk(String aString, String sSeparator, int iReturnIndex){
@@ -1306,6 +1289,31 @@ public class MainParser{
 			}
 		}
 		return sFileResult;
+	}
+
+	private String simpleGrepAwk(Pattern aPattern, String aLine, String sSeparator, int iReturnIndex, boolean left){
+		Matcher simpleMatcher = aPattern.matcher(aLine);
+		String sResult = null;
+		if (simpleMatcher.find()){
+			String sGroup = simpleMatcher.group();
+			if (sSeparator.equals("")){
+				sResult = sGroup;
+			}else {
+				sResult = simpleAwk(sGroup,sSeparator,iReturnIndex, left);
+			}
+		}
+		return sResult;
+	}
+
+	private String simpleAwk(String aString, String sSeparator, int iReturnIndex, boolean left){
+		String sResult = null;
+		if (aString != null){
+			String[] splitString = left?aString.split(sSeparator, iReturnIndex + 1):aString.split(sSeparator);
+			if (splitString.length > iReturnIndex ){
+				sResult = splitString[iReturnIndex];
+			}
+		}
+		return sResult;
 	}
 
 }
