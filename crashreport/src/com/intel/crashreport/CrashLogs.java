@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -151,31 +152,42 @@ public class CrashLogs {
 	 * @throws IOException if an error occurs when storing an entry in zip file
 	 */
 	private static void writeCrashLogsZip(File crashLogsFile, File fileList[]) throws FileNotFoundException, IOException {
-		BufferedInputStream origin = null;
 		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
+		File fileInfo = null;
 		try {
-			byte data[] = new byte[BUFFER_SIZE];
 			for(int i=0; i < fileList.length; i++) {
 				Log.d("Compress Adding: " + fileList[i].getName());
 
 				if (!(fileList[i].exists() && fileList[i].canRead() && (fileList[i].getName().length() < Integer.MAX_VALUE))){
 					Log.w("CrashLogs: can't read file "+fileList[i].getName()+" to be added in "+crashLogsFile.getName());
-					throw new FileNotFoundException(fileList[i].getName());
+					try{
+						boolean append = true;
+						if(fileInfo == null) {
+							fileInfo = new File(fileList[i].getParent() + "/unavailableFiles");
+							if(fileInfo.exists())
+								append = false;
+						}
+						FileWriter info = new FileWriter(fileInfo, append);
+						info.write(fileList[i].getName()+"\n");
+						info.close();
+					}
+					catch(IOException e){
+						Log.e("CrashLogs: Can't write "+fileList[i].getName()+" in "+fileList[i].getParent()+"/unavailableFiles");
+					}
+					continue;
 				}
-				FileInputStream fi = new FileInputStream(fileList[i]);
-				origin = new BufferedInputStream(fi, BUFFER_SIZE);
-				ZipEntry entry = new ZipEntry(fileList[i].getName());
-				out.putNextEntry(entry);
-				int count;
-				while ((count = origin.read(data)) != -1)
-					out.write(data, 0, count);
-				origin.close();
+				if(!fileList[i].getName().contains("unavailableFiles"))
+					addFileToZip(fileList[i], out);
+			}
+			if(fileInfo != null) {
+				if (!(fileInfo.exists() && fileInfo.canRead() && (fileInfo.getName().length() < Integer.MAX_VALUE)))
+					Log.w("CrashLogs: can't read file "+fileInfo.getName()+" to be added in "+crashLogsFile.getName());
+				else
+					addFileToZip(fileInfo, out);
 			}
 		}
 		finally {
 			out.close();
-			if (origin != null)
-				origin.close();
 		}
 	}
 
@@ -197,5 +209,29 @@ public class CrashLogs {
 			Log.e("CrashLogs:getCrashLogsSize: can't access Database");
 		}
 		return totalSize;
+	}
+
+	/**
+	 * Add a file in a zip file
+	 * @param file the file to add
+	 * @param out the zip file where add the file
+	 * @throws IOException
+	 */
+	private static void addFileToZip(File file, ZipOutputStream out) throws FileNotFoundException,IOException{
+		BufferedInputStream origin = null;
+		byte data[] = new byte[BUFFER_SIZE];
+		try{
+			FileInputStream fi = new FileInputStream(file);
+			origin = new BufferedInputStream(fi, BUFFER_SIZE);
+			ZipEntry entry = new ZipEntry(file.getName());
+			out.putNextEntry(entry);
+			int count;
+			while ((count = origin.read(data)) != -1)
+				out.write(data, 0, count);
+		}
+		finally{
+			if (origin != null)
+				origin.close();
+		}
 	}
 }
