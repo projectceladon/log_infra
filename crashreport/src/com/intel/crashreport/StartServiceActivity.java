@@ -609,10 +609,10 @@ public class StartServiceActivity extends Activity {
 				}
 				cursor.close();
 			}
-			db.close();
 		} catch (SQLException e) {
 			Log.w("Service: db Exception");
 		}
+		db.close();
 	}
 
 }

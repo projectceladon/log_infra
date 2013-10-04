@@ -212,11 +212,11 @@ public class CrashReportService extends Service {
 					} else
 						serviceHandler.sendEmptyMessage(ServiceMsg.noEventToUpload);
 				}
-				db.close();
 			} catch (SQLException e) {
 				Log.w(MODULE+":isThereEventToUpload : Fail to open DB");
 				serviceHandler.sendEmptyMessage(ServiceMsg.noEventToUpload);
 			}
+			db.close();
 
 		}
 	};
@@ -383,7 +383,7 @@ public class CrashReportService extends Service {
 		}
 	}
 
-	private void sendEvents(EventDB db, Connector con,Build myBuild) throws InterruptedException,ProtocolException{
+	private void sendEvents(EventDB db, Connector con,Build myBuild) throws InterruptedException,ProtocolException,SQLException{
 		Cursor cursor = db.fetchNotUploadedEvents();
 		Event event;
 		hideProgressBar();

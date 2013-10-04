@@ -83,9 +83,10 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
                 }
                 db.close();
             } catch (SQLException e) {
-            throw e;
-           }
-           return null;
+                db.close();
+                throw e;
+            }
+            return null;
         }
 
         protected void onProgressUpdate(Void... params) {

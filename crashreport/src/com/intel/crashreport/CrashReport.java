@@ -97,10 +97,10 @@ public class CrashReport extends Application {
 
 				db.insertCricitalEvent("TOMBSTONE", "system_server", "", "", "", "", "");
 			}
-			db.close();
 		} catch (SQLException e) {
 			Log.w("CrashReport: update of critical crash db failed");
 		}
+		db.close();
 
 		//first try to register GCM TOKEN
 		if(privatePrefs.isGcmEnable())

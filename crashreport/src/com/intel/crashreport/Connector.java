@@ -129,7 +129,7 @@ public class Connector {
 
 	public Boolean getDataConnectionAvailability() {
 		ConnectivityManager cm = (ConnectivityManager)mCtx.getSystemService(Context.CONNECTIVITY_SERVICE);
-		if (cm.getBackgroundDataSetting()) {
+		if (cm!= null && cm.getBackgroundDataSetting()) {
 			NetworkInfo net = cm.getActiveNetworkInfo();
 			if (net != null) {
 				if (net.isConnected())
@@ -141,9 +141,11 @@ public class Connector {
 
 	public Boolean getWifiConnectionAvailability() {
 		ConnectivityManager cm = (ConnectivityManager)mCtx.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo wifiNetInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-		if (wifiNetInfo != null)
-			return wifiNetInfo.isConnected();
+		if(cm != null) {
+			NetworkInfo wifiNetInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+			if (wifiNetInfo != null)
+				return wifiNetInfo.isConnected();
+		}
 		return false;
 	}
 
@@ -160,7 +162,7 @@ public class Connector {
 		wm = (WifiManager)mCtx.getSystemService(Context.WIFI_SERVICE);
 		String wifiSsid = getInternalWifiSsid();
 		String wmSsid = "";
-		if (wm.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
+		if ((wm != null) && wm.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
 			WifiInfo wInfo = wm.getConnectionInfo();
 			if (wInfo != null) {
 				wmSsid = wInfo.getSSID();
@@ -187,7 +189,7 @@ public class Connector {
 		wm = (WifiManager)mCtx.getSystemService(Context.WIFI_SERVICE);
 		String wifiSsid = getInternalWifiSsid();
 		String wmSsid = "";
-		if (wm.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
+		if ((wm != null) && wm.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
 			WifiInfo wInfo = wm.getConnectionInfo();
 			if (wInfo != null) {
 				wmSsid = wInfo.getSSID();
@@ -354,38 +356,40 @@ public class Connector {
 			case WifiManager.WIFI_STATE_ENABLED: {
 				Log.d("Connector:checkWifiState: WIFI_STATE_ENABLED");
 				setTryingToConnect(true);
+				if(cm == null)
+					break;
 				NetworkInfo nInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-				if (nInfo != null) {
-					NetworkInfo.State nState = nInfo.getState();
-					if (nState == NetworkInfo.State.CONNECTED) {
-						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTED");
-						setTryingToConnect(false);
-						scanInProgress = false;
-						wifiWaitForConnect = false;
-						mCtx.unregisterReceiver(wifiStateReceiver);
-						mTimer.cancel();
-						serviceHandler.sendEmptyMessage(ServiceMsg.wifiConnectedInternal);
-					} else if (nState == NetworkInfo.State.CONNECTING) {
-						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTING");
-						scanInProgress = true;
-						serviceHandler.postDelayed(checkWifiStateToConnect, 10);
-					} else if (nState == NetworkInfo.State.DISCONNECTED) {
-						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTED");
-						scanInProgress = true;
-						wm.startScan();
-					} else if (nState == NetworkInfo.State.DISCONNECTING) {
-						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTING");
-						scanInProgress = true;
-						wm.startScan();
-					} else if (nState == NetworkInfo.State.SUSPENDED) {
-						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE SUSPENDED");
-						scanInProgress = true;
-						wm.startScan();
-					} else if (nState == NetworkInfo.State.UNKNOWN) {
-						Log.d("Connector:checkWifiState: WIFI NETWORK_STATE UNKNOWN");
-						scanInProgress = true;
-						wm.startScan();
-					}
+				if (nInfo == null)
+					break;
+				NetworkInfo.State nState = nInfo.getState();
+				if (nState == NetworkInfo.State.CONNECTED) {
+					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTED");
+					setTryingToConnect(false);
+					scanInProgress = false;
+					wifiWaitForConnect = false;
+					mCtx.unregisterReceiver(wifiStateReceiver);
+					mTimer.cancel();
+					serviceHandler.sendEmptyMessage(ServiceMsg.wifiConnectedInternal);
+				} else if (nState == NetworkInfo.State.CONNECTING) {
+					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE CONNECTING");
+					scanInProgress = true;
+					serviceHandler.postDelayed(checkWifiStateToConnect, 10);
+				} else if (nState == NetworkInfo.State.DISCONNECTED) {
+					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTED");
+					scanInProgress = true;
+					wm.startScan();
+				} else if (nState == NetworkInfo.State.DISCONNECTING) {
+					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE DISCONNECTING");
+					scanInProgress = true;
+					wm.startScan();
+				} else if (nState == NetworkInfo.State.SUSPENDED) {
+					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE SUSPENDED");
+					scanInProgress = true;
+					wm.startScan();
+				} else if (nState == NetworkInfo.State.UNKNOWN) {
+					Log.d("Connector:checkWifiState: WIFI NETWORK_STATE UNKNOWN");
+					scanInProgress = true;
+					wm.startScan();
 				}
 				break;
 			}

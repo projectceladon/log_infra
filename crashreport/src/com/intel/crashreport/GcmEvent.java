@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 
 import com.google.android.gcm.GCMRegistrar;
@@ -65,7 +66,8 @@ public enum GcmEvent {
 		ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		boolean isConnected = false;
 		if(cm != null){
-			if((cm.getActiveNetworkInfo() != null) && cm.getActiveNetworkInfo().isConnected())
+			NetworkInfo ni = cm.getActiveNetworkInfo();
+			if((ni != null) && ni.isConnected())
 				isConnected = true;
 		}
 		if(isConnected) {

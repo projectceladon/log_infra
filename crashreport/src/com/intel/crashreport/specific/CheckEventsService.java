@@ -266,6 +266,7 @@ public class CheckEventsService extends Service {
 			db.close();
 			throw e;
 		} catch (SQLException e) {
+			db.close();
 			throw e;
 		}
 
@@ -372,10 +373,10 @@ public class CheckEventsService extends Service {
 					db.updateEventDataReady(eventId);
 					isPresent = true;
 				}
-				db.close();
 			}catch (SQLException e) {
 				Log.w("NotifyCrashTask: Fail to access DB", e);
 			}
+			db.close();
 
 			if (isPresent) {
 				Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");

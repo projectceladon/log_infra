@@ -277,8 +277,8 @@ public class GeneralEventDB {
 	}
 
 	public void close() {
-		if (mDbHelper != null)
-			mDbHelper.close();
+		if (mDb != null)
+			mDb.close();
 	}
 
 	public long addEvent(String eventId, String eventName, String type,
@@ -524,16 +524,18 @@ public class GeneralEventDB {
 	protected Boolean isEventExistFromWhereQuery(String whereQuery) throws SQLException {
 		Cursor mCursor;
 		Boolean ret;
-
-                if (mDb == null) return false;
-
-                mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-				whereQuery, null,
-				null, null, null, null);
-		if (mCursor != null) {
-			ret = mCursor.moveToFirst();
-			mCursor.close();
-			return ret;
+		try{
+			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
+					whereQuery, null,
+					null, null, null, null);
+			if (mCursor != null) {
+				ret = mCursor.moveToFirst();
+				mCursor.close();
+				return ret;
+			}
+		}catch(NullPointerException e){
+			Log.w("isEventExistsFromWhereQuery: Can't access to DB");
+			throw new SQLException("Can't open DB");
 		}
 		return false;
 	}
@@ -633,6 +635,8 @@ public class GeneralEventDB {
 				return count;
 			}
 		} catch (SQLException e) {
+			return 0;
+		} catch (NullPointerException e) {
 			return 0;
 		}
 		return 0;

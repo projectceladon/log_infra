@@ -119,8 +119,8 @@ public class CrashLogs {
 			throw new IllegalArgumentException();
 		}
 		/*Check crashlog directory is not empty*/
-		if (crashDir.listFiles() != null && crashDir.listFiles().length > 0) {
-			File fileList[] = crashDir.listFiles();
+		File fileList[] = crashDir.listFiles();
+		if ((fileList != null) && fileList.length > 0) {
 			File crashLogsFile = new File(outDir, fileName); //fileName necessary not null
 			try {
 				writeCrashLogsZip(crashLogsFile, fileList);

@@ -71,10 +71,10 @@ public class NotifyEventActivity extends Activity {
 				}
 				cursor.close();
 			}
-			db.close();
 		} catch (SQLException e) {
 			Log.w("Service: db Exception");
 		}
+		db.close();
 		if(critical)
 			viewText = (TextView) findViewById(R.id.criticalEventsView);
 		else
@@ -104,10 +104,10 @@ public class NotifyEventActivity extends Activity {
 				}
 				cursor.close();
 			}
-			db.close();
 		} catch (SQLException e) {
 			Log.w("Service: db Exception");
 		}
+		db.close();
 	}
 
 	protected void onResume() {
