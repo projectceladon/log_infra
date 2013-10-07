@@ -362,7 +362,6 @@ public class Event extends GeneralEvent{
 		if(aParseFile != null){
 			data3 = aParseFile.getValueByName("DATA3");
 			data4 = aParseFile.getValueByName("DATA4");
-			dataReady = !aParseFile.getValueByName("DATAREADY").equals("0");
 		}
 	}
 

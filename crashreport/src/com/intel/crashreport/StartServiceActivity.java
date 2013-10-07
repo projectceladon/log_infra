@@ -433,6 +433,7 @@ public class StartServiceActivity extends Activity {
 			filter.addAction(ServiceToActivityMsg.uploadProgressBar);
 			filter.addAction(ServiceToActivityMsg.showProgressBar);
 			filter.addAction(ServiceToActivityMsg.hideProgressBar);
+			filter.addAction(ServiceToActivityMsg.unbindActivity);
 			appCtx.registerReceiver(msgReceiver, filter);
 			alreadyRegistered = true;
 		}
@@ -500,6 +501,8 @@ public class StartServiceActivity extends Activity {
 				if (null != progressBar)
 					progressBar.setVisibility(View.GONE);
 			}
+			else if (intent.getAction().equals(ServiceToActivityMsg.unbindActivity))
+				onKillService();
 		}
 	};
 
@@ -566,6 +569,7 @@ public class StartServiceActivity extends Activity {
 		public static final String uploadProgressBar = "com.intel.crashreport.uploadProgressBarView";
 		public static final String showProgressBar = "com.intel.crashreport.showProgressBarView";
 		public static final String hideProgressBar = "com.intel.crashreport.hideProgressBarView";
+		public static final String unbindActivity = "com.intel.crashreport.unbindActivity";
 	}
 
 	public void onKillService() {

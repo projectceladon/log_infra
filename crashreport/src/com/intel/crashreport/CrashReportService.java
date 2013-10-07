@@ -104,8 +104,13 @@ public class CrashReportService extends Service {
 
 	@Override
 	public void onDestroy() {
-		if(app.isServiceStarted())
+		if(app.isServiceStarted()) {
 			app.setServiceStarted(false);
+			if(app.isActivityBounded()) {
+				Intent hideDialog = new Intent(ServiceToActivityMsg.unbindActivity);
+				getApplicationContext().sendBroadcast(hideDialog);
+			}
+		}
 		app.setUploadService(null);
 		super.onDestroy();
 	}
@@ -125,6 +130,10 @@ public class CrashReportService extends Service {
 	private void stopService() {
 		Log.d(MODULE+":Stop Service");
 		app.setServiceStarted(false);
+		if(app.isActivityBounded()) {
+			Intent hideDialog = new Intent(ServiceToActivityMsg.unbindActivity);
+			getApplicationContext().sendBroadcast(hideDialog);
+		}
 		app.setUploadService(null);
 		handlerThread.quit();
 		stopSelf();

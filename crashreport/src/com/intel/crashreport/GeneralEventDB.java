@@ -394,7 +394,7 @@ public class GeneralEventDB {
 			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
 		/* Only logs for events already uploaded*/
-		bQuery.append(" and "+KEY_UPLOAD+"='1'");
+		bQuery.append(" and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR+" != ''");
 		Log.d("fetchNotUploadedLogs : Query string = " +bQuery.toString() );
 		return fetchEventFromWhereQuery(bQuery.toString());
 
