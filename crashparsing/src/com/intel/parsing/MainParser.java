@@ -394,7 +394,7 @@ public class MainParser{
 			try{
 				BufferedReader bufPanicFile = new BufferedReader(new FileReader(sIPanicFile));
 				Pattern patternData = java.util.regex.Pattern.compile("EIP:.*SS:ESP");
-				Pattern patternComm = java.util.regex.Pattern.compile("comm: .*");
+				Pattern patternComm = java.util.regex.Pattern.compile("(c|C)omm: .*");
 				Pattern patternPanic = java.util.regex.Pattern.compile("Kernel panic - not syncing: .*");
 
 				String sCurLine;
