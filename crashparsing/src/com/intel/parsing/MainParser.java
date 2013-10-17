@@ -440,7 +440,7 @@ public class MainParser{
 				// 1 - remove number after "/" pattern
 				if (sComm.contains("/")){
 					String sFilteredValue = simpleAwk(sComm, "/",0);
-					if (!sFilteredValue.isEmpty()){
+					if (sFilteredValue != null && !sFilteredValue.isEmpty()){
 						sComm =  sFilteredValue;
 					}
 				}
