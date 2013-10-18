@@ -1,13 +1,21 @@
 package com.intel.phonemonitor;
 
 import java.io.File;
-import android.thermal.ThermalZone;
-import android.thermal.ThermalManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 
 public class ThermalMonitor extends Monitor {
+    private static final String ACTION_THERMAL_ZONE_STATE_CHANGED =
+            "com.android.server.thermal.action.THERMAL_ZONE_STATE_CHANGED";
+    public static final String EXTRA_ZONE = "zone";
+    public static final String EXTRA_STATE = "state";
+    public static final String EXTRA_EVENT = "event";
+    public static final String EXTRA_TEMP = "temp";
+    public static final String EXTRA_NAME = "name";
+
+    public static final String STATE_NAMES[] = {"OFF", "NORMAL", "WARNING", "ALERT", "CRITICAL"};
+
     private static final int MAX_ZONE_SYSFS_ENTRIES = 16;
 
     @Override
@@ -15,7 +23,7 @@ public class ThermalMonitor extends Monitor {
         super.start(ctx, out_file_name, append);
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_THERMAL_ZONE_STATE_CHANGED);
+        filter.addAction(ACTION_THERMAL_ZONE_STATE_CHANGED);
 
         ctx.registerReceiver(this, filter);
     }
@@ -24,24 +32,39 @@ public class ThermalMonitor extends Monitor {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-        if (Intent.ACTION_THERMAL_ZONE_STATE_CHANGED.equals(action)) {
+        if (ACTION_THERMAL_ZONE_STATE_CHANGED.equals(action)) {
             handleThermalStateChanged(intent);
         }
     }
 
+    /*
+     * code snippet from com/android/server/thermal/ThermalZone.java
+     **/
+
+    private String getStateAsString(int index) {
+        if (index < -1 || index > 3)
+           return "Invalid";
+        index++;
+        return STATE_NAMES[index];
+    }
+
+    private String getEventTypeAsString(int type) {
+        return type == 0 ? "LOW" : "HIGH";
+    }
+
     private void handleThermalStateChanged(Intent intent) {
         // Code shamelessly copied from framework/base/core/android/thermal/ThermalCoolingMAnager.java
-        String zoneName = intent.getStringExtra(ThermalManager.EXTRA_NAME);
-        int thermZone = intent.getIntExtra(ThermalManager.EXTRA_ZONE, 0);
-        int thermState = intent.getIntExtra(ThermalManager.EXTRA_STATE, 0);
-        int thermEvent = intent.getIntExtra(ThermalManager.EXTRA_EVENT, 0);
-        int zoneTemp = intent.getIntExtra(ThermalManager.EXTRA_TEMP, 0);
+        String zoneName = intent.getStringExtra(EXTRA_NAME);
+        int thermZone = intent.getIntExtra(EXTRA_ZONE, 0);
+        int thermState = intent.getIntExtra(EXTRA_STATE, 0);
+        int thermEvent = intent.getIntExtra(EXTRA_EVENT, 0);
+        int zoneTemp = intent.getIntExtra(EXTRA_TEMP, 0);
 
         String msg = zoneName  + "," +
                      thermZone + "," +
                      zoneTemp  + "," +
-                     ThermalZone.getStateAsString(thermState) + "," +
-                     ThermalZone.getEventTypeAsString(thermEvent);
+                     getStateAsString(thermState) + "," +
+                     getEventTypeAsString(thermEvent);
 
         flush("THERMAL_EVENT", msg, "");
         collectMetrics();
