@@ -23,23 +23,28 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import android.content.Context;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.Log;
+import com.intel.crashreport.propconfig.PropertyConfigLoader;
+import com.intel.crashreport.propconfig.bean.BuildAllowedValues;
 
 public class Build extends GeneralBuild{
 
 	private static final String PATH_MODEMID = "/logs/modemid.txt";
-	private static final String WRONG_VALUE[] = {"","00.00","0000.0000"};
+	private static BuildAllowedValues ALLOWED_VALUES = null;
 	private Context ctx;
 
 	public Build(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname, String modemVersion,
 			String ifwiVersion, String iafwVersion, String scufwVersion, String punitVersion, String valhooksVersion) {
 		super(buildId, fingerPrint, kernelVersion, buildUserHostname, modemVersion,
 				ifwiVersion, iafwVersion, scufwVersion, punitVersion, valhooksVersion);
+		checkAllowedProperties();
 		consolidateModemVersion();
 	}
 
@@ -47,6 +52,7 @@ public class Build extends GeneralBuild{
 		super(longBuildId);
 		if (longBuildId != null) {
 			if (longBuildId.contains(",")) {
+				checkAllowedProperties();
 				consolidateModemVersion();
 				checkBuild();
 			}
@@ -56,23 +62,57 @@ public class Build extends GeneralBuild{
 	public Build(Context context) {
 		super();
 		ctx = context;
+		checkAllowedProperties();
 	}
 
 	public void fillBuildWithSystem() {
-		this.buildId = android.os.Build.VERSION.INCREMENTAL;
-		this.fingerPrint = android.os.Build.FINGERPRINT;
-		this.kernelVersion = getProperty("sys.kernel.version");
-		this.buildUserHostname = getProperty("ro.build.user")+"@"+getProperty("ro.build.host");
-		this.modemVersion = getProperty("gsm.version.baseband");
-		this.ifwiVersion = getProperty("sys.ifwi.version");
-		this.iafwVersion = getProperty("sys.ia32.version");
-		this.scufwVersion = getProperty("sys.scu.version");
-		this.punitVersion = getProperty("sys.punit.version");
-		this.valhooksVersion = getProperty("sys.valhooks.version");
+		this.setBuildId(android.os.Build.VERSION.INCREMENTAL);
+		this.setFingerPrint(android.os.Build.FINGERPRINT);
+		this.setKernelVersion(getProperty("sys.kernel.version"));
+		this.setBuildUserHostname(getProperty("ro.build.user")+"@"+getProperty("ro.build.host"));
+		this.setModemVersion(getProperty("gsm.version.baseband"));
+		this.setIfwiVersion(getProperty("sys.ifwi.version"));
+		this.setIafwVersion(getProperty("sys.ia32.version"));
+		this.setScufwVersion(getProperty("sys.scu.version"));
+		this.setPunitVersion(getProperty("sys.punit.version"));
+		this.setValhooksVersion(getProperty("sys.valhooks.version"));
+		checkAllowedProperties();
 		consolidateModemVersion();
 		consolidateBuildId();
 		ApplicationPreferences prefs = new ApplicationPreferences(ctx);
 		prefs.setBuild(super.toString());
+	}
+
+	/**
+	 * This method applies the properties configuration to all
+	 * properties.
+	 *
+	 * The static attribute <code>ALLOWED_VALUES</code> is updated
+	 * only once if needed.
+	 */
+	private void checkAllowedProperties() {
+		// Retrieve the build properties configuration if needed
+		if(ALLOWED_VALUES == null) {
+			PropertyConfigLoader loader = PropertyConfigLoader.getInstance();
+			ALLOWED_VALUES = loader.getPropertiesConfiguration();
+		}
+		if(ALLOWED_VALUES != null) {
+			// Apply the configuration
+			List<BuildProperty> properties = this.listProperties();
+			String[] configuredProperties = ALLOWED_VALUES.getConfiguredProperties();
+			for(BuildProperty property : properties) {
+				for(String configuredProperty : configuredProperties) {
+					if(configuredProperty.equals(property.getName())) {
+						// Update the property
+						String[] allowedValues =
+							ALLOWED_VALUES.getAllowedValuesForProperty(configuredProperty);
+						property.setAllowedValues(Arrays.asList(allowedValues));
+						// End this loop
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	private void consolidateModemVersion(){
@@ -89,7 +129,7 @@ public class Build extends GeneralBuild{
 			try {
 				String sTmp = modemid.readLine();
 				if (sTmp != null){
-					modemVersion = sTmp;
+					modemVersion.setValue(sTmp);
 				}
 				modemid.close();
 			} catch (IOException e) {
@@ -109,41 +149,38 @@ public class Build extends GeneralBuild{
 			if(!build.isEmpty()) {
 				GeneralBuild oldBuild = new GeneralBuild(build);
 				if(isWrongValue(ifwiVersion))
-					ifwiVersion = oldBuild.getIfwiVersion();
+					ifwiVersion.setValue(oldBuild.getIfwiVersion());
 				if(isWrongValue(iafwVersion))
-					iafwVersion = oldBuild.getIafwVersion();
+					iafwVersion.setValue(oldBuild.getIafwVersion());
 				if(isWrongValue(scufwVersion))
-					scufwVersion = oldBuild.getScufwVersion();
+					scufwVersion.setValue(oldBuild.getScufwVersion());
 				if(isWrongValue(punitVersion))
-					punitVersion = oldBuild.getPunitVersion();
+					punitVersion.setValue(oldBuild.getPunitVersion());
 				if(isWrongValue(valhooksVersion))
-					valhooksVersion = oldBuild.getValhooksVersion();
+					valhooksVersion.setValue(oldBuild.getValhooksVersion());
 			}
 		}
 	}
 
 	private void checkBuild() {
 		if(isWrongValue(ifwiVersion))
-			ifwiVersion = getProperty("sys.ifwi.version");
+			ifwiVersion.setValue(getProperty("sys.ifwi.version"));
 		if(isWrongValue(iafwVersion))
-			iafwVersion = getProperty("sys.ia32.version");
+			iafwVersion.setValue(getProperty("sys.ia32.version"));
 		if(isWrongValue(scufwVersion))
-			scufwVersion = getProperty("sys.scu.version");
+			scufwVersion.setValue(getProperty("sys.scu.version"));
 		if(isWrongValue(punitVersion))
-			punitVersion = getProperty("sys.punit.version");
+			punitVersion.setValue(getProperty("sys.punit.version"));
 		if(isWrongValue(valhooksVersion))
-			valhooksVersion = getProperty("sys.valhooks.version");
+			valhooksVersion.setValue(getProperty("sys.valhooks.version"));
 	}
 
-	private boolean isWrongValue(String value) {
-		for(int i=0; i<WRONG_VALUE.length; i++) {
-			if(value.equals(WRONG_VALUE[i]))
-				return true;
-		}
-		return false;
+	private boolean isWrongValue(BuildProperty property) {
+		return property.isWrongValue();
 	}
 
 	public boolean testVersion() {
+		checkAllowedProperties();
 		return !(isWrongValue(ifwiVersion) ||
 				isWrongValue(iafwVersion) ||
 				isWrongValue(scufwVersion) ||

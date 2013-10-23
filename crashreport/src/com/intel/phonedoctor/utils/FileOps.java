@@ -18,8 +18,11 @@ package com.intel.phonedoctor.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
@@ -79,5 +82,23 @@ public class FileOps {
         } catch (ZipException e) {
             return false;
         }
+    }
+
+	/**
+	 * Returns an <code>InputStreamReader</code> instance
+	 * for the give file name
+	 * @param path the full path of the file to parse.
+	 * @return an <code>InputStreamReader</code> instance
+	 * 		or <code>null</code> if operation failed.
+	 */
+    public static InputStreamReader getInputStreamReader(String path) {
+        try {
+            InputStream is = new FileInputStream(path);
+            InputStreamReader isr = new InputStreamReader(is);
+            return isr;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

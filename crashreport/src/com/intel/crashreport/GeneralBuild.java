@@ -18,36 +18,42 @@
  */
 package com.intel.crashreport;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.os.SystemProperties;
 
 public class GeneralBuild {
 
 	private static final int FIELD_NUMBER = 10;
 
-	protected String buildId = "";
-	protected String fingerPrint = "";
-	protected String kernelVersion = "";
-	protected String buildUserHostname = "";
-	protected String modemVersion = "";
-	protected String ifwiVersion = "";
-	protected String iafwVersion = "";
-	protected String scufwVersion = "";
-	protected String punitVersion = "";
-	protected String valhooksVersion = "";
+	protected final BuildProperty buildId = new BuildProperty("buildId");
+	protected final BuildProperty fingerPrint = new BuildProperty("fingerPrint");
+	protected final BuildProperty kernelVersion = new BuildProperty("kernelVersion");
+	protected final BuildProperty buildUserHostname = new BuildProperty("buildUserHostname");
+	protected final BuildProperty modemVersion = new BuildProperty("modemVersion");
+	protected final BuildProperty ifwiVersion = new BuildProperty("ifwiVersion");
+	protected final BuildProperty iafwVersion = new BuildProperty("iafwVersion");
+	protected final BuildProperty scufwVersion = new BuildProperty("scufwVersion");
+	protected final BuildProperty punitVersion = new BuildProperty("punitVersion", "");
+	protected final BuildProperty valhooksVersion = new BuildProperty("valhooksVersion");
+
+	private final List<BuildProperty> properties = new ArrayList<GeneralBuild.BuildProperty>();
 
 	public GeneralBuild(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname, String modemVersion,
 			String ifwiVersion, String iafwVersion, String scufwVersion, String punitVersion, String valhooksVersion) {
 		super();
-		this.buildId = buildId;
-		this.fingerPrint = fingerPrint;
-		this.kernelVersion = kernelVersion;
-		this.buildUserHostname = buildUserHostname;
-		this.modemVersion = modemVersion;
-		this.ifwiVersion = ifwiVersion;
-		this.iafwVersion = iafwVersion;
-		this.scufwVersion = scufwVersion;
-		this.punitVersion = punitVersion;
-		this.valhooksVersion = valhooksVersion;
+		this.setBuildId(buildId);
+		this.setFingerPrint(fingerPrint);
+		this.setKernelVersion(kernelVersion);
+		this.setBuildUserHostname(buildUserHostname);
+		this.setModemVersion(modemVersion);
+		this.setIfwiVersion(ifwiVersion);
+		this.setIafwVersion(iafwVersion);
+		this.setScufwVersion(scufwVersion);
+		this.setPunitVersion(punitVersion);
+		this.setValhooksVersion(valhooksVersion);
 	}
 
 	public GeneralBuild(String longBuildId) {
@@ -55,16 +61,16 @@ public class GeneralBuild {
 			if (longBuildId.contains(",")) {
 				String buildFields[] = longBuildId.split(",");
 				if ((buildFields != null) && (buildFields.length == FIELD_NUMBER)) {
-					this.buildId = buildFields[0];
-					this.fingerPrint = buildFields[1];
-					this.kernelVersion = buildFields[2];
-					this.buildUserHostname = buildFields[3];
-					this.modemVersion = buildFields[4];
-					this.ifwiVersion = buildFields[5];
-					this.iafwVersion = buildFields[6];
-					this.scufwVersion = buildFields[7];
-					this.punitVersion = buildFields[8];
-					this.valhooksVersion = buildFields[9];
+					this.setBuildId(buildFields[0]);
+					this.setFingerPrint(buildFields[1]);
+					this.setKernelVersion(buildFields[2]);
+					this.setBuildUserHostname(buildFields[3]);
+					this.setModemVersion(buildFields[4]);
+					this.setIfwiVersion(buildFields[5]);
+					this.setIafwVersion(buildFields[6]);
+					this.setScufwVersion(buildFields[7]);
+					this.setPunitVersion(buildFields[8]);
+					this.setValhooksVersion(buildFields[9]);
 				}
 			}
 		}
@@ -73,16 +79,17 @@ public class GeneralBuild {
 	public GeneralBuild() {}
 
 	public com.intel.crashtoolserver.bean.Build getBuildForServer() {
-		return new com.intel.crashtoolserver.bean.Build(buildId,
-				fingerPrint,
-				kernelVersion,
-				buildUserHostname,
-				modemVersion,
-				ifwiVersion,
-				iafwVersion,
-				scufwVersion,
-				punitVersion,
-				valhooksVersion);
+		return new com.intel.crashtoolserver.bean.Build(
+				buildId.getValue(),
+				fingerPrint.getValue(),
+				kernelVersion.getValue(),
+				buildUserHostname.getValue(),
+				modemVersion.getValue(),
+				ifwiVersion.getValue(),
+				iafwVersion.getValue(),
+				scufwVersion.getValue(),
+				punitVersion.getValue(),
+				valhooksVersion.getValue());
 	}
 
 	protected String getProperty(String name) {
@@ -95,90 +102,271 @@ public class GeneralBuild {
 		return "";
 	}
 
+
 	@Override
 	public String toString() {
-		return this.buildId+","+this.fingerPrint+","+this.kernelVersion+","+this.buildUserHostname+","+
-				this.modemVersion+","+this.ifwiVersion+","+this.iafwVersion+","+this.scufwVersion+","+
-				this.punitVersion+","+this.valhooksVersion;
+		return this.getBuildId() + "," + this.getFingerPrint() + "," +
+				this.getKernelVersion() + "," + this.getBuildUserHostname() + "," +
+				this.getModemVersion() + "," + this.getIfwiVersion() + "," +
+				this.getIafwVersion() + "," + this.getScufwVersion() + "," +
+				this.getPunitVersion() + "," + this.getValhooksVersion();
 	}
 
 	public String getBuildId() {
-		return buildId;
+		return buildId.getValue();
 	}
 
 	public void setBuildId(String buildId) {
-		this.buildId = buildId;
+		this.buildId.setValue(buildId);
 	}
 
 	public String getFingerPrint() {
-		return fingerPrint;
+		return fingerPrint.getValue();
 	}
 
 	public void setFingerPrint(String fingerPrint) {
-		this.fingerPrint = fingerPrint;
+		this.fingerPrint.setValue(fingerPrint);
 	}
 
 	public String getKernelVersion() {
-		return kernelVersion;
+		return kernelVersion.getValue();
 	}
 
 	public void setKernelVersion(String kernelVersion) {
-		this.kernelVersion = kernelVersion;
+		this.kernelVersion.setValue(kernelVersion);
 	}
 
 	public String getBuildUserHostname() {
-		return buildUserHostname;
+		return buildUserHostname.getValue();
 	}
 
 	public void setBuildUserHostname(String buildUserHostname) {
-		this.buildUserHostname = buildUserHostname;
+		this.buildUserHostname.setValue(buildUserHostname);
 	}
 
 	public String getModemVersion() {
-		return modemVersion;
+		return modemVersion.getValue();
 	}
 
 	public void setModemVersion(String modemVersion) {
-		this.modemVersion = modemVersion;
+		this.modemVersion.setValue(modemVersion);
 	}
 
 	public String getIfwiVersion() {
-		return ifwiVersion;
+		return ifwiVersion.getValue();
 	}
 
 	public void setIfwiVersion(String ifwiVersion) {
-		this.ifwiVersion = ifwiVersion;
+		this.ifwiVersion.setValue(ifwiVersion);
 	}
 
 	public String getIafwVersion() {
-		return iafwVersion;
+		return iafwVersion.getValue();
 	}
 
 	public void setIafwVersion(String iafwVersion) {
-		this.iafwVersion = iafwVersion;
+		this.iafwVersion.setValue(iafwVersion);
 	}
 
 	public String getScufwVersion() {
-		return scufwVersion;
+		return scufwVersion.getValue();
 	}
 
 	public void setScufwVersion(String scufwVersion) {
-		this.scufwVersion = scufwVersion;
+		this.scufwVersion.setValue(scufwVersion);
 	}
 
 	public String getPunitVersion() {
-		return punitVersion;
+		return punitVersion.getValue();
 	}
 
 	public void setPunitVersion(String punitVersion) {
-		this.punitVersion = punitVersion;
+		this.punitVersion.setValue(punitVersion);
 	}
 
 	public String getValhooksVersion() {
-		return valhooksVersion;
+		return valhooksVersion.getValue();
 	}
 
 	public void setValhooksVersion(String valhooksVersion) {
-		this.valhooksVersion = valhooksVersion;
+		this.valhooksVersion.setValue(valhooksVersion);
+	}
+
+	/**
+	 * Returns a list of this object's properties.
+	 * The return list contains all <code>BuildProperty</code> instance
+	 * attached to this object.
+	 *
+	 * @return a <code>BuildProperty</code> list.
+	 */
+	public List<BuildProperty> listProperties() {
+		// Update the list if it has not been initialized yet.
+		// When initialized we expect at least one element in it.
+		if(this.properties.size() == 0) {
+			// Retrieve all fields declared by this class and super classes
+			Field[] attributes = this.getAllFields(this.getClass());
+			// Iterate on the fields to find those with the wanted type
+			for(Field currentAttribute : attributes) {
+				currentAttribute.setAccessible(true);
+				if(currentAttribute.getType() == BuildProperty.class) {
+					// If the current attribute has the correct class
+					try {
+						// Add the attribute to the result list
+						this.properties.add((BuildProperty)currentAttribute.get(this));
+					} catch (Exception reflectException) {
+						continue;
+					}
+				}
+			}
+		}
+		// Return the property list
+		return this.properties;
+	}
+
+	/**
+	 * Returns all <code>Fields</code> declared by the given <code>Class</code>
+	 * and its super classes.
+	 *
+	 * @return a <code>Field[]</code> of all fields.
+	 */
+	private Field[] getAllFields(Class<?> kls) {
+		// Initialize an empty array
+		Field[] fields = new Field[0];
+		// Do something only on relevant classes
+		if(kls != null && kls != Object.class){
+			// Recursively get the declared attributes of the super class
+			Field[] myParentAttributes = this.getAllFields(kls.getSuperclass());
+			// Get the declared attributes of this class
+			Field[] myAttributes = kls.getDeclaredFields();
+			// Merge the two Fields arrays
+			fields = new Field[myAttributes.length + myParentAttributes.length];
+			System.arraycopy(myAttributes, 0, fields, 0, myAttributes.length);
+			System.arraycopy(myParentAttributes, 0, fields, myAttributes.length, myParentAttributes.length);
+		}
+		// Return the computed array
+		return fields;
+	}
+
+	/**
+	 * A class to handle build properties in a
+	 * proper way.
+	 *
+	 * This class should make further development on properties
+	 * easier (e.g: configuration files, etc).
+	 *
+	 */
+	public static class BuildProperty {
+		/**
+		 * A global array of usually forbidden values.
+		 */
+		private static final String WRONG_VALUES[] = {"","00.00","0000.0000"};
+
+		/**
+		 * The property name.
+		 */
+		private String name;
+
+		/**
+		 * The property value.
+		 */
+		private String value;
+
+		/**
+		 * A list of values that are allowed for this property.
+		 * Values contained in this list may override value
+		 * stored in <code>WRONG_VALUES</code>.
+		 */
+		private List<String> allowedValues;
+
+		public BuildProperty() {
+			this.name = "default";
+			this.value = "";
+			this.allowedValues = new ArrayList<String>();
+
+		}
+
+		public BuildProperty(String name) {
+			this.name = name;
+			this.value = "";
+			this.allowedValues = new ArrayList<String>();
+		}
+
+		public BuildProperty(String name, String value) {
+			this.name = name;
+			this.value = value;
+			this.allowedValues = new ArrayList<String>();
+		}
+
+		public BuildProperty(String name, String value, List<String> allowedValues) {
+			this.name = name;
+			this.value = value;
+			this.allowedValues = allowedValues;
+		}
+
+		public void allowValue(String value) {
+			this.allowedValues.add(value);
+		}
+
+		public List<String> getAllowedValues() {
+			return this.allowedValues;
+		}
+
+		public void setAllowedValues(List<String> values) {
+			this.allowedValues = values;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getValue() {
+			return this.value;
+		}
+
+		public void setValue(String value) {
+			this.value = value;
+		}
+
+		/**
+		 * Checks whether this property value is valid or not.
+		 * @return
+		 * <ul>
+		 * <li><code>true</code> if this property value shall be considered invalid.</li>
+		 * <li><code>false</code> otherwise.</li>
+		 * </ul>
+		 */
+		public boolean isWrongValue() {
+			boolean isWrong = false;
+			for(String value : this.allowedValues) {
+				System.out.println("Allowed value: '" + value + "'");
+			}
+			if(this.allowedValues.contains(this.getValue())) {
+				isWrong = false;
+			} else {
+				for(String currentValue : WRONG_VALUES) {
+					if(currentValue.equals(this.getValue())) {
+						isWrong = true;
+						break;
+					}
+				}
+			}
+			return isWrong;
+		}
+
+		@Override
+		public String toString() {
+			StringBuffer sb = new StringBuffer();
+			sb.append(this.getClass().getSimpleName());
+			sb.append("[name:");
+			sb.append(this.getName());
+			sb.append(",value:");
+			sb.append(this.getValue());
+			sb.append("]");
+			return sb.toString();
+		}
 	}
 }
