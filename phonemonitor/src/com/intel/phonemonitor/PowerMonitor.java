@@ -23,7 +23,7 @@ public class PowerMonitor extends Monitor {
 
     public void start(Context context, String metricFileName, boolean append) {
         super.start(context, metricFileName, append);
-        mBatteryInfo = IBatteryStats.Stub.asInterface(ServiceManager.getService("batteryinfo"));
+        mBatteryInfo = IBatteryStats.Stub.asInterface(ServiceManager.getService(BatteryStats.SERVICE_NAME));
     }
 
     public void stop(Context context) {
@@ -78,7 +78,9 @@ public class PowerMonitor extends Monitor {
         flush("Content", "", "\n" + wakeupSources);
         synchronized(mLock) {
             if (myOutputFilePrintWriter != null) {
-                mStats.dumpLocked(myOutputFilePrintWriter);
+                /* See BatteryStats.java dumpLocked implementation. Negative PID iterates through
+                   all the system PIDs */
+               mStats.dumpLocked(myOutputFilePrintWriter, true, -1);
                 myOutputFilePrintWriter.flush();
             }
         }
