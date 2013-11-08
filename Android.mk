@@ -1,4 +1,3 @@
-ifeq (0,1)
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
@@ -16,4 +15,3 @@ LOCAL_REQUIRED_MODULES :=  \
 
 include $(BUILD_PHONY_PACKAGE)
 include $(call first-makefiles-under,$(LOCAL_PATH))
-endif
