@@ -387,6 +387,14 @@ public class MainParser{
 		boolean bResult = true;
 
 		String sIPanicFile = fileGrepSearch(".*ipanic_console.*", aFolder);
+		if (sIPanicFile == ""){
+			//2nd chance : use last_kmsg pattern
+			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
+			if (sIPanicFile == ""){
+				//3rd chance : use console-ramoops pattern
+				sIPanicFile = fileGrepSearch(".*console-ramoops.*", aFolder);
+			}
+		}
 		if (sIPanicFile != ""){
 			String sData="";
 			String sComm = "";
@@ -471,6 +479,12 @@ public class MainParser{
 				System.err.println( "iPanic : " + e);
 				e.printStackTrace();
 				return false;
+			}
+		}else{
+			//4th chance, try header
+			String sHeaderFile = fileGrepSearch(".*ipanic_header.*", aFolder);
+			if (sHeaderFile != ""){
+				bResult &= appendToCrashfile("DATA3=emmc_hdr");
 			}
 		}
 		return bResult;
