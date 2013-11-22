@@ -28,7 +28,6 @@ import java.util.Scanner;
 import java.util.TimeZone;
 
 import android.os.SystemProperties;
-import com.intel.crashtoolserver.bean.Device;
 
 public class GeneralEvent {
 
@@ -47,6 +46,7 @@ public class GeneralEvent {
 	protected Date date = null;
 	protected String buildId = "";
 	protected String deviceId = "";
+	protected String variant = "";
 	protected String imei = "";
 	protected String uptime = "";
 	protected String crashDir = "";
@@ -385,5 +385,13 @@ public class GeneralEvent {
 
 	public void setLogsSize(int size) {
 		logsSize = size;
+	}
+
+	public String getVariant() {
+		return variant;
+	}
+
+	public void setVariant(String variant) {
+		this.variant = variant;
 	}
 }

@@ -24,11 +24,10 @@ import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.Scanner;
 
+import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.GeneralEvent;
 import com.intel.crashreport.GenericParseFile;
 import com.intel.crashreport.Log;
-import com.intel.crashreport.specific.CrashFile;
-import com.intel.crashreport.specific.HistoryEvent;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashtoolserver.bean.Device;
 
@@ -58,8 +57,20 @@ public class Event extends GeneralEvent{
 				deviceId, imei, uptime, crashDir);
 	}
 
+	public Event(int rowid, String eventId, String eventName, String type, String data0,
+			String data1, String data2, String data3,
+			String data4, String data5, Date date, String buildId,
+			String deviceId, String imei, String uptime, String crashDir, String variant) {
+		this(rowid,eventId,eventName,type, data0,
+				data1, data2, data3,
+				data4, data5, date, buildId,
+				deviceId, imei, uptime, crashDir);
+		this.setVariant(variant);
+	}
+
 	public Event(HistoryEvent histEvent, String myBuild, boolean isUserBuild) {
 		fillEvent(histEvent, myBuild, isUserBuild);
+		setVariant(GeneralBuild.getVariant());
 		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
 	}
 
@@ -258,6 +269,7 @@ public class Event extends GeneralEvent{
 				mBuild = build;
 		}
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
+		sBuild.setVariant(this.variant);
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
 		//GCM not fully implemented
@@ -278,6 +290,7 @@ public class Event extends GeneralEvent{
 		return event;
 	}
 
+	@Override
 	public void readDeviceIdFromFile() {
 		deviceId = getDeviceIdFromFile();
 	}

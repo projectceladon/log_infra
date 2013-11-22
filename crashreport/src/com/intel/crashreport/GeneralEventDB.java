@@ -37,7 +37,6 @@ import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
 import com.intel.crashreport.bugzilla.BZ;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.specific.Event;
-import com.intel.crashtoolserver.bean.Device;
 import com.intel.phonedoctor.Constants;
 
 public class GeneralEventDB {
@@ -54,7 +53,7 @@ public class GeneralEventDB {
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
 	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
 	protected static final String DATABASE_DEVICE_TABLE = "device";
-	protected static final int DATABASE_VERSION = 12;
+	protected static final int DATABASE_VERSION = 13;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -101,6 +100,7 @@ public class GeneralEventDB {
 	public static final String KEY_DEVICE_SPID = "spid";
 	public static final String KEY_LOGS_SIZE = "logsSize";
 	public static final String OTHER_EVENT_NAMES = "'STATS','APLOG','BZ','INFO','ERROR'";
+	public static final String KEY_VARIANT = "variant";
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -117,6 +117,7 @@ public class GeneralEventDB {
 					KEY_DATE + " integer not null, " +
 					KEY_BUILDID + " text not null, " +
 					KEY_DEVICEID + " text not null, " +
+					KEY_VARIANT + " text, " +
 					KEY_IMEI + " text not null, " +
 					KEY_UPTIME + " text not null, " +
 					KEY_UPLOAD + " integer, " +
@@ -285,7 +286,7 @@ public class GeneralEventDB {
 			String data0, String data1, String data2, String data3,
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, String uptime, String crashDir,
-			boolean bDataReady, String origin, String pdStatus) {
+			boolean bDataReady, String origin, String pdStatus, String variant) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = convertDateForDb(date);
 		if (eventName.equals("")) return -2;
@@ -319,6 +320,8 @@ public class GeneralEventDB {
 			initialValues.put(KEY_LOGS_SIZE, 0);
 		initialValues.put(KEY_ORIGIN, origin);
 		initialValues.put(KEY_PDSTATUS, pdStatus);
+		initialValues.put(KEY_VARIANT, variant);
+
 		CrashReport app = (CrashReport)mCtx;
 		updateDeviceInformation(deviceId,imei,GeneralEvent.getSSN(),app.getTokenGCM(),Event.getSpid());
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
@@ -342,7 +345,8 @@ public class GeneralEventDB {
 				event.getCrashDir(),
 				event.isDataReady(),
 				event.getOrigin(),
-				event.getPdStatus());
+				event.getPdStatus(),
+				event.getVariant());
 	}
 
 	public boolean deleteEvent(String eventId) {
@@ -354,7 +358,7 @@ public class GeneralEventDB {
 
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
-				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
+				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_IMEI, KEY_UPTIME,
 				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, null, null, null, null, null);
 	}
 
@@ -368,7 +372,7 @@ public class GeneralEventDB {
 			sQuery = KEY_NAME + "= 'CRASH'";
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
-				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME,
+				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_IMEI, KEY_UPTIME,
 				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, sQuery, null, null, null,
 				KEY_ROWID + " DESC",sNlimit);
 	}
@@ -405,7 +409,7 @@ public class GeneralEventDB {
 
 		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
-				KEY_BUILDID, KEY_DEVICEID, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
+				KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
 				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE}, whereQuery, null,
 				null, null, null, null);
 		if (mCursor != null) {
@@ -429,6 +433,7 @@ public class GeneralEventDB {
 		event.setDate(convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE))));
 		event.setBuildId(cursor.getString(cursor.getColumnIndex(KEY_BUILDID)));
 		event.setDeviceId(cursor.getString(cursor.getColumnIndex(KEY_DEVICEID)));
+		event.setVariant(cursor.getString(cursor.getColumnIndex(KEY_VARIANT)));
 		event.setImei(cursor.getString(cursor.getColumnIndex(KEY_IMEI)));
 		event.setUptime(cursor.getString(cursor.getColumnIndex(KEY_UPTIME)));
 		event.setCrashDir(cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR)));

@@ -18,6 +18,10 @@
  */
 package com.intel.crashreport;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,16 @@ import android.os.SystemProperties;
 public class GeneralBuild {
 
 	private static final int FIELD_NUMBER = 10;
+
+	private static final String MODEM_VERSION_FILE = "/logs/modem_version.txt";
+
+	/**
+	 * The name of the property to search for when filling the
+	 * <code>variant</code> property.
+	 */
+	public static final String VARIANT_PROPERTY_NAME = "ro.product.name";
+
+	private static String VARIANT = null;
 
 	protected final BuildProperty buildId = new BuildProperty("buildId");
 	protected final BuildProperty fingerPrint = new BuildProperty("fingerPrint");
@@ -92,7 +106,7 @@ public class GeneralBuild {
 				valhooksVersion.getValue());
 	}
 
-	protected String getProperty(String name) {
+	protected static String getProperty(String name) {
 		try {
 			String property = SystemProperties.get(name, "");
 			return property;
@@ -102,6 +116,57 @@ public class GeneralBuild {
 		return "";
 	}
 
+	/**
+	 * Returns the modem version (variant).
+	 * @return the variant as String
+	 */
+	public static final String getVariant() {
+		if(VARIANT == null) {
+			String suffix = parseModemVersionFile();
+			StringBuffer sBuffer = new StringBuffer(
+					GeneralBuild.getProperty(VARIANT_PROPERTY_NAME));
+			if(!"".equals(suffix)) {
+				sBuffer.append("-");
+				sBuffer.append(suffix);
+			}
+			VARIANT = sBuffer.toString();
+		}
+		return VARIANT;
+	}
+
+	/**
+	 * Reads the MODEM_VERSION_FILE and returns its content.
+	 * @return the content of MODEM_VERSION_FILE or ""
+	 */
+	private static final String parseModemVersionFile() {
+		String version = "";
+		BufferedReader reader = null;
+		File modemVersionFile = new File(MODEM_VERSION_FILE);
+		boolean fileExists = false;
+		try {
+			fileExists = modemVersionFile.exists();
+			if(fileExists) {
+				reader = new BufferedReader(
+					new FileReader(MODEM_VERSION_FILE));
+				version = reader.readLine();
+			} else {
+				Log.i("No file " + MODEM_VERSION_FILE + " on device.");
+			}
+		} catch(SecurityException securityException) {
+			Log.w("Operation not allowed on file: " + MODEM_VERSION_FILE);
+		} catch(IOException generalException) {
+			Log.w("Could not read file: " + MODEM_VERSION_FILE);
+		} finally {
+			if(reader != null) {
+				try {
+					reader.close();
+				} catch(IOException exceptionOnClose) {
+					Log.w("An error occurred while closing file: " + MODEM_VERSION_FILE);
+				}
+			}
+		}
+		return version;
+	}
 
 	@Override
 	public String toString() {

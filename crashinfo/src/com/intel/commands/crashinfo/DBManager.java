@@ -80,6 +80,7 @@ public class DBManager {
 	public static final String KEY_UPLOAD_DATE = "uploadDate";
 	public static final String KEY_PDSTATUS = "pdStatus";
 	public static final String KEY_DEVICEID = "deviceId";
+	public static final String KEY_VARIANT = "variant";
 	public static final String KEY_IMEI = "imei";
 	public static final String KEY_SSN = "ssn";
 	public static final String KEY_GCM_TOKEN = "gcmToken";
@@ -249,7 +250,7 @@ public class DBManager {
 			case FULL :
 				listColumns = new String[] {KEY_ROWID,KEY_ID, KEY_NAME,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2, KEY_DATE,
 						KEY_CRASHDIR,KEY_DATA3,KEY_DATA4,KEY_DATA5,KEY_UPTIME,KEY_UPLOAD,KEY_UPLOADLOG,KEY_BUILDID,
-						KEY_DEVICEID,KEY_IMEI,KEY_NOTIFIED,KEY_DATA_READY,KEY_PDSTATUS};
+						KEY_DEVICEID, KEY_VARIANT, KEY_IMEI,KEY_NOTIFIED,KEY_DATA_READY,KEY_PDSTATUS};
 				break;
 			default :
 				listColumns = new String[]{};

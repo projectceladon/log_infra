@@ -22,16 +22,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 
-import com.intel.crashreport.ApplicationPreferences;
-import com.intel.crashreport.CrashReport;
-import com.intel.crashreport.Log;
-import com.intel.phonedoctor.Constants;
-
 import android.content.Context;
 import android.database.SQLException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.SystemProperties;
+
+import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.CrashReport;
+import com.intel.crashreport.Log;
+import com.intel.phonedoctor.Constants;
 
 /**
   *
@@ -70,6 +70,7 @@ public enum PDStatus {
 			 * @brief Check if a modem coredump is linked with the MPanic or not. Only available for a MPanic CRASH Event.
 			 * @return String :  1 MPanic with modem coredump, M MPanic without modem coredump, x else.
 			 **/
+			@Override
 			public String computeValue() {
 				String result = "x";
 
@@ -80,6 +81,7 @@ public enum PDStatus {
 							String lmcoredump[] = new String[0];
 							lmcoredump = crashDir.list(new FilenameFilter(){
 
+								@Override
 								public boolean accept(File dir, String filename) {
 									if (filename.startsWith("cd") && filename.endsWith(".tar.gz")) {
 										return true;
@@ -101,6 +103,7 @@ public enum PDStatus {
 			 * @brief Check if the EventId in the database is the same that the EventId in the crashfile.
 			 * @return String : 1 same Ids, I different Ids, x else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				if(event.getEventName().equals("CRASH") && event.getCrashDir() != null) {
@@ -120,6 +123,7 @@ public enum PDStatus {
 			 * @brief Check if the dropbox is full or not with the help of the persist.sys.crashlogd.mode property value.
 			 * @return String : F full dropbox, 0 else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				result = SystemProperties.get("persist.sys.crashlogd.mode","x");
@@ -136,6 +140,7 @@ public enum PDStatus {
 			 * @brief Check if crashlogger daemon is still running or not with the help of init.svc.crashlogd value.
 			 * @return String : 1 crashlogd is running, C else, x at the database insertion time.
 			 */
+			@Override
 			public String computeValue() {
 				String result;
 				result = SystemProperties.get("init.svc.crashlogd","x");
@@ -151,6 +156,7 @@ public enum PDStatus {
 			 * @brief Check if apklogfs is running or not with the help of init.svc.apk_logfs value.
 			 * @return String : 1 apklogfs is running, A else.
 			 **/
+			@Override
 			public String computeValue() {
 				String result;
 				result = SystemProperties.get("init.svc.apk_logfs","x");
@@ -166,6 +172,7 @@ public enum PDStatus {
 			 * @brief Check if there is enough space available on the /logs partition.
 			 * @return String : 1 left more than 20Mb, L else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				File logsDir = new File("/logs");
@@ -182,6 +189,7 @@ public enum PDStatus {
 			 * @brief Check if the PhoneDoctor database is available.
 			 * @return String : 1 database available, D else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "D";
 				EventDB db = new EventDB(context);
@@ -205,6 +213,7 @@ public enum PDStatus {
 			 * @brief Check if a sdcard is present on the device and if it is available.
 			 * @return String : 1 a sdcard is available, S else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				File sdcardDir = new File("/storage/sdcard_ext");
@@ -219,6 +228,7 @@ public enum PDStatus {
 			 * @brief Test the value of the persist.core.enabled property.
 			 * @return String : 1 or P (property set to 0), depends on the value of the property.
 			 */
+			@Override
 			public String computeValue() {
 				String result;
 				result = SystemProperties.get("persist.core.enabled", "x");
@@ -232,6 +242,7 @@ public enum PDStatus {
 			 * @brief Check if the history_event file is not corrupted.( bad ended file, non-terminated line, data are missing).
 			 * @return String : 1 history_event non corrupted, H else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				if(historyEventCorrupted)
@@ -245,6 +256,7 @@ public enum PDStatus {
 			 * @brief Check if logs have to be upload or not. The test uses the preference linked with Upload logs checkbox on PhoneDoctor's UI.
 			 * @return String : 1 if logs have to be upload, U else, x at the event database insertion time.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				ApplicationPreferences prefs = new ApplicationPreferences(context);
@@ -258,6 +270,7 @@ public enum PDStatus {
 			 * @return String : B if data are too big, 0 else,x at the event database insertion time
 			 * or if there is no logs.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				if(event.getCrashDir() != null){
@@ -273,6 +286,7 @@ public enum PDStatus {
 			 * @brief MTS is running or not.
 			 * @return String : T if MTS is not running, 1 else,x if MTS doesn't exists.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				result = SystemProperties.get("init.svc.mtsp","x");
@@ -295,6 +309,7 @@ public enum PDStatus {
 			 * @brief Test if Firmware versions are good or not.
 			 * @return String : V if one of the firmware version is wrong, 0 else.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				CrashReport app = (CrashReport)context;
@@ -308,6 +323,7 @@ public enum PDStatus {
 			 * The test uses the preference linked with Wifi only checkbox on PhoneDoctor's UI.
 			 * @return String : @ if logs have to be upload over Wifi, 0 else, x at the event database insertion time.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "x";
 				ApplicationPreferences prefs = new ApplicationPreferences(context);
@@ -320,6 +336,7 @@ public enum PDStatus {
 			 * @brief Number of uptime since the last SWUPDATE event.
 			 * @return String : 0 to 9999.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "xxxx";
 				EventDB db = new EventDB(context);
@@ -337,8 +354,30 @@ public enum PDStatus {
 				return result;
 			}
 		}),
+		VARIANT (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface() {
+			/**
+			 * @brief Returns an indicator for the modem variant.
+			 * @return A character indicating the modem type:
+			 * <ul>
+			 * <li><code>x</code> if the modem value is a </li>
+			 * <li><code>x</code> otherwise</li>
+			 * </ul>
+			 */
+			@Override
+			public String computeValue() {
+				String result = "Z";
+				String variant = event.getVariant();
+				if(variant != null && variant.endsWith("7260")) {
+					result = "Y";
+				} else if(variant != null && variant.endsWith("7160")) {
+					result = "1";
+				}
+				return result;
+			}
+		}),
 		BYTE30 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 
+			@Override
 			public String computeValue() {
 				return " ";
 			}
@@ -353,6 +392,7 @@ public enum PDStatus {
 			 *         W:0 if the device has no Wifi network available at both database insertion time and
 			 *         upload time.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "W:";
 				try {
@@ -368,6 +408,7 @@ public enum PDStatus {
 		}),
 		BYTE26 (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
 
+			@Override
 			public String computeValue() {
 				return " ";
 			}
@@ -382,6 +423,7 @@ public enum PDStatus {
 			 *                  3G:0 if the device has no 3G network available at both database insertion time and
 			 *                  upload time.
 			 */
+			@Override
 			public String computeValue() {
 				String result = "3G:";
 				try{
