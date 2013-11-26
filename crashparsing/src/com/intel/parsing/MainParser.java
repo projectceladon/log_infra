@@ -103,7 +103,8 @@ public class MainParser{
 						return -1;
 					}
 				}
-				if (sTag.equals("IPANIC") || sTag.equals("IPANIC_SWWDT") || sTag.equals("IPANIC_HWWDT") || sTag.equals("IPANIC_FAKE" )) {
+				if (sTag.equals("IPANIC") || sTag.equals("IPANIC_SWWDT") || sTag.equals("IPANIC_HWWDT")
+				 || sTag.equals("IPANIC_FAKE" )|| sTag.equals("IPANIC_SWWDT_FAKE")) {
 					if (!ipanic(sOutput)){
 						closeOutput();
 						return -1;
