@@ -244,7 +244,7 @@ public class NotificationMgr {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);
-		notificationIntent.putExtra("com.intel.crashreport.extra.filter", EVENT_FILTER.CRASH.name());
+		notificationIntent.putExtra("com.intel.crashreport.extra.notifyEvents", true);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		PendingIntent contentIntent = PendingIntent.getActivity(context, notifId, notificationIntent, 0);
 		Notification.Builder mBuilder =

@@ -224,12 +224,8 @@ public class StartServiceActivity extends Activity {
 				intent.removeExtra("com.intel.crashreport.extra.fromOutside");
 			}
 
-			if(intent.hasExtra("com.intel.crashreport.extra.filter")){
-				if(intent.getStringExtra("com.intel.crashreport.extra.filter").equals(EVENT_FILTER.CRASH.name())) {
-					ActionBar actionBar = getActionBar();
-					actionBar.setSelectedNavigationItem(EVENT_FILTER.CRASH.compareTo(EVENT_FILTER.ALL));
-					intent.removeExtra("com.intel.crashreport.extra.filter");
-				}
+			if (intent.getBooleanExtra("com.intel.crashreport.extra.notifyEvents", false)){
+				intent.removeExtra("com.intel.crashreport.extra.notifyEvents");
 				notifyEvents(true);
 				NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
 				nMgr.cancelNotifCriticalEvent();
