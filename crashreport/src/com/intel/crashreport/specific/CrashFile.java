@@ -52,6 +52,7 @@ public class CrashFile {
 	private String modem = "";
 	private String board = "";
 	private int dataReady = 1;
+	private String operator="";
 
 	private File crashFile;
 
@@ -87,7 +88,7 @@ public class CrashFile {
 
 				Log.i(type + ": Missing Data, try to regenerate crashfile in " + path);
 				if (!type.equals("")){
-					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei,dataReady);
+					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei,dataReady,operator);
 					if (aParser.execParsing() == 0){
 						crashFile = openCrashFile(path);
 						fillCrashFile(crashFile);
@@ -119,6 +120,7 @@ public class CrashFile {
 			record.write("BOARD="+board+"\n");
 			record.write("TYPE="+type+"_"+reason+"\n");
 			record.write("DATA_READY="+ dataReady+"\n");
+			record.write("OPERATOR="+ operator+"\n");
 			record.write("DATA0="+data0+"\n");
 			record.write("DATA1="+data1+"\n");
 			record.write("DATA2="+data2+"\n");
@@ -177,6 +179,8 @@ public class CrashFile {
 						board = value;
 					else if (name.equals("TYPE"))
 						type = value;
+					else if (name.equals("OPERATOR"))
+						operator = value;
 					else if (name.equals("DATA_READY")){
 						try{
 							dataReady = Integer.parseInt(value);
@@ -353,5 +357,13 @@ public class CrashFile {
 
 	public void setDataReady(int dataReady) {
 		this.dataReady = dataReady;
+	}
+
+	public String getOperator() {
+		return operator;
+	}
+
+	public void setOperator(String operator) {
+		this.operator = operator;
 	}
 }

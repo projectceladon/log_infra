@@ -28,14 +28,16 @@ public class MainParser{
 	private String sImei = "";
 	private Writer myOutput = null;
 	private int iDataReady = 1;
+	private String sOperator = "";
 
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
 			String aBuild, String aBoard, String aDate, String aImei){
-		this(aOutput,aTag,aCrashID,aUptime,aBuild,aBoard,aDate,aImei,1);
+		this(aOutput,aTag,aCrashID,aUptime,aBuild,aBoard,aDate,aImei,1,"");
 	}
 
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
-			String aBuild, String aBoard, String aDate, String aImei, int aData_Ready){
+			String aBuild, String aBoard, String aDate, String aImei, int aData_Ready,
+			String aOperator){
 		sOutput = aOutput;
 		sTag = aTag;
 		sCrashID = aCrashID;
@@ -45,6 +47,7 @@ public class MainParser{
 		sDate = aDate;
 		sImei = aImei;
 		iDataReady = aData_Ready;
+		sOperator = aOperator;
 	}
 
 	public int execParsing(){
@@ -86,7 +89,7 @@ public class MainParser{
 		File fOutput = new File(sOutput);
 
 		if (fOutput.isDirectory()){
-			if (prepare_crashfile( sTag, sCrashfilename,  sCrashID, sUptime, sBuild,  sBoard, sDate, sImei)) {
+			if (prepare_crashfile( sTag, sCrashfilename,  sCrashID, sUptime, sBuild,  sBoard, sDate, sImei, sOperator)) {
 				if (sDropbox.equals("full" )){
 					if (!fulldropbox()){
 						closeOutput();
@@ -193,7 +196,7 @@ public class MainParser{
 
 
 	private boolean prepare_crashfile(String aTag, String aCrashfilename, String aCrashid, String aUptime,
-			String aBuild, String aBoard, String aDate, String aImei) {
+			String aBuild, String aBoard, String aDate, String aImei, String sOperator) {
 		boolean bResult = true;
 		try{
 			BufferedReader uuid = new BufferedReader(new FileReader(PATH_UUID));
@@ -214,6 +217,7 @@ public class MainParser{
 			bResult &= appendToCrashfile( "IMEI=" + aImei);
 			bResult &= appendToCrashfile( "TYPE=" + aTag);
 			bResult &= appendToCrashfile( "DATA_READY=" + iDataReady);
+			bResult &= appendToCrashfile( "OPERATOR=" + sOperator);
 
 		} catch (Exception e) {
 			System.err.println( "prepare_crashfile : " + e);
