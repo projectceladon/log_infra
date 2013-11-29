@@ -63,15 +63,20 @@ public class ConfigService extends Service {
                     Log.i("LogConfig", "MSG_APPLY_CONFIG");
                     ConfigStatus config = (ConfigStatus) msg.obj;
                     Message rMsg;
-                    try {
-                        applyConfig(config);
-                        rMsg = Message.obtain(null, MSG_CONFIG_APPLIED);
-                    } catch (IllegalStateException e1) {
-                        // if service failed to apply config
+                    if(null != mMessenger) {
+                        try {
+                            applyConfig(config);
+                            rMsg = Message.obtain(null, MSG_CONFIG_APPLIED);
+                        } catch (IllegalStateException e1) {
+                            // if service failed to apply config
+                            rMsg = Message.obtain(null, MSG_CONFIG_APPLY_FAILED);
+                            Log.i("LogConfig", "Exception : "+e1.getMessage());
+                        }
+                        rMsg.replyTo = mMessenger;
+                    } else {
                         rMsg = Message.obtain(null, MSG_CONFIG_APPLY_FAILED);
-                        Log.i("LogConfig", "Exception : "+e1.getMessage());
+                        Log.w("LogConfig", "Could not find a suitable messenger for message.");
                     }
-                    rMsg.replyTo = mMessenger;
                     Messenger mClient = msg.replyTo;
                     try {
                         mClient.send(rMsg);
@@ -107,7 +112,10 @@ public class ConfigService extends Service {
         HandlerThread thread = new HandlerThread("ConfigServiceThread",
                 Process.THREAD_PRIORITY_BACKGROUND);
         thread.start();
-        mMessenger = new Messenger(new ServiceHandler(thread.getLooper()));
+        Looper threadLooper = thread.getLooper();
+        if(null != threadLooper) {
+            mMessenger = new Messenger(new ServiceHandler(threadLooper));
+        }
     }
 
     /**
@@ -128,6 +136,9 @@ public class ConfigService extends Service {
     }
 
     public IBinder onBind(Intent intent) {
+        if(null == mMessenger) {
+            return null;
+        }
         return mMessenger.getBinder();
     }
 }

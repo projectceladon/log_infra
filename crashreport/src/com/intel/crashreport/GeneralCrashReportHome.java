@@ -30,39 +30,45 @@ public class GeneralCrashReportHome extends Activity {
 		setContentView(R.layout.home);
 
 		Button button_bugzilla = (Button) findViewById(R.id.button_report_bugzilla);
-		button_bugzilla.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				CrashReport app = (CrashReport)getApplicationContext();
-				if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
-					Intent intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
-					intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
-					startActivity(intent);
-				}
-				else {
-					Intent intent = new Intent(getApplicationContext(), UserInformationsActivity.class);
-					intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
-					startActivity(intent);
-				}
+		if(null != button_bugzilla) {
+			button_bugzilla.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					CrashReport app = (CrashReport)getApplicationContext();
+					if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
+						Intent intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
+						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
+						startActivity(intent);
+					}
+					else {
+						Intent intent = new Intent(getApplicationContext(), UserInformationsActivity.class);
+						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
+						startActivity(intent);
+					}
 
-			}
-		});
+				}
+			});
+		}
 
 		Button button_list_bugzilla = (Button) findViewById(R.id.button_list_bugzilla);
-		button_list_bugzilla.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
-				startActivity(intent);
-			}
-		});
+		if(null != button_list_bugzilla) {
+			button_list_bugzilla.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
+					startActivity(intent);
+				}
+			});
+		}
 
 		Button button_list_gcm = (Button) findViewById(R.id.button_list_gcm_messages);
-		button_list_gcm.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				Intent intent = new Intent(getApplicationContext(), ListGcmMessagesActivity.class);
-				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent);
-			}
-		});
+		if(null != button_list_gcm) {
+			button_list_gcm.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent intent = new Intent(getApplicationContext(), ListGcmMessagesActivity.class);
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+				}
+			});
+		}
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 	}
 

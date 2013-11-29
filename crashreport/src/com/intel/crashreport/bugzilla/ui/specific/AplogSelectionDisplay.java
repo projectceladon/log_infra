@@ -29,14 +29,19 @@ public class AplogSelectionDisplay {
 		RadioButton rdAll = (RadioButton) bugzillaActivity.findViewById(R.id.bz_radioButtonAll);
 		TextView rdLabel = (TextView)bugzillaActivity.findViewById(R.id.bz_textViewSelect);
 		CrashReport app = (CrashReport)bugzillaActivity.getApplicationContext();
+		boolean isViewValid = false;
 
-		if(app.isUserBuild() && rdDef.isShown()) {
+		if(null != rdDef && null != rdAll && null != rdLabel) {
+			isViewValid = true;
+		}
+
+		if(isViewValid && app.isUserBuild() && rdDef.isShown()) {
 			rdDef.setVisibility(View.GONE);
 			rdAll.setVisibility(View.GONE);
 			rdLabel.setVisibility(View.GONE);
 		}
 		else {
-			if(!rdDef.isShown()) {
+			if(isViewValid && !rdDef.isShown()) {
 				rdDef.setVisibility(View.VISIBLE);
 				rdAll.setVisibility(View.VISIBLE);
 				rdLabel.setVisibility(View.VISIBLE);
@@ -47,11 +52,11 @@ public class AplogSelectionDisplay {
 			long lDefHour = process.getDefaultLogHour();
 			long lAllHour = process.getLogHourByNumber(UploadAplogActivity.ALL_LOGS_VALUE);
 
-			if (lDefHour > 1 ){
+			if (null != rdDef && lDefHour > 1 ) {
 				rdDef.setText(bugzillaActivity.getResources().getText(R.string.upload_log_DEFAULT) + " ("+ lDefHour + " Hours of log)");
 			}
 
-			if (lAllHour > 1 ){
+			if (null != rdAll && lAllHour > 1 ) {
 				rdAll.setText(bugzillaActivity.getResources().getText(R.string.upload_log_ALL) + " ("+ lAllHour + " Hours of log)");
 			}
 		}
@@ -62,8 +67,12 @@ public class AplogSelectionDisplay {
 		RadioButton rdDef = (RadioButton) bugzillaActivity.findViewById(R.id.bz_radioButtonDefault);
 		RadioButton rdAll = (RadioButton) bugzillaActivity.findViewById(R.id.bz_radioButtonAll);
 		TextView rdLabel = (TextView)bugzillaActivity.findViewById(R.id.bz_textViewSelect);
+		boolean isViewValid = false;
+		if(null != rdDef && null != rdAll && null != rdLabel) {
+			isViewValid = true;
+		}
 
-		if(rdDef.isShown()) {
+		if(isViewValid && rdDef.isShown()) {
 			rdDef.setVisibility(View.GONE);
 			rdAll.setVisibility(View.GONE);
 			rdLabel.setVisibility(View.GONE);
@@ -72,6 +81,9 @@ public class AplogSelectionDisplay {
 
 	public void radioButtonIsAvailable() {
 		Spinner bz_severity = (Spinner) bugzillaActivity.findViewById(R.id.bz_severity_list);
+		if(null == bz_severity) {
+			return;
+		}
 
 		bz_severity.setOnItemSelectedListener(new OnItemSelectedListener() {
 
@@ -79,6 +91,9 @@ public class AplogSelectionDisplay {
 			public void onItemSelected(AdapterView<?> arg0, View v,
 					int posSel, long arg3) {
 				Spinner bz_severity = (Spinner) bugzillaActivity.findViewById(R.id.bz_severity_list);
+				if(null == bz_severity) {
+					return;
+				}
 				ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
 				int pos = adapter.getPosition(BugzillaMainActivity.ENHANCEMENT_SEVERITY);
 				if( pos >= 0 && posSel >= 0) {
@@ -108,7 +123,7 @@ public class AplogSelectionDisplay {
 		CrashReport app = (CrashReport)bugzillaActivity.getApplicationContext();
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
 
-		if(!app.isUserBuild()) {
+		if(null != radioButtonAll && null != radioButtonDef && !app.isUserBuild()) {
 			if (bugzillaStorage.getLogLevel() > 0){
 				radioButtonAll.setChecked(true);
 			}else{
@@ -120,21 +135,24 @@ public class AplogSelectionDisplay {
 	public int computeNbLog() {
 		int nbLog = -1;
 		Spinner bz_severity = (Spinner) bugzillaActivity.findViewById(R.id.bz_severity_list);
+		if(null == bz_severity) {
+			return 0;
+		}
 		CrashReport app = (CrashReport)bugzillaActivity.getApplicationContext();
 		if(!((String)bz_severity.getSelectedItem()).equals(BugzillaMainActivity.ENHANCEMENT_SEVERITY)) {
 			if(!app.isUserBuild()) {
 
 				RadioGroup radioGroup = (RadioGroup) bugzillaActivity.findViewById(R.id.bz_radiogroup_upload);
 
+				if(null != radioGroup) {
 
-				int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
-
-
-				switch (checkedRadioButton) {
-				case R.id.bz_radioButtonDefault : nbLog = -1;
-				break;
-				case R.id.bz_radioButtonAll :  nbLog = UploadAplogActivity.ALL_LOGS_VALUE;
-				break;
+					int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
+					switch (checkedRadioButton) {
+						case R.id.bz_radioButtonDefault : nbLog = -1;
+						break;
+						case R.id.bz_radioButtonAll :  nbLog = UploadAplogActivity.ALL_LOGS_VALUE;
+						break;
+					}
 				}
 			}
 		}

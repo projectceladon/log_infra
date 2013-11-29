@@ -24,33 +24,41 @@ public class UserInformationsActivity extends Activity {
 		setContentView(R.layout.user_informations_activity);
 
 		Button saveButton = (Button) findViewById(R.id.infosSaveButton);
-		saveButton.setOnClickListener(new View.OnClickListener(){
+		if(saveButton != null) {
+			saveButton.setOnClickListener(new View.OnClickListener(){
 
-			public void onClick(View v) {
-				checkData();
-			}
+				public void onClick(View v) {
+					checkData();
+				}
 
-		});
+			});
+		}
 		CrashReport app = (CrashReport) getApplicationContext();
 
 		EditText lastName = (EditText)findViewById(R.id.lastNameText);
-		lastName.setText(app.getUserLastName());
+		if(lastName != null) {
+			lastName.setText(app.getUserLastName());
+		}
 		EditText firstName = (EditText)findViewById(R.id.firstNameText);
-		firstName.setText(app.getUserFirstName());
+		if(firstName != null) {
+			firstName.setText(app.getUserFirstName());
+		}
 
 		EditText email = (EditText)findViewById(R.id.mailText);
-		email.setOnEditorActionListener(new OnEditorActionListener(){
+		if(email != null) {
+			email.setOnEditorActionListener(new OnEditorActionListener(){
 
-			public boolean onEditorAction(TextView v, int actionId,
-					KeyEvent event) {
-				if (actionId == EditorInfo.IME_ACTION_DONE) {
-					checkData();
-					return true;
+				public boolean onEditorAction(TextView v, int actionId,
+						KeyEvent event) {
+					if (actionId == EditorInfo.IME_ACTION_DONE) {
+						checkData();
+						return true;
+					}
+					return false;
 				}
-				return false;
-			}
 
-		});
+			});
+		}
 		if(!app.getUserEmail().equals(""))
 			email.setText(app.getUserEmail());
 	}
@@ -62,16 +70,27 @@ public class UserInformationsActivity extends Activity {
 		else fromGallery = true;
 		super.onStart();
 	}
+
 	public void checkData() {
 		EditText lastName = (EditText)findViewById(R.id.lastNameText);
 		EditText firstName = (EditText)findViewById(R.id.firstNameText);
 		EditText email = (EditText)findViewById(R.id.mailText);
-		String strLastName = lastName.getText().toString();
-		String strFirstName = firstName.getText().toString();
-		String strEmail = email.getText().toString();
-		strLastName = strLastName.trim();
-		strFirstName = strFirstName.trim();
-		strEmail = strEmail.trim();
+		String strLastName = "";
+		String strFirstName = "";
+		String strEmail = "";
+
+		if(lastName != null) {
+			strLastName = lastName.getText().toString();
+			strLastName = strLastName.trim();
+		}
+		if(firstName != null) {
+			strFirstName = firstName.getText().toString();
+			strFirstName = strFirstName.trim();
+		}
+		if(email != null) {
+			strEmail = email.getText().toString();
+			strEmail = strEmail.trim();
+		}
 
 		if(!strLastName.equals("") && !strFirstName.equals("") && !strEmail.equals("")) {
 			if(strEmail.endsWith("@intel.com") && (strEmail.indexOf("@") == strEmail.lastIndexOf("@")) && (strEmail.indexOf("@")!=0)) {

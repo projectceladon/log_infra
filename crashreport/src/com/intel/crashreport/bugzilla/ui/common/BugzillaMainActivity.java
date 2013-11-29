@@ -50,94 +50,137 @@ public class BugzillaMainActivity extends Activity {
 		setContentView(R.layout.activity_bugzilla_main);
 		galleryAdapter = new ScreenshotAdapter(getApplicationContext());
 		Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
-		screenshot.setAdapter(galleryAdapter);
-		screenshot.setOnItemClickListener(new OnItemClickListener(){
+		if(screenshot != null) {
+			screenshot.setAdapter(galleryAdapter);
+			screenshot.setOnItemClickListener(new OnItemClickListener(){
 
-			public void onItemClick(AdapterView<?> adapter, View view, int position,
-					long id) {
-				galleryAdapter.updateItem(view);
-				CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
-				pictureBox.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
-												+galleryAdapter.getScreenshotsSelected().size() + ")");
-			}
+				public void onItemClick(AdapterView<?> adapter, View view, int position,
+						long id) {
+					galleryAdapter.updateItem(view);
+					CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
+					if(pictureBox != null) {
+						pictureBox.setText(
+							getResources().getText(R.string.bugzilla_screenshot) + " (" +
+							galleryAdapter.getScreenshotsSelected().size() + ")");
+					}
+				}
 
-		});
+			});
+		}
 
 		EditText summary = (EditText)findViewById(R.id.bz_summary_text);
 		TextKeyListener tListener = TextKeyListener.getInstance(false, TextKeyListener.Capitalize.SENTENCES);
-		summary.setKeyListener(tListener);
+		if(summary != null) {
+			summary.setKeyListener(tListener);
+		}
 
 		CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
-		pictureBox.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+		if(pictureBox != null) {
+			pictureBox.setOnCheckedChangeListener(new OnCheckedChangeListener(){
 
-			public void onCheckedChanged(CompoundButton buttonView,
-					boolean isChecked) {
-				Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
-				if (isChecked) {
-					galleryAdapter.refreshScreenshotsSelected();
-					if (screenshot.getAdapter().getCount() > 0) {
-						screenshot.setVisibility(View.VISIBLE);
-						galleryAdapter.notifyDataSetChanged();
-						buttonView.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
-                                                         +galleryAdapter.getScreenshotsSelected().size() + ")");
+				public void onCheckedChanged(CompoundButton buttonView,
+						boolean isChecked) {
+					Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
+					if (isChecked) {
+						galleryAdapter.refreshScreenshotsSelected();
+						if (screenshot != null && screenshot.getAdapter().getCount() > 0) {
+							screenshot.setVisibility(View.VISIBLE);
+							galleryAdapter.notifyDataSetChanged();
+							buttonView.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
+	                                                         +galleryAdapter.getScreenshotsSelected().size() + ")");
+						}
+						else {
+							AlertDialog alert = new AlertDialog.Builder(context).create();
+							alert.setMessage("No screenshot available.\nPlease make a screen capture in holding on Power button and Volume Down.");
+							alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int id) {
+								}
+							});
+							alert.show();
+							CheckBox box = (CheckBox)findViewById(R.id.bz_screenshot_box);
+							if(box != null) {
+								box.setChecked(false);
+							}
+						}
 					}
 					else {
-						AlertDialog alert = new AlertDialog.Builder(context).create();
-						alert.setMessage("No screenshot available.\nPlease make a screen capture in holding on Power button and Volume Down.");
-						alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-							}
-						});
-						alert.show();
-						CheckBox box = (CheckBox)findViewById(R.id.bz_screenshot_box);
-						box.setChecked(false);
+						if(screenshot != null) {
+							screenshot.setVisibility(View.GONE);
+						}
+						buttonView.setText(getResources().getText(R.string.bugzilla_screenshot));
 					}
-				}
-				else {
-					screenshot.setVisibility(View.GONE);
-					buttonView.setText(getResources().getText(R.string.bugzilla_screenshot));
+
 				}
 
-			}
-
-		});
-
+			});
+		}
 
 
 		Button button_report = (Button) findViewById(R.id.bz_apply_button);
-		button_report.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				EditText title = (EditText)findViewById(R.id.bz_title_text);
-				EditText summary = (EditText)findViewById(R.id.bz_summary_text);
-				String strTitle = title.getText().toString();
-				strTitle = strTitle.trim();
-				String strSummary = summary.getText().toString();
-				strSummary = strSummary.trim();
+		if(button_report != null) {
+			button_report.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					EditText title = (EditText)findViewById(R.id.bz_title_text);
+					EditText summary = (EditText)findViewById(R.id.bz_summary_text);
+					String strTitle = "";
+					if(title != null) {
+						strTitle = title.getText().toString();
+						strTitle = strTitle.trim();
+					}
+					String strSummary = "";
+					if(summary != null) {
+						strSummary = summary.getText().toString();
+						strSummary = strSummary.trim();
+					}
 
-				if (!strTitle.equals("") && !strSummary.equals("")) {
-					Intent intent = new Intent(getApplicationContext(), BugzillaSummaryActivity.class);
-					intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", fromGallery);
-					finish();
-					startActivity(intent);
+					if (!strTitle.equals("") && !strSummary.equals("")) {
+						Intent intent = new Intent(getApplicationContext(), BugzillaSummaryActivity.class);
+						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", fromGallery);
+						finish();
+						startActivity(intent);
+					} else {
+						Toast.makeText(getApplicationContext(), "Some informations are not filled, please fill them before report your bug.", Toast.LENGTH_LONG).show();
+					}
 				}
-				else {
-					Toast.makeText(getApplicationContext(), "Some informations are not filled, please fill them before report your bug.", Toast.LENGTH_LONG).show();
-				}
-			}
-		});
+			});
+		}
 
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
-		bz_severity.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaSeverityValues, R.layout.spinner_bugzilla_item));
+		if(bz_severity != null) {
+			bz_severity.setAdapter(
+				ArrayAdapter.createFromResource(
+					getApplicationContext(),
+					R.array.reportBugzillaSeverityValues,
+					R.layout.spinner_bugzilla_item));
+		}
 		aplogSelection.radioButtonIsAvailable();
 
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
-		bz_types.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaTypeValues, R.layout.spinner_bugzilla_item));
+		if(bz_types != null) {
+			bz_types.setAdapter(
+				ArrayAdapter.createFromResource(
+					getApplicationContext(),
+					R.array.reportBugzillaTypeValues,
+					R.layout.spinner_bugzilla_item));
+		}
 
 		Spinner bz_components = (Spinner) findViewById(R.id.bz_component_list);
-		bz_components.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaComponentText, R.layout.spinner_bugzilla_item));
+		if(bz_components != null) {
+			bz_components.setAdapter(
+				ArrayAdapter.createFromResource(
+					getApplicationContext(),
+					R.array.reportBugzillaComponentText,
+					R.layout.spinner_bugzilla_item));
+		}
 
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
-		bz_time.setAdapter(ArrayAdapter.createFromResource(getApplicationContext(), R.array.reportBugzillaTimeValues, R.layout.spinner_bugzilla_item));
+		if(bz_time != null) {
+			bz_time.setAdapter(
+				ArrayAdapter.createFromResource(
+					getApplicationContext(),
+					R.array.reportBugzillaTimeValues,
+					R.layout.spinner_bugzilla_item));
+		}
 
 	}
 
@@ -152,16 +195,24 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
-		galleryAdapter = (ScreenshotAdapter)screenshot.getAdapter();
+		if(screenshot != null) {
+			galleryAdapter = (ScreenshotAdapter)screenshot.getAdapter();
+		}
 
 		screenshot.setVisibility(View.GONE);
 		Intent intent = getIntent();
 
-		pictureBox.setChecked(false);
+		if(pictureBox != null) {
+			pictureBox.setChecked(false);
+		}
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
 		if (bugzillaStorage.hasValuesSaved()) {
-			title.setText(bugzillaStorage.getSummary());
-			summary.setText(bugzillaStorage.getDescription());
+			if(title != null) {
+				title.setText(bugzillaStorage.getSummary());
+			}
+			if(summary != null) {
+				summary.setText(bugzillaStorage.getDescription());
+			}
 			ArrayAdapter<String> adapter = (ArrayAdapter)bz_types.getAdapter();
 			int pos = adapter.getPosition(bugzillaStorage.getBugType());
 			if( pos >= 0)
@@ -184,28 +235,34 @@ public class BugzillaMainActivity extends Activity {
 			aplogSelection.checkRadioButton();
 
 
-		}
-		else {
-			ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
-			int pos = adapter.getPosition(TYPE_DEFAULT_VALUE);
-			if( pos >= 0)
-				bz_severity.setSelection(pos);
+		} else {
+			// An index used to compute positions
+			int pos = 0;
+
+			if(bz_severity != null) {
+				ArrayAdapter<String> adapter = (ArrayAdapter)bz_severity.getAdapter();
+				pos = adapter.getPosition(TYPE_DEFAULT_VALUE);
+				if( pos >= 0)
+					bz_severity.setSelection(pos);
+			}
 
 			String[] componentText = getResources().getStringArray(R.array.reportBugzillaComponentText);
 			String[] componentValues = getResources().getStringArray(R.array.reportBugzillaComponentValues);
 			String component = bugzillaStorage.getComponent();
 			pos = 0;
-			if( componentText.length == componentValues.length) {
-				for (int i=0; i<componentText.length;i++) {
-					if(componentText[i].equals(component)) {
-						pos = i;
-						break;
+			if(bz_component != null) {
+				if( componentText.length == componentValues.length) {
+					for (int i=0; i<componentText.length;i++) {
+						if(componentText[i].equals(component)) {
+							pos = i;
+							break;
+						}
 					}
 				}
-			}
 
-			if( pos >= 0)
-				bz_component.setSelection(pos);
+				if( pos >= 0)
+					bz_component.setSelection(pos);
+			}
 
 		}
 
@@ -223,14 +280,17 @@ public class BugzillaMainActivity extends Activity {
 				if (imageUri.getScheme().toString().compareTo("content")==0)
 				{
 					Cursor cursor = getApplicationContext().getContentResolver().query(imageUri, null, null, null, null);
-					if (cursor.moveToFirst())
-					{
-						int column_index = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-						if (column_index >= 0) {
-							imageUri = Uri.parse(cursor.getString(column_index));
-							fileName = imageUri.getLastPathSegment().toString();
+					if(cursor != null) {
+						if (cursor.moveToFirst()) {
+							int column_index = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+							if (column_index >= 0) {
+								imageUri = Uri.parse(cursor.getString(column_index));
+								fileName = imageUri.getLastPathSegment().toString();
+							}
 						}
-						cursor.close();
+						if(!cursor.isClosed()) {
+							cursor.close();
+						}
 					}
 
 				}
@@ -254,13 +314,18 @@ public class BugzillaMainActivity extends Activity {
 
 			}
 		}
-		galleryAdapter.refreshScreenshotsSelected(screenshots);
+		if(galleryAdapter != null) {
+			galleryAdapter.refreshScreenshotsSelected(screenshots);
 
-		if(screenshots.size() > 0) {
-			int pos = galleryAdapter.getItemPosition(screenshots.get(screenshots.size() - 1));
-			if (-1 != pos)
-				screenshot.setSelection(pos);
-			pictureBox.setChecked(true);
+			if(screenshots.size() > 0) {
+				int pos = galleryAdapter.getItemPosition(screenshots.get(screenshots.size() - 1));
+				if (-1 != pos) {
+					if(screenshot != null) {
+						screenshot.setSelection(pos);
+					}
+				}
+				pictureBox.setChecked(true);
+			}
 		}
 
 	}
@@ -311,6 +376,15 @@ public class BugzillaMainActivity extends Activity {
 	public void saveData() {
 		EditText title = (EditText)findViewById(R.id.bz_title_text);
 		EditText summary = (EditText)findViewById(R.id.bz_summary_text);
+		String strSummary = "";
+		String strTitle = "";
+		if(summary != null) {
+			strSummary = summary.getText().toString();
+			strSummary = strSummary.trim();
+		}
+		if(title != null) {
+			strTitle = title.getText().toString();
+		}
 		CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
@@ -321,18 +395,32 @@ public class BugzillaMainActivity extends Activity {
 		int iNbLog = aplogSelection.computeNbLog();
 
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
-		bugzillaStorage.setSummary(title.getText().toString());
-		bugzillaStorage.setDescription(summary.getText().toString());
-		bugzillaStorage.setBugType((String)bz_types.getSelectedItem());
-		bugzillaStorage.setComponent((String)bz_component.getSelectedItem());
-		bugzillaStorage.setBugSeverity((String)bz_severity.getSelectedItem());
-		if(!((String)bz_severity.getSelectedItem()).equals(ENHANCEMENT_SEVERITY))
-			bugzillaStorage.setBugTime((String)bz_time.getSelectedItem());
-		else bugzillaStorage.setBugTime("");
-		bugzillaStorage.setBugHasScreenshot(pictureBox.isChecked());
-		bugzillaStorage.setBugLogLevel(iNbLog);
-		if(pictureBox.isChecked())
-			bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
+		if(bugzillaStorage != null) {
+			bugzillaStorage.setSummary(strTitle);
+			bugzillaStorage.setDescription(strSummary);
+			if(bz_types != null) {
+				bugzillaStorage.setBugType((String)bz_types.getSelectedItem());
+			}
+			if(bz_component != null) {
+				bugzillaStorage.setComponent((String)bz_component.getSelectedItem());
+			}
+			if(bz_severity != null) {
+				bugzillaStorage.setBugSeverity((String)bz_severity.getSelectedItem());
+				if(!((String)bz_severity.getSelectedItem()).equals(ENHANCEMENT_SEVERITY)) {
+					if(bz_time != null) {
+						bugzillaStorage.setBugTime((String)bz_time.getSelectedItem());
+					} else {
+						bugzillaStorage.setBugTime("");
+					}
+				} else {
+					bugzillaStorage.setBugTime("");
+				}
+			}
+			bugzillaStorage.setBugHasScreenshot(pictureBox.isChecked());
+			bugzillaStorage.setBugLogLevel(iNbLog);
+			if(pictureBox != null && pictureBox.isChecked())
+				bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
+		}
 	}
 
 	/**

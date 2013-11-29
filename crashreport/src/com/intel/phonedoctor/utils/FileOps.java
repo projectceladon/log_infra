@@ -39,9 +39,16 @@ public class FileOps {
      * @return true delete is successful, else false
      */
     public static boolean delete(File f){
+        File[] files = null;
+        if(f == null) {
+            return false;
+        }
         if (f.isDirectory()) {
-            for (File c : f.listFiles())
-                delete(c);
+            files = f.listFiles();
+            if(files != null) {
+                for (File c : f.listFiles())
+                    delete(c);
+            }
         }
         if (!f.delete())
             return false;
@@ -62,9 +69,12 @@ public class FileOps {
         byte[] data = new byte[1024];
         while ((count = in.read(data)) != -1)
             out.write(data, 0, count);
-        out.flush();
-        out.close();
-        in.close();
+        try {
+            out.flush();
+        } finally {
+            out.close();
+            in.close();
+        }
     }
     /**
      * Check if the input file is a valid zip file.

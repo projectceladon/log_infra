@@ -48,8 +48,13 @@ public class PhoneInspectorService extends IntentService {
     protected void onHandleIntent(Intent intent) {
 
         if (intent.hasExtra(NotificationReceiver.EXTRA_TYPE)) {
+            //Temporary variable to fix Klocwork reported error about 'null'
+            String extraType = intent.getStringExtra(NotificationReceiver.EXTRA_TYPE);
+            if(extraType == null) {
+                return;
+            }
             //Check type contained in intent and performs appropriate treatment
-            if ( intent.getStringExtra(NotificationReceiver.EXTRA_TYPE).equals(NotificationReceiver.DROPBOX_ENTRY_ADDED)) {
+            if ( extraType.equals(NotificationReceiver.DROPBOX_ENTRY_ADDED)) {
 
                 //Get intent data
                 String intentTag = intent.getStringExtra(DropBoxManager.EXTRA_TAG);
@@ -65,7 +70,7 @@ public class PhoneInspectorService extends IntentService {
                 phoneInspector.manageFullDropBox();
             }
 
-            else if( intent.getStringExtra(NotificationReceiver.EXTRA_TYPE).equals(NotificationReceiver.BOOT_COMPLETED)) {
+            else if( extraType.equals(NotificationReceiver.BOOT_COMPLETED)) {
 
                 //Manage FullDropBox case at boot
                 PhoneInspector phoneInspector = PhoneInspector.getInstance(getApplicationContext());

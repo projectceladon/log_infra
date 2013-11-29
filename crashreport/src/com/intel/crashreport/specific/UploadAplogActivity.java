@@ -52,7 +52,9 @@ public class UploadAplogActivity extends Activity{
 
 
 		Button buttonUpload = (Button) findViewById(R.id.buttonUpload);
-		buttonUpload.setOnClickListener(new AplogListener());
+		if(buttonUpload != null) {
+			buttonUpload.setOnClickListener(new AplogListener());
+		}
 
 		RadioButton rdDef = (RadioButton) findViewById(R.id.radioButtonDefault);
 		RadioButton rdAll = (RadioButton) findViewById(R.id.radioButtonAll);
@@ -62,11 +64,11 @@ public class UploadAplogActivity extends Activity{
 		long lDefHour = process.getDefaultLogHour();
 		long lAllHour = process.getLogHourByNumber(ALL_LOGS_VALUE);
 
-		if (lDefHour > 1 ){
+		if (rdDef != null && lDefHour > 1 ){
 			rdDef.setText(rdDef.getText() + " ("+ lDefHour + " Hours of log)");
 		}
 
-		if (lAllHour > 1 ){
+		if (rdAll != null && lAllHour > 1 ){
 			rdAll.setText(rdAll.getText() + " ("+ lAllHour + " Hours of log)");
 		}
 	}
@@ -92,7 +94,10 @@ public class UploadAplogActivity extends Activity{
 			RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radiogroup_upload);
 
 
-			int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
+			int checkedRadioButton = R.id.radioButtonDefault;
+			if(radioGroup != null) {
+				checkedRadioButton = radioGroup.getCheckedRadioButtonId();
+			}
 
 			String aplogSelected = "";
 			int iNbLog =-1;
@@ -110,7 +115,7 @@ public class UploadAplogActivity extends Activity{
 			new UploadAplogTask(iNbLog, context).execute();
 			AlertDialog alert = new AlertDialog.Builder(context).create();
 			String sMessage = "A background request of log upload has been created. \n " + aplogSelected;
-			if (thermalCheck.isChecked()){
+			if (null != thermalCheck && thermalCheck.isChecked()){
 				manageThermalData();
 				sMessage +=  "\n Thermal data report requested." ;
 			}

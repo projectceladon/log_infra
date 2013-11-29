@@ -62,6 +62,8 @@ public class BugzillaViewAdapter extends BaseAdapter{
 
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
+	boolean isViewHolderValid = false;
+
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.bugzilla_view,null);
             holder = new ViewHolder();
@@ -75,7 +77,11 @@ public class BugzillaViewAdapter extends BaseAdapter{
             holder = (ViewHolder)convertView.getTag();
         }
 
-        if(null != listBz) {
+	if(null != holder.summary && null != holder.description && null != holder.state && null != holder.time) {
+		isViewHolderValid = true;
+	}
+
+        if(isViewHolderValid && null != listBz) {
 
             if(listBz.size() > position) {
                 BZ bz = listBz.get(position);

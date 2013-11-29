@@ -33,36 +33,45 @@ public class BugzillaSummaryActivity extends Activity {
 		Button sendButton = (Button) findViewById(R.id.bugzilla_send_button);
 		Button editButton = (Button) findViewById(R.id.bugzilla_edit_button);
 
-		sendButton.setOnClickListener(new OnClickListener(){
+		if(sendButton != null) {
+			sendButton.setOnClickListener(new OnClickListener(){
 
-			public void onClick(View v) {
-				Button editButton = (Button) findViewById(R.id.bugzilla_edit_button);
-				editButton.setEnabled(false);
-				v.setEnabled(false);
-				new CreateBzTask().execute();
-				AlertDialog alert = new AlertDialog.Builder(context).create();
-				alert.setMessage("A background request of new bugzilla creation has been submitted.");
-				alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						comeBack();
+				public void onClick(View v) {
+					Button editButton = (Button) findViewById(R.id.bugzilla_edit_button);
+					if(editButton != null) {
+						editButton.setEnabled(false);
 					}
-				});
-				alert.show();
-			}
+					v.setEnabled(false);
+					new CreateBzTask().execute();
+					AlertDialog alert = new AlertDialog.Builder(context).create();
+					alert.setMessage("A background request of new bugzilla creation has been submitted.");
+					alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+							comeBack();
+						}
+					});
+					alert.show();
+				}
 
-		});
+			});
+		}
 
-		editButton.setOnClickListener(new OnClickListener(){
+		if(editButton != null) {
+			editButton.setOnClickListener(new OnClickListener(){
 
-			public void onClick(View v) {
-				finish();
-				Intent intent = new Intent(getApplicationContext(),BugzillaMainActivity.class);
-				intent.putExtras(getIntent().getExtras());
-				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				startActivity(intent);
-			}
+				public void onClick(View v) {
+					finish();
+					Intent intent = new Intent(getApplicationContext(),BugzillaMainActivity.class);
+					Intent incomingIntent = getIntent();
+					if(incomingIntent != null) {
+						intent.putExtras(incomingIntent.getExtras());
+					}
+					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(intent);
+				}
 
-		});
+			});
+		}
 	}
 
 	@Override
@@ -82,7 +91,9 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
 		text += (bugzillaStorage.getLogLevel() == 0)?"Without":"With";
 		text += " Aplogs attached";
-		infos.setText(text);
+		if(infos != null) {
+			infos.setText(text);
+		}
 		if(bugzillaStorage.getSummary().equals("") || bugzillaStorage.getBugType().equals("") || bugzillaStorage.getComponent().equals("")
 				|| bugzillaStorage.getSeverity().equals("") || bugzillaStorage.getDescription().equals("")){
 			comeBack();

@@ -123,9 +123,11 @@ public class ApplicationPreferences {
 		String defaultValues[] = CrashLogsListPrefs.parseStoredValue(
 				mCtx.getString(R.string.settings_event_data_types_value_default));
 
-		for(String value:defaultValues)
-			if(!savedValues.contains(value))
-				savedValues.add(value);
+		if(defaultValues != null) {
+			for(String value:defaultValues)
+				if(!savedValues.contains(value))
+					savedValues.add(value);
+		}
 
 		sharedPrefsEditor.putString(
 			mCtx.getString(R.string.settings_event_data_types_key),

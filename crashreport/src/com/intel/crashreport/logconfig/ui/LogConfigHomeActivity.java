@@ -35,23 +35,27 @@ public class LogConfigHomeActivity extends Activity {
             mListConfigStatus = mConfigManager.reloadConfigStatusList();
 
         // Setup Config list adapter
-        LogConfigAdapter listConfigsName = new LogConfigAdapter(getApplicationContext());
-        listConfigs.setAdapter(listConfigsName);
+        if(listConfigs != null) {
+                LogConfigAdapter listConfigsName = new LogConfigAdapter(getApplicationContext());
+                listConfigs.setAdapter(listConfigsName);
+        }
         setTitle(getString(R.string.app_name) + " " + getString(R.string.app_version));
 
         // Disable all configs button
         Button submitButton = (Button) findViewById(R.id.button_logconfig);
-        submitButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                List<String> configNames = new ArrayList<String>();
-                for (ConfigStatus config : mConfigManager.getConfigStatusList())
-                    if (config.getState() == ConfigState.ON) {
-                        config.setState(ConfigState.TO_OFF);
-                        configNames.add(config.getName());
+        if(submitButton != null) {
+                submitButton.setOnClickListener(new OnClickListener() {
+                    public void onClick(View v) {
+                        List<String> configNames = new ArrayList<String>();
+                        for (ConfigStatus config : mConfigManager.getConfigStatusList())
+                            if (config.getState() == ConfigState.ON) {
+                                config.setState(ConfigState.TO_OFF);
+                                configNames.add(config.getName());
+                            }
+                        mConfigManager.applyConfigs(configNames);
                     }
-                mConfigManager.applyConfigs(configNames);
-            }
-        });
+                });
+        }
     }
 
     protected void onPause() {
@@ -61,7 +65,9 @@ public class LogConfigHomeActivity extends Activity {
 
     public void updateData() {
         ListView listConfigs = (ListView) findViewById(R.id.listLogConfig);
-        listConfigs.invalidateViews();
+        if(listConfigs != null) {
+                listConfigs.invalidateViews();
+        }
     }
 
 }

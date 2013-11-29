@@ -152,6 +152,10 @@ public class CrashLogs {
 	 * @throws IOException if an error occurs when storing an entry in zip file
 	 */
 	private static void writeCrashLogsZip(File crashLogsFile, File fileList[]) throws FileNotFoundException, IOException {
+		/* We do something only if input parameters are not null */
+		if (crashLogsFile == null || fileList == null) {
+			return;
+		}
 		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
 		File fileInfo = null;
 		try {

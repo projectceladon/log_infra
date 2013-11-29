@@ -139,7 +139,7 @@ public class ConfigManager implements IConfigServiceClient {
     public ConfigStatus loadConfigStatus(String configName) {
         ConfigStatus cs = getConfigStatus(configName);
         LogConfig mLogConfig = mConfigLoader.getConfig(configName);
-        if (mLogConfig != null)
+        if (cs != null && mLogConfig != null)
             cs.setLogConfig(mLogConfig);
         return cs;
     }

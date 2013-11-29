@@ -36,6 +36,9 @@ public class ScreenshotAdapter extends BaseAdapter{
 	public void refreshScreenshotsSelected(ArrayList<String> screenshotsFiles) {
 		screenshotsSelected = new HashMap<String,Boolean>();
 		String files[] = getScreenshots();
+		if(files == null) {
+			return;
+		}
 		for(String file:files) {
 			screenshotsSelected.put(file, screenshotsFiles.contains(file));
 		}
@@ -44,6 +47,9 @@ public class ScreenshotAdapter extends BaseAdapter{
 
 	public void refreshScreenshotsSelected() {
 		String files[] = getScreenshots();
+		if(files == null) {
+			return;
+		}
 		for(String file:files) {
 			if(!screenshotsSelected.containsKey(file))
 				screenshotsSelected.put(file, false);
@@ -132,8 +138,10 @@ public class ScreenshotAdapter extends BaseAdapter{
 			holder = (ViewHolder)convertView.getTag();
 		}
 		String filename = (String)getItem(position);
-		holder.screenshot.setTag(filename);
-		holder.screenshot.setImageDrawable(Drawable.createFromPath("/mnt/sdcard/Pictures/Screenshots/"+filename));
+		if(holder != null && holder.screenshot != null) {
+			holder.screenshot.setTag(filename);
+			holder.screenshot.setImageDrawable(Drawable.createFromPath("/mnt/sdcard/Pictures/Screenshots/"+filename));
+		}
 		if(screenshotsSelected.get(filename))
 			convertView.setBackgroundColor(Color.parseColor("#52e0ed"));
 		else convertView.setBackgroundColor(Color.parseColor("#00579c"));

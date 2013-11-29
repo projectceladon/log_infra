@@ -52,9 +52,21 @@ public class EventViewAdapter extends BaseAdapter {
 		if (convertView == null) {
 			convertView = mInflater.inflate(R.layout.event_view,null);
 			holder = new ViewHolder();
-			holder.summary = (TextView)convertView.findViewById(R.id.event_view_summary);
-			holder.date = (TextView)convertView.findViewById(R.id.event_view_date);
-			holder.state = (TextView)convertView.findViewById(R.id.event_view_state);
+			TextView tvSummary = (TextView)convertView.findViewById(R.id.event_view_summary);
+			if(tvSummary == null) {
+				tvSummary = new TextView(this.mContext);
+			}
+			holder.summary = tvSummary;
+			TextView tvDate = (TextView)convertView.findViewById(R.id.event_view_date);
+			if(tvDate == null) {
+				tvDate = new TextView(this.mContext);
+			}
+			holder.date = tvDate;
+			TextView tvState = (TextView)convertView.findViewById(R.id.event_view_state);
+			if(tvState == null) {
+				tvState = new TextView(this.mContext);
+			}
+			holder.state = tvState;
 			convertView.setTag(holder);
 		}
 		else {
@@ -63,7 +75,7 @@ public class EventViewAdapter extends BaseAdapter {
 
 		if(null != listEvent) {
 
-			if(listEvent.size() > position) {
+			if(holder != null && listEvent.size() > position) {
 				Event aEvent = listEvent.get(position);
 				holder.summary.setText(aEvent.getType() + " (" + aEvent.getEventName() + ")");
 				String sDate = aEvent.getDateAsString();

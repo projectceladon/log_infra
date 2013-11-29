@@ -100,8 +100,9 @@ public class BlackLister {
 	}
 
 	public void cleanRain(Date date) {
+		Cursor cursor = null;
 		try{
-			Cursor cursor = db.fetchLastRain(date);
+			cursor = db.fetchLastRain(date);
 			if(cursor != null){
 				while(!cursor.isAfterLast()) {
 					String type = cursor.getString(cursor.getColumnIndex("type"));
@@ -134,6 +135,9 @@ public class BlackLister {
 			}
 		}catch(SQLException e){
 			Log.e("BlackLister:cleanRain: cannot open db "+e.getMessage());
+			if(cursor != null) {
+				cursor.close();
+			}
 		}
 	}
 

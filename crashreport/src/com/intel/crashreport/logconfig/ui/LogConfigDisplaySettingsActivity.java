@@ -37,7 +37,8 @@ public class LogConfigDisplaySettingsActivity extends Activity {
         LogConfig config = null;
         if (!configsNames.isEmpty()) {
             for (int i = 0; i < configsNames.size(); i++) {
-                if (nameConfig.equals(configsNames.get(i))) {
+                String currentName = configsNames.get(i);
+                if (null != nameConfig && null != currentName && nameConfig.equals(currentName)) {
                     ConfigStatus mConfigStatus = mConfigManager.loadConfigStatus(mListConfigStatus
                             .get(i).getName());
                     if (mConfigStatus != null) {
@@ -48,14 +49,18 @@ public class LogConfigDisplaySettingsActivity extends Activity {
                 }
             }
         }
-        titleConfig.setText(mListConfigStatus.get(currentIndex).getDescription() + " :");
+        if(null != titleConfig) {
+            titleConfig.setText(mListConfigStatus.get(currentIndex).getDescription() + " :");
+        }
         String listSettings[] = new String[0];
-        if (!config.isEmpty()) {
+        if (null != config && !config.isEmpty()) {
             listSettings = config.getSettingNames();
         }
         ArrayAdapter<String> settingsAdapter = new ArrayAdapter<String>(this,
                 R.layout.logconfig_setting_item, listSettings);
-        listView.setAdapter(settingsAdapter);
+        if(null != listView) {
+            listView.setAdapter(settingsAdapter);
+        }
 
         setTitle(getString(R.string.app_name) + " " + getString(R.string.app_version));
 

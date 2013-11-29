@@ -42,20 +42,28 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
         setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
         app = (CrashReport)getApplicationContext();
         EditTextPreference editLastName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_last_name_key));
-        editLastName.setOnPreferenceChangeListener(listener);
+	if(null != editLastName) {
+	        editLastName.setOnPreferenceChangeListener(listener);
+	}
         EditTextPreference editFirstName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_first_name_key));
-        editFirstName.setOnPreferenceChangeListener(listener);
+	if(null != editFirstName) {
+	        editFirstName.setOnPreferenceChangeListener(listener);
+	}
         EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
 
-        if(!app.getUserEmail().equals(""))
-            editMail.setText(app.getUserEmail());
-        else editMail.setText(getString(R.string.settings_bugzilla_user_email_value_default));
-        editMail.setOnPreferenceChangeListener(listener);
+	if(null != editMail) {
+	        if(!app.getUserEmail().equals(""))
+	            editMail.setText(app.getUserEmail());
+	        else editMail.setText(getString(R.string.settings_bugzilla_user_email_value_default));
+	        editMail.setOnPreferenceChangeListener(listener);
+	}
 
         CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
-        checkGcm.setOnPreferenceChangeListener(gcmListener);
-        if(null == gcmEnabled)
-            gcmEnabled = checkGcm.isChecked();
+	if(null != checkGcm) {
+	        checkGcm.setOnPreferenceChangeListener(gcmListener);
+	        if(null == gcmEnabled)
+	            gcmEnabled = checkGcm.isChecked();
+	}
     }
 
     private OnPreferenceChangeListener gcmListener = new OnPreferenceChangeListener(){
@@ -104,7 +112,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 
     public void onDestroy() {
         CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
-        if(gcmEnabled != checkGcm.isChecked()) {
+        if(null != checkGcm && gcmEnabled != checkGcm.isChecked()) {
             if(checkGcm.isChecked()){
                 GcmEvent.INSTANCE.enableGcm();
                 GcmEvent.INSTANCE.checkTokenGCM();
@@ -119,7 +127,8 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 
     public void onPause() {
         EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
-        if(editMail.getText().equals(getString(R.string.settings_bugzilla_user_email_value_default)))
+        if(null != editMail &&
+                editMail.getText().equals(getString(R.string.settings_bugzilla_user_email_value_default)))
             editMail.setText("");
         super.onPause();
     }

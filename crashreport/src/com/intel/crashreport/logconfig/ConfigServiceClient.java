@@ -106,16 +106,20 @@ public class ConfigServiceClient {
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className,
                 IBinder service) {
-            mService = new Messenger(service);
-            try {
-                Message msg = Message.obtain(null,
-                        ConfigService.MSG_REGISTER);
-                msg.replyTo = mMessenger;
-                mService.send(msg);
+            if(service != null) {
+                mService = new Messenger(service);
+                try {
+                    Message msg = Message.obtain(null,
+                            ConfigService.MSG_REGISTER);
+                    msg.replyTo = mMessenger;
+                    mService.send(msg);
 
-                mHandler.sendEmptyMessage(MSG_APPLY_NEXT_CONFIG);
-            } catch (RemoteException e) {
-                // TODO see what you see !!!
+                    mHandler.sendEmptyMessage(MSG_APPLY_NEXT_CONFIG);
+                } catch (RemoteException e) {
+                    // TODO see what you see !!!
+                }
+            } else {
+                Log.w("LogConfig", "Cannot create messenger with <null> service.");
             }
         }
 

@@ -61,9 +61,10 @@ public class NotifyEventActivity extends Activity {
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
 					event = db.fillEventFromCursor(cursor);
-					if (infos.containsKey(event.getType())) {
-						int value = infos.get(event.getType());
-						infos.put(event.getType(), ++value);
+					String eventType = event.getType();
+					if (eventType != null && infos.containsKey(eventType)) {
+						int value = infos.get(eventType);
+						infos.put(eventType, ++value);
 					} else {
 						infos.put(event.getType(), 1);
 					}

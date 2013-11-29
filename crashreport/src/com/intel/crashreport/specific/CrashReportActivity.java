@@ -44,10 +44,14 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
         if(app.isUserBuild()) {
             CheckBoxPreference wifiPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_connection_wifi_only_key));
             PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
-            dataPreferences.removePreference(wifiPreference);
+            if(wifiPreference != null && dataPreferences != null) {
+                dataPreferences.removePreference(wifiPreference);
+            }
         }
         CheckBoxPreference crashNotificationPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_all_crash_notification_key));
-        crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
+        if(null != crashNotificationPreference) {
+                crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
+        }
     }
 
     private OnPreferenceChangeListener changeNotificationListener = new OnPreferenceChangeListener(){

@@ -30,11 +30,17 @@ public class GcmMessageDialog extends Activity{
 		setContentView(R.layout.dialog_gcm_message);
 
 		cancel = (Button)findViewById(R.id.dialog_gcm_button_cancel);
-		cancel.setOnClickListener(cancelListener);
+		if(cancel != null) {
+			cancel.setOnClickListener(cancelListener);
+		}
 		ok = (Button)findViewById(R.id.dialog_gcm_button_ok);
-		ok.setOnClickListener(okListener);
+		if(ok != null) {
+			ok.setOnClickListener(okListener);
+		}
 		validate = (Button)findViewById(R.id.dialog_gcm_button_validate);
-		validate.setOnClickListener(okListener);
+		if(validate != null) {
+			validate.setOnClickListener(okListener);
+		}
 		contentView = (TextView)findViewById(R.id.dialog_gcm_content_view);
 	}
 

@@ -53,7 +53,12 @@ public class BootConfigService extends Service implements IConfigServiceClient {
         HandlerThread t = new HandlerThread("ConfigServiceBootThread",
                 Process.THREAD_PRIORITY_BACKGROUND);
         t.start();
-        mHandler = new Handler(t.getLooper());
+	Looper threadLooper = t.getLooper();
+	if(threadLooper != null) {
+	        mHandler = new Handler(t.getLooper());
+	} else {
+		mHandler = new Handler();
+	}
     }
 
     public Looper getLooper() {

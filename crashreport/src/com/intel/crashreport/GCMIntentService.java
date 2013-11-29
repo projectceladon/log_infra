@@ -64,6 +64,9 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
+		if(intent == null) {
+			return;
+		}
 		CrashReport app = (CrashReport)context.getApplicationContext();
 		if(app.isGcmEnabled()) {
 			Log.i(TAG, "Received message context:"+context+", intent:"+intent);
@@ -74,6 +77,10 @@ public class GCMIntentService extends GCMBaseIntentService {
 				String title = intent.getExtras().getString(GcmMessage.GCM_EXTRA_TITLE);
 				String text = intent.getExtras().getString(GcmMessage.GCM_EXTRA_TEXT);
 				String type = intent.getExtras().getString(GcmMessage.GCM_EXTRA_TYPE);
+				if(null == title || null == text || null == type) {
+					// Do nothing if either one of these is null
+					return;
+				}
 				String data = "";
 				if(intent.hasExtra(GcmMessage.GCM_EXTRA_DATA)) {
 					data = intent.getExtras().getString(GcmMessage.GCM_EXTRA_DATA);

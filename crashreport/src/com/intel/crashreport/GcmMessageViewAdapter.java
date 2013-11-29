@@ -55,6 +55,7 @@ public class GcmMessageViewAdapter extends BaseAdapter{
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
+	boolean isHolderValid = false;
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.gcm_message_item,null);
             holder = new ViewHolder();
@@ -68,7 +69,11 @@ public class GcmMessageViewAdapter extends BaseAdapter{
             holder = (ViewHolder)convertView.getTag();
         }
 
-        if(null != listGcmMessages) {
+        if(holder.title != null && holder.text != null && holder.icon != null && holder.date != null) {
+            isHolderValid = true;
+        }
+
+        if(isHolderValid && null != listGcmMessages) {
 
             if(listGcmMessages.size() > position) {
                 GcmMessage message = listGcmMessages.get(position);

@@ -34,16 +34,20 @@ public class ListGcmMessagesActivity extends Activity {
 
 		lvEvent = (ListView) findViewById(R.id.list_gcm_messages_all);
 		messageAdapter = new GcmMessageViewAdapter(getApplicationContext());
-		lvEvent.setAdapter(messageAdapter);
-		lvEvent.setOnItemClickListener(listener);
+		if(null != messageAdapter) {
+			lvEvent.setAdapter(messageAdapter);
+			lvEvent.setOnItemClickListener(listener);
+		}
 		NotificationMgr nMgr = new NotificationMgr(context);
-		nMgr.clearGcmNotification();
+		if(null != nMgr) {
+			nMgr.clearGcmNotification();
+		}
 	}
 
 	private OnItemClickListener listener = new OnItemClickListener() {
 		public void onItemClick(AdapterView<?> adapter, View view, int position, long arg) {
 			aMessage = (GcmMessage) lvEvent.getItemAtPosition(position);
-			if(!aMessage.isCancelled()) {
+			if(null != aMessage && !aMessage.isCancelled()) {
 				AlertDialog alert = new AlertDialog.Builder(context).create();
 				alert.setMessage("Title : " + aMessage.getTitle() + "\n" +
 						"Text : " +  aMessage.getText() + "\n" );

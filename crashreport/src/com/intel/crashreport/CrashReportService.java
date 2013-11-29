@@ -135,7 +135,9 @@ public class CrashReportService extends Service {
 			getApplicationContext().sendBroadcast(hideDialog);
 		}
 		app.setUploadService(null);
-		handlerThread.quit();
+		if(handlerThread != null) {
+			handlerThread.quit();
+		}
 		stopSelf();
 	}
 

@@ -23,7 +23,9 @@ public class ListBugzillaActivity extends Activity {
 		setContentView(R.layout.list_bugzilla);
 		ListView listBugzilla = (ListView) findViewById(R.id.list_bugzilla_all);
 		bugzillaAdapter = new BugzillaViewAdapter(getApplicationContext());
-		listBugzilla.setAdapter(bugzillaAdapter);
+		if(listBugzilla != null && bugzillaAdapter != null) {
+			listBugzilla.setAdapter(bugzillaAdapter);
+		}
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 
 	}
@@ -31,8 +33,10 @@ public class ListBugzillaActivity extends Activity {
 	public void onResume() {
 		ListView listBugzilla = (ListView) findViewById(R.id.list_bugzilla_all);
 		bugzillaAdapter = (BugzillaViewAdapter)listBugzilla.getAdapter();
-		bugzillaAdapter.setListBz(getAllBz());
-		listBugzilla.invalidateViews();
+		if(listBugzilla != null && bugzillaAdapter != null) {
+			bugzillaAdapter.setListBz(getAllBz());
+			listBugzilla.invalidateViews();
+		}
 		super.onResume();
 		CrashReport app = (CrashReport)getApplicationContext();
 		if(!app.isServiceStarted()) {
