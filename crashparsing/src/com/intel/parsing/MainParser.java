@@ -139,7 +139,7 @@ public class MainParser{
 					}
 				}
 
-				if (sTag.equals("TOMBSTONE")) {
+				if (sTag.equals("TOMBSTONE") || sTag.equals("JAVA_TOMBSTONE")) {
 					if (!tombstone(sOutput)){
 						closeOutput();
 						return -1;
@@ -750,6 +750,10 @@ public class MainParser{
 	private boolean tombstone(String aFolder){
 		boolean bResult = true;
 		String sTombstoneFile = fileGrepSearch("tombstone_.*", aFolder);
+		//second chance : try native_crash pattern
+		if (sTombstoneFile == "") {
+			sTombstoneFile = fileGrepSearch(".*native_crash.*", aFolder);
+		}
 		if (sTombstoneFile != ""){
 			String sProcess= "";
 			String sSignal= "";
