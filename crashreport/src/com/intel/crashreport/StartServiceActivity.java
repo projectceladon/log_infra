@@ -210,7 +210,9 @@ public class StartServiceActivity extends Activity {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		instanceStateSaved = true;
-		outState.putString("textLogger", (String)text.getText());
+		if ((outState != null) && (text != null)) {
+			outState.putString("textLogger", text.getText().toString());
+		}
 		super.onSaveInstanceState(outState);
 	}
 
