@@ -491,9 +491,6 @@ public class CrashReportService extends Service {
 								nMgr = new NotificationMgr(context);
 								if (prefs.isWifiOnlyForEventData() && !con.getWifiConnectionAvailability()) {
 									nMgr.notifyEventDataWifiOnly(cursor.getCount());
-								} else if(!db.isThereLogToUploadWithoutWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
-									needsWifi = true;
-									nMgr.notifyConnectWifiOrMpta();
 								} else {
 									nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
 									while (!cursor.isAfterLast()) {
@@ -567,7 +564,7 @@ public class CrashReportService extends Service {
 												if ((cursor != null) && (cursor.getCount() != 0)) {
 													nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
 													if(!db.isThereLogToUploadWithoutWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
-														needsWifi = true;
+														//need to stop try to upload something
 														break;
 													}
 												}
@@ -577,6 +574,11 @@ public class CrashReportService extends Service {
 										}
 									}
 									nMgr.cancelNotifUploadingLogs();
+								}
+								//should be done at the end of check upload process
+								if(db.isThereLogToUploadWithWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
+									needsWifi = true;
+									nMgr.notifyConnectWifiOrMpta();
 								}
 								if (cursor != null)
 									cursor.close();

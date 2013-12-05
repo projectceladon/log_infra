@@ -824,6 +824,14 @@ public class GeneralEventDB {
 	}
 
 	public Boolean isThereLogToUploadWithoutWifi(String crashTypes[]) throws SQLException {
+		return isThereLogToUploadByWifi(false, crashTypes);
+	}
+
+	public Boolean isThereLogToUploadWithWifi(String crashTypes[]) throws SQLException {
+		return isThereLogToUploadByWifi(true, crashTypes);
+	}
+
+	public Boolean isThereLogToUploadByWifi(boolean bWithWifi, String crashTypes[]) throws SQLException {
 		StringBuilder bQuery = new StringBuilder("");
 		bQuery.append("(("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0') or ");
 		if (crashTypes != null) {
@@ -838,8 +846,13 @@ public class GeneralEventDB {
 			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
 		/* Only logs for events already uploaded*/
-		bQuery.append(") and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR + "!='' and "+ KEY_LOGS_SIZE + "<"+Constants.WIFI_LOGS_SIZE);
-		Log.d("isThereLogToUploadWithoutWifi : Query string = " +bQuery.toString() );
+		String sLogOperator;
+		if (bWithWifi)
+			sLogOperator = ">=";
+		else
+			sLogOperator = "<";
+		bQuery.append(") and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR + "!='' and "+ KEY_LOGS_SIZE + sLogOperator +Constants.WIFI_LOGS_SIZE);
+		Log.d("isThereLogToUploadWithWifi : Query string = " +bQuery.toString() );
 		return isEventExistFromWhereQuery(bQuery.toString());
 	}
 
