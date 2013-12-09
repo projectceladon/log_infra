@@ -53,7 +53,7 @@ public class PropertyConfigLoader {
 	 *	 	if an error occurred.
 	 */
 	public BuildAllowedValues getPropertiesConfiguration() {
-		BuildAllowedValues config = null;
+		BuildAllowedValues config = BuildAllowedValues.empty();
 		try {
 			InputStreamReader reader = FileOps.getInputStreamReader(PROP_CONFIG_FILE_LOCATION);
 			if(reader != null) {

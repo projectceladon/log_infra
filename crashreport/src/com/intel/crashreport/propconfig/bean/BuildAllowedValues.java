@@ -16,6 +16,12 @@ public class BuildAllowedValues {
 	@SerializedName("allowed_values")
 	private PropertyValues[] allowedValues;
 
+	public static final BuildAllowedValues empty() {
+		BuildAllowedValues values = new BuildAllowedValues();
+		values.setAllowedValues(new PropertyValues[0]);
+		return values;
+	}
+
 	public String getBuild() {
 		return this.build;
 	}

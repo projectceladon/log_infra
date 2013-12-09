@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.ZipException;
@@ -98,21 +99,39 @@ public class FileOps {
         }
     }
 
-	/**
-	 * Returns an <code>InputStreamReader</code> instance
-	 * for the give file name
-	 * @param path the full path of the file to parse.
-	 * @return an <code>InputStreamReader</code> instance
-	 * 		or <code>null</code> if operation failed.
-	 */
-    public static InputStreamReader getInputStreamReader(String path) {
-        try {
-            InputStream is = new FileInputStream(path);
-            InputStreamReader isr = new InputStreamReader(is);
-            return isr;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+    /**
+     * Returns an <code>InputStreamReader</code> instance
+     * for the given file.
+     * @param file the file object that we want to read.
+     * @return an <code>InputStreamReader</code> instance
+     *         or <code>null</code> if operation failed.
+     */
+    public static InputStreamReader getInputStreamReader(final File file) {
+        InputStreamReader isr = null;
+        if(null != file && file.exists()) {
+            try {
+                InputStream is = new FileInputStream(file);
+                BufferedInputStream bis = new BufferedInputStream(is);
+                isr = new InputStreamReader(bis);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
-        return null;
+        return isr;
+    }
+
+    /**
+     * Returns an <code>InputStreamReader</code> instance
+     * for the given file path.
+     * @param path the path of the file that we want to read.
+     * @return an <code>InputStreamReader</code> instance
+     *         or <code>null</code> if operation failed.
+     */
+    public static InputStreamReader getInputStreamReader(final String path) {
+        InputStreamReader isr = null;
+        if(null != path) {
+            isr = getInputStreamReader(new File(path));
+        }
+        return isr;
     }
 }
