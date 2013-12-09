@@ -34,12 +34,12 @@ public class ListGcmMessagesActivity extends Activity {
 
 		lvEvent = (ListView) findViewById(R.id.list_gcm_messages_all);
 		messageAdapter = new GcmMessageViewAdapter(getApplicationContext());
-		if(null != messageAdapter) {
+		if(lvEvent != null && messageAdapter != null) {
 			lvEvent.setAdapter(messageAdapter);
 			lvEvent.setOnItemClickListener(listener);
 		}
 		NotificationMgr nMgr = new NotificationMgr(context);
-		if(null != nMgr) {
+		if(nMgr != null) {
 			nMgr.clearGcmNotification();
 		}
 	}

@@ -67,13 +67,17 @@ public class FileOps {
         FileOutputStream out = new FileOutputStream(dst);
         int count;
         byte[] data = new byte[1024];
-        while ((count = in.read(data)) != -1)
-            out.write(data, 0, count);
         try {
+            while ((count = in.read(data)) != -1) {
+                out.write(data, 0, count);
+            }
             out.flush();
         } finally {
-            out.close();
-            in.close();
+            try {
+                out.close();
+            } finally {
+                in.close();
+            }
         }
     }
     /**

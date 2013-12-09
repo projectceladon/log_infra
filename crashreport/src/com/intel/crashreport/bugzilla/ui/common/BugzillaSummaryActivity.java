@@ -64,7 +64,10 @@ public class BugzillaSummaryActivity extends Activity {
 					Intent intent = new Intent(getApplicationContext(),BugzillaMainActivity.class);
 					Intent incomingIntent = getIntent();
 					if(incomingIntent != null) {
-						intent.putExtras(incomingIntent.getExtras());
+						Bundle incomingExtras = incomingIntent.getExtras();
+						if(incomingExtras != null) {
+							intent.putExtras(incomingExtras);
+						}
 					}
 					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					startActivity(intent);

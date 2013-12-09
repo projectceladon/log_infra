@@ -58,9 +58,9 @@ public class UserInformationsActivity extends Activity {
 				}
 
 			});
+			if(!app.getUserEmail().equals(""))
+				email.setText(app.getUserEmail());
 		}
-		if(!app.getUserEmail().equals(""))
-			email.setText(app.getUserEmail());
 	}
 
 	public void onStart(){

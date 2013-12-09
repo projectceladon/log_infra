@@ -101,7 +101,9 @@ public class CheckEventsService extends Service {
 	private void stopService() {
 		Log.d(MODULE+":Stop Service");
 		app.setCheckEventsServiceStarted(false);
-		handlerThread.quit();
+		if(handlerThread != null) {
+			handlerThread.quit();
+		}
 		if(app.getRequestListCount() > 0 && !app.isServiceRelaunched()) {
 			app.setServiceRelaunched(true);
 			long lDelay = (long) Constants.CRASH_POSTPONE_DELAY*1000;
@@ -201,10 +203,10 @@ public class CheckEventsService extends Service {
 								result = !db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId());
 							if (result) {
 								event = new Event(histEvent, myBuild, app.isUserBuild());
-								if(!app.isUserBuild())
+								if(!app.isUserBuild() && blackLister.hasDb())
 									blackLister.cleanRain(event.getDate());
 								result = true;
-								if(!app.isUserBuild())
+								if(!app.isUserBuild() && blackLister.hasDb())
 									result = !blackLister.blackList(event);
 								if (result) {
 									//Manage full Dropbox case before adding an event

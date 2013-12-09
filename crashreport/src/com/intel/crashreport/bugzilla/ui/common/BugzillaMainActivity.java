@@ -195,16 +195,22 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_component = (Spinner) findViewById(R.id.bz_component_list);
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
-		if(screenshot != null) {
-			galleryAdapter = (ScreenshotAdapter)screenshot.getAdapter();
+		boolean isViewValid = false;
+		if(screenshot != null && bz_types != null && title != null &&
+			summary != null && bz_component != null &&
+			bz_component != null && bz_severity != null &&
+			bz_time != null && pictureBox != null) {
+			isViewValid = true;
 		}
 
+		if(!isViewValid) {
+			return;
+		}
+		galleryAdapter = (ScreenshotAdapter)screenshot.getAdapter();
 		screenshot.setVisibility(View.GONE);
 		Intent intent = getIntent();
 
-		if(pictureBox != null) {
-			pictureBox.setChecked(false);
-		}
+		pictureBox.setChecked(false);
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
 		if (bugzillaStorage.hasValuesSaved()) {
 			if(title != null) {
@@ -214,24 +220,33 @@ public class BugzillaMainActivity extends Activity {
 				summary.setText(bugzillaStorage.getDescription());
 			}
 			ArrayAdapter<String> adapter = (ArrayAdapter)bz_types.getAdapter();
-			int pos = adapter.getPosition(bugzillaStorage.getBugType());
-			if( pos >= 0)
-				bz_types.setSelection(pos);
+			int pos = 0;
+			if(adapter != null) {
+				pos = adapter.getPosition(bugzillaStorage.getBugType());
+				if( pos >= 0)
+					bz_types.setSelection(pos);
+			}
 
 			adapter = (ArrayAdapter)bz_component.getAdapter();
-			pos = adapter.getPosition(bugzillaStorage.getComponent());
-			if( pos >= 0)
-				bz_component.setSelection(pos);
+			if(adapter != null) {
+				pos = adapter.getPosition(bugzillaStorage.getComponent());
+				if( pos >= 0)
+					bz_component.setSelection(pos);
+			}
 
 			adapter = (ArrayAdapter)bz_time.getAdapter();
-			pos = adapter.getPosition(bugzillaStorage.getTime());
-			if( pos >= 0)
-				bz_time.setSelection(pos);
+			if(adapter != null) {
+				pos = adapter.getPosition(bugzillaStorage.getTime());
+				if( pos >= 0)
+					bz_time.setSelection(pos);
+			}
 
 			adapter = (ArrayAdapter)bz_severity.getAdapter();
-			pos = adapter.getPosition(bugzillaStorage.getSeverity());
-			if( pos >= 0)
-				bz_severity.setSelection(pos);
+			if(adapter != null) {
+				pos = adapter.getPosition(bugzillaStorage.getSeverity());
+				if( pos >= 0)
+					bz_severity.setSelection(pos);
+			}
 			aplogSelection.checkRadioButton();
 
 
@@ -273,8 +288,9 @@ public class BugzillaMainActivity extends Activity {
 			}
 		}
 
-		if ((null != intent) && (null != intent.getAction()) && intent.getAction().equals(Intent.ACTION_VIEW)) {
-			if(intent.resolveType(context).startsWith("image/")){
+		if ((intent != null) && (intent.getAction() != null) && intent.getAction().equals(Intent.ACTION_VIEW)) {
+			String intentType = intent.resolveType(context);
+			if(intentType != null && intentType.startsWith("image/")){
 				Uri imageUri = intent.getData();
 				String fileName="unknown";
 				if (imageUri.getScheme().toString().compareTo("content")==0)
@@ -324,7 +340,9 @@ public class BugzillaMainActivity extends Activity {
 						screenshot.setSelection(pos);
 					}
 				}
-				pictureBox.setChecked(true);
+				if(pictureBox != null) {
+					pictureBox.setChecked(true);
+				}
 			}
 		}
 
@@ -391,34 +409,30 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		Gallery screenshot = (Gallery)findViewById(R.id.bz_select_screenshot);
-
-		int iNbLog = aplogSelection.computeNbLog();
-
 		BugStorage bugzillaStorage = app.getBugzillaStorage();
-		if(bugzillaStorage != null) {
-			bugzillaStorage.setSummary(strTitle);
-			bugzillaStorage.setDescription(strSummary);
-			if(bz_types != null) {
-				bugzillaStorage.setBugType((String)bz_types.getSelectedItem());
-			}
-			if(bz_component != null) {
-				bugzillaStorage.setComponent((String)bz_component.getSelectedItem());
-			}
-			if(bz_severity != null) {
-				bugzillaStorage.setBugSeverity((String)bz_severity.getSelectedItem());
-				if(!((String)bz_severity.getSelectedItem()).equals(ENHANCEMENT_SEVERITY)) {
-					if(bz_time != null) {
-						bugzillaStorage.setBugTime((String)bz_time.getSelectedItem());
-					} else {
-						bugzillaStorage.setBugTime("");
-					}
-				} else {
-					bugzillaStorage.setBugTime("");
-				}
-			}
+		boolean isViewValid = false;
+
+		if(title != null && summary != null && pictureBox != null && bz_types != null &&
+			bz_component != null && bz_severity != null && bz_time != null) {
+			isViewValid = true;
+		}
+
+		if(isViewValid && bugzillaStorage != null) {
+
+			int iNbLog = aplogSelection.computeNbLog();
+
+			bugzillaStorage.setSummary(title.getText().toString());
+			bugzillaStorage.setDescription(summary.getText().toString());
+			bugzillaStorage.setBugType((String)bz_types.getSelectedItem());
+			bugzillaStorage.setComponent((String)bz_component.getSelectedItem());
+			bugzillaStorage.setBugSeverity((String)bz_severity.getSelectedItem());
+			String selectedSeverity = (String)bz_severity.getSelectedItem();
+			if(selectedSeverity != null && !selectedSeverity.equals(ENHANCEMENT_SEVERITY))
+				bugzillaStorage.setBugTime((String)bz_time.getSelectedItem());
+			else bugzillaStorage.setBugTime("");
 			bugzillaStorage.setBugHasScreenshot(pictureBox.isChecked());
 			bugzillaStorage.setBugLogLevel(iNbLog);
-			if(pictureBox != null && pictureBox.isChecked())
+			if(pictureBox.isChecked())
 				bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
 		}
 	}
@@ -431,7 +445,7 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		TextView bz_time_label = (TextView)findViewById(R.id.bz_time_view);
 
-		if(!bz_time_label.isShown()) {
+		if(bz_time != null && bz_time_label != null && !bz_time_label.isShown()) {
 			bz_time.setVisibility(View.VISIBLE);
 			bz_time_label.setVisibility(View.VISIBLE);
 		}
@@ -445,7 +459,7 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		TextView bz_time_label = (TextView)findViewById(R.id.bz_time_view);
 
-		if(bz_time_label.isShown()) {
+		if(bz_time != null && bz_time_label != null && bz_time_label.isShown()) {
 			bz_time.setVisibility(View.GONE);
 			bz_time_label.setVisibility(View.GONE);
 		}

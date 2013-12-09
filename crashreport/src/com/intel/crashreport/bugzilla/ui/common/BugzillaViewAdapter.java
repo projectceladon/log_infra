@@ -77,11 +77,11 @@ public class BugzillaViewAdapter extends BaseAdapter{
             holder = (ViewHolder)convertView.getTag();
         }
 
-	if(null != holder.summary && null != holder.description && null != holder.state && null != holder.time) {
+	if(holder.summary != null && holder.description != null && holder.state != null && holder.time != null) {
 		isViewHolderValid = true;
 	}
 
-        if(isViewHolderValid && null != listBz) {
+        if(isViewHolderValid && listBz != null) {
 
             if(listBz.size() > position) {
                 BZ bz = listBz.get(position);

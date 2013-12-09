@@ -51,6 +51,7 @@ public class PhoneInspectorService extends IntentService {
             //Temporary variable to fix Klocwork reported error about 'null'
             String extraType = intent.getStringExtra(NotificationReceiver.EXTRA_TYPE);
             if(extraType == null) {
+                Log.d(Module + ": Extra type is <null>, there is nothing to do for given intent.");
                 return;
             }
             //Check type contained in intent and performs appropriate treatment

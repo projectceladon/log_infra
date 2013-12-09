@@ -18,6 +18,7 @@ package com.intel.crashreport;
 import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.intel.crashreport.specific.EventDB;
@@ -72,18 +73,19 @@ public class GCMIntentService extends GCMBaseIntentService {
 			Log.i(TAG, "Received message context:"+context+", intent:"+intent);
 
 			// if your key/value is a JSON string, just extract it and parse it using JSONObject
-			if(intent.hasExtra(GcmMessage.GCM_EXTRA_TITLE) && intent.hasExtra(GcmMessage.GCM_EXTRA_TEXT)
+			Bundle incomingExtras = intent.getExtras();
+			if(incomingExtras != null && intent.hasExtra(GcmMessage.GCM_EXTRA_TITLE) && intent.hasExtra(GcmMessage.GCM_EXTRA_TEXT)
 					&& intent.hasExtra(GcmMessage.GCM_EXTRA_TYPE)) {
-				String title = intent.getExtras().getString(GcmMessage.GCM_EXTRA_TITLE);
-				String text = intent.getExtras().getString(GcmMessage.GCM_EXTRA_TEXT);
-				String type = intent.getExtras().getString(GcmMessage.GCM_EXTRA_TYPE);
-				if(null == title || null == text || null == type) {
+				String title = incomingExtras.getString(GcmMessage.GCM_EXTRA_TITLE);
+				String text = incomingExtras.getString(GcmMessage.GCM_EXTRA_TEXT);
+				String type = incomingExtras.getString(GcmMessage.GCM_EXTRA_TYPE);
+				if(title == null || text == null || type == null) {
 					// Do nothing if either one of these is null
 					return;
 				}
 				String data = "";
 				if(intent.hasExtra(GcmMessage.GCM_EXTRA_DATA)) {
-					data = intent.getExtras().getString(GcmMessage.GCM_EXTRA_DATA);
+					data = incomingExtras.getString(GcmMessage.GCM_EXTRA_DATA);
 				}
 				if(!title.isEmpty() && !text.isEmpty() && !type.isEmpty() && GcmMessage.typeExist(type)) {
 					EventDB db = new EventDB(context);

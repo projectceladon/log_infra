@@ -135,16 +135,17 @@ public class AplogSelectionDisplay {
 	public int computeNbLog() {
 		int nbLog = -1;
 		Spinner bz_severity = (Spinner) bugzillaActivity.findViewById(R.id.bz_severity_list);
-		if(null == bz_severity) {
+		if(bz_severity == null) {
 			return 0;
 		}
 		CrashReport app = (CrashReport)bugzillaActivity.getApplicationContext();
-		if(!((String)bz_severity.getSelectedItem()).equals(BugzillaMainActivity.ENHANCEMENT_SEVERITY)) {
+		String bzSeverityStr = (String)bz_severity.getSelectedItem();
+		if(bzSeverityStr != null && !bzSeverityStr.equals(BugzillaMainActivity.ENHANCEMENT_SEVERITY)) {
 			if(!app.isUserBuild()) {
 
 				RadioGroup radioGroup = (RadioGroup) bugzillaActivity.findViewById(R.id.bz_radiogroup_upload);
 
-				if(null != radioGroup) {
+				if(radioGroup != null) {
 
 					int checkedRadioButton = radioGroup.getCheckedRadioButtonId();
 					switch (checkedRadioButton) {

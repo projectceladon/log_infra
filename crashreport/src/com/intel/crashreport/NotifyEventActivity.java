@@ -43,8 +43,12 @@ public class NotifyEventActivity extends Activity {
 		appPrefs = new ApplicationPreferences(getApplicationContext());
 		TextView criticalText = (TextView) findViewById(R.id.criticalEventsView);
 		crashText = (TextView) findViewById(R.id.crashEventsView);
-		crashText.setVisibility(View.GONE);
-		criticalText.setVisibility(View.GONE);
+		if(crashText != null) {
+			crashText.setVisibility(View.GONE);
+		}
+		if(criticalText != null) {
+			criticalText.setVisibility(View.GONE);
+		}
 
 	}
 
@@ -81,12 +85,14 @@ public class NotifyEventActivity extends Activity {
 		else
 			viewText = (TextView) findViewById(R.id.crashEventsView);
 
-		if(infos.keySet().size() > 0)
-			viewText.setVisibility(View.VISIBLE);
+		if(viewText != null) {
+			if(infos.keySet().size() > 0)
+				viewText.setVisibility(View.VISIBLE);
 
-		viewText.setText("");
-		for ( String type : infos.keySet()){
-			viewText.append(infos.get(type)+" "+type+" occured\n");
+			viewText.setText("");
+			for ( String type : infos.keySet()){
+				viewText.append(infos.get(type)+" "+type+" occured\n");
+			}
 		}
 	}
 

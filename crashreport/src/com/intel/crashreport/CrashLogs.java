@@ -153,8 +153,10 @@ public class CrashLogs {
 	 */
 	private static void writeCrashLogsZip(File crashLogsFile, File fileList[]) throws FileNotFoundException, IOException {
 		/* We do something only if input parameters are not null */
-		if (crashLogsFile == null || fileList == null) {
-			return;
+		if(crashLogsFile == null || fileList == null) {
+			String errorMessage = "Cannot write <null> file or cannot read from <null> file list.";
+			Log.e(errorMessage);
+			throw new IOException(errorMessage);
 		}
 		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
 		File fileInfo = null;
@@ -164,6 +166,7 @@ public class CrashLogs {
 
 				if (!(fileList[i].exists() && fileList[i].canRead() && (fileList[i].getName().length() < Integer.MAX_VALUE))){
 					Log.w("CrashLogs: can't read file "+fileList[i].getName()+" to be added in "+crashLogsFile.getName());
+					FileWriter info = null;
 					try{
 						boolean append = true;
 						if(fileInfo == null) {
@@ -171,16 +174,19 @@ public class CrashLogs {
 							if(fileInfo.exists())
 								append = false;
 						}
-						FileWriter info = new FileWriter(fileInfo, append);
+						info = new FileWriter(fileInfo, append);
 						info.write(fileList[i].getName()+"\n");
-						info.close();
 					}
 					catch(IOException e){
 						Log.e("CrashLogs: Can't write "+fileList[i].getName()+" in "+fileList[i].getParent()+"/unavailableFiles");
+					} finally {
+						if(info != null) {
+							info.close();
+						}
 					}
 					continue;
 				}
-				if(!fileList[i].getName().contains("unavailableFiles"))
+				if(fileList[i] != null && !fileList[i].getName().contains("unavailableFiles"))
 					addFileToZip(fileList[i], out);
 			}
 			if(fileInfo != null) {

@@ -521,10 +521,13 @@ public class CrashReportService extends Service {
 															hideProgressBar();
 														}
 														File data = new File(event.getCrashDir());
-														if (data.exists()) {
+														if (data != null && data.exists()) {
 															if (data.isDirectory()) {
-																for(File file:data.listFiles()){
-																	file.delete();
+																File[] files = data.listFiles();
+																if(files != null) {
+																	for(File file: files) {
+																		file.delete();
+																	}
 																}
 															}
 															data.delete();

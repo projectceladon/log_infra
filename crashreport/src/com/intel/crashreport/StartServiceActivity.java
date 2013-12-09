@@ -131,28 +131,32 @@ public class StartServiceActivity extends Activity {
 		progressBar = (ProgressBar) findViewById(R.id.progressAplog);
 		lvEvent = (ListView) findViewById(R.id.listEventView);
 		eventAdapter = new EventViewAdapter(getApplicationContext());
-		if(lvEvent != null) {
+		if(eventAdapter != null && lvEvent != null) {
 			lvEvent.setAdapter(eventAdapter);
 			lvEvent.setOnItemClickListener(new OnItemClickListener() {
-				   public void onItemClick(AdapterView<?> adapter, View view, int position, long arg) {
-				      Event aEvent = (Event) lvEvent.getItemAtPosition(position);
-						AlertDialog alert = new AlertDialog.Builder(context).create();
+			   public void onItemClick(AdapterView<?> adapter, View view, int position, long arg) {
+			      Event aEvent = (Event) lvEvent.getItemAtPosition(position);
+					AlertDialog alert = new AlertDialog.Builder(context).create();
+					if(aEvent != null) {
 						alert.setMessage("EventID : " + aEvent.getEventId() + "\n" +
-										 " Data0 : " +  aEvent.getData0() + "\n" +
-										 " Data1 : " +  aEvent.getData1() + "\n" +
-										 " Data2 : " +  aEvent.getData2() + "\n" );
-						alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog, int id) {
-							}
-						});
-						alert.show();
-				   }
-				});
+									 " Data0 : " +  aEvent.getData0() + "\n" +
+									 " Data1 : " +  aEvent.getData1() + "\n" +
+									 " Data2 : " +  aEvent.getData2() + "\n" );
+					} else {
+						alert.setMessage("No event found.");
+					}
+					alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog, int id) {
+						}
+					});
+					alert.show();
+			   }
+			});
 		}
 		instanceStateSaved = false;
 
 		uploadEvents = (Button) findViewById(R.id.summary_events_upload_button);
-		if (uploadEvents != null)
+		if (uploadEvents != null) {
 			uploadEvents.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
 					if(DIALOG_REP_ABORT != dialog_value)
@@ -162,9 +166,9 @@ public class StartServiceActivity extends Activity {
 
 				}
 			});
-		uploadEvents.setEnabled(false);
-		uploadEvents.setVisibility(View.GONE);
-
+			uploadEvents.setEnabled(false);
+			uploadEvents.setVisibility(View.GONE);
+		}
 	}
 
 	private OnNavigationListener eventFilterListener = new OnNavigationListener() {

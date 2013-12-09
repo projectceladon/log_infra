@@ -32,9 +32,11 @@ public class ListBugzillaActivity extends Activity {
 
 	public void onResume() {
 		ListView listBugzilla = (ListView) findViewById(R.id.list_bugzilla_all);
-		bugzillaAdapter = (BugzillaViewAdapter)listBugzilla.getAdapter();
-		if(listBugzilla != null && bugzillaAdapter != null) {
-			bugzillaAdapter.setListBz(getAllBz());
+		if(listBugzilla != null) {
+			bugzillaAdapter = (BugzillaViewAdapter)listBugzilla.getAdapter();
+			if(bugzillaAdapter != null) {
+				bugzillaAdapter.setListBz(getAllBz());
+			}
 			listBugzilla.invalidateViews();
 		}
 		super.onResume();

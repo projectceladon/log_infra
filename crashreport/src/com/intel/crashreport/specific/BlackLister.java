@@ -63,6 +63,19 @@ public class BlackLister {
 		return false;
 	}
 
+	/**
+	 * Returns a boolean indicating whether a valid <code>db</code> has
+	 * been provided to this object or not.
+	 * @return
+	 * <ul>
+	 * <li><code>true</code> if this object's <code>db</code> instance is valid</li>
+	 * <li><code>false</code> otherwise</li>
+	 * </ul>
+	 */
+	public boolean hasDb() {
+		return (null != this.db);
+	}
+
 	public void setDb(EventDB mDb) {
 		db = mDb;
 	}
