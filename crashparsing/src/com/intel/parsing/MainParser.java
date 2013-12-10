@@ -104,7 +104,7 @@ public class MainParser{
 					}
 				}
 				if (sTag.equals("IPANIC") || sTag.equals("IPANIC_SWWDT") || sTag.equals("IPANIC_HWWDT")
-				 || sTag.equals("IPANIC_FAKE" )|| sTag.equals("IPANIC_SWWDT_FAKE")) {
+						|| sTag.equals("IPANIC_FAKE" )|| sTag.equals("IPANIC_SWWDT_FAKE")) {
 					if (!ipanic(sOutput)){
 						closeOutput();
 						return -1;
@@ -397,18 +397,24 @@ public class MainParser{
 		}
 		if (sIPanicFile != ""){
 			String sData="";
+			String sDataLockUp="";
 			String sComm = "";
 			String sPanic= "";
 			boolean bDataFound = false;
 			boolean bCommFound = false;
 			boolean bCandidateCommFound = false;
 			boolean bPanicFound = false;
+			boolean bNmiFound = false;
+			boolean bLockUpCase = false;
+			int iCallTraceCount = 0;
 
 			try{
 				BufferedReader bufPanicFile = new BufferedReader(new FileReader(sIPanicFile));
 				Pattern patternData = java.util.regex.Pattern.compile("EIP:.*SS:ESP");
 				Pattern patternComm = java.util.regex.Pattern.compile("(c|C)omm: .*");
 				Pattern patternPanic = java.util.regex.Pattern.compile("Kernel panic - not syncing: .*");
+				Pattern patternHardLock = java.util.regex.Pattern.compile("hard LOCKUP.*");
+				Pattern patternNmiEnd = java.util.regex.Pattern.compile("nmi_stack_correct.*");
 
 				String sCurLine;
 				while ((sCurLine = bufPanicFile.readLine()) != null) {
@@ -445,6 +451,25 @@ public class MainParser{
 						if (sTmp != null){
 							sPanic = sTmp;
 							bPanicFound = true;
+							sTmp = simpleGrepAwk(patternHardLock, sCurLine, "", 0);
+							if (sTmp != null)
+								bLockUpCase = true;
+						}
+					}
+
+					if (bLockUpCase){
+						if(!bNmiFound) {
+							sTmp = simpleGrepAwk(patternNmiEnd, sCurLine, "", 0);
+							if (sTmp != null){
+								bNmiFound = true;
+							}
+						} else if (iCallTraceCount < 4){
+							//get line value with a stack trace filter
+							String sCallLine = formatStackTrace(sCurLine);
+							if (!sCallLine.equals("")){
+								sDataLockUp += sCallLine;
+								iCallTraceCount++;
+							}
 						}
 					}
 				}
@@ -462,8 +487,11 @@ public class MainParser{
 				if (sPanic.contains("Fatal exception in interrupt")){
 					sComm = "";
 				}
-
-				bResult &= appendToCrashfile("DATA0=" + sData);
+				if (bLockUpCase){
+					bResult &= appendToCrashfile("DATA0=" + sDataLockUp);
+				} else {
+					bResult &= appendToCrashfile("DATA0=" + sData);
+				}
 				bResult &= appendToCrashfile("DATA1=" + sComm );
 				bResult &= appendToCrashfile("DATA2=" + sPanic );
 				if (sIPanicFile.contains("emmc_ipanic_console")){
@@ -488,6 +516,21 @@ public class MainParser{
 			}
 		}
 		return bResult;
+	}
+
+	private String formatStackTrace(String sLine){
+		String sResult = "";
+		int iEndTimeStamp = sLine.indexOf(">] ");
+		if (iEndTimeStamp > 0){
+			sResult = sLine.substring(iEndTimeStamp + 2);
+			//filtering ghost pattern
+			int iIndHost = sResult.indexOf(" ? ");
+			if (iIndHost >= 0){
+				//entire line should be filtered
+				sResult = "";
+			}
+		}
+		return sResult;
 	}
 
 	private boolean fabricerr(String aFolder){
