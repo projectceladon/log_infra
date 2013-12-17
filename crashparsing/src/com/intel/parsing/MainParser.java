@@ -18,6 +18,11 @@ public class MainParser{
 	public static final String PATH_UUID = "/logs/uuid.txt";
 
 	private final static String[] LEGACY_BOARD_FABRIC = {"redhookbay","victoriabay"};
+	private final static String[] FABRIC_TAGS = { "FABRICERR", "MEMERR",
+			"INSTERR", "SRAMECCERR", "HWWDTLOGERR", "FABRIC_FAKE", "FIRMWARE",
+			"NORTHFUSEERR", "KERNELWDT", "KERNEHANG", "SCUWDT", "FABRICXML", "PLLLOCKERR",
+			"UNDEFL1ERR", "PUNITMBBTIMEOUT", "VOLTKERR", "VOLTSAIATKERR",
+			"LPEINTERR", "PSHINTERR", "FUSEINTERR", "IPC2ERR", "KWDTIPCERR" };
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
@@ -146,10 +151,7 @@ public class MainParser{
 					}
 				}
 
-				if (sTag.equals("FABRICERR") || sTag.equals("MEMERR") ||
-						sTag.equals("INSTERR") || sTag.equals("SRAMECCERR") ||
-						sTag.equals("HWWDTLOGERR")|| sTag.equals("FABRIC_FAKE") ||
-						sTag.equals("FIRMWARE")) {
+				if (isFabricTag(sTag)) {
 					boolean bUseNewFabric = true;
 					for (String sBoardNew : LEGACY_BOARD_FABRIC){
 						if (sBoardNew.equals(sBoard)){
@@ -158,7 +160,7 @@ public class MainParser{
 						}
 					}
 					if (bUseNewFabric){
-						if (!newFabricerr(sOutput)){
+						if (!newFabricerr(sOutput, sTag)){
 							closeOutput();
 							return -1;
 						}
@@ -193,6 +195,17 @@ public class MainParser{
 			}
 		}
 		return 0;
+	}
+
+	private boolean isFabricTag(String aTag){
+		boolean bResult = false;
+		for (String sAllowedTag : FABRIC_TAGS){
+			if (sAllowedTag.equals(aTag)){
+				bResult = true;
+				break;
+			}
+		}
+		return bResult;
 	}
 
 
@@ -660,7 +673,7 @@ public class MainParser{
 		return true;
 	}
 
-	private boolean newFabricerr(String aFolder){
+	private boolean newFabricerr(String aFolder, String aTag){
 		boolean bResult = true;
 
 		String sFabricFile = fileGrepSearch(".*ipanic_fabric_err.*", aFolder);
@@ -679,6 +692,13 @@ public class MainParser{
 			boolean bDataHoleFound = false;
 			boolean bSubDataHoleFound = false;
 			int iSubDataHoleCount=0;
+			boolean bSCUWDT = false;
+			String sDataSCUWDT = "";
+
+			//specific code for SCUWDT to be reworked inside a crashtool parser
+			if (aTag.equals("SCUWDT")){
+				bSCUWDT = true;
+			}
 
 			try{
 				Pattern patternData0_1 = java.util.regex.Pattern.compile("Summary of Fabric Error detail:");
@@ -783,10 +803,19 @@ public class MainParser{
 							}
 						}
 					}
+					//scuwdt specificpart
+					if (bSCUWDT){
+						if (sCurLine.startsWith("DW4:") || sCurLine.startsWith("DW19:")){
+							sDataSCUWDT += sCurLine + " / ";
+						}
+					}
 				}
 
-				//if present, dataHole should replace data2
-				if (bDataHoleFound) {
+				if (bSCUWDT){
+					sData2 = sDataSCUWDT;
+				}
+				else if (bDataHoleFound) {
+					//if present, dataHole should replace data2
 					sData2 = sDataHole;
 				}
 
