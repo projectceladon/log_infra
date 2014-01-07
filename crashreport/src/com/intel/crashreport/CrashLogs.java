@@ -65,7 +65,7 @@ public class CrashLogs {
 		crashLogsFile.deleteOnExit();
 		if (crashLogsFile.exists()) {
 			//A crashlog zipped file already exists in cache directory
-			Log.d("getCrashLogsFile: "+crashLogsFileName+" exists in cachedir");
+			Log.w("getCrashLogsFile: "+crashLogsFileName+" exists in cachedir");
 			try {
 				if (FileOps.isValidZipFile(crashLogsFile))
 					return crashLogsFile;

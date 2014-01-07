@@ -21,7 +21,6 @@ package com.intel.crashreport;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.ProtocolException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -42,16 +41,14 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemProperties;
-import java.util.TimeZone;
-
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.Event;
 import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.PDStatus;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
+import com.intel.crashreport.threads.EventUploadThread;
 import com.intel.crashtoolserver.bean.FileInfo;
-import com.intel.phonedoctor.Constants;
 
 public class CrashReportService extends Service {
 
@@ -62,7 +59,7 @@ public class CrashReportService extends Service {
 	private ServiceState serviceState;
 	private final IBinder mBinder = new LocalBinder();
 	private Logger logger = new Logger();
-	private static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
+	public static final DateFormat DAY_DF = new SimpleDateFormat("yyyy-MM-dd");
 	private static final String MODULE = "CrashReportService";
 
 	@Override
@@ -363,7 +360,7 @@ public class CrashReportService extends Service {
 		}
 	}
 
-	private void updateProgressBar(int value) {
+	public void updateProgressBar(int value) {
 		if (app.isActivityBounded()) {
 			Intent intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
 			intent.putExtra("progressValue", value);
@@ -371,21 +368,22 @@ public class CrashReportService extends Service {
 		}
 	}
 
-	private void hideProgressBar() {
+	public void hideProgressBar() {
 		if (app.isActivityBounded()) {
 			Intent intent = new Intent(ServiceToActivityMsg.hideProgressBar);
 			getApplicationContext().sendBroadcast(intent);
 		}
 	}
 
-	private void showProgressBar() {
+	public void showProgressBar() {
 		if (app.isActivityBounded()) {
 			Intent intent = new Intent(ServiceToActivityMsg.showProgressBar);
 			getApplicationContext().sendBroadcast(intent);
 		}
 	}
 
-	private void sendEvents(EventDB db, Connector con,Build myBuild) throws InterruptedException,ProtocolException,SQLException{
+
+	public void sendEvents(EventDB db, Connector con,Build myBuild) throws InterruptedException,ProtocolException,SQLException{
 		Cursor cursor = db.fetchNotUploadedEvents();
 		Event event;
 		hideProgressBar();
@@ -414,7 +412,7 @@ public class CrashReportService extends Service {
 		}
 	}
 
-	private void updateEventsSummary(EventDB db) {
+	public void updateEventsSummary(EventDB db) {
 		logger.clearLog();
 		int uptimeNumber = db.getNewRebootNumber();
 		int crashNumber = db.getNewCrashNumber();
@@ -432,7 +430,9 @@ public class CrashReportService extends Service {
 			sendMsgToActivity("There are events to report");
 	}
 
-	private Runnable uploadEvent = new Runnable(){
+	private crRunnable uploadEvent = new crRunnable(this);
+
+	public class crRunnable implements Runnable {
 		Context context;
 		PowerManager pm = null;
 		PowerManager.WakeLock wakeLock = null;
@@ -448,8 +448,13 @@ public class CrashReportService extends Service {
 		Build myBuild;
 		boolean toContinue = false;
 		boolean newLogsToUpload = false;
-		boolean needsWifi = false;
 		CrashReport app;
+		CrashReportService crService;
+
+		public crRunnable(CrashReportService aCrObject){
+			crService = aCrObject;
+		}
+
 		public void run() {
 			context = getApplicationContext();
 			app = (CrashReport)context;
@@ -461,179 +466,34 @@ public class CrashReportService extends Service {
 			wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CrashReport");
 			wakeLock.acquire();
 
-			Runnable uploadExec = new Runnable(){
-				public void run() {
-					try {
-						db.open();
-						con.setupServerConnection();
-						int crashNumber = db.getNewCrashNumber();
-						//upload Events
-						do {
-							sendEvents(db, con, myBuild);
-							try {
-								if ((toContinue = db.isThereEventToUpload()) == true) {
-									updateEventsSummary(db);
-									crashNumber += db.getNewCrashNumber();
-								}
-							} catch (SQLException e) {
-								/* In case of Db access error, skip and go to events logs uploading process*/
-								Log.w(MODULE+":uploadEvent : Can't check if there is event to upload : Fail to access DB", e);
-								toContinue = false;
-							}
-						}while(toContinue);
-						//upload logs
-						app.setNeedToUpload(false);
-						String crashTypes[] = null;
-						if (prefs.isCrashLogsUploadEnable()) {
-							crashTypes = prefs.getCrashLogsUploadTypes();
-							cursor = db.fetchNotUploadedLogs(crashTypes);
-							if ((cursor != null) && (cursor.getCount() != 0)) {
-								nMgr = new NotificationMgr(context);
-								if (prefs.isWifiOnlyForEventData() && !con.getWifiConnectionAvailability()) {
-									nMgr.notifyEventDataWifiOnly(cursor.getCount());
-								} else {
-									nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
-									while (!cursor.isAfterLast()) {
-										if (runThread.isInterrupted())
-											throw new InterruptedException();
-										event = db.fillEventFromCursor(cursor);
-										crashLogs = CrashLogs.getCrashLogsFile(context, event.getCrashDir(), event.getEventId());
-										if (crashLogs != null) {
-											if((crashLogs.length() >= Constants.WIFI_LOGS_SIZE) && !con.getWifiConnectionAvailability())
-												needsWifi = true;
-											else {
-												DAY_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
-												dayDate = DAY_DF.format(event.getDate());
-												fileInfo = new FileInfo(crashLogs.getName(), crashLogs.getAbsolutePath(), crashLogs.length(), dayDate, event.getEventId());
-												Log.i(MODULE+":uploadEvent : Upload crashlog of "+event);
-												if (event.getEventName().equals("APLOG")) {
-													showProgressBar();
-													updateProgressBar(0);
-												}
-
-												if (con.sendLogsFile(fileInfo, runThread)) {
-													db.updateEventLogToUploaded(event.getEventId());
-													Log.d(MODULE+":uploadEvent : Success upload of " + crashLogs.getAbsolutePath());
-													crashLogs.delete();
-													if (event.getEventName().equals("APLOG") || event.getEventName().equals("BZ") ) {
-														if (event.getEventName().equals("APLOG")) {
-															updateProgressBar(0);
-															hideProgressBar();
-														}
-														File data = new File(event.getCrashDir());
-														if (data != null && data.exists()) {
-															if (data.isDirectory()) {
-																File[] files = data.listFiles();
-																if(files != null) {
-																	for(File file: files) {
-																		file.delete();
-																	}
-																}
-															}
-															data.delete();
-														}
-													}
-												} else {
-													if (event.getEventName().equals("APLOG")) {
-														updateProgressBar(0);
-														hideProgressBar();
-													}
-													Log.w(MODULE+":uploadEvent : Fail upload of " + crashLogs.getAbsolutePath());
-													throw new ProtocolException();
-												}
-											}
-										} else
-											Log.d(MODULE+":uploadEvent : No crashlog to upload for "+event);
-										cursor.moveToNext();
-										newLogsToUpload = false;
-										if(db.isThereEventToUpload()) {
-											cursor.close();
-											crashNumber = db.getNewCrashNumber();
-											updateEventsSummary(db);
-											sendEvents(db,con,myBuild);
-											newLogsToUpload = true;
-										}
-										if(app.getNeedToUpload()) {
-											app.setNeedToUpload(false);
-											newLogsToUpload = true;
-										}
-										if(newLogsToUpload || cursor.isAfterLast()) {
-											needsWifi = false;
-											if(!cursor.isClosed())
-												cursor.close();
-											crashTypes = prefs.getCrashLogsUploadTypes();
-											if(db.isThereEventToUpload(crashTypes)) {
-												cursor = db.fetchNotUploadedLogs(crashTypes);
-												if ((cursor != null) && (cursor.getCount() != 0)) {
-													nMgr.notifyUploadingLogs(cursor.getCount(),crashNumber);
-													if(!db.isThereLogToUploadWithoutWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
-														//need to stop try to upload something
-														break;
-													}
-												}
-												else break;
-											}
-											else break;
-										}
-									}
-									nMgr.cancelNotifUploadingLogs();
-								}
-								//should be done at the end of check upload process
-								if(db.isThereLogToUploadWithWifi(crashTypes) && !con.getWifiConnectionAvailability()) {
-									needsWifi = true;
-									nMgr.notifyConnectWifiOrMpta();
-								}
-								if (cursor != null)
-									cursor.close();
-								Log.i(MODULE+":uploadEvent : Upload files finished");
-							}
-						}
-						else Log.i(MODULE+":uploadEvent : logs upload disabled");
-						serviceHandler.sendEmptyMessage(ServiceMsg.uploadOK);
-					} catch (InterruptedException e) {
-						Log.i(MODULE+":uploadEvent : upload interrupted");
-						serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
-					} catch (SQLException e) {
-						Log.w(MODULE+":uploadEvent : Fail to access DB", e);
-						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromSQL);
-					} catch (ProtocolException e) {
-						Log.w(MODULE+":uploadEvent:ProtocolException", e);
-						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-					} catch (UnknownHostException e) {
-						Log.w(MODULE+":uploadEvent:UnknownHostException", e);
-						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-					} catch (InterruptedIOException e) {
-						Log.w(MODULE+":uploadEvent:InterruptedIOException", e);
-						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-					} catch (IOException e) {
-						Log.w(MODULE+":uploadEvent:IOException", e);
-						serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
-					}
-				}
-			};
+			// Create the thread instance and run it
+			EventUploadThread uploadExec = new EventUploadThread(
+					context,
+					prefs,
+					serviceHandler,
+					db,
+					crService);
 			runThread = new Thread(uploadExec, "UploadThread");
+			uploadExec.setRunningThread(runThread);
 			runThread.start();
 			try {
 				runThread.join();
 			} catch (InterruptedException e) {
 				serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
 			}
-
+			boolean needsWifi = uploadExec.needsWifi();
 			if (nMgr != null){
 				if(needsWifi)
 					nMgr.notifyConnectWifiOrMpta();
 				else
 					nMgr.cancelNotifUploadingLogs();
 			}
-			if (cursor != null)
+			if (cursor != null) {
 				cursor.close();
-			try {
-				if (con != null)
-					con.closeServerConnection();
-			} catch (IOException e) {
-				Log.w(MODULE+": close connection exception", e);
-			} catch (NullPointerException e) {
-				Log.w(MODULE+": close connection exception", e);
+			}
+			if(!this.closeConnection(con)) {
+				Log.w(MODULE +
+						": an error occurred while closing the connection.");
 			}
 			if (db != null)
 				db.close();
@@ -642,6 +502,30 @@ public class CrashReportService extends Service {
 				wakeLock = null;
 			}
 			uploadProgressStop();
+		}
+
+		private boolean closeConnection(Connector connector) {
+			try {
+				connector.closeServerConnection();
+				return true;
+			} catch (IOException e) {
+				Log.e(MODULE+": close connection exception", e);
+			} catch (NullPointerException e) {
+				Log.e(MODULE+": close connection exception", e);
+			}
+			return false;
+		}
+
+		private boolean setUpConnection(Connector connector) {
+			try {
+				connector.setupServerConnection();
+				return true;
+			} catch(UnknownHostException e) {
+				Log.e(MODULE + ":uploadEvent:UnknownHostException", e);
+			} catch(IOException e) {
+				Log.e(MODULE + ":uploadEvent:IOException", e);
+			}
+			return false;
 		}
 	};
 
@@ -665,7 +549,7 @@ public class CrashReportService extends Service {
 		WaitForDataConnectionAvailableUser, WaitForDataConnectionAvailableAuto;
 	}
 
-	protected class ServiceMsg {
+	public class ServiceMsg {
 
 		public static final int startProcessEvents = 0;
 		public static final int successProcessEvents = 1;
@@ -712,7 +596,7 @@ public class CrashReportService extends Service {
 		}
 	}
 
-	private class ServiceHandler extends Handler {
+	public class ServiceHandler extends Handler {
 
 		public ServiceHandler(Looper looper) {
 			super(looper);
@@ -1084,4 +968,7 @@ public class CrashReportService extends Service {
 		}
 	}
 
+	public CrashReport getApp() {
+		return app;
+	};
 }

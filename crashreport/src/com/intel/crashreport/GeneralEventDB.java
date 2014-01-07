@@ -385,6 +385,9 @@ public class GeneralEventDB {
 
 	public Cursor fetchNotUploadedLogs(String crashTypes[]) throws SQLException {
 		StringBuilder bQuery = new StringBuilder("");
+		//need a big event name block
+		//starting block
+		bQuery.append("(");
 		bQuery.append("("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0') or ");
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
@@ -397,6 +400,8 @@ public class GeneralEventDB {
 		} else {
 			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
+		//ending block
+		bQuery.append(")");
 		/* Only logs for events already uploaded*/
 		bQuery.append(" and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR+" != ''");
 		Log.d("fetchNotUploadedLogs : Query string = " +bQuery.toString() );
