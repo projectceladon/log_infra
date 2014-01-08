@@ -424,6 +424,7 @@ public class MainParser{
 			try{
 				BufferedReader bufPanicFile = new BufferedReader(new FileReader(sIPanicFile));
 				Pattern patternData = java.util.regex.Pattern.compile("EIP:.*SS:ESP");
+				Pattern patternData_64 = java.util.regex.Pattern.compile("RIP  \\[.*ffffffff.*\\].*");
 				Pattern patternComm = java.util.regex.Pattern.compile("(c|C)omm: .*");
 				Pattern patternPanic = java.util.regex.Pattern.compile("Kernel panic - not syncing: .*");
 				Pattern patternHardLock = java.util.regex.Pattern.compile("hard LOCKUP.*");
@@ -434,6 +435,10 @@ public class MainParser{
 					String sTmp;
 					if (!bDataFound){
 						sTmp = simpleGrepAwk(patternData, sCurLine, " ", 2);
+						if (sTmp==null){
+							//second chance with 64 pattern
+							sTmp = simpleGrepAwk(patternData_64, sCurLine, " ", 3);
+						}
 						if (sTmp != null){
 							sData = sTmp;
 							bDataFound = true;
