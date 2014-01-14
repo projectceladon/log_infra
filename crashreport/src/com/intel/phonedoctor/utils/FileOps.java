@@ -33,105 +33,106 @@ import java.util.zip.ZipFile;
  */
 public class FileOps {
 
-    /**
-     * Delete a file/folder recursively
-     *
-     * @param f file/folder to delete
-     * @return true delete is successful, else false
-     */
-    public static boolean delete(File f){
-        File[] files = null;
-        if(f == null) {
-            return false;
-        }
-        if (f.isDirectory()) {
-            files = f.listFiles();
-            if(files != null) {
-                for (File c : f.listFiles())
-                    delete(c);
-            }
-        }
-        if (!f.delete())
-            return false;
-        return true;
-    }
+	/**
+	 * Delete a file/folder recursively
+	 *
+	 * @param f file/folder to delete
+	 * @return true delete is successful, else false
+	 */
+	public static boolean delete(File f){
+		File[] files = null;
+		if(f == null) {
+			return false;
+		}
+		if (f.isDirectory()) {
+			files = f.listFiles();
+			if(files != null) {
+				for (File c : files)
+					delete(c);
+			}
+		}
+		if (!f.delete())
+			return false;
+		return true;
+	}
 
-    /**
-     * Copy file from source to destination
-     *
-     * @param src source file
-     * @param dst destination file, should be created before
-     * @throws IOException when copy fails
-     */
-    public static void copy(File src, File dst) throws IOException {
-        FileInputStream in = new FileInputStream(src);
-        FileOutputStream out = new FileOutputStream(dst);
-        int count;
-        byte[] data = new byte[1024];
-        try {
-            while ((count = in.read(data)) != -1) {
-                out.write(data, 0, count);
-            }
-            out.flush();
-        } finally {
-            try {
-                out.close();
-            } finally {
-                in.close();
-            }
-        }
-    }
-    /**
-     * Check if the input file is a valid zip file.
-     *
-     * @param file to check
-     * @return true is the file is a valid Zip file. False otherwise.
-     * @throws IOException when zip integrity check fails.
-     */
-    public static boolean isValidZipFile(final File file) throws IOException {
-        ZipFile zipFile = null;
-        try {
-            zipFile = new ZipFile(file);
-            zipFile.close();
-            return true;
-        } catch (ZipException e) {
-            return false;
-        }
-    }
+	/**
+	 * Copy file from source to destination
+	 *
+	 * @param src source file
+	 * @param dst destination file, should be created before
+	 * @throws IOException when copy fails
+	 */
+	public static void copy(File src, File dst) throws IOException {
+		FileInputStream in = new FileInputStream(src);
+		try{
+			FileOutputStream out = new FileOutputStream(dst);
+			int count;
+			byte[] data = new byte[1024];
+			try {
+				while ((count = in.read(data)) != -1) {
+					out.write(data, 0, count);
+				}
+				out.flush();
+			} finally {
+				out.close();
+			}
+		}finally {
+			in.close();
+		}
+	}
+	/**
+	 * Check if the input file is a valid zip file.
+	 *
+	 * @param file to check
+	 * @return true is the file is a valid Zip file. False otherwise.
+	 * @throws IOException when zip integrity check fails.
+	 */
+	public static boolean isValidZipFile(final File file) throws IOException {
+		ZipFile zipFile = null;
+		try {
+			zipFile = new ZipFile(file);
+			zipFile.close();
+			return true;
+		} catch (ZipException e) {
+			return false;
+		}
+	}
 
-    /**
-     * Returns an <code>InputStreamReader</code> instance
-     * for the given file.
-     * @param file the file object that we want to read.
-     * @return an <code>InputStreamReader</code> instance
-     *         or <code>null</code> if operation failed.
-     */
-    public static InputStreamReader getInputStreamReader(final File file) {
-        InputStreamReader isr = null;
-        if(null != file && file.exists()) {
-            try {
-                InputStream is = new FileInputStream(file);
-                BufferedInputStream bis = new BufferedInputStream(is);
-                isr = new InputStreamReader(bis);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        return isr;
-    }
+	/**
+	 * Returns an <code>InputStreamReader</code> instance
+	 * for the given file.
+	 * @param file the file object that we want to read.
+	 * @return an <code>InputStreamReader</code> instance
+	 *	 	or <code>null</code> if operation failed.
+	 */
+	public static InputStreamReader getInputStreamReader(final File file) {
+		InputStreamReader isr = null;
+		if(null != file && file.exists()) {
+			try {
+				InputStream is = new FileInputStream(file);
+				BufferedInputStream bis = new BufferedInputStream(is);
+				isr = new InputStreamReader(bis);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		return isr;
+	}
 
-    /**
-     * Returns an <code>InputStreamReader</code> instance
-     * for the given file path.
-     * @param path the path of the file that we want to read.
-     * @return an <code>InputStreamReader</code> instance
-     *         or <code>null</code> if operation failed.
-     */
-    public static InputStreamReader getInputStreamReader(final String path) {
-        InputStreamReader isr = null;
-        if(null != path) {
-            isr = getInputStreamReader(new File(path));
-        }
-        return isr;
-    }
+	/**
+	 * Returns an <code>InputStreamReader</code> instance
+	 * for the given file path.
+	 * @param path the path of the file that we want to read.
+	 * @return an <code>InputStreamReader</code> instance
+	 *	 	or <code>null</code> if operation failed.
+	 */
+	public static InputStreamReader getInputStreamReader(final String path) {
+		InputStreamReader isr = null;
+		if(null != path) {
+			isr = getInputStreamReader(new File(path));
+		}
+		return isr;
+	}
+
 }

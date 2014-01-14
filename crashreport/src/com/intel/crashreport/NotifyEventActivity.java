@@ -67,8 +67,13 @@ public class NotifyEventActivity extends Activity {
 					event = db.fillEventFromCursor(cursor);
 					String eventType = event.getType();
 					if (eventType != null && infos.containsKey(eventType)) {
-						int value = infos.get(eventType);
-						infos.put(eventType, ++value);
+						Integer resultHash = infos.get(eventType);
+						if (resultHash != null){
+							int value = resultHash.intValue();
+							infos.put(eventType, ++value);
+						}else{
+							infos.put(eventType, 1);
+						}
 					} else {
 						infos.put(event.getType(), 1);
 					}
