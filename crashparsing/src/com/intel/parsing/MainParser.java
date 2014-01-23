@@ -687,6 +687,7 @@ public class MainParser{
 			String sData1 = "";
 			String sData2 = "";
 			String sDataHole = "";
+			String sData4 = "";
 			boolean bData0_1Found = false;
 			boolean bPatternStart0_1Found = false;
 			boolean bData2Found = false;
@@ -697,6 +698,7 @@ public class MainParser{
 			boolean bDataHoleFound = false;
 			boolean bSubDataHoleFound = false;
 			int iSubDataHoleCount=0;
+			boolean bData4Found = false;
 			boolean bSCUWDT = false;
 			String sDataSCUWDT = "";
 
@@ -709,6 +711,7 @@ public class MainParser{
 				Pattern patternData0_1 = java.util.regex.Pattern.compile("Summary of Fabric Error detail:");
 				Pattern patternData2 = java.util.regex.Pattern.compile(".*ERROR LOG.*");
 				Pattern patternHole = java.util.regex.Pattern.compile(".*Address Hole.*");
+				Pattern patternData4 = java.util.regex.Pattern.compile(".*Length of fabric error file:.*");
 				String sCurLine;
 
 				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
@@ -814,6 +817,15 @@ public class MainParser{
 							sDataSCUWDT += sCurLine + " / ";
 						}
 					}
+					//data4
+					if (!bData4Found){
+						String sTmp;
+						sTmp = simpleGrepAwk(patternData4, sCurLine, ":", 1);
+						if (sTmp != null){
+							sData4 = sTmp;
+							bData4Found = true;
+						}
+					}
 				}
 
 				if (bSCUWDT){
@@ -827,6 +839,7 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sData1);
 				bResult &= appendToCrashfile("DATA2=" + sData2);
+				bResult &= appendToCrashfile("DATA4=" + sData4);
 				bufFabricFile.close();
 			}
 			catch(Exception e) {
