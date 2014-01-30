@@ -10,7 +10,7 @@ public enum BZCreator {
 
 	INSTANCE;
 
-	public void createBZ(ArrayList<String> sArguments, Context context) {
-		CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
+	public boolean createBZ(ArrayList<String> sArguments, Context context) {
+		return CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
 	}
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
+import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.R;
 import com.intel.crashreport.bugzilla.ui.specific.BZCreator;
 import com.intel.crashreport.specific.CrashReportHome;
@@ -184,9 +185,14 @@ public class BugzillaSummaryActivity extends Activity {
 					sArguments.add(line);
 				}
 				//Create a file to trigger crashlog daemon with arguments previously set
-				BZCreator.INSTANCE.createBZ(sArguments,context);
-
-				bugzillaStorage.clearValues();
+				if (BZCreator.INSTANCE.createBZ(sArguments,context)) {
+					bugzillaStorage.clearValues();
+				} else {
+					//we should notify the user of the BZ creation failure
+					NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
+					//test  : to be updated with BZ error notification
+					nMgr.notifyBZFailure();
+				}
 			}
 
 			return null;

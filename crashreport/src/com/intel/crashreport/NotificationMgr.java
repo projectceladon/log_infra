@@ -20,6 +20,7 @@
 package com.intel.crashreport;
 
 import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
+import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
 
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -37,6 +38,7 @@ public class NotificationMgr {
 	public static final int NOTIF_CRASHTOOL = 5;
 	private static final int NOTIF_CRASH_EVENT_ID = 6;
 	public static final int NOTIF_BIGDATA_ID = 7;
+	public static final int NOTIF_BZ_FAIL = 8;
 
 	public NotificationMgr(Context context) {
 		this.context = context;
@@ -187,8 +189,31 @@ public class NotificationMgr {
 		mNotificationManager.notify(NOTIF_BIGDATA_ID, mBuilder.build());
 	}
 
+	public void notifyBZFailure() {
+		CharSequence tickerText = "Phone Doctor BZ failure";
+		CharSequence contentTitle = "BZ could not be created";
+		CharSequence contentText = "Please retry or contact support to clean your device";
+		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		int icon = R.drawable.icon;
+		long when = System.currentTimeMillis();
+		Intent notificationIntent = new Intent(context, BugzillaMainActivity.class);
+		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, NOTIF_BZ_FAIL, notificationIntent, 0);
+		Notification.Builder mBuilder =
+		        new Notification.Builder(context)
+				.setContentTitle(contentTitle)
+				.setContentText(contentText)
+				.setContentIntent(contentIntent)
+				.setWhen(when)
+				.setAutoCancel(true)
+				.setTicker(tickerText)
+				.setSmallIcon(icon);
+		clearNonCriticalNotification();
+		mNotificationManager.notify(NOTIF_BZ_FAIL, mBuilder.build());
+	}
+
 	/**
-	 * Remove Event data file no wifi notifixation
+	 * Remove Event data file no wifi notification
 	 */
 	public void cancelNotifyEventDataWifiOnly() {
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

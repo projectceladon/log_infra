@@ -64,10 +64,10 @@ public class CrashlogDaemonCmdFile {
 	 * @param Argument is a line written in the file
 	 * @param aContext is the caller context
 	 */
-	public static void CreateCrashlogdCmdFile(Command CmdType, String Argument, Context aContext) {
+	public static boolean CreateCrashlogdCmdFile(Command CmdType, String Argument, Context aContext) {
 		ArrayList<String> sArguments = new ArrayList<String>();
 		sArguments.add(Argument);
-		CreateCrashlogdCmdFile( CmdType, sArguments, aContext);
+		return CreateCrashlogdCmdFile( CmdType, sArguments, aContext);
 	}
 
 	/**
@@ -79,7 +79,7 @@ public class CrashlogDaemonCmdFile {
 	 * @param Arguments shall contains line(s) written in the file
 	 * @param aContext is the caller context
 	 */
-	public static synchronized void CreateCrashlogdCmdFile(Command CmdType, ArrayList<String> Arguments, Context aContext) {
+	public static synchronized boolean CreateCrashlogdCmdFile(Command CmdType, ArrayList<String> Arguments, Context aContext) {
 
 		String sfilePath ="";
 		switch (CmdType) {
@@ -106,12 +106,26 @@ public class CrashlogDaemonCmdFile {
 				write.write(Arguments.get(i).getBytes());
 			}
 			write.close();
+			//wait for 10 seconds and check if file has been consumed
+			try{
+				Thread.sleep(10000);
+			}
+			catch(InterruptedException e){
+				Log.d("CreateCrashlogdCmdFile : Interrupted Exception");
+			}
+			if (mCommandFile.exists()) {
+				//warning : sleep time should be coherent with crashlogd processing time
+				return false;
+			}
 		} catch (FileNotFoundException e) {
 			Log.e(Module + "file "+sfilePath+" is not found");
 			e.printStackTrace();
+			return false;
 		} catch (IOException e) {
 			Log.e(Module + "can't write in file "+sfilePath);
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	};
 }
