@@ -18,6 +18,7 @@
  */
 package com.intel.crashreport.specific;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -25,8 +26,11 @@ import java.util.Map;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.Log;
+import com.intel.phonedoctor.Constants;
+import com.intel.phonedoctor.utils.FileOps;
 
 import android.content.Context;
+import android.database.SQLException;
 import android.os.DropBoxManager;
 import android.os.SystemProperties;
 
@@ -171,4 +175,59 @@ public class PhoneInspector {
 
 	}
 
+	public void checkLogsPartition() {
+		File logsDir = new File(Constants.LOGS_DIR);
+		if(logsDir.getUsableSpace() < Constants.LOGS_CRITICAL_SIZE) {
+			Log.w("checkLogsPartition : partition full! activate cleaning");
+			//we need to clean logs partition
+			cleanLogsPartition(true);
+			/* for the moment, we don't want to activate unsafemode
+			if(logsDir.getUsableSpace() < Constants.LOGS_CRITICAL_SIZE) {
+				//now switching in unsafemode
+				Log.w("checkLogsPartition : need to use full cleaning");
+				cleanLogsPartition(false);
+			}*/
+
+		} else {
+			Log.d("checkLogsPartition : partition OK!");
+		}
+	}
+
+	public void cleanLogsPartition(boolean bSafeMode) {
+		File[] files = null;
+
+		File logsDir = new File(Constants.LOGS_DIR);
+		files = logsDir.listFiles();
+		if(files != null) {
+			if (bSafeMode) {
+				//need to check if data is uploaded
+
+				EventDB db = new EventDB(mCtx);
+				try {
+					db.open();
+
+					for (File c : files)
+						if (c.isDirectory()){
+							if (c.getName().startsWith("crashlog")){
+								//need to check if data is uploaded
+								if (db.isPathUploaded(c.getAbsolutePath())){
+									FileOps.delete(c);
+								}
+							}
+						}
+					db.close();
+				}
+				catch(SQLException e){
+					Log.w("checkLogsPartition : can't use database",e);
+				}
+			}else{
+				for (File c : files)
+					if (c.isDirectory()){
+						if (c.getName().startsWith("crashlog")){
+							FileOps.delete(c);
+						}
+					}
+			}
+		}
+	}
 }

@@ -44,7 +44,7 @@ public class GeneralEventDB {
 	private static final int COEF_S_TO_MS = 1000;
 
 	private static final String DATABASE_NAME = "eventlogs.db";
-	private static final String DATABASE_TABLE = "events";
+	protected static final String DATABASE_TABLE = "events";
 	private static final String DATABASE_TYPE_TABLE = "events_type";
 	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
 	private static final String DATABASE_CRITICAL_TABLE = "critical_events_type";

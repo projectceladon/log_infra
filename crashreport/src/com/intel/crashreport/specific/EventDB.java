@@ -342,6 +342,20 @@ public class EventDB extends GeneralEventDB{
 		return false;
 	}
 
+	public boolean isPathUploaded(String sPath) throws SQLException {
+		Cursor mCursor;
+		Boolean ret;
+		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
+				KEY_CRASHDIR + " = '" + sPath + "' AND " + KEY_UPLOADLOG + "=1", null,
+				null, null, null, null);
+		if (mCursor != null) {
+			ret = mCursor.moveToFirst();
+			mCursor.close();
+			return ret;
+		}
+		return false;
+	}
+
 	public boolean checkNewRain(Event event) {
 		return checkNewRain(event, -1);
 	}

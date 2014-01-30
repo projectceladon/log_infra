@@ -172,7 +172,6 @@ public class CheckEventsService extends Service {
 		Event event;
 		NotificationMgr nMgr;
 		BlackLister blackLister = new BlackLister(getApplicationContext());
-		PhoneInspector phoneInspector;
 		boolean historyEventCorrupted = false;
 		boolean result;
 		Context context = getApplicationContext();

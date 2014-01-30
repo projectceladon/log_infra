@@ -198,11 +198,16 @@ public enum PDStatus {
 			@Override
 			public String computeValue() {
 				String result = "x";
-				File logsDir = new File("/logs");
+				File logsDir = new File(Constants.LOGS_DIR);
 				if(logsDir.exists() && logsDir.isDirectory()){
 					if(logsDir.getUsableSpace() > Constants.LOGS_CRITICAL_SIZE)
 						result = "1";
-					else result = "L";
+					else {
+						// initial value L, switch to K for analysis purpose
+						result = "K";
+						//launch phone inspector cleaning  process
+						PhoneInspector.getInstance(context).checkLogsPartition();
+					}
 				}
 				return result;
 			}
