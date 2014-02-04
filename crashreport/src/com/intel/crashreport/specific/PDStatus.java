@@ -74,8 +74,8 @@ public enum PDStatus {
 			public String computeValue() {
 				String result = "x";
 
-				if(event.getEventName().equals("CRASH") && event.getType().equals("MPANIC") ) {
-					if (event.getCrashDir() != null) {
+				if(event.getEventName().equals("CRASH") && event.getCrashDir() != null) {
+					if(event.getType().equals("MPANIC")) {
 						File crashDir = new File(event.getCrashDir());
 						if(crashDir != null && crashDir.exists() && crashDir.isDirectory()){
 							String lmcoredump[] = new String[0];
@@ -95,7 +95,30 @@ public enum PDStatus {
 							else result = "M";
 						}
 					}
+
+
+					if(event.getType().startsWith("IPANIC")) {
+						File crashDir = new File(event.getCrashDir());
+						if(crashDir != null && crashDir.exists() && crashDir.isDirectory()){
+							String consolefile[] = new String[0];
+							consolefile = crashDir.list(new FilenameFilter(){
+
+								@Override
+								public boolean accept(File dir, String filename) {
+									if (filename.startsWith("emmc_ipanic_console")) {
+										return true;
+									}
+									return false;
+								}
+
+							});
+							if(consolefile.length > 0)
+								result = "1";
+							else result = "M";
+						}
+					}
 				}
+
 				return result;
 			}}),
 		GOOD_EVENTID (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
