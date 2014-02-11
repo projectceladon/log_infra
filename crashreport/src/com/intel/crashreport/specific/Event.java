@@ -93,6 +93,8 @@ public class Event extends GeneralEvent{
 			fillErrorEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("INFO"))
 			fillInfoEvent(histEvent, myBuild);
+		//extra step : format data for specific event
+		new FormatParser(this).execFormat();
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild, boolean isUserBuild) {
