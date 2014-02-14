@@ -21,6 +21,7 @@ package com.intel.crashreport.specific;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.Scanner;
 
 import android.content.Context;
 import android.database.SQLException;
@@ -399,6 +400,57 @@ public enum PDStatus {
 					result = "Y";
 				} else if(variant != null && variant.endsWith("7160")) {
 					result = "1";
+				}
+				return result;
+			}
+		}),
+		PTI_ENABLED (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface() {
+			/**
+			 * @brief Checks if PTI debug feature is enabled.
+			 * @return String : X: PTI status indicator not available
+			 * 0: PTI debug feature is present and not enabled.
+			 * E: PTI debug feature is present and enabled.
+			 */
+			@Override
+			public String computeValue() {
+				String result = "X";
+				String DBG_DIR = "/sys/kernel/debug";
+				final String DBG_FT_FILE_NAME = "debug_feature";
+
+				File debugfsdir = new File(DBG_DIR);
+
+				if(debugfsdir != null && debugfsdir.exists() && debugfsdir.isDirectory()){
+					String debugftfilename[] = new String[0];
+					debugftfilename = debugfsdir.list(new FilenameFilter(){
+						@Override
+						public boolean accept(File dir, String filename) {
+							if (filename.equals(DBG_FT_FILE_NAME)) {
+								return true;
+							}
+							return false;
+						}
+					});
+
+					if(debugftfilename.length > 0){
+						result = "0";
+						String path = DBG_DIR + "/" + DBG_FT_FILE_NAME;
+						File debugftfile = new File(path);
+						Scanner sc = null;
+						String line;
+
+						try {
+							sc = new Scanner(debugftfile);
+						}
+						catch(FileNotFoundException e){
+						}
+
+						do {
+							line = sc.nextLine();
+						}while(sc.hasNextLine() && !line.equals("PTI"));
+
+						if (line.equals("PTI"))
+							result = "E";
+					}
 				}
 				return result;
 			}
