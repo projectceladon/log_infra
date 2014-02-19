@@ -22,6 +22,13 @@ package com.intel.crashreport.specific;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+import com.intel.crashreport.Log;
+
 
 public class FormatParser{
 
@@ -38,6 +45,8 @@ public class FormatParser{
 
 		if (mEvent.getType().equals("SELINUX_VIOLATION")) {
 			auditFormat();
+		} else if (mEvent.getType().equals("FABRIC_RECOV")) {
+			recoverableFabricFormat();
 		}
 	}
 
@@ -115,4 +124,174 @@ public class FormatParser{
 		}
 	}
 
+	/**
+	 * Parses a line: if the line matches the criteria,
+	 * we save the next line.
+	 */
+	private boolean parseLineTakeNextLine(String line, Pattern criteria,
+						BufferedReader fileToRead,
+						StringBuffer result) {
+		Matcher simpleMatcher;
+
+		if(line.isEmpty())
+			return false;
+
+		simpleMatcher = criteria.matcher(line);
+		if (simpleMatcher == null || !simpleMatcher.find())
+			return false;
+
+		// We skip the line
+		try {
+			line = fileToRead.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		if (line == "")
+			return false;
+
+		result.append(line);
+		result.append(" / ");
+
+		return true;
+	}
+
+	/**
+	 * Parses a line: if the line matches the criteria,
+	 * we perform a split and save the result.
+	 */
+	private boolean parseLineTakeSplit(String line, Pattern criteria, String separator,
+						int part, StringBuffer result) {
+		Matcher simpleMatcher;
+		String sGroup;
+		String[] splitString;
+
+		if(line.isEmpty() || separator.isEmpty())
+			return false;
+
+		simpleMatcher = criteria.matcher(line);
+		if (simpleMatcher == null || !simpleMatcher.find())
+			return false;
+
+		sGroup = simpleMatcher.group();
+		if(sGroup == null)
+			return false;
+
+		splitString = sGroup.split(separator);
+		if (splitString.length < part+1)
+			return false;
+
+		result.append(splitString[part]);
+		result.append(" / ");
+		return true;
+	}
+
+	/**
+	 * Parses a line: if the line matches the include criteria,
+	 * but not the exclude criteria, we save the result.
+	 */
+	private boolean parseLineTakeNotContaining(String line, Pattern criteriaInc,
+						Pattern criteriaExc, StringBuffer result) {
+		Matcher simpleMatcher;
+
+		if(line.isEmpty())
+			return false;
+
+		// Search for exclusion pattern
+		simpleMatcher = criteriaExc.matcher(line);
+		if (simpleMatcher == null || simpleMatcher.find())
+			return false;
+
+		// Search for inclusion pattern
+		simpleMatcher = criteriaInc.matcher(line);
+		if (simpleMatcher == null || !simpleMatcher.find())
+			return false;
+
+		result.append(line);
+		result.append(" / ");
+		return true;
+	}
+
+	/**
+	 * Parses the Recoverable Fabric Error file to overwrite the data0->data5 fields of the event.
+	 */
+	private void recoverableFabricFormat() {
+
+		StringBuffer data0StrBuffer = new StringBuffer ("");
+		StringBuffer data1StrBuffer = new StringBuffer ("");
+		StringBuffer data2StrBuffer = new StringBuffer ("");
+		StringBuffer data3StrBuffer = new StringBuffer ("");
+		StringBuffer data4StrBuffer = new StringBuffer ("");
+
+		String sFabricFile = fileGrepSearch(".*ipanic_fabric_recv_err.*", mEvent.getCrashDir());
+		if (sFabricFile == "") {
+			Log.w("File \"ipanic_fabric_recv_err\" not found in event dir\n");
+		}
+
+		try {
+			BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
+
+			Pattern patternData0 = Pattern.compile("\\*.*Fabric Flag Status.*");
+			Pattern patternData1 = Pattern.compile(".*Init ID:.*");
+			Pattern patternData2 = Pattern.compile(".*Command Type:.*");
+			Pattern patternData3 = Pattern.compile("Associated\\ 32bit\\ Address:.*");
+			Pattern patternData4 = Pattern.compile("\\*\\ .*");
+
+			String sCurLine;
+			while ((sCurLine = bufFabricFile.readLine()) != null) {
+
+				parseLineTakeNextLine(sCurLine, patternData0, bufFabricFile, data0StrBuffer);
+				parseLineTakeSplit(sCurLine, patternData1, ":", 1, data1StrBuffer);
+				parseLineTakeSplit(sCurLine, patternData2, ":", 1, data2StrBuffer);
+				parseLineTakeSplit(sCurLine, patternData3, ":", 1, data3StrBuffer);
+				parseLineTakeNotContaining(sCurLine, patternData4, patternData0, data4StrBuffer);
+			}
+
+			// If a match occured, there is " / " even if the string was empty
+			if (data0StrBuffer.length() > 3)
+				mEvent.setData0(data0StrBuffer.substring(0, data0StrBuffer.length()-3));
+
+			if (data1StrBuffer.length() > 3)
+				mEvent.setData1(data1StrBuffer.substring(0, data1StrBuffer.length()-3));
+
+			if (data2StrBuffer.length() > 3)
+				mEvent.setData2(data2StrBuffer.substring(0, data2StrBuffer.length()-3));
+
+			if (data3StrBuffer.length() > 3)
+				mEvent.setData3(data3StrBuffer.substring(0, data3StrBuffer.length()-3));
+
+			if (data4StrBuffer.length() > 3)
+				mEvent.setData4(data4StrBuffer.substring(0, data4StrBuffer.length()-3));
+
+			bufFabricFile.close();
+		}
+		catch (Exception e) {
+			System.err.println( "Fab_recov : " + e);
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Searches for a filename pattern inside a folder.
+	 *
+	 * @return sFileResult	the exact filename of the first file matching the pattern; empty otherwise.
+	 */
+	private String fileGrepSearch(String aPattern, String aFolder) {
+		Pattern patternFile = java.util.regex.Pattern.compile(aPattern);
+
+		File searchFolder = new File(aFolder);
+		File[] files = searchFolder.listFiles();
+		String sFileResult = "";
+		if (files!=null) {
+			for (File f: files) {
+				Matcher matcherFile = patternFile.matcher(f.getName());
+				if (matcherFile.find()) {
+					sFileResult = aFolder + "/" + f.getName();
+					break;
+				}
+			}
+		}
+		return sFileResult;
+	}
 }
