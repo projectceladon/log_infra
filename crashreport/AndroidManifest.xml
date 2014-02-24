@@ -87,6 +87,9 @@
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.START_CRASHREPORT" />
 			</intent-filter>
+			<intent-filter>
+				<action android:name="com.intel.crashreport.intent.MARK_AS_READ" />
+			</intent-filter>
 		</receiver>
 
 		<receiver
@@ -195,10 +198,6 @@
 
         <activity android:name="ListGcmMessagesActivity"
 		    android:launchMode="singleTop" />
-
-        <activity android:name="GcmMessageDialog"
-            android:theme="@android:style/Theme.Dialog"
-            android:excludeFromRecents="true"/>
 
     </application>
 </manifest>

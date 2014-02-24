@@ -1,6 +1,6 @@
 /* Phone Doctor (CLOTA)
  *
- * Copyright (C) Intel 2012
+ * Copyright (C) Intel 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,23 +19,23 @@
 
 package com.intel.crashreport;
 
-import com.intel.crashreport.specific.EventDB;
-import com.intel.crashreport.specific.EventGenerator;
-
 import android.database.SQLException;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.Preference.OnPreferenceChangeListener;
+import android.preference.PreferenceActivity;
 import android.widget.Toast;
+
+import com.intel.crashreport.specific.EventDB;
 
 public class GeneralCrashReportActivity extends PreferenceActivity {
 
     protected CrashReport app;
     private static Boolean gcmEnabled = null;
 
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.menu);
@@ -58,17 +58,23 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 	        editMail.setOnPreferenceChangeListener(listener);
 	}
 
-        CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
+	CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
 	if(null != checkGcm) {
-	        checkGcm.setOnPreferenceChangeListener(gcmListener);
-	        if(null == gcmEnabled)
-	            gcmEnabled = checkGcm.isChecked();
+		checkGcm.setOnPreferenceChangeListener(gcmListener);
+		if(null == gcmEnabled)
+			gcmEnabled = checkGcm.isChecked();
+	}
+
+	CheckBoxPreference checkGcmSound = (CheckBoxPreference)this.findPreference(getString(R.string.settings_gcm_sound_activation_key));
+	if(null != checkGcmSound) {
+		checkGcmSound.setOnPreferenceChangeListener(gcmSoundListener);
 	}
     }
 
-    private OnPreferenceChangeListener gcmListener = new OnPreferenceChangeListener(){
+    private final OnPreferenceChangeListener gcmListener = new OnPreferenceChangeListener(){
 
-        public boolean onPreferenceChange(Preference preference,
+        @Override
+		public boolean onPreferenceChange(Preference preference,
                 Object newValue) {
             if((Boolean)newValue){
                 Log.i("GeneralCrashReportActivity:GCM set to ON");
@@ -90,9 +96,22 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
         }
     };
 
-    private OnPreferenceChangeListener listener = new OnPreferenceChangeListener(){
+    private final OnPreferenceChangeListener gcmSoundListener = new OnPreferenceChangeListener(){
 
-        public boolean onPreferenceChange(Preference preference,
+        @Override
+		public boolean onPreferenceChange(Preference preference,
+                Object newValue) {
+            Boolean newBooleanValue = (Boolean) newValue;
+            ApplicationPreferences preferences = new ApplicationPreferences(getApplicationContext());
+            preferences.setSoundEnabledForGcmNotifications(newBooleanValue);
+            return true;
+        }
+    };
+
+    private final OnPreferenceChangeListener listener = new OnPreferenceChangeListener(){
+
+        @Override
+		public boolean onPreferenceChange(Preference preference,
                 Object newValue) {
             String sValue = (String)newValue;
             sValue = sValue.trim();
@@ -110,6 +129,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
         }
     };
 
+    @Override
     public void onDestroy() {
         CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
         if(null != checkGcm && gcmEnabled != checkGcm.isChecked()) {
@@ -125,6 +145,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
         super.onDestroy();
     }
 
+    @Override
     public void onPause() {
         EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
         if(null != editMail &&

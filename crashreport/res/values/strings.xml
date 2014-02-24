@@ -150,6 +150,16 @@
     <string name="extra_data_thermal">include thermal report</string>
 
     <!-- GCM part -->
-    <string name="gcm_list_title">Messages received:</string>
+    <string name="gcm_list_title">GCM messages</string>
     <string name="gcm_list_ok">Take action</string>
+    <string name="gcm_mark_all_as_read">Mark all as read</string>
+    <string name="gcm_filter">Filter GCM messages:</string>
+    <string name="gcm_filter_non_read">Display non read messages only</string>
+    <string name="gcm_filter_all">Show all</string>
+    <string name="settings_gcm_notification_sound">Enable sound for GCM notifications</string>
+    <string name="settings_gcm_notification_default_value">true</string>
+    <string name="settings_gcm_sound_activation_key">settings_gcm_sound_activation</string>
+    <string name="settings_gcm_sound_activation_title">GCM Notication sound</string>
+    <string name="settings_gcm_sound_activation_summary">Enable sound for GCM notifications</string>
+    <string name="settings_gcm_filter">GCM filter</string>
 </resources>

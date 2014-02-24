@@ -1,10 +1,23 @@
-package com.intel.crashreport;
+/* Phone Doctor (CLOTA)
+ *
+ * Copyright (C) Intel 2014
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Charles-Edouard Vidoine <charles.edouardx.vidoine@intel.com>
+ */
 
-import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
-import com.intel.crashreport.bugzilla.ui.common.ListBugzillaActivity;
-import com.intel.crashreport.bugzilla.ui.common.UserInformationsActivity;
-import com.intel.crashreport.specific.CrashReportActivity;
-import com.intel.crashreport.specific.Event;
+package com.intel.crashreport;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,6 +32,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
+import com.intel.crashreport.bugzilla.ui.common.ListBugzillaActivity;
+import com.intel.crashreport.bugzilla.ui.common.UserInformationsActivity;
+import com.intel.crashreport.specific.CrashReportActivity;
+import com.intel.crashreport.specific.Event;
+
 public class GeneralCrashReportHome extends Activity {
 	private MenuItem aboutMenu;
 	private MenuItem settingsMenu;
@@ -32,6 +51,7 @@ public class GeneralCrashReportHome extends Activity {
 		Button button_bugzilla = (Button) findViewById(R.id.button_report_bugzilla);
 		if(null != button_bugzilla) {
 			button_bugzilla.setOnClickListener(new View.OnClickListener() {
+				@Override
 				public void onClick(View v) {
 					CrashReport app = (CrashReport)getApplicationContext();
 					if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
@@ -52,6 +72,7 @@ public class GeneralCrashReportHome extends Activity {
 		Button button_list_bugzilla = (Button) findViewById(R.id.button_list_bugzilla);
 		if(null != button_list_bugzilla) {
 			button_list_bugzilla.setOnClickListener(new View.OnClickListener() {
+				@Override
 				public void onClick(View v) {
 					Intent intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
 					startActivity(intent);
@@ -62,6 +83,7 @@ public class GeneralCrashReportHome extends Activity {
 		Button button_list_gcm = (Button) findViewById(R.id.button_list_gcm_messages);
 		if(null != button_list_gcm) {
 			button_list_gcm.setOnClickListener(new View.OnClickListener() {
+				@Override
 				public void onClick(View v) {
 					Intent intent = new Intent(getApplicationContext(), ListGcmMessagesActivity.class);
 					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

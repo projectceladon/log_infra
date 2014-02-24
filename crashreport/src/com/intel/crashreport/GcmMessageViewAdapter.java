@@ -1,6 +1,28 @@
+/* Phone Doctor (CLOTA)
+ *
+ * Copyright (C) Intel 2014
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
+ */
 package com.intel.crashreport;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,8 +34,8 @@ import android.widget.TextView;
 
 public class GcmMessageViewAdapter extends BaseAdapter{
 
-    private Context mContext;
-    private LayoutInflater mInflater;
+    private final Context mContext;
+    private final LayoutInflater mInflater;
     private static String TAG = "GcmMessageViewAdapter";
     private ArrayList<GcmMessage> listGcmMessages;
 
@@ -34,12 +56,14 @@ public class GcmMessageViewAdapter extends BaseAdapter{
         listGcmMessages = list;
     }
 
+    @Override
     public int getCount() {
         if (null != listGcmMessages)
             return listGcmMessages.size();
         return 0;
     }
 
+    @Override
     public Object getItem(int position) {
         if (null != listGcmMessages) {
             if(listGcmMessages.size() > position)
@@ -48,6 +72,7 @@ public class GcmMessageViewAdapter extends BaseAdapter{
         return null;
     }
 
+    @Override
     public long getItemId(int position) {
         return position;
     }
@@ -79,7 +104,7 @@ public class GcmMessageViewAdapter extends BaseAdapter{
                 GcmMessage message = listGcmMessages.get(position);
                 holder.title.setText(message.getTitle());
                 holder.text.setText(message.getText());
-                holder.date.setText(message.getDateAsString());
+                holder.date.setText(formatDate(message.getDate()));
                 switch(message.getType()) {
                     case GCM_NONE :
                         holder.icon.setImageResource(R.drawable.ic_crashtool_notification);
@@ -108,4 +133,35 @@ public class GcmMessageViewAdapter extends BaseAdapter{
         return convertView;
     }
 
+    public CharSequence formatDate(Date aDate) {
+        if(aDate == null) {
+            return "";
+        }
+        return formatDate(aDate, mContext);
+    }
+
+    public static CharSequence formatDate(Date aDate, Context aContext) {
+        if(aContext == null || aDate == null) {
+            return "";
+        }
+        Calendar today = Calendar.getInstance();
+        Calendar otherCalendar = Calendar.getInstance();
+        String stringFormat = "yyyy-MM-dd";
+        otherCalendar.setTime(aDate);
+        int thisDay = today.get(Calendar.DAY_OF_YEAR);
+        int day = otherCalendar.get(Calendar.DAY_OF_YEAR);
+        if(thisDay == day) {
+            stringFormat = "HH:mm";
+        } else {
+            int thisYear = today.get(Calendar.YEAR);
+            int year = otherCalendar.get(Calendar.YEAR);
+            if(thisYear == year) {
+                stringFormat = "MMM dd";
+            }
+        }
+        SimpleDateFormat df = new SimpleDateFormat(
+                stringFormat);
+        CharSequence date = df.format(aDate);
+        return date;
+    }
 }

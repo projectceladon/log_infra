@@ -1,6 +1,6 @@
 /* Phone Doctor (CLOTA)
  *
- * Copyright (C) Intel 2012
+ * Copyright (C) Intel 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,6 @@
 
 package com.intel.crashreport.specific;
 
-import com.intel.crashreport.CustomizableEventData;
-import com.intel.crashreport.GeneralEventGenerator;
-import com.intel.crashreport.R;
-import com.intel.phonedoctor.Constants;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -36,6 +31,11 @@ import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.intel.crashreport.CustomizableEventData;
+import com.intel.crashreport.GeneralEventGenerator;
+import com.intel.crashreport.R;
+import com.intel.phonedoctor.Constants;
+
 public class UploadAplogActivity extends Activity{
 	final Context context = this;
 	final Activity curActivity = this;
@@ -44,6 +44,7 @@ public class UploadAplogActivity extends Activity{
 	public static final String COLLECT_ACTION = "com.intel.phonemonitor.COLLECT_METRICS_ACTION";
 	public static final String UPLOAD_ACTION = "com.intel.phonemonitor.UPLOAD_METRICS_ACTION";
 	public static final String COLLECT_LIST_EXTRA = "com.intel.phonemonitor.COLLECT_LIST_EXTRA";
+
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -90,6 +91,7 @@ public class UploadAplogActivity extends Activity{
 	}
 
 	private class AplogListener implements  View.OnClickListener {
+		@Override
 		public void onClick(View v) {
 			RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radiogroup_upload);
 
@@ -121,6 +123,7 @@ public class UploadAplogActivity extends Activity{
 			}
 			alert.setMessage(sMessage);
 			alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+				@Override
 				public void onClick(DialogInterface dialog, int id) {
 					curActivity.finish();
 				}
@@ -128,5 +131,4 @@ public class UploadAplogActivity extends Activity{
 			alert.show();
 		}
 	}
-
 }

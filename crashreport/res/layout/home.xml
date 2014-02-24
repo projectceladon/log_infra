@@ -42,5 +42,4 @@
         android:text="@string/menu_gcm_list" />
 
 
-
 </LinearLayout>

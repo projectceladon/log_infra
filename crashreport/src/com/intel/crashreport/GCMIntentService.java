@@ -21,10 +21,9 @@ import android.database.SQLException;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.intel.crashreport.specific.EventDB;
-
 import com.google.android.gcm.GCMBaseIntentService;
 import com.google.android.gcm.GCMRegistrar;
+import com.intel.crashreport.specific.EventDB;
 
 /**
  * IntentService responsible for handling GCM messages.
@@ -90,15 +89,19 @@ public class GCMIntentService extends GCMBaseIntentService {
 				if(!title.isEmpty() && !text.isEmpty() && !type.isEmpty() && GcmMessage.typeExist(type)) {
 					EventDB db = new EventDB(context);
 					try {
+						// Write the message to database
 						db.open();
-						db.addGcmMessage(title, text, type, data);
-						int nbMessages = db.getNewGcmMessagesNumber();
 						int lastMessage = db.getLastGCMRowId();
-						db.close();
-						// notifies user
 						GcmMessage message = new GcmMessage(lastMessage, title, text, type, data, false);
+						Long rowId = db.addGcmMessage(message);
+						db.close();
+						message.setRowId(rowId.intValue());
+						// Notify the user
 						NotificationMgr nMgr = new NotificationMgr(context);
-						nMgr.notifyGcmMessage(nbMessages, message);
+						// The message can now be safely used for notification
+						// because the database insertion will have consolidated
+						// it if required.
+						nMgr.notifyGcmMessage(message);
 					} catch (SQLException e) {
 						Log.e(TAG,"onMessage: SQLException");
 					}

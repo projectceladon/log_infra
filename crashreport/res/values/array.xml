@@ -146,4 +146,10 @@
 		<item>CRASH only</item>
 	</string-array>
 
+
+	<string-array name="gcmFilter">
+	    <item>Unread messages</item>
+		<item>All messages</item>
+	</string-array>
+
 </resources>

@@ -97,6 +97,12 @@
             android:summary="@string/settings_gcm_activation_summary"
             android:defaultValue="@string/settings_gcm_activation_value_default" />
 
+        <CheckBoxPreference
+            android:key="@string/settings_gcm_sound_activation_key"
+            android:title="@string/settings_gcm_sound_activation_title"
+            android:summary="@string/settings_gcm_sound_activation_summary"
+            android:defaultValue="@string/settings_gcm_notification_default_value" />
+
     </PreferenceCategory>
 
 </PreferenceScreen>

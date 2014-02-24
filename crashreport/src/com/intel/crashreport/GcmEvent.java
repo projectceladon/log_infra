@@ -1,3 +1,22 @@
+/* Phone Doctor (CLOTA)
+ *
+ * Copyright (C) Intel 2014
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
+ */
+
 package com.intel.crashreport;
 
 import android.content.ActivityNotFoundException;
@@ -67,8 +86,12 @@ public enum GcmEvent {
 		boolean isConnected = false;
 		if(cm != null){
 			NetworkInfo ni = cm.getActiveNetworkInfo();
-			if((ni != null) && ni.isConnected())
+			if((ni != null) && ni.isConnected()) {
+				Log.d("Active network info: " + ni.toString());
 				isConnected = true;
+			} else {
+				Log.d("No network info available.");
+			}
 		}
 		if(isConnected) {
 			Log.d("GCMRegistrar");
@@ -104,6 +127,8 @@ public enum GcmEvent {
 			catch(UnsupportedOperationException e){
 				Log.w("GCMRegistrar: GCM not supported");
 			}
+		} else {
+			Log.d("No network connection for GCM registration.");
 		}
 	}
 

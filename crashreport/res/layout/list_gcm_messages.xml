@@ -11,6 +11,12 @@
         android:text="@string/gcm_list_title"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
+    <Button
+        android:id="@+id/gcm_mark_all_as_read"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/gcm_mark_all_as_read" />
+
      <ListView
         android:id="@+id/list_gcm_messages_all"
         android:layout_width="match_parent"

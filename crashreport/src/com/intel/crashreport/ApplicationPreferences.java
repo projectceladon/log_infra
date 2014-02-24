@@ -22,22 +22,22 @@ package com.intel.crashreport;
 import java.util.Arrays;
 import java.util.List;
 
-import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
-import com.intel.phonedoctor.Constants;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 
+import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
+import com.intel.phonedoctor.Constants;
+
 public class ApplicationPreferences {
 	private static final String APP_PRIVATE_PREFS = "crashReportPrivatePreferences";
 	protected SharedPreferences appPrivatePrefs;
-	private SharedPreferences appSharedPrefs;
+	private final SharedPreferences appSharedPrefs;
 	protected Editor privatePrefsEditor;
-	private Editor sharedPrefsEditor;
-	private Context mCtx;
+	private final Editor sharedPrefsEditor;
+	private final Context mCtx;
 
 	public ApplicationPreferences(Context context) {
 		this.mCtx = context;
@@ -378,4 +378,37 @@ public class ApplicationPreferences {
 		privatePrefsEditor.commit();
 	}
 
+	public boolean isSoundEnabledForGcmNotifications() {
+		boolean soundEnabled = this.appSharedPrefs.getBoolean(
+				mCtx.getString(R.string.settings_gcm_notification_sound),
+				Boolean.valueOf(mCtx.getString(R.string.settings_gcm_notification_default_value)));
+		Log.d("[GCM] Retrieving sound preference for GCM : " + soundEnabled);
+		return soundEnabled;
+	}
+
+	public void setSoundEnabledForGcmNotifications(boolean enabled) {
+		Log.d("[GCM] Changing preference for GCM sound to: " + enabled);
+		this.sharedPrefsEditor.putBoolean(
+				mCtx.getString(R.string.settings_gcm_notification_sound),
+				enabled);
+		this.sharedPrefsEditor.commit();
+	}
+
+	public ListGcmMessagesActivity.GcmFilter getGcmFilter() {
+		ListGcmMessagesActivity.GcmFilter defaultFilter = ListGcmMessagesActivity.GcmFilter.NON_READ;
+		String filterAsString = this.appSharedPrefs.getString(
+				mCtx.getString(R.string.settings_gcm_filter),
+				defaultFilter.toString());
+		ListGcmMessagesActivity.GcmFilter filter = ListGcmMessagesActivity.GcmFilter.valueOf(filterAsString);
+		Log.d("[GCM] Returning GCM filter from preferences: " + filter);
+		return filter;
+	}
+
+	public void setGcmFilter(ListGcmMessagesActivity.GcmFilter filter) {
+		Log.d("[GCM] Changing preference for GCM filter to: " + filter);
+		this.sharedPrefsEditor.putString(
+				mCtx.getString(R.string.settings_gcm_filter),
+				filter.toString());
+		this.sharedPrefsEditor.commit();
+	}
 }

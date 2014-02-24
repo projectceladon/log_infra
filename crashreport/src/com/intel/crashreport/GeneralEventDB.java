@@ -1,6 +1,6 @@
 /* Phone Doctor (CLOTA)
  *
- * Copyright (C) Intel 2012
+ * Copyright (C) Intel 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.TimeZone;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -998,10 +999,11 @@ public class GeneralEventDB {
 	 * @param title Title of the message
 	 * @param text The text of the message
 	 * @param type The type of the message
+	 *
 	 * @return the result of the database insertion request
 	 */
 	public long addGcmMessage(String title, String text, String type) {
-		return addGcmMessage(title, text, type, "");
+		return addGcmMessage(title, text, type, "", null);
 	}
 
 	/**
@@ -1010,9 +1012,11 @@ public class GeneralEventDB {
 	 * @param text The text of the message
 	 * @param type The type of the message
 	 * @param data The action to do in case of action message.
+	 * @param date The message date
+	 *
 	 * @return the result of the database insertion request
 	 */
-	public long addGcmMessage(String title, String text, String type, String data) {
+	public long addGcmMessage(String title, String text, String type, String data, Date date) {
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_GCM_TITLE, title);
@@ -1021,18 +1025,43 @@ public class GeneralEventDB {
 		initialValues.put(KEY_GCM_DATA, data);
 		initialValues.put(KEY_NOTIFIED, 0);
 
-		Date date= new Date();
-		SimpleDateFormat EVENT_DF_GEN = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
-		String displayDate = EVENT_DF_GEN.format(date);
+		if(date == null) {
+			date= new Date();
+		}
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
+		dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+		String displayDate = dateFormat.format(date);
 		try {
-			EVENT_DF_GEN.setTimeZone(TimeZone.getTimeZone("GMT"));
-			date = EVENT_DF_GEN.parse(displayDate);
+			date = dateFormat.parse(displayDate);
 		} catch (ParseException e) {
 			date = new Date();
 		}
 		initialValues.put(KEY_DATE,convertDateForDb(date));
 
 		return mDb.insert(DATABASE_GCM_MESSAGES_TABLE, null, initialValues);
+	}
+
+	/**
+	 * Writes the given GCM message to database.
+	 *
+	 * The message's date is updated if it does not have one at this point
+	 * in time.
+	 *
+	 * @param aGcmMessage the message to write
+	 *
+	 * @return the result of the database insertion request
+	 */
+	public long addGcmMessage(GcmMessage aGcmMessage) {
+		if(aGcmMessage.getDate() == null) {
+			aGcmMessage.setDate(new Date());
+		}
+
+		return addGcmMessage(
+				aGcmMessage.getTitle(),
+				aGcmMessage.getText(),
+				aGcmMessage.getType().toString(),
+				aGcmMessage.getData(),
+				aGcmMessage.getDate());
 	}
 
 	/**
@@ -1060,6 +1089,32 @@ public class GeneralEventDB {
 			mCursor.moveToFirst();
 		}
 		return mCursor;
+	}
+
+	/**
+	 * Returns the number of unread GCM messages.
+	 *
+	 * @return the number of unread messages.
+	 */
+	public long getUnreadGcmMessageCount() {
+		String whereQuery = KEY_NOTIFIED+"=0";
+		long count = DatabaseUtils.queryNumEntries(
+				mDb,
+				DATABASE_GCM_MESSAGES_TABLE,
+                whereQuery);
+		return count;
+	}
+
+	/**
+	 * Returns the total number of GCM messages.
+	 *
+	 * @return the number of messages.
+	 */
+	public long getTotalGcmMessageCount() {
+		long count = DatabaseUtils.queryNumEntries(
+				mDb,
+				DATABASE_GCM_MESSAGES_TABLE);
+		return count;
 	}
 
 	/**
@@ -1105,6 +1160,19 @@ public class GeneralEventDB {
 	}
 
 	/**
+	 * Mark all GCM messages as read.
+	 *
+	 * @return the numbers of rows affected
+	 */
+	public int markAllGcmMessagesAsRead() {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_NOTIFIED, 1);
+
+		return mDb.update(DATABASE_GCM_MESSAGES_TABLE, args, null, null);
+	}
+
+	/**
 	 * Get the number of GCM Messages which have whereQuery specification
 	 * @param whereQuery GCM Messages sepecification
 	 * @return number of GCM Messages
@@ -1146,9 +1214,11 @@ public class GeneralEventDB {
 					KEY_NOTIFIED + "='0'", null,
 					null, null, KEY_ROWID+" DESC", "1");
 			if (mCursor != null) {
-				mCursor.moveToFirst();
-				int rowId = mCursor.getInt(0);
-				mCursor.close();
+				int rowId = -1;
+				if(mCursor.moveToFirst()) {
+					rowId = mCursor.getInt(0);
+					mCursor.close();
+				}
 				return rowId;
 			}
 		} catch (SQLException e) {

@@ -1,21 +1,45 @@
+/* Phone Doctor (CLOTA)
+ *
+ * Copyright (C) Intel 2014
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
+ */
+
 package com.intel.crashreport;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.EnumMap;
-import java.util.TimeZone;
 
 public class GcmMessage {
 
-	public static String GCM_NONE_LABEL = "none";
-	public static String GCM_APP_LABEL = "app";
-	public static String GCM_URL_LABEL = "url";
-	public static String GCM_PHONE_DOCTOR_LABEL = "phone_doctor";
+	public static final String GCM_NONE_LABEL = "none";
+	public static final String GCM_APP_LABEL = "app";
+	public static final String GCM_URL_LABEL = "url";
+	public static final String GCM_PHONE_DOCTOR_LABEL = "phone_doctor";
 
-	public static String GCM_EXTRA_TITLE = "notification_title";
-	public static String GCM_EXTRA_TEXT = "notification_text";
-	public static String GCM_EXTRA_TYPE = "notification_action_type";
-	public static String GCM_EXTRA_DATA = "notification_action_data";
+	public static final String GCM_EXTRA_TITLE = "notification_title";
+	public static final String GCM_EXTRA_TEXT = "notification_text";
+	public static final String GCM_EXTRA_TYPE = "notification_action_type";
+	public static final String GCM_EXTRA_DATA = "notification_action_data";
+	public static final String GCM_ROW_ID = "rowId";
+
+	/*
+	 * Phone Doctor specific extras
+	 */
+	public static final String GCM_ORIGIN = "origin";
 
 	private final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 
@@ -60,7 +84,6 @@ public class GcmMessage {
 	}
 
 	public String getDateAsString() {
-		EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return EVENT_DF.format(date);
 	}
 
@@ -150,6 +173,24 @@ public class GcmMessage {
 		cancelled = bCancelled;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(this.getClass().getSimpleName());
+		sb.append("[id=");
+		sb.append(this.getRowId());
+		sb.append(",cancelled=");
+		sb.append(this.isCancelled());
+		sb.append(",title=");
+		sb.append(this.getTitle());
+		sb.append(",text=");
+		sb.append(this.getText());
+		sb.append(",type=");
+		sb.append(this.getType());
+		sb.append(",date=");
+		sb.append(this.getDateAsString());
+		sb.append("]");
+		return sb.toString();
+	}
 
 
 
