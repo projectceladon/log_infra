@@ -364,7 +364,7 @@ public class Event extends GeneralEvent{
 	}
 
 	/**
-	 * Read the eventfile to get the reboot reason (Data3,Data4).
+	 * Read the eventfile to get the reboot reason (Data0, Data1, Data2, Data3, Data4).
 	 */
 	public void updateRebootReason() {
 		GenericParseFile aParseFile = null;
@@ -375,6 +375,9 @@ public class Event extends GeneralEvent{
 			Log.w(toString() + ",eventfile couldn't be created: " + "/logs/events");
 		}
 		if(aParseFile != null){
+			data0 = aParseFile.getValueByName("DATA0");
+			data1 = aParseFile.getValueByName("DATA1");
+			data2 = aParseFile.getValueByName("DATA2");
 			data3 = aParseFile.getValueByName("DATA3");
 			data4 = aParseFile.getValueByName("DATA4");
 		}
