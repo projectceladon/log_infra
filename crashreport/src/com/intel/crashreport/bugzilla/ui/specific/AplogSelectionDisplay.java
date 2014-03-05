@@ -15,6 +15,7 @@ import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
 import com.intel.crashreport.specific.LogTimeProcessing;
 import com.intel.crashreport.specific.UploadAplogActivity;
+import com.intel.phonedoctor.Constants;
 
 public class AplogSelectionDisplay {
 
@@ -47,7 +48,7 @@ public class AplogSelectionDisplay {
 				rdLabel.setVisibility(View.VISIBLE);
 			}
 
-			LogTimeProcessing process = new LogTimeProcessing(UploadAplogActivity.LOG_PATH);
+			LogTimeProcessing process = new LogTimeProcessing(Constants.LOGS_DIR);
 
 			long lDefHour = process.getDefaultLogHour();
 			long lAllHour = process.getLogHourByNumber(UploadAplogActivity.ALL_LOGS_VALUE);

@@ -33,10 +33,11 @@ import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.propconfig.PropertyConfigLoader;
 import com.intel.crashreport.propconfig.bean.BuildAllowedValues;
+import com.intel.phonedoctor.Constants;
 
 public class Build extends GeneralBuild{
 
-	private static final String PATH_MODEMID = "/logs/modemid.txt";
+	private static final String PATH_MODEMID = Constants.LOGS_DIR + "/modemid.txt";
 	private static BuildAllowedValues ALLOWED_VALUES = null;
 	private Context ctx;
 

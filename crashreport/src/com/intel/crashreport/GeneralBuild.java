@@ -26,13 +26,15 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.intel.phonedoctor.Constants;
+
 import android.os.SystemProperties;
 
 public class GeneralBuild {
 
 	private static final int FIELD_NUMBER = 10;
 
-	private static final String MODEM_VERSION_FILE = "/logs/modem_version.txt";
+	private static final String MODEM_VERSION_FILE = Constants.LOGS_DIR + "/modem_version.txt";
 
 	/**
 	 * The name of the property to search for when filling the

@@ -28,6 +28,7 @@ import java.util.ArrayList;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.Log;
+import com.intel.phonedoctor.Constants;
 
 import android.content.Context;
 
@@ -42,7 +43,7 @@ public class CrashlogDaemonCmdFile {
 	private static File mCommandFile;
 
 	/* Define aplogs directory that is watched by crashlogd**/
-	public static final String APLOGS_DIR = "/logs/aplogs/";
+	public static final String APLOGS_DIR = Constants.LOGS_DIR + "/aplogs/";
 	public static final String TRIGGER = "_trigger";
 	public static final String CMD = "_cmd";
 

@@ -30,8 +30,13 @@ import com.intel.crashreport.GenericParseFile;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashtoolserver.bean.Device;
+import com.intel.phonedoctor.Constants;
 
 public class Event extends GeneralEvent{
+
+	private static final String UUID_FILE_PATH = Constants.LOGS_DIR + "/uuid.txt";
+	private static final String SPID_FILE_PATH = Constants.LOGS_DIR + "/spid.txt";
+	private static final String EVENTS_DIR = Constants.LOGS_DIR + "/events";
 
 	public Event() {
 		super();
@@ -299,7 +304,7 @@ public class Event extends GeneralEvent{
 
 	public static String getDeviceIdFromFile() {
 		String sResult = "";
-		File uuidFile = new File("/logs/" + "uuid.txt");
+		File uuidFile = new File(UUID_FILE_PATH);
 		try {
 			Scanner scan = new Scanner(uuidFile);
 			if (scan.hasNext())
@@ -313,7 +318,7 @@ public class Event extends GeneralEvent{
 
 	public static String getSPIDFromFile() {
 		String sResult = "";
-		File spidFile = new File("/logs/" + "spid.txt");
+		File spidFile = new File(SPID_FILE_PATH);
 		try {
 			Scanner scan = new Scanner(spidFile);
 			if (scan.hasNext())
@@ -369,10 +374,10 @@ public class Event extends GeneralEvent{
 	public void updateRebootReason() {
 		GenericParseFile aParseFile = null;
 		try{
-			aParseFile = new GenericParseFile("/logs/events", "eventfile_"+eventId);
+			aParseFile = new GenericParseFile(EVENTS_DIR, "eventfile_"+eventId);
 
 		}catch (FileNotFoundException e){
-			Log.w(toString() + ",eventfile couldn't be created: " + "/logs/events");
+			Log.w(toString() + ",eventfile couldn't be created: " + EVENTS_DIR);
 		}
 		if(aParseFile != null){
 			data0 = aParseFile.getValueByName("DATA0");

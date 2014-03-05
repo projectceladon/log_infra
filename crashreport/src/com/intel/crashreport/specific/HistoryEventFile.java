@@ -24,8 +24,11 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 import com.intel.crashreport.Log;
+import com.intel.phonedoctor.Constants;
 
 public class HistoryEventFile {
+
+	private static final String HISTORY_EVENT_FILE_PATH = Constants.LOGS_DIR + "/history_event";
 
 	private File histFile;
 	private Scanner scanner;
@@ -55,7 +58,7 @@ public class HistoryEventFile {
 	}
 
 	private File openFile() {
-		String path = new String("/logs/history_event");
+		String path = new String(HISTORY_EVENT_FILE_PATH);
 		File histFile = new File(path);
 
 		if (!histFile.canRead())

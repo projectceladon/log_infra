@@ -27,9 +27,13 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.TimeZone;
 
+import com.intel.phonedoctor.Constants;
+
 import android.os.SystemProperties;
 
 public class GeneralEvent {
+
+	private static final String UUID_FILE_PATH = Constants.LOGS_DIR + "/uuid.txt";
 
 	protected final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 	protected final static SimpleDateFormat EVENT_DF_OLD = new SimpleDateFormat("yy-MM-dd-HH-mm-ss");
@@ -126,7 +130,7 @@ public class GeneralEvent {
 
 	public static String getDeviceIdFromFile() {
 		String sResult = "";
-		File uuidFile = new File("/logs/" + "uuid.txt");
+		File uuidFile = new File(UUID_FILE_PATH);
 		try {
 			Scanner scan = new Scanner(uuidFile);
 			if (scan.hasNext())

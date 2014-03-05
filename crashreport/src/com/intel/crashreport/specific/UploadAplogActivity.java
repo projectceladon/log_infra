@@ -22,6 +22,7 @@ package com.intel.crashreport.specific;
 import com.intel.crashreport.CustomizableEventData;
 import com.intel.crashreport.GeneralEventGenerator;
 import com.intel.crashreport.R;
+import com.intel.phonedoctor.Constants;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -40,7 +41,6 @@ public class UploadAplogActivity extends Activity{
 	final Activity curActivity = this;
 
 	public static int ALL_LOGS_VALUE = 21;
-	public static String LOG_PATH = "/logs";
 	public static final String COLLECT_ACTION = "com.intel.phonemonitor.COLLECT_METRICS_ACTION";
 	public static final String UPLOAD_ACTION = "com.intel.phonemonitor.UPLOAD_METRICS_ACTION";
 	public static final String COLLECT_LIST_EXTRA = "com.intel.phonemonitor.COLLECT_LIST_EXTRA";
@@ -59,7 +59,7 @@ public class UploadAplogActivity extends Activity{
 		RadioButton rdDef = (RadioButton) findViewById(R.id.radioButtonDefault);
 		RadioButton rdAll = (RadioButton) findViewById(R.id.radioButtonAll);
 
-		LogTimeProcessing process = new LogTimeProcessing(LOG_PATH);
+		LogTimeProcessing process = new LogTimeProcessing(Constants.LOGS_DIR);
 
 		long lDefHour = process.getDefaultLogHour();
 		long lAllHour = process.getLogHourByNumber(ALL_LOGS_VALUE);
