@@ -407,9 +407,9 @@ public enum PDStatus {
 		PTI_ENABLED (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface() {
 			/**
 			 * @brief Checks if PTI debug feature is enabled.
-			 * @return String : X: PTI status indicator not available
+			 * @return String : E: PTI debug feature is present and enabled.
 			 * 0: PTI debug feature is present and not enabled.
-			 * E: PTI debug feature is present and enabled.
+			 * X: otherwise.
 			 */
 			@Override
 			public String computeValue() {
@@ -442,6 +442,8 @@ public enum PDStatus {
 							sc = new Scanner(debugftfile);
 						}
 						catch(FileNotFoundException e){
+							Log.e("PDStatus cannot open debug feature file : " + path);
+							return "X";
 						}
 
 						do {

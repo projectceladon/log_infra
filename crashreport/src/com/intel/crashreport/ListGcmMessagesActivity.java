@@ -81,13 +81,15 @@ public class ListGcmMessagesActivity extends Activity {
 		NotificationMgr.clearGcmNotification(this);
 
 		Button markAllAsRead = (Button) findViewById(R.id.gcm_mark_all_as_read);
-		markAllAsRead.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				markAllAsRead();
-				refresh();
-			}
-		});
+		if (markAllAsRead != null) {
+			markAllAsRead.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					markAllAsRead();
+					refresh();
+				}
+			});
+		}
 		refresh();
 		buildActionBar();
 	}
@@ -192,6 +194,9 @@ public class ListGcmMessagesActivity extends Activity {
 	 */
 	private void updateSummary(GcmUtils gcmUtils) {
 		TextView tv = (TextView)findViewById(R.id.list_gcm_messages_title);
+		if (tv == null) {
+			return;
+		}
 		long unreadCount = gcmUtils.getUnreadMessageCount();
 		long totalCount = gcmUtils.getMessageCount();
 		StringBuilder sb = new StringBuilder("Unread: ");

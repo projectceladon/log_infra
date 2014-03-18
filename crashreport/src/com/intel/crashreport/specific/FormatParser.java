@@ -56,9 +56,11 @@ public class FormatParser{
 		simpleMatcher = patternData0.matcher(sSourceTrace);
 		if (simpleMatcher.find()){
 			sGroup = simpleMatcher.group();
-			splitString = sGroup.split("\"");
-			if (splitString.length >= 2 ) {
-				mEvent.setData0(splitString[1]);
+			if(sGroup != null) {
+				splitString = sGroup.split("\"");
+				if (splitString.length >= 2 ) {
+					mEvent.setData0(splitString[1]);
+				}
 			}
 		}
 
@@ -67,11 +69,12 @@ public class FormatParser{
 		simpleMatcher = patternData1.matcher(sSourceTrace);
 		if (simpleMatcher.find()){
 			sGroup = simpleMatcher.group();
-			splitString = sGroup.split(" ");
-			if (splitString.length >= 1 ) {
-				mEvent.setData1(splitString[0]);
+			if(sGroup != null) {
+				splitString = sGroup.split(" ");
+				if (splitString.length >= 1 ) {
+					mEvent.setData1(splitString[0]);
+				}
 			}
-
 		}
 
 		//DATA 2 : should contain the action part of the SELinux violation
@@ -79,8 +82,10 @@ public class FormatParser{
 		simpleMatcher = patternData2.matcher(sSourceTrace);
 		if (simpleMatcher.find()){
 			sGroup = simpleMatcher.group();
-			sGroup = sGroup.replace("}", "");
-			mEvent.setData2(sGroup.replace("{", ""));
+			if(sGroup != null) {
+				sGroup = sGroup.replace("}", "");
+				mEvent.setData2(sGroup.replace("{", ""));
+			}
 		}
 
 		//DATA 3 : should contain the content of scontext of the SELinux violation
@@ -88,9 +93,11 @@ public class FormatParser{
 		simpleMatcher = patternData3.matcher(sSourceTrace);
 		if (simpleMatcher.find()){
 			sGroup = simpleMatcher.group();
-			splitString = sGroup.split(" ");
-			if (splitString.length >= 1 ) {
-				mEvent.setData3(splitString[0]);
+			if(sGroup != null) {
+				splitString = sGroup.split(" ");
+				if (splitString.length >= 1 ) {
+					mEvent.setData3(splitString[0]);
+				}
 			}
 		}
 
@@ -99,9 +106,11 @@ public class FormatParser{
 		simpleMatcher = patternData4.matcher(sSourceTrace);
 		if (simpleMatcher.find()){
 			sGroup = simpleMatcher.group();
-			splitString = sGroup.split("=");
-			if (splitString.length >= 2 ) {
-				mEvent.setData4(splitString[1]);
+			if(sGroup != null) {
+				splitString = sGroup.split("=");
+				if (splitString.length >= 2 ) {
+					mEvent.setData4(splitString[1]);
+				}
 			}
 		}
 	}

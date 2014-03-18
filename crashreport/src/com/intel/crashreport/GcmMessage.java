@@ -175,7 +175,11 @@ public class GcmMessage {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder(this.getClass().getSimpleName());
+		String className = this.getClass().getSimpleName();
+		if(className == null) {
+			className = "com.intel.crashreport.GcmMessage";
+		}
+		StringBuilder sb = new StringBuilder(className);
 		sb.append("[id=");
 		sb.append(this.getRowId());
 		sb.append(",cancelled=");

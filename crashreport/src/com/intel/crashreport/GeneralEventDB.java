@@ -1208,7 +1208,7 @@ public class GeneralEventDB {
 	 * @return the id of the last GCM message
 	 */
 	public int getLastGCMRowId() {
-		Cursor mCursor;
+		Cursor mCursor = null;
 		try {
 			mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID},
 					KEY_NOTIFIED + "='0'", null,
@@ -1222,7 +1222,9 @@ public class GeneralEventDB {
 				return rowId;
 			}
 		} catch (SQLException e) {
-			return -1;
+			if(mCursor != null) {
+				mCursor.close();
+			}
 		}
 		return -1;
 	}
