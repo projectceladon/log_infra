@@ -130,14 +130,14 @@ public enum PDStatus {
 			@Override
 			public String computeValue() {
 				String result = "x";
-				if(event.getEventName().equals("CRASH") && event.getCrashDir() != null) {
+				String directoryPath = event.getCrashDir();
+				if(event.getEventName().equals("CRASH") && directoryPath != null) {
 					try {
-						CrashFile crashfile = new CrashFile(event.getCrashDir(), false);
+						CrashFile crashfile = new CrashFile(directoryPath, false);
 						result = crashfile.getEventId().equals(event.getEventId())?"1":"I";
 					} catch (FileNotFoundException e) {
-						e.printStackTrace();
+						Log.w("Could not find crash file: " + directoryPath);
 					}
-
 				}
 				return result;
 			}}),
