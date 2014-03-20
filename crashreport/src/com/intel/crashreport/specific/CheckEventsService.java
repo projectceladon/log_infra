@@ -187,7 +187,7 @@ public class CheckEventsService extends Service {
 			if(!app.isUserBuild())
 				blackLister.setDb(db);
 			histFile = new HistoryEventFile();
-
+			histFile.open();
 			while (histFile.hasNext()) {
 				histEventLine = histFile.getNextEvent();
 				if (histEventLine.length() != 0) {
@@ -227,9 +227,13 @@ public class CheckEventsService extends Service {
 											}
 										}
 										if (event.getEventName().equals("BZ")) {
-											BZFile bzfile = new BZFile(event.getCrashDir());
-											db.addBZ(event.getEventId(), bzfile, event.getDate());
-											Log.d(from+": BZ added in DB, " + histEvent.getEventId());
+											try {
+												BZFile bzfile = new BZFile(event.getCrashDir());
+												db.addBZ(event.getEventId(), bzfile, event.getDate());
+												Log.d(from+": BZ added in DB, " + histEvent.getEventId());
+											} catch (FileNotFoundException e) {
+												Log.e("bzfile not found during history_event parsing");
+											}
 										}
 										Log.d(from+": Event successfully added to DB, " + event.toString());
 										if (!event.isDataReady()) {
@@ -261,7 +265,7 @@ public class CheckEventsService extends Service {
 				if(!app.isServiceStarted())
 					context.startService(crashReportStartServiceIntent);
 			}
-
+			histFile.close();
 			db.close();
 		} catch (FileNotFoundException e) {
 			db.close();

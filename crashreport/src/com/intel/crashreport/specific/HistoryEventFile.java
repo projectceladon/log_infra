@@ -30,41 +30,48 @@ public class HistoryEventFile {
 
 	private static final String HISTORY_EVENT_FILE_PATH = Constants.LOGS_DIR + "/history_event";
 
-	private File histFile;
 	private Scanner scanner;
 
-	public HistoryEventFile() throws FileNotFoundException {
-		histFile = openFile();
-		scanner = new Scanner(histFile);
+	public HistoryEventFile() {
 	}
 
-	public Boolean hasNext() {
-		return scanner.hasNext();
+	public Boolean hasNext() throws  FileNotFoundException {
+		try{
+			return scanner.hasNext();
+		} catch (IllegalStateException e) {
+			Log.w("IllegalStateException : considered as file not found exception");
+			throw new FileNotFoundException("Illegal state");
+		}
 	}
 
-	public String getNextEvent() {
+	public String getNextEvent() throws  FileNotFoundException {
 		String line;
-
-		while(scanner.hasNext()){
-			line = scanner.nextLine();
-			if (line != null){
-				if ((line.length() > 0) && (line.charAt(0) != '#')) {
-					return line;
+		try {
+			while(scanner.hasNext()) {
+				line = scanner.nextLine();
+				if (line != null){
+					if ((line.length() > 0) && (line.charAt(0) != '#')) {
+						return line;
+					}
 				}
 			}
+		} catch (IllegalStateException e) {
+			Log.w("IllegalStateException : considered as file not found exception");
+			throw new FileNotFoundException("Illegal state");
 		}
-
 		return "";
 	}
 
-	private File openFile() {
+	public void open() throws FileNotFoundException {
 		String path = new String(HISTORY_EVENT_FILE_PATH);
 		File histFile = new File(path);
-
 		if (!histFile.canRead())
 			Log.w("HistoryEventFile: can't read file : " + path);
+		scanner = new Scanner(histFile);
+	}
 
-		return histFile;
+	public void close() {
+		scanner.close();
 	}
 
 	protected void finalize() throws Throwable {

@@ -54,15 +54,24 @@ public class GenericParseFile {
 	}
 
 	private void fillGenFile(File genFile) throws FileNotFoundException {
-		Scanner scan = new Scanner(genFile);
-		String field;
-		while(scan.hasNext()) {
-			field = scan.nextLine();
-			if (field != null){
-				fillField(field);
+		Scanner scan = null;
+		try {
+			scan = new Scanner(genFile);
+			String field;
+			while(scan.hasNext()) {
+				field = scan.nextLine();
+				if (field != null){
+					fillField(field);
+				}
+			}
+		} catch (IllegalStateException e) {
+			Log.w("IllegalStateException : considered as file not found exception");
+			throw new FileNotFoundException("Illegal state");
+		} finally {
+			if (scan != null) {
+				scan.close();
 			}
 		}
-		scan.close();
 	}
 
 	private void fillField(String field) {

@@ -131,13 +131,19 @@ public class GeneralEvent {
 	public static String getDeviceIdFromFile() {
 		String sResult = "";
 		File uuidFile = new File(UUID_FILE_PATH);
+		Scanner scan = null;
 		try {
-			Scanner scan = new Scanner(uuidFile);
+			scan = new Scanner(uuidFile);
 			if (scan.hasNext())
 				sResult = scan.nextLine();
-			scan.close();
 		} catch (FileNotFoundException e) {
 			Log.w("CrashReportService: deviceId not set");
+		} catch (IllegalStateException e) {
+			Log.e("CrashReportService: deviceId not in good state");
+		} finally {
+			if (scan != null) {
+				scan.close();
+			}
 		}
 		return sResult;
 	}

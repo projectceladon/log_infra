@@ -136,15 +136,24 @@ public class CrashFile {
 	}
 
 	private void fillCrashFile(File crashFile) throws FileNotFoundException {
-		Scanner scan = new Scanner(crashFile);
-		String field;
-		while(scan.hasNext()) {
-			field = scan.nextLine();
-			if (field != null){
-				fillField(field);
+		Scanner scan = null;
+		try {
+			scan = new Scanner(crashFile);
+			String field;
+			while(scan.hasNext()) {
+				field = scan.nextLine();
+				if (field != null){
+					fillField(field);
+				}
+			}
+		} catch (IllegalStateException e) {
+			Log.w("IllegalStateException : considered as file not found exception");
+			throw new FileNotFoundException("Illegal state");
+		} finally {
+			if (scan != null) {
+				scan.close();
 			}
 		}
-		scan.close();
 	}
 
 	private void fillField(String field) {
