@@ -21,6 +21,8 @@ package com.intel.crashreport.specific;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 import android.content.Context;
@@ -38,7 +40,7 @@ import com.intel.phonedoctor.Constants;
   *
   * @brief : This class represents the PhoneDoctor Status. It's a field of the events table that represents
   * the state of Phone Doctor. It's composed by a 50 characters String which represents the informations below:
-  * Check if an modem coredump is linked with the MPanic or not.
+  * Check if the expected crashfiles are present for MPANIC, IPANIC, FABRICERR, WDT_UNHANDLED.
   * Check if the EventId in the database is the same that the EventId in the
   * crashfile.
   * Check if the dropbox is full or not.
@@ -63,63 +65,73 @@ public enum PDStatus {
 
 	INSTANCE;
 
+	private static final String IPANIC_FILE_PATTERN = "emmc_ipanic_console";
+	private static final String CONSOLE_RAMOOPS_FILE_PATTERN = "console-ramoops";
+	private static final String OFFLINE_SCU_FILE_PATTERN = "offline_scu_log";
+	private static final String FABRIC_ERROR_FILE_PATTERN = "ipanic_fabric_err";
+
+	private static final String [] FABRIC_ERROR_TYPE = {"MEMERR",
+		"INSTERR",
+		"HWWDTLOGERR",
+		"SRAMECCERR",
+		"NORTHFUSEERR",
+		"KERNELHANG",
+		"KERNELWDT",
+		"SCUWDT",
+		"FABRICXML",
+		"PLLLOCKERR",
+		"UNDEFL1ERR",
+		"PUNITMBBTIMEOUT",
+		"VOLTKERR",
+		"VOLTSAIATKERR",
+		"LPEINTERR",
+		"PSHINTERR",
+		"FUSEINTERR",
+		"IPC2ERR",
+		"KWDTIPCERR",
+		"FABRICERR"
+	};
 
 	/* List of the PDStatus component */
 	private static enum STATUS_LABEL{
-		MPANIC (PDSTATUS_TIME.INSERTION_TIME,1,new PDStatusInterface(){
+		MFIELD (PDSTATUS_TIME.INSERTION_TIME,1,new PDStatusInterface(){
 			/**
-			 * @brief Check if a modem coredump is linked with the MPanic or not. Only available for a MPanic CRASH Event.
-			 * @return String :  1 MPanic with modem coredump, M MPanic without modem coredump, x else.
+			 * @brief: Check for one or more crash files presence for MPANIC, IPANIC, FABRICERR, WDT_UNHANDLED.
+			 * @return String : M|1|x
+			 * 			M: At least one of the required file is missing.
+			 * 			1: No missing file.
+			 *          x: else.
 			 **/
+
 			@Override
 			public String computeValue() {
 				String result = "x";
 
-				if(event.getEventName().equals("CRASH") && event.getCrashDir() != null) {
-					if(event.getType().equals("MPANIC")) {
-						File crashDir = new File(event.getCrashDir());
-						if(crashDir != null && crashDir.exists() && crashDir.isDirectory()){
-							String lmcoredump[] = new String[0];
-							lmcoredump = crashDir.list(new FilenameFilter(){
-
-								@Override
-								public boolean accept(File dir, String filename) {
-									if (filename.startsWith("cd") && filename.endsWith(".tar.gz")) {
-										return true;
-									}
-									return false;
-								}
-
-							});
-							if(lmcoredump.length > 0)
-								result = "1";
-							else result = "M";
-						}
-					}
-
+				if((event.getEventName().equals("CRASH")
+						|| event.getEventName().equals("INFO")) && event.getCrashDir() != null) {
+					if(event.getType().equals("MPANIC"))
+						result = checkMPanicFile(event);
 
 					if(event.getType().startsWith("IPANIC")) {
-						File crashDir = new File(event.getCrashDir());
-						if(crashDir != null && crashDir.exists() && crashDir.isDirectory()){
-							String consolefile[] = new String[0];
-							consolefile = crashDir.list(new FilenameFilter(){
+						result = checkFile(event, IPANIC_FILE_PATTERN);
+						if(result.equals("1"))
+							result = checkFile(event, CONSOLE_RAMOOPS_FILE_PATTERN);
+					}
 
-								@Override
-								public boolean accept(File dir, String filename) {
-									if (filename.startsWith("emmc_ipanic_console")) {
-										return true;
-									}
-									return false;
-								}
+					if(event.getType().contains("WDT_UNHANDLED"))
+						result = checkFile(event, CONSOLE_RAMOOPS_FILE_PATTERN);
 
-							});
-							if(consolefile.length > 0)
-								result = "1";
-							else result = "M";
-						}
+					List <String> list = Arrays.asList(FABRIC_ERROR_TYPE);
+
+					if(list.contains(event.getType())) {
+						result = checkFile(event, CONSOLE_RAMOOPS_FILE_PATTERN);
+						if(result.equals("1"))
+							result = checkFile(event, FABRIC_ERROR_FILE_PATTERN);
+						if(result.equals("1") &&
+								SystemProperties.get("persist.fwlog.enable", "0").equals("1"))
+							result = checkFile(event, OFFLINE_SCU_FILE_PATTERN);
 					}
 				}
-
 				return result;
 			}}),
 		GOOD_EVENTID (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
@@ -640,4 +652,53 @@ public enum PDStatus {
 		return result;
 	}
 
+	private static boolean crashDirFilenameFilter(String crashDirName, FilenameFilter filter) {
+
+		File crashDir = new File(crashDirName);
+		if(crashDir == null || !crashDir.exists() || !crashDir.isDirectory())
+			return false;
+
+		String list[] = crashDir.list(filter);
+		if (list.length > 0)
+			return true;
+		return false;
+	}
+
+	private static String checkMPanicFile(Event event) {
+		boolean has_panic_file = crashDirFilenameFilter(event.getCrashDir(),
+				new FilenameFilter() {
+
+				@Override
+				public boolean accept(File dir, String filename) {
+					if (filename.startsWith("cd") && filename.endsWith(".tar.gz")) {
+						return true;
+					}
+					return false;
+				}
+
+			});
+
+		if (has_panic_file)
+			return "1";
+		else
+			return "M";
+	}
+
+	private static String checkFile(Event event, final String pattern) {
+		boolean has_panic_file = crashDirFilenameFilter(event.getCrashDir(),
+				new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String filename) {
+				if (filename.startsWith(pattern)) {
+					return true;
+				}
+				return false;
+			}
+		});
+
+		if (has_panic_file)
+			return "1";
+		else
+			return "M";
+	}
 }
