@@ -1206,27 +1206,37 @@ public class GeneralEventDB {
 	/**
 	 * Get the id of the last GCM message received
 	 * @return the id of the last GCM message
+	 * or -1 on error.
 	 */
 	public int getLastGCMRowId() {
 		Cursor mCursor = null;
+		int rowId = -1;
+
 		try {
 			mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID},
-					KEY_NOTIFIED + "='0'", null,
-					null, null, KEY_ROWID+" DESC", "1");
-			if (mCursor != null) {
-				int rowId = -1;
-				if(mCursor.moveToFirst()) {
-					rowId = mCursor.getInt(0);
-					mCursor.close();
-				}
-				return rowId;
+				KEY_NOTIFIED + "='0'", null,
+				null, null, KEY_ROWID+" DESC", "1");
+		} catch (SQLException e) {
+			Log.e("An error occurred while creating the cursor.");
+			return rowId;
+		}
+
+		if (mCursor == null) {
+			Log.e("Cursor instance creation failed.");
+			return rowId;
+		}
+
+		try {
+			if(mCursor.moveToFirst()) {
+				rowId = mCursor.getInt(0);
 			}
 		} catch (SQLException e) {
-			if(mCursor != null) {
-				mCursor.close();
-			}
+			Log.e("Could not move cursor to expected record.");
+		} finally {
+			mCursor.close();
 		}
-		return -1;
+
+		return rowId;
 	}
 
 	/**
