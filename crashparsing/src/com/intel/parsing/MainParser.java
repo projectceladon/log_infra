@@ -1,3 +1,21 @@
+/* Phone Doctor - parsing
+ *
+ * Copyright (C) Intel 2014
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Author: Nicolas BENOIT <nicolasx.benoit@intel.com>
+ */
 
 package com.intel.parsing;
 
@@ -40,6 +58,12 @@ public class MainParser{
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
 			String aBuild, String aBoard, String aDate, String aImei){
 		this(aOutput,aTag,aCrashID,aUptime,aBuild,aBoard,aDate,aImei,1,"");
+	}
+
+	public MainParser(ParsableEvent aEvent, String aBoard, String aDate, String aOperator){
+		this(aEvent.getCrashDir(), aEvent.getType(), aEvent.getEventId(),
+				aEvent.getUptime(), aEvent.getBuildId(),aBoard, aDate,
+				aEvent.getImei(),aEvent.getDataReadyAsInt(),aOperator);
 	}
 
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
@@ -220,7 +244,7 @@ public class MainParser{
 			bResult &= appendToCrashfile( "OPERATOR=" + sOperator);
 
 		} catch (Exception e) {
-			System.err.println( "prepare_crashfile : " + e);
+			APLog.e( "prepare_crashfile : " + e);
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -236,7 +260,7 @@ public class MainParser{
 			try{
 				myOutput.close();
 			}catch (Exception e) {
-				System.out.println("error on crashfile close");
+				APLog.e("error on crashfile close");
 				e.printStackTrace();
 			}
 		}
@@ -249,6 +273,8 @@ public class MainParser{
 	private boolean finish_crashfile(String aFolder){
 		boolean bResult = true;
 
+		//needed to identify legacy_parsing with ParserDirector
+		bResult &= appendToCrashfile("PARSER=LEGACY_PARSER");
 		bResult &= appendToCrashfile("_END");
 		Pattern patternSD = java.util.regex.Pattern.compile(".*mnt.*sdcard.*");
 		Matcher matcherFile = patternSD.matcher(aFolder);
@@ -257,7 +283,7 @@ public class MainParser{
 				Runtime rt = Runtime.getRuntime ();
 				rt.exec("chown system.log " + aFolder);
 			}catch (Exception e){
-				System.err.println( "chown system.log failed : " + e);
+				APLog.e( "chown system.log failed : " + e);
 				e.printStackTrace();
 			}
 		}
@@ -280,7 +306,7 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 			}
 			catch(Exception e) {
-				System.err.println( "modemcrash : " + e);
+				APLog.e( "modemcrash : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
@@ -375,7 +401,7 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA5=" + sData5);
 			}
 			catch(Exception e) {
-				System.err.println( "modemcrash : " + e);
+				APLog.e( "modemcrash : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
@@ -516,7 +542,7 @@ public class MainParser{
 				}
 			}
 			catch(Exception e) {
-				System.err.println( "iPanic : " + e);
+				APLog.e( "iPanic : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
@@ -652,7 +678,7 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA2=" + sData2);
 			}
 			catch(Exception e) {
-				System.err.println( "fabricerr : " + e);
+				APLog.e( "fabricerr : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
@@ -845,7 +871,7 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA4=" + sData4);
 			}
 			catch(Exception e) {
-				System.err.println( "newfabricerr : " + e);
+				APLog.e( "newfabricerr : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
@@ -998,7 +1024,7 @@ public class MainParser{
 
 			}
 			catch(Exception e) {
-				System.err.println( "tombstone : " + e);
+				APLog.e( "tombstone : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
@@ -1030,7 +1056,7 @@ public class MainParser{
 				}
 			}
 		}catch(Exception e) {
-			System.err.println( "UIWDT : " + e);
+			APLog.e( "UIWDT : " + e);
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -1047,7 +1073,7 @@ public class MainParser{
 			try {
 				f.close();
 			} catch (IOException e) {
-				System.err.println("IOException : " + e.getMessage());
+				APLog.e("IOException : " + e.getMessage());
 			}
 		}
 	}
@@ -1072,7 +1098,7 @@ public class MainParser{
 				}
 			}
 		}catch(Exception e) {
-			System.err.println( "WTF : " + e);
+			APLog.e( "WTF : " + e);
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -1104,7 +1130,7 @@ public class MainParser{
 				}
 			}
 		}catch(Exception e) {
-			System.err.println( "anr - general AppANR : " + e);
+			APLog.e( "anr - general AppANR : " + e);
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -1148,7 +1174,7 @@ public class MainParser{
 				}
 			}
 		}catch(Exception e) {
-			System.err.println( "javacrash - parseJavaCrashFile : " + e);
+			APLog.e( "javacrash - parseJavaCrashFile : " + e);
 			e.printStackTrace();
 			return false;
 		} finally {
@@ -1211,7 +1237,7 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA1=" + sType);
 			bResult &= appendToCrashfile("DATA2=" + sStack);
 		}catch (Exception e) {
-			System.err.println( "extractUIWDTData : " + e);
+			APLog.e( "extractUIWDTData : " + e);
 			e.printStackTrace();
 			return false;
 		}
@@ -1252,7 +1278,7 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA0=" + sPID);
 			bResult &= appendToCrashfile("DATA1=" + sType);
 		}catch (Exception e) {
-			System.err.println( "extractWTFData : " + e);
+			APLog.e( "extractWTFData : " + e);
 			e.printStackTrace();
 			return false;
 		}
@@ -1323,7 +1349,7 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA3=cpu:" + sCPU);
 			aReader.close();
 		}catch (Exception e) {
-			System.err.println( "extractAnrData : " + e);
+			APLog.e( "extractAnrData : " + e);
 			e.printStackTrace();
 			return false;
 		}
@@ -1379,7 +1405,7 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sException));
 			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack));
 		}catch (Exception e) {
-			System.err.println( "extractJavaCrashData : " + e);
+			APLog.e( "extractJavaCrashData : " + e);
 			e.printStackTrace();
 			return false;
 		}
@@ -1399,7 +1425,7 @@ public class MainParser{
 		try{
 			myOutput.write(aStr + "\n");
 		} catch (Exception e) {
-			System.err.println( "appendToCrashfile : " + e);
+			APLog.e( "appendToCrashfile : " + e);
 			e.printStackTrace();
 			return false;
 		}

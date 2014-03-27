@@ -1,0 +1,43 @@
+{
+    "description":"Parser for FABRICXML",
+    "event_name" : "CRASH",
+    "event_type" : "FABRICXML",
+    "rules": [
+        {
+            "id":"1",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW4:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA0"
+        },
+        {
+            "id":"2",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW19:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA1"
+        },
+        {
+            "id":"3",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW12:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA2"
+        }
+    ]
+}

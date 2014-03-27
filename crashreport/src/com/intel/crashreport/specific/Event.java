@@ -105,148 +105,158 @@ public class Event extends GeneralEvent{
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild, boolean isUserBuild) {
-		crashDir = histevent.getOption();
+		boolean bResult = false;
+
+		setCrashDir(histevent.getOption());
 		try {
-			CrashFile crashFile = new CrashFile(crashDir);
-			eventId = histevent.getEventId();
-			eventName = histevent.getEventName();
-			type = histevent.getType();
-			if (type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")) {
-				if(!isUserBuild)
-					dataReady = false;
-			}else if (crashFile.getDataReady() == 0){
-				if(!isUserBuild)
-					dataReady = false;
-			}
-			data0 = crashFile.getData0();
-			data1 = crashFile.getData1();
-			data2 = crashFile.getData2();
-			data3 = crashFile.getData3();
-			data4 = crashFile.getData4();
-			data5 = crashFile.getData5();
+			//crashfile is only used to get data and should not be parsed here
+			CrashFile crashFile = new CrashFile(getCrashDir(),false);
+			//Name and type should be specified before parsing
+			setEventId(histevent.getEventId());
+			setEventName(histevent.getEventName());;
+			setType(histevent.getType());
 			date = convertDate(histevent.getDate());
-			buildId = myBuild;
-			deviceId = crashFile.getSn();
+			setBuildId(myBuild);
+			setDeviceId(crashFile.getSn());
 			if(!crashFile.getImei().equals(""))
 				setImei(crashFile.getImei());
 			else setImei(readImeiFromSystem());
-			uptime = crashFile.getUptime();
+			setUptime(crashFile.getUptime());
+			bResult = ParserContainer.INSTANCE.parseEvent(this);
+			//DATA0-5 expected to be set by parserContainer
+			if (!bResult){
+				Log.w("parser error, could not get a valid parsing");
+				throw new FileNotFoundException("invalid parsing");
+			}else{
+				Log.d("parser succes");
+			}
+
+			if (getType().equals("JAVACRASH") ||
+					getType().equals("ANR") ||
+					getType().equals("TOMBSTONE")) {
+				if(!isUserBuild)
+					this.setDataReady(false);
+			}else if (crashFile.getDataReady() == 0){
+				if(!isUserBuild)
+					this.setDataReady(false);
+			}
 			/* Get origin logfile name for dropbox events (only) to manage duplicate */
 			if (this.isDropboxEvent()) {
 				try {
-					DropboxEvent dropboxFile = new DropboxEvent(crashDir, type);
+					DropboxEvent dropboxFile = new DropboxEvent(getCrashDir(), getType());
 					origin = dropboxFile.getDropboxFileName();
 				} catch (FileNotFoundException e) {
-					Log.w(toString() + ", origin dropbox logfile not found, path: " + crashDir);
+					Log.w(toString() + ", origin dropbox logfile not found, path: " + getCrashDir());
 				}
 			}
 		} catch (FileNotFoundException e) {
-			eventId = histevent.getEventId();
-			eventName = histevent.getEventName();
-			type = histevent.getType();
+			setEventId(histevent.getEventId());
+			setEventName(histevent.getEventName());;
+			setType(histevent.getType());
 			date = convertDate(histevent.getDate());
-			buildId = myBuild.toString();
+			ParserContainer.INSTANCE.parseEvent(this);
+			setBuildId(myBuild.toString());
 			readDeviceIdFromFile();
-			imei = readImeiFromSystem();
-			Log.w(toString() + ", Crashfile not found, path: " + crashDir);
+			setImei(readImeiFromSystem());
+			Log.w(toString() + ", Crashfile not found, path: " + getCrashDir());
 		}
 	}
 
 	private void fillRebootEvent(HistoryEvent histevent, String myBuild) {
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
-		type = histevent.getType();
+		setEventId(histevent.getEventId());
+		setEventName(histevent.getEventName());;
+		setType(histevent.getType());
 		date = convertDate(histevent.getDate());
-		buildId = myBuild;
+		setBuildId(myBuild);
 		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
-		uptime = histevent.getOption();
+		setImei(readImeiFromSystem());
+		setUptime(histevent.getOption());
 		updateRebootReason();
 	}
 
 	private void fillUptimeEvent(HistoryEvent histevent, String myBuild) {
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
+		setEventId(histevent.getEventId());
+		setEventName(histevent.getEventName());
 		date = convertDate(histevent.getDate());
-		buildId = myBuild;
+		setBuildId(myBuild);
 		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
-		uptime = histevent.getType();
+		setImei(readImeiFromSystem());
+		setUptime(histevent.getType());
 	}
 
 	private void fillStatsEvent(HistoryEvent histevent, String myBuild) {
 		//crashdir should be filled before genericparsefile
-		crashDir = histevent.getOption();
+		setCrashDir(histevent.getOption());
 		GenericParseFile aParseFile = null;
 		try{
-			aParseFile = new GenericParseFile(crashDir, "_trigger");
+			aParseFile = new GenericParseFile(getCrashDir(), "_trigger");
 
 		}catch (FileNotFoundException e){
-			Log.w(toString() + ",parsefile couldn't be created: " + crashDir);
+			Log.w(toString() + ",parsefile couldn't be created: " + getCrashDir());
 		}
 		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
 
 	private void fillGenericEvent(HistoryEvent histevent, String myBuild,GenericParseFile aParseFile) {
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
+		setEventId(histevent.getEventId());
+		setEventName(histevent.getEventName());
 		date = convertDate(histevent.getDate());
-		type = histevent.getType();
-		buildId = myBuild;
+		setType(histevent.getType());
+		setBuildId(myBuild);
 		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
+		setImei(readImeiFromSystem());
 		if (aParseFile != null) {
-			data0 = aParseFile.getValueByName("DATA0");
-			data1 = aParseFile.getValueByName("DATA1");
-			data2 = aParseFile.getValueByName("DATA2");
-			data3 = aParseFile.getValueByName("DATA3");
-			data4 = aParseFile.getValueByName("DATA4");
-			data5 = aParseFile.getValueByName("DATA5");
-			dataReady = !aParseFile.getValueByName("DATAREADY").equals("0");
+			setData0(aParseFile.getValueByName("DATA0"));
+			setData1(aParseFile.getValueByName("DATA1"));
+			setData2(aParseFile.getValueByName("DATA2"));
+			setData3(aParseFile.getValueByName("DATA3"));
+			setData4(aParseFile.getValueByName("DATA4"));
+			setData5(aParseFile.getValueByName("DATA5"));
+			setDataReady(!aParseFile.getValueByName("DATAREADY").equals("0"));
 		}
 	}
 
 	private void fillStateEvent(HistoryEvent histevent, String myBuild) {
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
-		type = histevent.getType();
+		setEventId(histevent.getEventId());
+		setEventName(histevent.getEventName());
+		setType(histevent.getType());
 		date = convertDate(histevent.getDate());
-		buildId = myBuild;
+		setBuildId(myBuild);
 		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
+		setImei(readImeiFromSystem());
 	}
 
 	private void fillAplogEvent(HistoryEvent histevent, String myBuild) {
-		crashDir = histevent.getOption();
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
+		setCrashDir(histevent.getOption());
+		setEventId(histevent.getEventId());
+		setEventName(histevent.getEventName());
 		date = convertDate(histevent.getDate());
-		type = histevent.getType();
-		buildId = myBuild;
+		setType(histevent.getType());
+		setBuildId(myBuild);
 		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
+		setImei(readImeiFromSystem());
 	}
 
 	private void fillBzEvent(HistoryEvent histevent, String myBuild) {
-		crashDir = histevent.getOption();
-		eventId = histevent.getEventId();
-		eventName = histevent.getEventName();
+		setCrashDir(histevent.getOption());
+		setEventId(histevent.getEventId());
+		setEventName(histevent.getEventName());
 		date = convertDate(histevent.getDate());
-		type = histevent.getType();
-		buildId = myBuild;
+		setType(histevent.getType());
+		setBuildId(myBuild);
 		readDeviceIdFromFile();
-		imei = readImeiFromSystem();
+		setImei(readImeiFromSystem());
 	}
 
 	private void fillErrorEvent(HistoryEvent histevent, String myBuild) {
 		//crashdir should be filled before genericparsefile
-		crashDir = histevent.getOption();
+		setCrashDir(histevent.getOption());
 		GenericParseFile aParseFile = null;
 		try{
-			aParseFile = new GenericParseFile(crashDir, "_errorevent");
+			aParseFile = new GenericParseFile(getCrashDir(), "_errorevent");
 
 		}catch (FileNotFoundException e){
-			Log.w(toString() + ",parsefile couldn't be created: " + crashDir);
+			Log.w(toString() + ",parsefile couldn't be created: " + getCrashDir());
 		}
 		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
@@ -254,13 +264,13 @@ public class Event extends GeneralEvent{
 
 	private void fillInfoEvent(HistoryEvent histevent, String myBuild) {
 		//crashdir should be filled before genericparsefile
-		crashDir = histevent.getOption();
+		setCrashDir(histevent.getOption());
 		GenericParseFile aParseFile = null;
 		try{
-			aParseFile = new GenericParseFile(crashDir, "_infoevent");
+			aParseFile = new GenericParseFile(getCrashDir(), "_infoevent");
 
 		}catch (FileNotFoundException e){
-			Log.w(toString() + ",parsefile couldn't be created: " + crashDir);
+			Log.w(toString() + ",parsefile couldn't be created: " + getCrashDir());
 		}
 		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
@@ -268,17 +278,17 @@ public class Event extends GeneralEvent{
 	public com.intel.crashtoolserver.bean.Event getEventForServer(com.intel.crashreport.specific.Build build, String sToken) {
 
 		com.intel.crashtoolserver.bean.Event event;
-		long lUptime = convertUptime(this.uptime);
+		long lUptime = convertUptime(getUptime());
 		com.intel.crashreport.specific.Build mBuild;
-		if (this.buildId.contentEquals(build.toString()))
+		if (getBuildId().contentEquals(build.toString()))
 			mBuild = build;
 		else {
-			mBuild = new com.intel.crashreport.specific.Build(this.buildId);
+			mBuild = new com.intel.crashreport.specific.Build(getBuildId());
 			if (mBuild.getBuildId().contentEquals(""))
 				mBuild = build;
 		}
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
-		sBuild.setVariant(this.variant);
+		sBuild.setVariant(getVariant());
 		sBuild.setIngredientsJson(this.ingredients);
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
@@ -288,21 +298,21 @@ public class Event extends GeneralEvent{
 
 		String sSPID = getSPIDFromFile();
 		if (sSSN.equals("")){
-			aDevice = new Device(this.deviceId, this.imei, null /*ssn not implemented if property empty*/, sTokenGCM, sSPID);
+			aDevice = new Device(getDeviceId(), getImei(), null /*ssn not implemented if property empty*/, sTokenGCM, sSPID);
 		}else{
-			aDevice = new Device(this.deviceId, this.imei, sSSN, sTokenGCM, sSPID);
+			aDevice = new Device(getDeviceId(), getImei(), sSSN, sTokenGCM, sSPID);
 		}
-		event = new com.intel.crashtoolserver.bean.Event(this.eventId, this.eventName, this.type,
-				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
+		event = new com.intel.crashtoolserver.bean.Event(this.getEventId(), this.getEventName(), this.getType(),
+				this.getData0(), this.getData1(), this.getData2(), this.getData3(), this.getData4(), this.getData5(),
 				this.date, lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
-				aDevice, this.iRowID,this.pdStatus );
+                                aDevice, getiRowID(),this.pdStatus );
 		event.setBootMode(this.osBootMode);
 		return event;
 	}
 
 	@Override
 	public void readDeviceIdFromFile() {
-		deviceId = getDeviceIdFromFile();
+		setDeviceId(getDeviceIdFromFile());
 	}
 
 	public static String getDeviceIdFromFile() {
@@ -359,7 +369,9 @@ public class Event extends GeneralEvent{
 	 * @return true if the event is a Dropbox event. False otherwise.
 	 */
 	public boolean isDropboxEvent() {
-		return ((type.equals("JAVACRASH") || type.equals("ANR") || type.equals("UIWDT")));
+		return ((getType().equals("JAVACRASH") ||
+				getType().equals("ANR") ||
+				getType().equals("UIWDT")));
 	}
 
 	/**
@@ -368,7 +380,7 @@ public class Event extends GeneralEvent{
 	 * @return true if the event is a Dropbox event detected in full Dropbox condition. False otherwise.
 	 */
 	public boolean isFullDropboxEvent() {
-		return (isDropboxEvent() && data0.equals("full dropbox"));
+		return (isDropboxEvent() && getData0().equals("full dropbox"));
 	}
 
 	/**
@@ -376,7 +388,9 @@ public class Event extends GeneralEvent{
 	 * @return true if the kind of the event is subject to rain mechanism. False otherwise.
 	 */
 	public boolean isRainEventKind() {
-		return ((type.equals("JAVACRASH") || type.equals("ANR") || type.equals("TOMBSTONE")));
+		return ((getType().equals("JAVACRASH") ||
+				getType().equals("ANR") ||
+				getType().equals("TOMBSTONE")));
 	}
 
 	public static String getSpid() {
@@ -389,17 +403,17 @@ public class Event extends GeneralEvent{
 	public void updateRebootReason() {
 		GenericParseFile aParseFile = null;
 		try{
-			aParseFile = new GenericParseFile(EVENTS_DIR, "eventfile_"+eventId);
+			aParseFile = new GenericParseFile(EVENTS_DIR, "eventfile_"+getEventId());
 
 		}catch (FileNotFoundException e){
 			Log.w(toString() + ",eventfile couldn't be created: " + EVENTS_DIR);
 		}
 		if(aParseFile != null){
-			data0 = aParseFile.getValueByName("DATA0");
-			data1 = aParseFile.getValueByName("DATA1");
-			data2 = aParseFile.getValueByName("DATA2");
-			data3 = aParseFile.getValueByName("DATA3");
-			data4 = aParseFile.getValueByName("DATA4");
+			setData0(aParseFile.getValueByName("DATA0"));
+			setData1(aParseFile.getValueByName("DATA1"));
+			setData2(aParseFile.getValueByName("DATA2"));
+			setData3(aParseFile.getValueByName("DATA3"));
+			setData4(aParseFile.getValueByName("DATA4"));
 		}
 	}
 

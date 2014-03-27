@@ -221,7 +221,9 @@ public class CrashFile {
 						data4 = value;
 					else if (name.equals("DATA5"))
 						data5 = value;
-					else
+					else if (name.equals("PARSER")){
+						//ignoring this value but this field is expected
+					} else
 						Log.w("CrashFile: field name\"" + name + "\" not recognised");
 				}
 			} catch (NullPointerException e) {

@@ -19,36 +19,9 @@
 
 package com.intel.parsing;
 
-import java.io.BufferedReader;
-import java.io.Reader;
-import java.io.IOException;
+public interface ParserBuilder {
 
+	public EventParser getNextParser();
+	public boolean hasNextParser();
 
-
-public class BufferedReaderClean extends BufferedReader {
-
-	private Reader mReader = null;
-	public BufferedReaderClean(Reader aReader){
-		super(aReader);
-		mReader = aReader;
-	}
-
-	@Override
-	public void close(){
-		try {
-			super.close();
-		} catch (IOException e) {
-			//catch exception to simplify MainParser Code
-			APLog.e("IOException : " + e.getMessage());
-		}
-		finally {
-			if (mReader != null) {
-				try {
-					mReader.close();
-				} catch (IOException e) {
-					APLog.e("IOException : " + e.getMessage());
-				}
-			}
-		}
-	}
 }

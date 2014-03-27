@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.TimeZone;
 
+import com.intel.parsing.ParsableEvent;
 import com.intel.phonedoctor.Constants;
 
 import android.os.SystemProperties;
@@ -55,96 +56,61 @@ public class GeneralEvent {
 	protected final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 	protected final static SimpleDateFormat EVENT_DF_OLD = new SimpleDateFormat("yy-MM-dd-HH-mm-ss");
 
-	protected String eventId = "";
-	protected String eventName = "";
-	protected String type = "";
-	protected String data0 = "";
-	protected String data1 = "";
-	protected String data2 = "";
-	protected String data3 = "";
-	protected String data4 = "";
-	protected String data5 = "";
-	protected Date date = null;
-	protected String buildId = "";
-	protected String deviceId = "";
-	protected String variant = "";
+	protected ParsableEvent mParsableEvent;
 	protected String ingredients = "";
 	protected String osBootMode = "";
-	protected String imei = "";
-	protected String uptime = "";
-	protected String crashDir = "";
-	protected boolean dataReady = true;
 	protected boolean uploaded = false;
 	protected boolean logUploaded = false;
 	/*Define event validity : not valid if a mandatory attribute is missing */
 	private boolean valid = true;
+	protected Date date = null;
 
-
-	protected int iRowID;
 	protected String origin = "";
 	protected String pdStatus = "";
 	protected int logsSize = 0;
 
-	public GeneralEvent() {}
+	public GeneralEvent() {
+		//default empty values
+		mParsableEvent= new ParsableEvent(-1, "", "", "", "", "", "", "", "", "", "",	"", "", "","");
+	}
 
 	public GeneralEvent(int rowid, String eventId, String eventName, String type, String data0,
 			String data1, String data2, String data3,
 			String data4, String data5, String date, String buildId,
 			String deviceId, String imei, String uptime, String crashDir) {
-		this.iRowID = rowid;
-		this.eventId = eventId;
-		this.eventName = eventName;
-		this.type = type;
-		this.data0 = data0;
-		this.data1 = data1;
-		this.data2 = data2;
-		this.data3 = data3;
-		this.data4 = data4;
-		this.data5 = data5;
+		mParsableEvent= new ParsableEvent(rowid, eventId, eventName, type, data0,
+				data1, data2, data3,
+				data4, data5, buildId,
+				deviceId, imei, uptime,crashDir);
 		this.date = convertDate(date);
-		this.buildId = buildId;
-		this.deviceId = deviceId;
-		this.imei = imei;
-		this.uptime = uptime;
-		this.crashDir = crashDir;
+
 	}
 
 	public GeneralEvent(int rowid, String eventId, String eventName, String type, String data0,
 			String data1, String data2, String data3,
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, String uptime, String crashDir) {
-		this.iRowID = rowid;
-		this.eventId = eventId;
-		this.eventName = eventName;
-		this.type = type;
-		this.data0 = data0;
-		this.data1 = data1;
-		this.data2 = data2;
-		this.data3 = data3;
-		this.data4 = data4;
-		this.data5 = data5;
+		mParsableEvent= new ParsableEvent(rowid, eventId, eventName, type, data0,
+				data1, data2, data3,
+				data4, data5, buildId,
+				deviceId, imei, uptime,crashDir);
 		this.date = date;
-		this.buildId = buildId;
-		this.deviceId = deviceId;
-		this.imei = imei;
-		this.uptime = uptime;
-		this.crashDir = crashDir;
 	}
 
 	public void readDeviceIdFromSystem() {
-		deviceId = getDeviceIdFromSystem();
+		setDeviceId(getDeviceIdFromSystem());
 	}
 
 	@Override
 	public String toString() {
-		if (eventName.equals("UPTIME"))
-			return new String("Event: " + eventId + ":" + eventName + ":" + uptime);
+		if (getEventName().equals("UPTIME"))
+			return new String("Event: " + getEventId() + ":" + getEventName() + ":" + getUptime());
 		else
-			return new String("Event: " + eventId + ":" + eventName + ":" + type);
+			return new String("Event: " + getEventId() + ":" + getEventName() + ":" + getType());
 	}
 
 	public void readDeviceIdFromFile() {
-		deviceId = getDeviceIdFromFile();
+		setDeviceId(getDeviceIdFromFile());
 	}
 
 	public static String getDeviceIdFromFile() {
@@ -225,75 +191,75 @@ public class GeneralEvent {
 	}
 
 	public String getEventId() {
-		return eventId;
+		return mParsableEvent.getEventId();
 	}
 
 	public void setEventId(String eventId) {
-		this.eventId = eventId;
+		mParsableEvent.setEventId(eventId);
 	}
 
 	public String getEventName() {
-		return eventName;
+		return mParsableEvent.getEventName();
 	}
 
 	public void setEventName(String eventName) {
-		this.eventName = eventName;
+		mParsableEvent.setEventName(eventName);
 	}
 
 	public String getType() {
-		return type;
+		return mParsableEvent.getType();
 	}
 
 	public void setType(String type) {
-		this.type = type;
+		mParsableEvent.setType(type);
 	}
 
 	public String getData0() {
-		return data0;
+		return mParsableEvent.getData0();
 	}
 
 	public void setData0(String data0) {
-		this.data0 = data0;
+		mParsableEvent.setData0(data0);
 	}
 
 	public String getData1() {
-		return data1;
+		return mParsableEvent.getData1();
 	}
 
 	public void setData1(String data1) {
-		this.data1 = data1;
+		mParsableEvent.setData1(data1);
 	}
 
 	public String getData2() {
-		return data2;
+		return mParsableEvent.getData2();
 	}
 
 	public void setData2(String data2) {
-		this.data2 = data2;
+		mParsableEvent.setData2(data2);
 	}
 
 	public String getData3() {
-		return data3;
+		return mParsableEvent.getData3();
 	}
 
-	public void setData3(String data) {
-		this.data3 = data;
+	public void setData3(String data3) {
+		mParsableEvent.setData3(data3);
 	}
 
 	public String getData4() {
-		return data4;
+		return mParsableEvent.getData4();
 	}
 
-	public void setData4(String data) {
-		this.data4 = data;
+	public void setData4(String data4) {
+		mParsableEvent.setData4(data4);
 	}
 
 	public String getData5() {
-		return data5;
+		return mParsableEvent.getData5();
 	}
 
-	public void setData5(String data) {
-		this.data5 = data;
+	public void setData5(String data5) {
+		mParsableEvent.setData5(data5);
 	}
 
 	public String getDateAsString() {
@@ -314,51 +280,51 @@ public class GeneralEvent {
 	}
 
 	public String getBuildId() {
-		return buildId;
+		return mParsableEvent.getBuildId();
 	}
 
 	public void setBuildId(String buildId) {
-		this.buildId = buildId;
+		mParsableEvent.setBuildId(buildId);
 	}
 
 	public String getDeviceId() {
-		return deviceId;
+		return mParsableEvent.getDeviceId();
 	}
 
 	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
+		mParsableEvent.setDeviceId(deviceId);
 	}
 
 	public String getUptime() {
-		return uptime;
+		return mParsableEvent.getUptime();
 	}
 
 	public void setUptime(String uptime) {
-		this.uptime = uptime;
+		mParsableEvent.setUptime(uptime);
 	}
 
 	public String getImei() {
-		return imei;
+		return mParsableEvent.getImei();
 	}
 
 	public void setImei(String imei) {
-		this.imei = imei;
+		mParsableEvent.setImei(imei);
 	}
 
 	public void setCrashDir(String crashDir) {
-		this.crashDir = crashDir;
+		mParsableEvent.setCrashDir(crashDir);
 	}
 
 	public String getCrashDir() {
-		return crashDir;
+		return mParsableEvent.getCrashDir();
 	}
 
 	public boolean isDataReady() {
-		return dataReady;
+		return mParsableEvent.isDataReady();
 	}
 
 	public void setDataReady(boolean dataReady) {
-		this.dataReady = dataReady;
+		mParsableEvent.setDataReady(dataReady);
 	}
 
 	public boolean isUploaded() {
@@ -386,11 +352,11 @@ public class GeneralEvent {
 	}
 
 	public int getiRowID() {
-		return iRowID;
+		return mParsableEvent.getiRowID();
 	}
 
 	public void setiRowID(int iRowID) {
-		this.iRowID = iRowID;
+		mParsableEvent.setiRowID(iRowID);
 	}
 	public String getPdStatus() {
 		return pdStatus;
@@ -417,11 +383,15 @@ public class GeneralEvent {
 	}
 
 	public String getVariant() {
-		return variant;
+		return mParsableEvent.getVariant();
 	}
 
 	public void setVariant(String variant) {
-		this.variant = variant;
+		mParsableEvent.setVariant(variant);
+	}
+
+	public ParsableEvent getParsableEvent(){
+		return mParsableEvent;
 	}
 
 	/**

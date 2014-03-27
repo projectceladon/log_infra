@@ -19,36 +19,21 @@
 
 package com.intel.parsing;
 
-import java.io.BufferedReader;
-import java.io.Reader;
-import java.io.IOException;
+public class LegacyBuilder implements ParserBuilder{
 
+	private boolean isFirstCall = true;
 
-
-public class BufferedReaderClean extends BufferedReader {
-
-	private Reader mReader = null;
-	public BufferedReaderClean(Reader aReader){
-		super(aReader);
-		mReader = aReader;
-	}
-
-	@Override
-	public void close(){
-		try {
-			super.close();
-		} catch (IOException e) {
-			//catch exception to simplify MainParser Code
-			APLog.e("IOException : " + e.getMessage());
-		}
-		finally {
-			if (mReader != null) {
-				try {
-					mReader.close();
-				} catch (IOException e) {
-					APLog.e("IOException : " + e.getMessage());
-				}
-			}
+	public EventParser getNextParser() {
+		if (isFirstCall) {
+			isFirstCall = false;
+			return new LegacyParser();
+		} else {
+			return null;
 		}
 	}
+
+	public boolean hasNextParser() {
+		return isFirstCall;
+	}
+
 }

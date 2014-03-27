@@ -25,15 +25,13 @@ import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.EventGenerator;
-
+import com.intel.crashreport.specific.ParserContainer;
 import com.intel.crashreport.StartServiceActivity;
 
 import android.app.Application;
-
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.SQLException;
-
 import android.preference.PreferenceManager;
 
 public class CrashReport extends Application {
@@ -60,6 +58,7 @@ public class CrashReport extends Application {
 		String version = this.getString(R.string.app_version);
 		EventGenerator.INSTANCE.setContext(getApplicationContext());
 		GeneralEventGenerator.INSTANCE.setContext(getApplicationContext());
+		ParserContainer.INSTANCE.initDirector(getApplicationContext());
 		GcmEvent.INSTANCE.setContext(getApplicationContext());
 
 		if (!privatePrefs.getVersion().contentEquals(version)) {
