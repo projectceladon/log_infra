@@ -1325,9 +1325,9 @@ public class MainParser{
 				}
 			}
 
-			bResult &= appendToCrashfile("DATA0=" + sPID);
-			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + sException);
-			bResult &= appendToCrashfile("DATA2=" + sStack);
+			bResult &= appendToCrashfile("DATA0=" + filterAdressesPattern(sPID));
+			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sException));
+			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack));
 			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractJavaCrashData : " + e);
@@ -1335,6 +1335,15 @@ public class MainParser{
 			return false;
 		}
 		return bResult;
+	}
+
+	private String filterAdressesPattern(String stringToFilter){
+		String sResult = stringToFilter;
+		Pattern patternAdress8 = java.util.regex.Pattern.compile("@[0-9a-fA-F]{8}");
+		Pattern patternAdress16 = java.util.regex.Pattern.compile("@[0-9a-fA-F]{16}");
+		sResult = patternAdress16.matcher(sResult).replaceAll("");
+		sResult = patternAdress8.matcher(sResult).replaceAll("");
+		return sResult;
 	}
 
 	private boolean appendToCrashfile(String aStr){
