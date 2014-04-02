@@ -71,7 +71,7 @@ public class NotificationMgr {
 
 	public void notifyEventToUpload(int crashNumber, int uptimeNumber) {
 		CharSequence tickerText;
-		CharSequence contentTitle = "PSI Phone Doctor";
+		CharSequence contentTitle = "MCG Phone Doctor";
 		CharSequence contentText;
 
 		// notification should be displayed only if at least one crash is present
@@ -279,7 +279,7 @@ public class NotificationMgr {
 
 	public void notifyCrashOrCriticalEvent(int notifId, int icon, CharSequence tickerText, CharSequence contentText) {
 		long when = System.currentTimeMillis();
-		CharSequence contentTitle = "PSI Phone Doctor";
+		CharSequence contentTitle = "MCG Phone Doctor";
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Intent notificationIntent = new Intent(context, StartServiceActivity.class);
 		notificationIntent.putExtra("com.intel.crashreport.extra.fromOutside", true);

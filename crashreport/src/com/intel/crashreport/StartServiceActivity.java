@@ -325,7 +325,7 @@ public class StartServiceActivity extends Activity {
 	 */
 	public Dialog createAskForUploadDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("PSI Phone Doctor management");
+		builder.setTitle("MCG Phone Doctor management");
 		builder.setSingleChoiceItems(R.array.uploadStateDialogText, DIALOG_REP_NOW, null); /*Don't need listener on checked items*/
 		builder.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {

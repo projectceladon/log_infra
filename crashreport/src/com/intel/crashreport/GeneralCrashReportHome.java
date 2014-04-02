@@ -146,7 +146,7 @@ public class GeneralCrashReportHome extends Activity {
 			.setTitle(getString(R.string.about_title))
 			.setMessage(
 					getString(R.string.app_name) + " v" + getString(R.string.app_version)
-					+ "\n" + "© Intel 2012."
+					+ "\n" + "© Intel 2014."
 					+ "\n" + "SSN : "  + Event.getSSN()
 					+ "\n" + "DeviceID : " + Event.deviceId())
 					.create();
