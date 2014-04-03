@@ -57,18 +57,8 @@ public class MainParser{
 
 	public int execParsing(){
 		String sCrashfilename= sOutput + "/crashfile";
-		String sWdt = "";
 		String sDropbox = "";
 
-		if (sTag.equals("SWWDT_RESET")) {
-			sTag = "WDT";
-			sWdt = "KernelWatchdog";
-		}
-
-		if (sTag.equals( "HWWDT_RESET" )) {
-			sTag="WDT";
-			sWdt="SecureWatchdog";
-		}
 
 		if (sTag.equals( "LOST_DROPBOX_JAVACRASH" )) {
 			sTag="JAVACRASH";
@@ -102,12 +92,6 @@ public class MainParser{
 					}
 				}
 
-				if (sTag.equals("WDT")){
-					if (!iwdt(sWdt)){
-						closeOutput();
-						return -1;
-					}
-				}
 				if (sTag.equals("IPANIC") || sTag.equals("IPANIC_SWWDT") || sTag.equals("IPANIC_HWWDT")
 						|| sTag.equals("IPANIC_FAKE" )|| sTag.equals("IPANIC_SWWDT_FAKE")) {
 					if (!ipanic(sOutput)){
@@ -272,10 +256,6 @@ public class MainParser{
 			}
 		}
 		return bResult;
-	}
-
-	private boolean iwdt(String aWdt){
-		return appendToCrashfile("DATA0=" + aWdt);
 	}
 
 	private boolean modemcrash(String aFolder){
