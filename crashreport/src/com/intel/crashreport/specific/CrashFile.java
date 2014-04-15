@@ -108,7 +108,9 @@ public class CrashFile {
 	}
 
 	public void writeCrashFile(String reason) throws FileNotFoundException,IOException{
-			OutputStreamWriter record = new OutputStreamWriter(new FileOutputStream(crashFile));
+		FileOutputStream f = new FileOutputStream(crashFile);
+		try {
+			OutputStreamWriter record = new OutputStreamWriter(f);
 			record.write("EVENT="+eventName+"\n");
 			record.write("ID="+eventId+"\n");
 			record.write("SN="+sn+"\n");
@@ -129,6 +131,10 @@ public class CrashFile {
 			record.write("DATA5="+data5+"\n");
 			record.write("_END\n");
 			record.close();
+		}
+		finally {
+			f.close();
+		}
 	}
 
 	private File openCrashFile(String path) {

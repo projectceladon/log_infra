@@ -594,8 +594,10 @@ public class Connector {
 					intent.putExtra("progressValue", (int) ((readBytes*100)/fileSize));
 					mCtx.sendBroadcast(intent);
 				}
-				if (t.isInterrupted())
+				if (t.isInterrupted()) {
+					bis.close();
 					throw new InterruptedException();
+				}
 			}
 			bis.close();
 			bos.flush();

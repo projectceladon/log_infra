@@ -120,21 +120,34 @@ public class Build extends GeneralBuild{
 		//for crashtool identification, we need to be sure modem version is present
 		if (modemVersion.equals("")){
 			//fill it with modemid.txt
-			BufferedReader modemid;
+			BufferedReader modemid = null;
+			FileReader f = null;
 			try {
+				f = new FileReader(PATH_MODEMID);
 				modemid = new BufferedReader(new FileReader(PATH_MODEMID));
-			} catch (FileNotFoundException e1) {
-				// no file, just return
-				return;
-			}
-			try {
 				String sTmp = modemid.readLine();
 				if (sTmp != null){
 					modemVersion.setValue(sTmp);
 				}
-				modemid.close();
+			} catch (FileNotFoundException e) {
+				Log.w(" consolidateModemVersion :" + e.getMessage());
 			} catch (IOException e) {
 				Log.w(" consolidateModemVersion :" + e.getMessage());
+			} finally {
+				if (f != null) {
+					try {
+						f.close();
+					} catch (IOException e) {
+						Log.w(" consolidateModemVersion :" + e.getMessage());
+					}
+				}
+				if (modemid != null) {
+					try {
+						modemid.close();
+					} catch (IOException e) {
+						Log.w(" consolidateModemVersion :" + e.getMessage());
+					}
+				}
 			}
 		}
 	}

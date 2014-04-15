@@ -101,8 +101,10 @@ public class CrashlogDaemonCmdFile {
 			sfilePath=(APLOGS_DIR + CmdType.toString().toLowerCase()+ filenameIndex + CMD);
 			mCommandFile = new File(sfilePath);
 		}
+		FileOutputStream f = null;
 		try {
-			BufferedOutputStream write = new BufferedOutputStream(new FileOutputStream(mCommandFile));
+			f = new FileOutputStream(mCommandFile);
+			BufferedOutputStream write = new BufferedOutputStream(f);
 			for (int i = 0;i < Arguments.size() ; i++){
 				write.write(Arguments.get(i).getBytes());
 			}
@@ -126,6 +128,15 @@ public class CrashlogDaemonCmdFile {
 			Log.e(Module + "can't write in file "+sfilePath);
 			e.printStackTrace();
 			return false;
+		}
+		finally {
+			if (f != null) {
+				try {
+					f.close();
+				} catch (IOException e) {
+					Log.w("IOException : " + e.getMessage());
+				}
+			}
 		}
 		return true;
 	};

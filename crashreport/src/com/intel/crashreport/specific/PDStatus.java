@@ -659,6 +659,8 @@ public enum PDStatus {
 			return false;
 
 		String list[] = crashDir.list(filter);
+		if (list == null) //escape case
+			return false;
 		if (list.length > 0)
 			return true;
 		return false;

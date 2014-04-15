@@ -56,22 +56,28 @@ public class AnrEvent {
 
 	private void readAnrFile(File anrFile) throws FileNotFoundException,IOException {
 		BufferedReader scanner;
-		if(anrFile.getName().endsWith(".gz")) {
-			GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(anrFile));
-			scanner = new BufferedReader(new InputStreamReader (gzipInputStream));
-		}
-		else
-			scanner = new BufferedReader(new InputStreamReader (new FileInputStream(anrFile)));
-
-		String field;
-		while((field = scanner.readLine()) != null) {
-			if (field != null){
-				findTraceFileId(field);
-				if(fileIdPresent)
-					break;
+		FileInputStream f = new FileInputStream(anrFile);
+		try {
+			if(anrFile.getName().endsWith(".gz")) {
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				scanner = new BufferedReader(new InputStreamReader (gzipInputStream));
 			}
+			else
+				scanner = new BufferedReader(new InputStreamReader (f));
+
+			String field;
+			while((field = scanner.readLine()) != null) {
+				if (field != null){
+					findTraceFileId(field);
+					if(fileIdPresent)
+						break;
+				}
+			}
+			scanner.close();
 		}
-		scanner.close();
+		finally{
+			f.close();
+		}
 	}
 
 	private void findTraceFileId(String field) {

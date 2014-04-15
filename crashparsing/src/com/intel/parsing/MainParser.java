@@ -1,3 +1,4 @@
+
 package com.intel.parsing;
 
 import java.io.BufferedReader;
@@ -6,6 +7,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
@@ -19,10 +21,10 @@ public class MainParser{
 
 	private final static String[] LEGACY_BOARD_FABRIC = {"redhookbay","victoriabay"};
 	private final static String[] FABRIC_TAGS = { "FABRICERR", "MEMERR",
-			"INSTERR", "SRAMECCERR", "HWWDTLOGERR", "FABRIC_FAKE", "FIRMWARE",
-			"NORTHFUSEERR", "KERNELWDT", "KERNEHANG", "SCUWDT", "FABRICXML", "PLLLOCKERR",
-			"UNDEFL1ERR", "PUNITMBBTIMEOUT", "VOLTKERR", "VOLTSAIATKERR",
-			"LPEINTERR", "PSHINTERR", "FUSEINTERR", "IPC2ERR", "KWDTIPCERR" };
+		"INSTERR", "SRAMECCERR", "HWWDTLOGERR", "FABRIC_FAKE", "FIRMWARE",
+		"NORTHFUSEERR", "KERNELWDT", "KERNEHANG", "SCUWDT", "FABRICXML", "PLLLOCKERR",
+		"UNDEFL1ERR", "PUNITMBBTIMEOUT", "VOLTKERR", "VOLTSAIATKERR",
+		"LPEINTERR", "PSHINTERR", "FUSEINTERR", "IPC2ERR", "KWDTIPCERR" };
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
@@ -196,10 +198,10 @@ public class MainParser{
 	private boolean prepare_crashfile(String aTag, String aCrashfilename, String aCrashid, String aUptime,
 			String aBuild, String aBoard, String aDate, String aImei, String sOperator) {
 		boolean bResult = true;
+		BufferedReaderClean uuid = null;
 		try{
-			BufferedReader uuid = new BufferedReader(new FileReader(PATH_UUID));
+			uuid = new BufferedReaderClean(new FileReader(PATH_UUID));
 			String sUuid = uuid.readLine();
-			uuid.close();
 			//Output object creation mandatory here
 			myOutput = new BufferedWriter(new FileWriter(aCrashfilename));
 
@@ -221,6 +223,10 @@ public class MainParser{
 			System.err.println( "prepare_crashfile : " + e);
 			e.printStackTrace();
 			return false;
+		} finally {
+			if (uuid != null) {
+				uuid.close();
+			}
 		}
 		return bResult;
 	}
@@ -264,19 +270,23 @@ public class MainParser{
 		String sData0="";
 		String sModemFile = fileGrepSearch(".*mpanic.*", aFolder);
 		if (sModemFile != ""){
+			BufferedReaderClean bufModemFile = null;
 			try{
-				BufferedReader bufModemFile = new BufferedReader(new FileReader(sModemFile));
+				bufModemFile = new BufferedReaderClean(new FileReader(sModemFile));
 				String sCurLine;
 				while ((sCurLine = bufModemFile.readLine()) != null) {
 					sData0 += sCurLine;
 				}
 				bResult &= appendToCrashfile("DATA0=" + sData0);
-				bufModemFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "modemcrash : " + e);
 				e.printStackTrace();
 				return false;
+			} finally {
+				if (bufModemFile != null) {
+					bufModemFile.close();
+				}
 			}
 		}else{
 			//using default parsing method
@@ -302,6 +312,7 @@ public class MainParser{
 		String sData5="";
 		String sGenFile = fileGrepSearch(".*_crashdata", aFolder);
 		if (sGenFile != ""){
+			BufferedReaderClean bufGenFile = null;
 			try{
 				Pattern patternData0 = java.util.regex.Pattern.compile("DATA0=.*");
 				Pattern patternData1 = java.util.regex.Pattern.compile("DATA1=.*");
@@ -309,7 +320,7 @@ public class MainParser{
 				Pattern patternData3 = java.util.regex.Pattern.compile("DATA3=.*");
 				Pattern patternData4 = java.util.regex.Pattern.compile("DATA4=.*");
 				Pattern patternData5 = java.util.regex.Pattern.compile("DATA5=.*");
-				BufferedReader bufGenFile = new BufferedReader(new FileReader(sGenFile));
+				bufGenFile = new BufferedReaderClean(new FileReader(sGenFile));
 				String sCurLine;
 				while ((sCurLine = bufGenFile.readLine()) != null) {
 					String sTmp;
@@ -362,12 +373,15 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA3=" + sData3);
 				bResult &= appendToCrashfile("DATA4=" + sData4);
 				bResult &= appendToCrashfile("DATA5=" + sData5);
-				bufGenFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "modemcrash : " + e);
 				e.printStackTrace();
 				return false;
+			} finally {
+				if (bufGenFile != null) {
+					bufGenFile.close();
+				}
 			}
 		}
 		return bResult;
@@ -401,8 +415,9 @@ public class MainParser{
 			boolean bLockUpCase = false;
 			int iCallTraceCount = 0;
 
+			BufferedReaderClean bufPanicFile = null;
 			try{
-				BufferedReader bufPanicFile = new BufferedReader(new FileReader(sIPanicFile));
+				bufPanicFile = new BufferedReaderClean(new FileReader(sIPanicFile));
 				Pattern patternData = java.util.regex.Pattern.compile("EIP:.*SS:ESP");
 				Pattern patternData_64 = java.util.regex.Pattern.compile("RIP  \\[.*ffffffff.*\\].*");
 				Pattern patternComm = java.util.regex.Pattern.compile("(c|C)omm: .*");
@@ -499,12 +514,15 @@ public class MainParser{
 						bResult &= appendToCrashfile("DATA3=ram");
 					}
 				}
-				bufPanicFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "iPanic : " + e);
 				e.printStackTrace();
 				return false;
+			} finally {
+				if (bufPanicFile != null) {
+					bufPanicFile.close();
+				}
 			}
 		}else{
 			//4th chance, try header
@@ -545,8 +563,9 @@ public class MainParser{
 			boolean bForcedFabric = false;
 			ArrayList<String> ldata1_2 = new ArrayList<String>();
 
+			BufferedReaderClean bufFabricFile = null;
 			try{
-				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
+				bufFabricFile = new BufferedReaderClean(new FileReader(sFabricFile));
 				Pattern patternForcedFabric = java.util.regex.Pattern.compile(".*HW WDT expired.*");
 				//suspicious regex repeating r has no effect
 				//   data0=`grep "DW0:" $1/ipanic_fabric_err*`
@@ -570,7 +589,7 @@ public class MainParser{
 				}
 				bufFabricFile.close();
 				//No proper reinit method, need to recreate stream
-				bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
+				bufFabricFile = new BufferedReaderClean(new FileReader(sFabricFile));
 				while ((sCurLine = bufFabricFile.readLine()) != null) {
 					//data0=`grep "[erroir|:]" $1/ipanic_fabric_err* | grep -v -E 'summary|Additional|Decoded' | grep -m1 ".*" | awk -F"[" '{print $1}'`
 					String sTmp;
@@ -631,12 +650,15 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sData1);
 				bResult &= appendToCrashfile("DATA2=" + sData2);
-				bufFabricFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "fabricerr : " + e);
 				e.printStackTrace();
 				return false;
+			} finally {
+				if (bufFabricFile != null) {
+					bufFabricFile.close();
+				}
 			}
 		}
 		return bResult;
@@ -687,6 +709,7 @@ public class MainParser{
 				bSCUWDT = true;
 			}
 
+			BufferedReaderClean bufFabricFile = null;
 			try{
 				Pattern patternData0_1 = java.util.regex.Pattern.compile("Summary of Fabric Error detail:");
 				Pattern patternData2 = java.util.regex.Pattern.compile(".*ERROR LOG.*");
@@ -694,7 +717,7 @@ public class MainParser{
 				Pattern patternData4 = java.util.regex.Pattern.compile(".*Length of fabric error file:.*");
 				String sCurLine;
 
-				BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
+				bufFabricFile = new BufferedReaderClean(new FileReader(sFabricFile));
 				while ((sCurLine = bufFabricFile.readLine()) != null) {
 
 					if (!bData0_1Found){
@@ -820,12 +843,15 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA1=" + sData1);
 				bResult &= appendToCrashfile("DATA2=" + sData2);
 				bResult &= appendToCrashfile("DATA4=" + sData4);
-				bufFabricFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "newfabricerr : " + e);
 				e.printStackTrace();
 				return false;
+			} finally {
+				if (bufFabricFile != null) {
+					bufFabricFile.close();
+				}
 			}
 		}
 		return bResult;
@@ -861,8 +887,9 @@ public class MainParser{
 			Pattern patternSubSignal = java.util.regex.Pattern.compile(".*signal.*");
 			Pattern patternSubStack = java.util.regex.Pattern.compile(".*#0[0-7].*");
 			String sCurLine;
+			BufferedReaderClean bufTombstoneFile = null;
 			try {
-				BufferedReader bufTombstoneFile = new BufferedReader(new FileReader(sTombstoneFile));
+				bufTombstoneFile = new BufferedReaderClean(new FileReader(sTombstoneFile));
 				while ((sCurLine = bufTombstoneFile.readLine()) != null) {
 					String sTmp;
 					if (!bProcessFound){
@@ -969,12 +996,15 @@ public class MainParser{
 				}
 				bResult &= appendToCrashfile("DATA3=" + sFaultAddress);
 
-				bufTombstoneFile.close();
 			}
 			catch(Exception e) {
 				System.err.println( "tombstone : " + e);
 				e.printStackTrace();
 				return false;
+			} finally {
+				if (bufTombstoneFile != null) {
+					bufTombstoneFile.close();
+				}
 			}
 		}
 		return bResult;
@@ -984,15 +1014,18 @@ public class MainParser{
 		boolean bResult = true;
 
 		String sUIWDTFileGZ = fileGrepSearch("system_server_watchdog.*txt.gz", aFolder);
+		BufferedReaderClean uiwdtReader = null;
+		FileInputStream f = null;
 		try {
 			if (sUIWDTFileGZ != ""){
-				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sUIWDTFileGZ));
-				BufferedReader uiwdtReader = new BufferedReader(new InputStreamReader (gzipInputStream));
+				f = new FileInputStream(sUIWDTFileGZ);
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				uiwdtReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractUIWDTData(uiwdtReader);
 			}else{
 				String sUIWDTFile = fileGrepSearch("system_server_watchdog.*txt" , aFolder);
 				if (sUIWDTFile != ""){
-					BufferedReader uiwdtReader = new BufferedReader(new FileReader(sUIWDTFile));
+					uiwdtReader = new BufferedReaderClean(new FileReader(sUIWDTFile));
 					bResult = extractUIWDTData(uiwdtReader);
 				}
 			}
@@ -1000,23 +1033,41 @@ public class MainParser{
 			System.err.println( "UIWDT : " + e);
 			e.printStackTrace();
 			return false;
+		} finally {
+			if (uiwdtReader != null) {
+				uiwdtReader.close();
+			}
+			silentClose(f);
 		}
 		return bResult;
+	}
+
+	private void silentClose(FileInputStream f){
+		if (f != null) {
+			try {
+				f.close();
+			} catch (IOException e) {
+				System.err.println("IOException : " + e.getMessage());
+			}
+		}
 	}
 
 	private boolean wtf(String aFolder){
 		boolean bResult = true;
 
 		String sWTFFileGZ = fileGrepSearch("wtf.*.gz", aFolder);
+		BufferedReaderClean wtfReader = null;
+		FileInputStream f = null;
 		try {
 			if (sWTFFileGZ != ""){
-				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sWTFFileGZ));
-				BufferedReader wtfReader = new BufferedReader(new InputStreamReader (gzipInputStream));
+				f = new FileInputStream(sWTFFileGZ);
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				wtfReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractWTFData(wtfReader);
 			}else{
 				String sWTFFile = fileGrepSearch("wtf.*.txt" , aFolder);
 				if (sWTFFile != ""){
-					BufferedReader wtfReader = new BufferedReader(new FileReader(sWTFFile));
+					wtfReader = new BufferedReaderClean(new FileReader(sWTFFile));
 					bResult = extractWTFData(wtfReader);
 				}
 			}
@@ -1024,6 +1075,11 @@ public class MainParser{
 			System.err.println( "WTF : " + e);
 			e.printStackTrace();
 			return false;
+		} finally {
+			if (wtfReader != null) {
+				wtfReader.close();
+			}
+			silentClose(f);
 		}
 		return bResult;
 	}
@@ -1032,15 +1088,18 @@ public class MainParser{
 		boolean bResult = true;
 
 		String sSysANRGZ = fileGrepSearch(".*_app_anr.*txt.gz", aFolder);
+		BufferedReaderClean sysANRReader = null;
+		FileInputStream f = null;
 		try {
 			if (sSysANRGZ != ""){
-				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sSysANRGZ));
-				BufferedReader sysANRReader = new BufferedReader(new InputStreamReader (gzipInputStream));
+				f = new FileInputStream(sSysANRGZ);
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				sysANRReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractAnrData(sysANRReader);
 			}else{
 				String sSysANR = fileGrepSearch(".*_app_anr.*txt" , aFolder);
 				if (sSysANR != ""){
-					BufferedReader sysANRReader = new BufferedReader(new FileReader(sSysANR));
+					sysANRReader = new BufferedReaderClean(new FileReader(sSysANR));
 					bResult = extractAnrData(sysANRReader);
 				}
 			}
@@ -1048,6 +1107,11 @@ public class MainParser{
 			System.err.println( "anr - general AppANR : " + e);
 			e.printStackTrace();
 			return false;
+		} finally {
+			if (sysANRReader != null) {
+				sysANRReader.close();
+			}
+			silentClose(f);
 		}
 		return bResult;
 	}
@@ -1068,15 +1132,18 @@ public class MainParser{
 	private boolean parseJavaCrashFile(String aFileZip, String aFileNormal, String aFolder, boolean nativ){
 		boolean bResult = true;
 		String sSysAppGZ = fileGrepSearch(aFileZip, aFolder);
+		BufferedReaderClean sysAppReader = null;
+		FileInputStream f = null;
 		try {
 			if (sSysAppGZ != ""){
-				GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(sSysAppGZ));
-				BufferedReader sysAppReader = new BufferedReader(new InputStreamReader (gzipInputStream));
+				f = new FileInputStream(sSysAppGZ);
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				sysAppReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractJavaCrashData(sysAppReader, nativ);
 			}else{
 				String sSysApp = fileGrepSearch(aFileNormal, aFolder);
 				if (sSysApp != ""){
-					BufferedReader sysAppReader = new BufferedReader(new FileReader(sSysApp));
+					sysAppReader = new BufferedReaderClean(new FileReader(sSysApp));
 					bResult = extractJavaCrashData(sysAppReader, nativ);
 				}
 			}
@@ -1084,6 +1151,11 @@ public class MainParser{
 			System.err.println( "javacrash - parseJavaCrashFile : " + e);
 			e.printStackTrace();
 			return false;
+		} finally {
+			if (sysAppReader != null) {
+				sysAppReader.close();
+			}
+			silentClose(f);
 		}
 		return bResult;
 	}
@@ -1138,7 +1210,6 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA0=" + sPID);
 			bResult &= appendToCrashfile("DATA1=" + sType);
 			bResult &= appendToCrashfile("DATA2=" + sStack);
-			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractUIWDTData : " + e);
 			e.printStackTrace();
@@ -1180,7 +1251,6 @@ public class MainParser{
 			}
 			bResult &= appendToCrashfile("DATA0=" + sPID);
 			bResult &= appendToCrashfile("DATA1=" + sType);
-			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractWTFData : " + e);
 			e.printStackTrace();
@@ -1308,7 +1378,6 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA0=" + filterAdressesPattern(sPID));
 			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sException));
 			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack));
-			aReader.close();
 		}catch (Exception e) {
 			System.err.println( "extractJavaCrashData : " + e);
 			e.printStackTrace();
