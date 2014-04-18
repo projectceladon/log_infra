@@ -76,6 +76,8 @@ public class Event extends GeneralEvent{
 	public Event(HistoryEvent histEvent, String myBuild, boolean isUserBuild) {
 		fillEvent(histEvent, myBuild, isUserBuild);
 		setVariant(GeneralBuild.getVariant());
+		setIngredients(Build.getIngredients());
+		setOsBootMode(GeneralEvent.BOOT_MOS_TO_MOS);
 		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
 	}
 
@@ -277,6 +279,7 @@ public class Event extends GeneralEvent{
 		}
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
 		sBuild.setVariant(this.variant);
+		sBuild.setIngredientsJson(this.ingredients);
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
 		//GCM not fully implemented
@@ -293,7 +296,7 @@ public class Event extends GeneralEvent{
 				this.data0, this.data1, this.data2, this.data3, this.data4, this.data5,
 				this.date, lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
 				aDevice, this.iRowID,this.pdStatus );
-
+		event.setBootMode(this.osBootMode);
 		return event;
 	}
 

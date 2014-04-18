@@ -1,27 +1,11 @@
-/* Crash Report (CLOTA)
- *
- * Copyright (C) Intel 2012
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Mathieu Auret <mathieu.auret@intel.com>
- */
-
 package com.intel.crashtoolserver.bean;
 
 import java.io.File;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import com.intel.crashtool.constant.CtDateConstants;
 
 /**
  * Bean Event, used to transmit event data between a client and a server
@@ -41,7 +25,7 @@ public class Event implements Serializable {
 	 * default value : GENE
 	 */
 	public enum Origin {
-		CLOTA, MPTA, GENE, ACS
+		CLOTA, MPTA, GENE, ACS, EGG, MPM, CLA
 	}
 
 	/**
@@ -70,6 +54,7 @@ public class Event implements Serializable {
 	private long uptime;
 	private String logFileName;
 	private File logFile;
+	private String logFileURI;
 	private String reportFile;
 	private String imei;
 	private String origin;
@@ -80,7 +65,9 @@ public class Event implements Serializable {
 	private int bplog;
 	private long rowId;
 	private String pdStatus;
-
+	private boolean logFileNotAvailable;
+	private boolean reportFileNotAvailable;
+	private String bootMode;
 	private Build build;
 	private Device device;
 	private Uptime uptimeObj;
@@ -109,7 +96,7 @@ public class Event implements Serializable {
 			String data1, String data2, Date date, String buildId,
 			String deviceId, long uptime) {
 
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -136,7 +123,7 @@ public class Event implements Serializable {
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, long uptime) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -162,7 +149,7 @@ public class Event implements Serializable {
 			String data4, String data5, Date date,
 			String deviceId, String imei, long uptime, Build build) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -185,7 +172,7 @@ public class Event implements Serializable {
 			String data1, String data2, Date date, String buildId,
 			String deviceId, long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -212,7 +199,7 @@ public class Event implements Serializable {
 			String data5, Date date, String buildId, String deviceId,
 			long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -240,7 +227,7 @@ public class Event implements Serializable {
 			String data5, Date date, String buildId, String deviceId, String imei,
 			long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -268,7 +255,7 @@ public class Event implements Serializable {
 			String data5, Date date, String deviceId, String imei,
 			long uptime, File logFile, Build build) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, null, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, null, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -296,7 +283,7 @@ public class Event implements Serializable {
 			String data5, Date date, String deviceId, String imei,
 			long uptime, File logFile, Build build, Event.Origin origin) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, origin, null, UNKNOWN_ROWID, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, origin, null, UNKNOWN_ROWID, null, null, null);
 	}
 
 	/**
@@ -324,7 +311,7 @@ public class Event implements Serializable {
 			String data5, Date date,
 			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, null);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, null, null, null);
 	}
 
 
@@ -347,12 +334,69 @@ public class Event implements Serializable {
 	 * @param device
 	 * @param rowId
 	 */
+	@Deprecated
 	public Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date,
 			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, null, null);
+	}
+	
+	/**
+	 * Used by PD above 1.6
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 * @param origin
+	 * @param device
+	 * @param rowId
+	 * @param pdStatus
+	 * @param bootMode
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date,
+			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus, String bootMode) {
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null);
+	}
+	
+	/**
+	 * Used by CLA
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 * @param origin
+	 * @param device
+	 * @param rowId
+	 * @param pdStatus
+	 * @param bootMode
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date,
+			String logFileURI, Build build, Device device) {
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, 0l, null, build, null, device, UNKNOWN_ROWID, null, null, logFileURI);
 	}
 
 	/**
@@ -378,7 +422,8 @@ public class Event implements Serializable {
 	private Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date, String buildId, String deviceId, String imei,
-			String testId, long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus) {
+			String testId, long uptime, File logFile, Build build, Event.Origin origin, 
+			Device device, long rowId, String pdStatus, String bootMode, String logFileURI) {
 
 		this.eventId = eventId;
 		this.event = event;
@@ -396,6 +441,8 @@ public class Event implements Serializable {
 		if (this.logFile != null) {
 			this.logFileName = logFile.getName();
 		}
+		this.logFileURI = logFileURI;
+		//this.logFileURIOnly = StringUtils.isNotBlank(this.logFileURI);
 
 		this.data3 = data3;
 		this.data4 = data4;
@@ -407,9 +454,13 @@ public class Event implements Serializable {
 		}
 
 		this.device = device;
-		this.dateString = com.intel.crashtool.crashtoolDb.bean.util.DateUtils.dateToString(date);
+		if (date != null) {
+			this.dateString = new SimpleDateFormat(CtDateConstants.PATTERN_TIMESTAMP).format(date);
+		}
 		this.rowId = rowId;
 		this.pdStatus = pdStatus;
+		this.bootMode = bootMode;
+		
 	}
 
 
@@ -444,6 +495,11 @@ public class Event implements Serializable {
 			this.origin = value.name();
 		}
 	}
+	
+	public void setOrigin(String origin) {
+		this.origin = origin;
+	}
+
 
 	public String getImei() {
 		return imei;
@@ -653,19 +709,20 @@ public class Event implements Serializable {
 	}
 
 
-	/**
-	 * @param origin the origin to set
-	 */
-	public void setOrigin(String origin) {
-		this.origin = origin;
-	}
-
-	/**
-	 * @param fileOrigin the fileOrigin to set
-	 */
-	public void setFileOrigin(String fileOrigin) {
-		this.fileOrigin = fileOrigin;
-	}
+//	/**
+//	 * @param origin the origin to set
+//	 */
+//	@Deprecated
+//	public void setOrigin(String origin) {
+//		this.origin = origin;
+//	}
+//
+//	/**
+//	 * @param fileOrigin the fileOrigin to set
+//	 */
+//	public void setFileOrigin(String fileOrigin) {
+//		this.fileOrigin = fileOrigin;
+//	}
 
 	/**
 	 * @return the rejected
@@ -802,23 +859,58 @@ public class Event implements Serializable {
 		this.pdStatus = pdStatus;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Event [id=" + id + ", eventId=" + eventId + ", event=" + event + ", type=" + type
-				+ ", data0=" + data0 + ", data1=" + data1 + ", data2=" + data2 + ", data3=" + data3
-				+ ", data4=" + data4 + ", data5=" + data5 + ", date=" + date + ", dateString="
-				+ dateString + ", buildId=" + buildId + ", deviceId=" + deviceId + ", testId="
-				+ testId + ", uptime=" + uptime + ", logFileName=" + logFileName + ", logFile="
-				+ logFile + ", reportFile=" + reportFile + ", imei=" + imei + ", origin=" + origin
-				+ ", fileOrigin=" + fileOrigin + ", insertedEventDate=" + insertedEventDate
-				+ ", insertedFileDate=" + insertedFileDate + ", rejected=" + rejected + ", bplog="
-				+ bplog + ", rowId=" + rowId + ", pdStatus=" + pdStatus + ", build=" + build
-				+ ", device=" + device + ", uptimeObj=" + uptimeObj + ", crashtype=" + crashtype
-				+ "]";
+	public boolean isLogFileNotAvailable() {
+		return logFileNotAvailable;
 	}
 
+	public void setLogFileNotAvailable(boolean logFileNotAvailable) {
+		this.logFileNotAvailable = logFileNotAvailable;
+	}
 
+	public boolean isReportFileNotAvailable() {
+		return reportFileNotAvailable;
+	}
+
+	public void setReportFileNotAvailable(boolean reportFileNotAvailable) {
+		this.reportFileNotAvailable = reportFileNotAvailable;
+	}
+	
+	public String getBootMode() {
+		return bootMode;
+	}
+
+	public void setBootMode(String bootMode) {
+		this.bootMode = bootMode;
+	}
+	
+	public String getLogFileURI() {
+		return logFileURI;
+	}
+
+	public void setLogFileURI(String logFileURI) {
+		this.logFileURI = logFileURI;
+	}
+
+	@Override
+	public String toString() {
+		return "Event [id=" + id + ", eventId=" + eventId + ", event=" + event
+				+ ", type=" + type + ", data0=" + data0 + ", data1=" + data1
+				+ ", data2=" + data2 + ", data3=" + data3 + ", data4=" + data4
+				+ ", data5=" + data5 + ", date=" + date + ", dateString="
+				+ dateString + ", buildId=" + buildId + ", deviceId="
+				+ deviceId + ", testId=" + testId + ", uptime=" + uptime
+				+ ", logFileName=" + logFileName + ", logFile=" + logFile
+				+ ", logFileURI=" + logFileURI + ", reportFile=" + reportFile + ", imei="
+				+ imei + ", origin=" + origin + ", fileOrigin=" + fileOrigin
+				+ ", insertedEventDate=" + insertedEventDate
+				+ ", insertedFileDate=" + insertedFileDate + ", rejected="
+				+ rejected + ", bplog=" + bplog + ", rowId=" + rowId
+				+ ", pdStatus=" + pdStatus + ", logFileNotAvailable="
+				+ logFileNotAvailable + ", reportFileNotAvailable="
+				+ reportFileNotAvailable + ", bootMode=" + bootMode
+				+ ", build=" + build + ", device=" + device + ", uptimeObj="
+				+ uptimeObj + ", crashtype=" + crashtype + "]";
+	}
+	
+	
 }

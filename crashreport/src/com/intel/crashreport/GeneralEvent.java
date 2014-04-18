@@ -33,6 +33,23 @@ import android.os.SystemProperties;
 
 public class GeneralEvent {
 
+	public static final String BOOT_MOS_TO_MOS = "MOS-MOS";
+	public static final String BOOT_MOS_TO_POS = "MOS-POS";
+	public static final String BOOT_MOS_TO_ROS = "MOS-ROS";
+	public static final String BOOT_MOS_TO_COS = "MOS-COS";
+	public static final String BOOT_POS_TO_MOS = "POS-MOS";
+	public static final String BOOT_POS_TO_POS = "POS-POS";
+	public static final String BOOT_POS_TO_ROS = "POS-ROS";
+	public static final String BOOT_POS_TO_COS = "POS-COS";
+	public static final String BOOT_ROS_TO_MOS = "ROS-MOS";
+	public static final String BOOT_ROS_TO_POS = "ROS-POS";
+	public static final String BOOT_ROS_TO_ROS = "ROS-ROS";
+	public static final String BOOT_ROS_TO_COS = "ROS-COS";
+	public static final String BOOT_COS_TO_MOS = "COS-MOS";
+	public static final String BOOT_COS_TO_POS = "COS-POS";
+	public static final String BOOT_COS_TO_ROS = "COS-ROS";
+	public static final String BOOT_COS_TO_COS = "COS-COS";
+
 	private static final String UUID_FILE_PATH = Constants.LOGS_DIR + "/uuid.txt";
 
 	protected final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
@@ -51,6 +68,8 @@ public class GeneralEvent {
 	protected String buildId = "";
 	protected String deviceId = "";
 	protected String variant = "";
+	protected String ingredients = "";
+	protected String osBootMode = "";
 	protected String imei = "";
 	protected String uptime = "";
 	protected String crashDir = "";
@@ -403,5 +422,41 @@ public class GeneralEvent {
 
 	public void setVariant(String variant) {
 		this.variant = variant;
+	}
+
+	/**
+	 * Returns this object's <i>ingredients</i> as JSON string.
+	 * @return this object <i>ingredients</i>.
+	 */
+	public String getIngredients() {
+		return this.ingredients;
+	}
+
+	/**
+	 * Sets this object's <i>ingredients</i> value to the given
+	 * JSON string.
+	 * @param ingredients the new ingredients values as string.
+	 */
+	public void setIngredients(String ingredients) {
+		this.ingredients = ingredients;
+	}
+
+	/**
+	 * Returns this object's boot mode (actually the boot transition).
+	 * This property is a descripive string indicating what the previous
+	 * boot mode was (<i>MOS</i>, <i>POS</i>, <i>COS</i>) and what the current
+	 * boot mode is.
+	 * @return this object's boot mode value
+	 */
+	public String getOsBootMode() {
+		return this.osBootMode;
+	}
+
+	/**
+	 * Sets this objec's boot mode to the given string.
+	 * @param osBootMode the new OS boot mode value
+	 */
+	public void setOsBootMode(String osBootMode) {
+		this.osBootMode = osBootMode;
 	}
 }

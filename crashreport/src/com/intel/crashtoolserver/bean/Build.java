@@ -1,22 +1,3 @@
-/* Crash Report (CLOTA)
- *
- * Copyright (C) Intel 2012
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Mathieu Auret <mathieu.auret@intel.com>
- */
-
 package com.intel.crashtoolserver.bean;
 
 import java.io.Serializable;
@@ -26,9 +7,12 @@ public class Build implements Serializable {
 
 	private static final long serialVersionUID = 5286879029277574763L;
 
-	private static final String DEFAULT_VALUE = "";
+	public static final String DEFAULT_VALUE = "";
 	public static final int MAX_SIZE_BUILDID = 40;
+	public static final int MAX_SIZE_COMPONENT = 92;
+	public static final int MAX_SIZE_FINGERTPRINT = 120;	
 	public final static String DEFAULT_BUILD_TYPE = "dev";
+	public final static String LATEST_BUILD_TYPE = "latest";
 	public final static String DEFAULT_BUILD_VARIANT = "unknown";
 
 	private Long id;
@@ -45,57 +29,126 @@ public class Build implements Serializable {
 	private String valhooksVersion  = DEFAULT_VALUE;
 	private String variant;
 	private String type;
-
-	/**
-	 * @return the type
-	 */
-	public String getType() {
-		return type;
-	}
-
-	/**
-	 * @param type the type to set
-	 */
-	public void setType(String type) {
-		this.type = type;
-	}
+	private String os;
+	private Project project;	
+	private String ingredientsJson;
+	private Ingredients ingredients;
+	private String uniqueKey;
+	private String uniqueKeyGenerationMethod;
 
 	@Deprecated
 	private Long mainlineId;
+	@Deprecated
 	private Mainline mainline;
 
-	// used for backwork compatibility
+	private Date date;
+	
+	/**
+	 * Private full constructor, cannot be called straight away from any client
+	 * @param id
+	 * @param buildId
+	 * @param name
+	 * @param fingerPrint
+	 * @param kernelVersion
+	 * @param buildUserHostname
+	 * @param modemVersion
+	 * @param ifwiVersion
+	 * @param iafwVersion
+	 * @param scufwVersion
+	 * @param punitVersion
+	 * @param valhooksVersion
+	 * @param variant
+	 * @param type
+	 * @param os
+	 * @param project
+	 * @param ingredientsJson
+	 * @param uniqueKey
+	 * @param uniquekeyGenerationMethod
+	 * @param mainlineId
+	 * @param mainline
+	 * @param date
+	 */
+	private Build(Long id, String buildId, String name, String fingerPrint,
+			String kernelVersion, String buildUserHostname,
+			String modemVersion, String ifwiVersion, String iafwVersion,
+			String scufwVersion, String punitVersion, String valhooksVersion,
+			String variant, String type, String os, Project project,
+			String ingredientsJson, String uniqueKey,
+			String uniqueKeyGenerationMethod, Long mainlineId,
+			Mainline mainline, Date date) {
+		
+		super();
+		this.id = id;
+		this.buildId = buildId;
+		this.name = name;
+		this.fingerPrint = fingerPrint;
+		this.kernelVersion = kernelVersion;
+		this.buildUserHostname = buildUserHostname;
+		this.modemVersion = modemVersion;
+		this.ifwiVersion = ifwiVersion;
+		this.iafwVersion = iafwVersion;
+		this.scufwVersion = scufwVersion;
+		this.punitVersion = punitVersion;
+		this.valhooksVersion = valhooksVersion;
+		this.variant = variant;
+		this.type = type;
+		this.os = os;
+		this.project = project;
+		this.ingredientsJson = ingredientsJson;
+		this.uniqueKey = uniqueKey;
+		this.uniqueKeyGenerationMethod = uniqueKeyGenerationMethod;
+		this.mainlineId = mainlineId;
+		this.mainline = mainline;
+		this.date = date;
+	}
+
+	/**
+	 * Default constructor
+	 */
+	public Build() {
+		
+	}
+	
+	/**
+	 * Used by PD under 1.0
+	 * @param buildId
+	 */
+	@Deprecated
 	public Build(String buildId) {
 		super();
 		this.buildId = buildId;
 	}
 
 	/**
-	 * @return the name
+	 * Used by MPM, EGG
+	 * @param buildId
+	 * @param fingerPrint
+	 * @param kernelVersion
+	 * @param buildUserHostname
+	 * @param modemVersion
+	 * @param ifwiVersion
+	 * @param iafwVersion
+	 * @param scufwVersion
+	 * @param punitVersion
+	 * @param valhooksVersion
+	 * @param os
 	 */
-	public String getName() {
-		return name;
+	public Build(String buildId, String fingerPrint, String kernelVersion,
+			String buildUserHostname, String modemVersion, String ifwiVersion, String iafwVersion,
+			String scufwVersion, String punitVersion, String valhooksVersion, String os) {
+		
+		this(0l, buildId, null, fingerPrint,
+				kernelVersion, buildUserHostname,
+				modemVersion, ifwiVersion, iafwVersion,
+				scufwVersion, punitVersion, valhooksVersion,
+				null, null, os, null,
+				null, null,
+				null, 0l,
+				null, null);
 	}
-
-
+	
 	/**
-	 * @param name the name to set
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	private Date date;
-
-	/**
-	 * Default constructor
-	 */
-	public Build() {}
-
-
-	/**
-	 * Instantiate a build
-	 *
+	 * Used by PD under 1.6
 	 * @param buildId
 	 * @param fingerPrint
 	 * @param kernelVersion
@@ -107,20 +160,69 @@ public class Build implements Serializable {
 	 * @param punitVersion
 	 * @param valhooksVersion
 	 */
+	@Deprecated
 	public Build(String buildId, String fingerPrint, String kernelVersion,
 			String buildUserHostname, String modemVersion, String ifwiVersion, String iafwVersion,
 			String scufwVersion, String punitVersion, String valhooksVersion) {
-		super();
-		this.buildId = buildId;
-		this.fingerPrint = fingerPrint;
-		this.kernelVersion = kernelVersion;
-		this.buildUserHostname = buildUserHostname;
-		this.modemVersion = modemVersion;
-		this.ifwiVersion = ifwiVersion;
-		this.iafwVersion = iafwVersion;
-		this.scufwVersion = scufwVersion;
-		this.punitVersion = punitVersion;
-		this.valhooksVersion = valhooksVersion;
+		
+		this(0l, buildId, null, fingerPrint,
+				kernelVersion, buildUserHostname,
+				modemVersion, ifwiVersion, iafwVersion,
+				scufwVersion, punitVersion, valhooksVersion,
+				null, null, null, null,
+				null, null,
+				null, 0l,
+				null, null);
+	}
+	
+	/**
+	 * Used by PD above 1.6
+	 * @param uniqueKey
+	 * @param uniquekeyGenerationMethod
+	 * @param buildId
+	 * @param fingerPrint
+	 * @param kernelVersion
+	 * @param buildUserHostname
+	 * @param ingredientsJson
+	 * @param os
+	 */
+	public Build(String uniqueKey,
+			String uniquekeyGenerationMethod, String buildId, String fingerPrint,
+			String kernelVersion, String buildUserHostname, String ingredientsJson,
+			String os) {
+		
+		 this(0l, buildId, null, fingerPrint,
+					kernelVersion, buildUserHostname,
+					null, null, null,
+					null, null, null,
+					null, null, os, null,
+					ingredientsJson, uniqueKey,
+					uniquekeyGenerationMethod, 0l,
+					null, null);
+	}
+	
+	/**
+	 * Used by CLA
+	 * @param uniqueKey
+	 * @param uniquekeyGenerationMethod
+	 * @param buildId
+	 * @param fingerPrint
+	 * @param kernelVersion
+	 * @param buildUserHostname
+	 * @param ingredientsJson
+	 * @param os
+	 */
+	public Build(String buildId, String modemVersion,
+			String os) {
+		
+		 this(0l, buildId, null, null,
+					null, null,
+					modemVersion, null, null,
+					null, null, null,
+					null, null, os, null,
+					null, null,
+					null, 0l,
+					null, null);
 	}
 
 	/**
@@ -299,6 +401,7 @@ public class Build implements Serializable {
 	/**
 	 * @return the mainline
 	 */
+	@Deprecated
 	public Mainline getMainline() {
 		return mainline;
 	}
@@ -306,6 +409,7 @@ public class Build implements Serializable {
 	/**
 	 * @param mainline the mainline to set
 	 */
+	@Deprecated
 	public void setMainline(Mainline mainline) {
 		this.mainline = mainline;
 	}
@@ -313,6 +417,7 @@ public class Build implements Serializable {
 	/**
 	 * @return the variant
 	 */
+	@Deprecated
 	public String getVariant() {
 		return variant;
 	}
@@ -324,19 +429,96 @@ public class Build implements Serializable {
 		this.variant = variant;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name + ", fingerPrint="
-				+ fingerPrint + ", kernelVersion=" + kernelVersion + ", buildUserHostname="
-				+ buildUserHostname + ", modemVersion=" + modemVersion + ", ifwiVersion="
-				+ ifwiVersion + ", iafwVersion=" + iafwVersion + ", scufwVersion=" + scufwVersion
-				+ ", punitVersion=" + punitVersion + ", valhooksVersion=" + valhooksVersion
-				+ ", variant=" + variant + ", mainlineId=" + mainlineId + ", mainline=" + mainline
-				+ ", date=" + date + "]";
+	public Project getProject() {
+		return project;
 	}
 
+	public void setProject(Project project) {
+		this.project = project;
+	}
+	
+	public String getIngredientsJson() {
+		return ingredientsJson;
+	}
 
+	public void setIngredientsJson(String ingredientsJson) {
+		this.ingredientsJson = ingredientsJson;
+	}
+
+	public String getUniqueKey() {
+		return uniqueKey;
+	}
+
+	public void setUniqueKey(String uniqueKey) {
+		this.uniqueKey = uniqueKey;
+	}
+
+	public String getUniqueKeyGenerationMethod() {
+		return uniqueKeyGenerationMethod;
+	}
+
+	public void setUniqueKeyGenerationMethod(String uniqueKeyGenerationMethod) {
+		this.uniqueKeyGenerationMethod = uniqueKeyGenerationMethod;
+	}
+
+	/**
+	 * @return the type
+	 */
+	public String getType() {
+		return type;
+	}
+
+	public String getOs() {
+		return os;
+	}
+
+	public void setOs(String os) {
+		this.os = os;
+	}
+
+	/**
+	 * @param type the type to set
+	 */
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	/**
+	 * @return the name
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Ingredients getIngredients() {
+		return ingredients;
+	}
+
+	public void setIngredients(Ingredients ingredients) {
+		this.ingredients = ingredients;
+	}
+	
+	@Override
+	public String toString() {
+		return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name
+				+ ", fingerPrint=" + fingerPrint + ", kernelVersion="
+				+ kernelVersion + ", buildUserHostname=" + buildUserHostname
+				+ ", modemVersion=" + modemVersion + ", ifwiVersion="
+				+ ifwiVersion + ", iafwVersion=" + iafwVersion
+				+ ", scufwVersion=" + scufwVersion + ", punitVersion="
+				+ punitVersion + ", valhooksVersion=" + valhooksVersion
+				+ ", variant=" + variant + ", type=" + type + ", os=" + os
+				+ ", project=" + project + ", ingredientsJson="
+				+ ingredientsJson + ", uniqueKey=" + uniqueKey
+				+ ", uniqueKeyGenerationMethod=" + uniqueKeyGenerationMethod
+				+ ", mainlineId=" + mainlineId + ", mainline=" + mainline
+				+ ", date=" + date + "]";
+	}
 }

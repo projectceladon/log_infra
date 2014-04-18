@@ -1,22 +1,3 @@
-/* Crash Report (CLOTA)
- *
- * Copyright (C) Intel 2012
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Mathieu Auret <mathieu.auret@intel.com>
- */
-
 package com.intel.crashtoolserver.bean;
 
 import java.io.Serializable;
@@ -56,10 +37,16 @@ public class FileInfo implements Serializable {
 	 * @param dayDir
 	 * @param eventId
 	 */
-	@Deprecated
+	 @Deprecated
 	public FileInfo(String name, String path, long size, String dayDir,
 			String eventId) {
-		this(name, path, size, dayDir, eventId, null);
+		 
+		this.name = name;
+		this.path = path;
+		this.size = size;
+		this.dayDir = dayDir;
+		this.eventId = eventId;
+		this.origin = null;
 	}
 
 	// TODO check if it is still used, if not remove
@@ -97,6 +84,26 @@ public class FileInfo implements Serializable {
 		if (origin != null) {
 			this.origin = origin.name();
 		}
+	}
+	
+	/**
+	 * constructor using origin as String as it is much easier than 
+	 * @param name
+	 * @param path
+	 * @param size
+	 * @param dayDir
+	 * @param eventId
+	 * @param origin
+	 */
+	public FileInfo(String name, String path, long size, String dayDir,
+			String eventId, String origin) {
+		
+		this.name = name;
+		this.path = path;
+		this.size = size;
+		this.dayDir = dayDir;
+		this.eventId = eventId;
+		this.origin = origin;
 	}
 
 	public String getDayDir() {
@@ -151,6 +158,19 @@ public class FileInfo implements Serializable {
 		this.origin = origin;
 	}
 
+	public Event.Origin getOriginEnum() {
+		if (origin == null) {
+			return  null;
+		}
+
+		try {
+			return Event.Origin.valueOf(origin);
+		} catch (Exception e) {
+			//do nothing
+		}
+		return null;
+	}
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

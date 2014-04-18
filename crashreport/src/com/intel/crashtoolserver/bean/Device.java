@@ -1,22 +1,3 @@
-/* Crash Report (CLOTA)
- *
- * Copyright (C) Intel 2012
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Mathieu Auret <mathieu.auret@intel.com>
- */
-
 package com.intel.crashtoolserver.bean;
 
 import java.io.Serializable;
@@ -38,6 +19,10 @@ public class Device implements Serializable {
 	private Long id;
 	private String deviceId;
 	private String imei;
+	/**
+	 * @deprecated : pid does not exist anymore in CrashTool database
+	 */
+	@Deprecated
 	private String pid;
 	private String hwType;
 	private String platform;
@@ -51,13 +36,17 @@ public class Device implements Serializable {
 	private String gcmToken;
 	private String spid;
 	private TracmorDevice tracmorDevice;
-
+	
+	/**
+	 * not use anymore 
+	 */
+	@Deprecated
 	public Device() {
-		// do nothing
+		this(null, null, null, null, null, null, null, null, null, null);
 	}
 
 	/**
-	 * Light Constructor
+	 * Light Constructor used by PD under 1.0
 	 *
 	 * @param deviceId
 	 * @param imei
@@ -69,7 +58,7 @@ public class Device implements Serializable {
 
 
 	/**
-	 *
+	 * used by parser
 	 * @param deviceId
 	 * @param imei
 	 * @param pid
@@ -86,7 +75,7 @@ public class Device implements Serializable {
 	}
 
 	/**
-	 *
+	 * used By PD under 1.6 and ACL
 	 * @param deviceId
 	 * @param imei
 	 * @param ssn
@@ -94,8 +83,9 @@ public class Device implements Serializable {
 	public Device(String deviceId, String imei, String ssn) {
 		this(deviceId, imei, null, null, null, null, null, ssn, null, null);
 	}
-
+	
 	/**
+	 * used By PD above 1.6
 	 * @param deviceId
 	 * @param imei
 	 * @param ssn
@@ -107,6 +97,7 @@ public class Device implements Serializable {
 	}
 
 	/**
+	 * Used by parser
 	 * @param deviceId
 	 * @param imei
 	 * @param pid
@@ -168,11 +159,12 @@ public class Device implements Serializable {
 	public void setImei(String imei) {
 		this.imei = imei;
 	}
-
+	
+	@Deprecated
 	public String getPid() {
 		return pid;
 	}
-
+	@Deprecated
 	public void setPid(String pid) {
 		this.pid = pid;
 	}
@@ -252,7 +244,7 @@ public class Device implements Serializable {
 	public void setId(Long id) {
 		this.id = id;
 	}
-
+	
 	public TracmorDevice getTracmorDevice() {
 		return tracmorDevice;
 	}
@@ -276,7 +268,7 @@ public class Device implements Serializable {
 	public void setSpid(String spid) {
 		this.spid = spid;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei

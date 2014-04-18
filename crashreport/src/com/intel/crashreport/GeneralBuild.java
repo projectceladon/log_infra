@@ -24,11 +24,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.intel.phonedoctor.Constants;
-
 import android.os.SystemProperties;
+
+import com.intel.phonedoctor.Constants;
 
 public class GeneralBuild {
 
@@ -95,6 +96,8 @@ public class GeneralBuild {
 	public GeneralBuild() {}
 
 	public com.intel.crashtoolserver.bean.Build getBuildForServer() {
+		// Null values provided at instance creation time will
+		// instead be handled later via the ingredients mechanism.
 		return new com.intel.crashtoolserver.bean.Build(
 				buildId.getValue(),
 				fingerPrint.getValue(),

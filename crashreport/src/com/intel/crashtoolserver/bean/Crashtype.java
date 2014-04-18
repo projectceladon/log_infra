@@ -1,22 +1,3 @@
-/* Crash Report (CLOTA)
- *
- * Copyright (C) Intel 2012
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Mathieu Auret <mathieu.auret@intel.com>
- */
-
 package com.intel.crashtoolserver.bean;
 
 import java.io.Serializable;
@@ -30,7 +11,9 @@ import java.io.Serializable;
 public class Crashtype implements Serializable {
 
 	private static final long serialVersionUID = -3933669314600924927L;
-
+	
+	public final static int MAX_SIZE_EVENT = 10;
+	public final static int MAX_SIZE_TYPE = 20;
 	public final static int MAX_SIZE_DATA0 = 255;
 	public final static int MAX_SIZE_DATA1 = 255;
 	public final static int MAX_SIZE_DATA2 = 512;
@@ -47,6 +30,7 @@ public class Crashtype implements Serializable {
 	private String data1;
 	private String data2;
 	private long bugzilla;
+	private Variant variant;
 
 	/**
 	 * Default constructor
@@ -152,12 +136,18 @@ public class Crashtype implements Serializable {
 		this.bugzilla = bugzilla;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	public Variant getVariant() {
+		return variant;
+	}
+
+	public void setVariant(Variant variant) {
+		this.variant = variant;
+	}
+
 	@Override
 	public String toString() {
-		return "Crashtype [id=" + id + ", event=" + event + ", type=" + type + ", data0=" + data0
-				+ ", data1=" + data1 + ", data2=" + data2 + ", bugzilla=" + bugzilla + "]";
+		return "Crashtype [id=" + id + ", event=" + event + ", type=" + type
+				+ ", data0=" + data0 + ", data1=" + data1 + ", data2=" + data2
+				+ ", bugzilla=" + bugzilla + ", variant=" + variant + "]";
 	}
 }

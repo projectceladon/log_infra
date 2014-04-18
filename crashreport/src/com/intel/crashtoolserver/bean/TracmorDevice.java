@@ -1,22 +1,3 @@
-/* Crash Report (CLOTA)
- *
- * Copyright (C) Intel 2012
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * Author: Mathieu Auret <mathieu.auret@intel.com>
- */
-
 package com.intel.crashtoolserver.bean;
 
 import java.util.Date;
@@ -24,10 +5,10 @@ import java.util.Date;
 /**
  * Wraps all tracmor Device's information
  * @author mauret
- *
+ * 
  */
 public class TracmorDevice {
-
+	
 	private long id;
 	private String prototypeModelCode;
 	private String serialNumber;
@@ -44,8 +25,8 @@ public class TracmorDevice {
 	private String ownerEmail;
 	private String idsid;
 	private String labOwner;
-
-
+	
+	
 
 	public long getId() {
 		return id;
@@ -174,7 +155,7 @@ public class TracmorDevice {
 	public void setModifiedDate(Date modifiedDate) {
 		this.modifiedDate = modifiedDate;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "TracmorDevice [id=" + id + ", prototypeModelCode="

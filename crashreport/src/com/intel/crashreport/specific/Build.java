@@ -25,12 +25,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import android.content.Context;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.Log;
+import com.intel.crashreport.specific.ingredients.FileIngredientBuilder;
+import com.intel.crashreport.specific.ingredients.IngredientBuilder;
 import com.intel.crashreport.propconfig.PropertyConfigLoader;
 import com.intel.crashreport.propconfig.bean.BuildAllowedValues;
 import com.intel.phonedoctor.Constants;
@@ -38,6 +42,7 @@ import com.intel.phonedoctor.Constants;
 public class Build extends GeneralBuild{
 
 	private static final String PATH_MODEMID = Constants.LOGS_DIR + "/modemid.txt";
+	private static final String INGREDIENTS_FILE_PATH = Constants.LOGS_DIR + "/ingredients.txt";
 	private static BuildAllowedValues ALLOWED_VALUES = null;
 	private Context ctx;
 
@@ -65,6 +70,65 @@ public class Build extends GeneralBuild{
 		ctx = context;
 		checkAllowedProperties();
 	}
+
+	/**
+	 * Returns this <code>GeneralBuild</code>'s <i>ingredients</i> value
+	 * as JSON string.
+	 * @return the ingredients as string.
+	 */
+	public static final String getIngredients() {
+		// Create an ingredient builder
+		IngredientBuilder builder = new FileIngredientBuilder(INGREDIENTS_FILE_PATH);
+		// Retrieve the ingredients
+		Map<String, String> ingredients = builder.getIngredients();
+		// Add the build-related ingredients.
+		// Because we are not in a Build instance we do not have
+		// any cleaner way that to compute once more the property values.
+		ingredients.put("ifwi", getProperty("sys.ifwi.version"));
+		ingredients.put("iafw", getProperty("sys.ia32.version"));
+		ingredients.put("scu", getProperty("sys.scu.version"));
+		ingredients.put("punit", getProperty("sys.punit.version"));
+		ingredients.put("valhooks", getProperty("sys.valhooks.version"));
+		// Create a StringBuilder for the final JSON string
+		StringBuilder ingredientsBuffer = new StringBuilder("{");
+		// Process the ingredients
+		appendIngredients(ingredients, ingredientsBuffer);
+		// Remove the last coma if any
+		int lastComa = ingredientsBuffer.lastIndexOf(",");
+		if(lastComa != -1) {
+			ingredientsBuffer.deleteCharAt(lastComa);
+		}
+		// End the JSON string property
+		ingredientsBuffer.append("}");
+		// Return the JSON string
+		return ingredientsBuffer.toString();
+	}
+
+	/**
+	 * Appends the given ingredients to the given buffer.
+	 * @param ingredients the ingredients to write to buffer
+	 * @param buffer the buffer in which to write.
+	 */
+	private static void appendIngredients(Map<String, String> ingredients, StringBuilder buffer) {
+		/* Do nothing if parameters are not valid. */
+		if(ingredients == null || buffer == null) {
+			return;
+		}
+		// Iterate on the ingredients
+		for(String key : ingredients.keySet()) {
+			// Add each ingredient value to the JSON string
+			String value = ingredients.get(key);
+			if(value == null) {
+				value = "";
+			}
+			buffer.append("\"");
+			buffer.append(key);
+			buffer.append("\":\"");
+			buffer.append(value);
+			buffer.append("\",");
+		}
+	}
+
 
 	public void fillBuildWithSystem() {
 		this.setBuildId(android.os.Build.VERSION.INCREMENTAL);
