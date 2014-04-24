@@ -229,8 +229,9 @@ public class FormatParser{
 			Log.w("File \"ipanic_fabric_recv_err\" not found in event dir\n");
 		}
 
+		BufferedReader bufFabricFile = null;
 		try {
-			BufferedReader bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
+			bufFabricFile = new BufferedReader(new FileReader(sFabricFile));
 
 			Pattern patternData0 = Pattern.compile("\\*.*Fabric Flag Status.*");
 			Pattern patternData1 = Pattern.compile(".*Init ID:.*");
@@ -269,6 +270,14 @@ public class FormatParser{
 		catch (Exception e) {
 			System.err.println( "Fab_recov : " + e);
 			e.printStackTrace();
+		} finally {
+			if (bufFabricFile != null) {
+				try {
+					bufFabricFile.close();
+				} catch (IOException e) {
+					Log.w("IOException : " + e.getMessage());
+				}
+			}
 		}
 	}
 

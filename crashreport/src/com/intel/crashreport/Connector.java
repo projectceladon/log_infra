@@ -572,10 +572,10 @@ public class Connector {
 
 	public Boolean sendLogsFile(FileInfo fileInfo, Thread t) throws InterruptedException {
 		String serverMsg;
+		BufferedInputStream bis = null;
 		try {
 			mObjectOutputStream.writeObject(fileInfo);
 
-			BufferedInputStream bis;
 			BufferedOutputStream bos = new BufferedOutputStream(mSocket.getOutputStream());
 
 			byte data[] = new byte[1024];
@@ -595,11 +595,9 @@ public class Connector {
 					mCtx.sendBroadcast(intent);
 				}
 				if (t.isInterrupted()) {
-					bis.close();
 					throw new InterruptedException();
 				}
 			}
-			bis.close();
 			bos.flush();
 
 			if (!mSocket.isClosed() && !mSocket.isInputShutdown()) {
@@ -613,6 +611,14 @@ public class Connector {
 		} catch (NullPointerException e) {
 			Log.w(Log.getStackTraceString(e));
 			return false;
+		} finally {
+			if (bis != null) {
+				try {
+					bis.close();
+				} catch (IOException e) {
+					Log.w("IOException : " + e.getMessage());
+				}
+			}
 		}
 		return false;
 	}
