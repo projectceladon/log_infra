@@ -115,6 +115,7 @@ public class EventUploadThread implements Runnable {
 			Log.e(
 					EventUploadThread.class.getSimpleName() +
 					":uploadEvent : no running Thread provided.");
+			serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
 			return;
 		}
 
@@ -122,6 +123,7 @@ public class EventUploadThread implements Runnable {
 			Log.e(
 					EventUploadThread.class.getSimpleName() +
 					":uploadEvent : no connection could be set up.");
+			serviceHandler.sendEmptyMessage(ServiceMsg.uploadFailFromConnection);
 			return;
 		}
 
