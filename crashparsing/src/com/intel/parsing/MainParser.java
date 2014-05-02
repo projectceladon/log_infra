@@ -418,6 +418,7 @@ public class MainParser{
 
 	private boolean ipanic(String aFolder){
 		boolean bResult = true;
+		String sData0 = "";
 
 		String sIPanicFile = fileGrepSearch(".*ipanic_console.*", aFolder);
 		if (sIPanicFile == ""){
@@ -429,7 +430,7 @@ public class MainParser{
 			}
 		}
 		if (sIPanicFile != ""){
-			String sData="";
+			String sDataDefault="";
 			String sDataLockUp="";
 			String sComm = "";
 			String sPanic= "";
@@ -461,7 +462,7 @@ public class MainParser{
 							sTmp = simpleGrepAwk(patternData_64, sCurLine, " ", 3);
 						}
 						if (sTmp != null){
-							sData = sTmp;
+							sDataDefault = sTmp;
 							bDataFound = true;
 							if (bCandidateCommFound){
 								//we use last "comm" found
@@ -521,16 +522,22 @@ public class MainParser{
 						sComm =  sFilteredValue;
 					}
 				}
-
 				// 2 - remove thread name if "Fatal exception in interrupt"
 				if (sPanic.contains("Fatal exception in interrupt")){
 					sComm = "";
 				}
+
 				if (bLockUpCase){
-					bResult &= appendToCrashfile("DATA0=" + sDataLockUp);
+					sData0 = sDataLockUp;
 				} else {
-					bResult &= appendToCrashfile("DATA0=" + sData);
+					sData0 = getStackForPanic(sPanic,sIPanicFile);
 				}
+
+				if (sData0.isEmpty()) {
+					//use default data
+					sData0 = sDataDefault;
+				}
+				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sComm );
 				bResult &= appendToCrashfile("DATA2=" + sPanic );
 				if (sIPanicFile.contains("emmc_ipanic_console")){
@@ -558,6 +565,83 @@ public class MainParser{
 			}
 		}
 		return bResult;
+	}
+
+	private String getStackForPanic(String sPanicValue, String sPathToParse){
+		//get stack for only specific panic case
+		if(sPanicValue.contains("softlockup")){
+			// for IPI deadlockcase, we use a special pattern
+			String sIpi = extractStackTrace(".*waiting for CSD lock.*", sPathToParse);
+			if (sIpi.isEmpty()) {
+				return extractStackTrace("soft lockup", sPathToParse);
+			} else {
+				return sIpi;
+			}
+		}
+		return "";
+	}
+
+	private String extractStackTrace(String sBugProcess, String sPathToParse){
+		String sResult = "";
+		boolean bBugFound = false;
+		boolean bDataFound = false;
+		boolean bCallTraceFound = false;
+		int bCallTraceCount = 0;
+
+		BufferedReaderClean aBuf = null;
+		try{
+			aBuf = new BufferedReaderClean(new FileReader(sPathToParse));
+			Pattern patternBug = java.util.regex.Pattern.compile("BUG: " + sBugProcess);
+			Pattern patternData = java.util.regex.Pattern.compile("EIP:.*");
+			Pattern patternData_64 = java.util.regex.Pattern.compile("RIP: .*\\[.*ffffffff.*\\].*");
+			String sCurLine;
+			while ((sCurLine = aBuf.readLine()) != null) {
+				String sTmp;
+
+				if (!bBugFound) {
+					sTmp = simpleGrepAwk(patternBug, sCurLine, "", 0);
+					if (sTmp != null) {
+						bBugFound = true;
+					}
+				} else {
+					//we are inside the search process, extract call trace
+					if (!bDataFound) {
+						sTmp = simpleGrepAwk(patternData, sCurLine, " ", 2);
+						if (sTmp==null) {
+							//second chance with 64 pattern
+							sTmp = simpleGrepAwk(patternData_64, sCurLine, ">]", 2);
+						}
+						if (sTmp != null) {
+							sResult += sTmp + " - ";
+							bDataFound = true;
+						}
+					}
+					if (sCurLine.contains("Call Trace:")) {
+						bCallTraceFound = true;
+						continue;
+					}
+
+					if (bCallTraceFound) {
+						sResult += " " + formatStackTrace(sCurLine);
+						bCallTraceCount++;
+					}
+					if (bCallTraceCount >= 8){
+						//extract finish
+						break;
+					}
+				}
+			}
+		} catch(Exception e) {
+			System.err.println( "extractStackTrace : " + e);
+			e.printStackTrace();
+			return "";
+
+		} finally {
+			if (aBuf != null) {
+				aBuf.close();
+			}
+		}
+		return sResult;
 	}
 
 	private String formatStackTrace(String sLine){
