@@ -38,6 +38,7 @@ import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
 import com.intel.crashreport.bugzilla.BZ;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.specific.Event;
+
 import com.intel.phonedoctor.Constants;
 
 public class GeneralEventDB {
@@ -626,7 +627,7 @@ public class GeneralEventDB {
 		return (int)(date.getTime() / COEF_S_TO_MS);
 	}
 
-	private Date convertDateForJava(int date) {
+	protected Date convertDateForJava(int date) {
 		long dateLong = date;
 		dateLong = dateLong * COEF_S_TO_MS;
 		return new Date(dateLong);
@@ -1059,28 +1060,7 @@ public class GeneralEventDB {
 		return mDb.insert(DATABASE_GCM_MESSAGES_TABLE, null, initialValues);
 	}
 
-	/**
-	 * Writes the given GCM message to database.
-	 *
-	 * The message's date is updated if it does not have one at this point
-	 * in time.
-	 *
-	 * @param aGcmMessage the message to write
-	 *
-	 * @return the result of the database insertion request
-	 */
-	public long addGcmMessage(GcmMessage aGcmMessage) {
-		if(aGcmMessage.getDate() == null) {
-			aGcmMessage.setDate(new Date());
-		}
 
-		return addGcmMessage(
-				aGcmMessage.getTitle(),
-				aGcmMessage.getText(),
-				aGcmMessage.getType().toString(),
-				aGcmMessage.getData(),
-				aGcmMessage.getDate());
-	}
 
 	/**
 	 * Get the list of all GCM Messages not cancelled by the user
@@ -1135,24 +1115,7 @@ public class GeneralEventDB {
 		return count;
 	}
 
-	/**
-	 * Get a GcmMessage object from a GCM_MESSAGES_TABLE cursor
-	 * @param cursor a GCM_MESSAGES_TABLE cursor
-	 * @return the GcmMessage object associated with the cursor
-	 */
-	public GcmMessage fillGCMFromCursor(Cursor cursor) {
 
-		Date date = convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
-		GcmMessage message = new GcmMessage(cursor.getInt(cursor.getColumnIndex(KEY_ROWID)),
-				cursor.getString(cursor.getColumnIndex(KEY_GCM_TITLE)),
-				cursor.getString(cursor.getColumnIndex(KEY_GCM_TEXT)),
-				cursor.getString(cursor.getColumnIndex(KEY_TYPE)),
-				cursor.getString(cursor.getColumnIndex(KEY_GCM_DATA)),
-				cursor.getInt(cursor.getColumnIndex(KEY_NOTIFIED))==1,
-				date);
-
-		return message;
-	}
 
 	/**
 	 * Delete a gcm message in the GCM_MESSAGES_TABLE
@@ -1257,26 +1220,6 @@ public class GeneralEventDB {
 		return rowId;
 	}
 
-	/**
-	 * Get a GcmMessage with its rowId
-	 * @param rowId the row id of the gcm message to get
-	 * @return the gcm message
-	 */
-	public GcmMessage getGcmMessageFromId(int rowId) {
-		Cursor mCursor;
-		String whereQuery = KEY_ROWID+"="+rowId;
-		GcmMessage message = null;
-
-		mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
-				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, whereQuery, null,
-				null, null, null, null);
-		if (mCursor != null) {
-			mCursor.moveToFirst();
-			message = fillGCMFromCursor(mCursor);
-			mCursor.close();
-		}
-		return message;
-	}
 
 	/**
 	 * Add a device in the database

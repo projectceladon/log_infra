@@ -38,6 +38,7 @@ import com.intel.crashreport.bugzilla.ui.common.UserInformationsActivity;
 import com.intel.crashreport.specific.CrashReportActivity;
 import com.intel.crashreport.specific.Event;
 
+
 public class GeneralCrashReportHome extends Activity {
 	private MenuItem aboutMenu;
 	private MenuItem settingsMenu;
@@ -80,17 +81,6 @@ public class GeneralCrashReportHome extends Activity {
 			});
 		}
 
-		Button button_list_gcm = (Button) findViewById(R.id.button_list_gcm_messages);
-		if(null != button_list_gcm) {
-			button_list_gcm.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					Intent intent = new Intent(getApplicationContext(), ListGcmMessagesActivity.class);
-					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-					startActivity(intent);
-				}
-			});
-		}
 		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 	}
 

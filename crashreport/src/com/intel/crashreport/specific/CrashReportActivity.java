@@ -21,7 +21,9 @@ package com.intel.crashreport.specific;
 
 import java.io.FileNotFoundException;
 
+import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.GeneralCrashReportActivity;
+import com.intel.crashreport.Log;
 import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.R;
 
@@ -33,73 +35,141 @@ import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
-
 import android.preference.PreferenceCategory;
 
 
 public class CrashReportActivity extends GeneralCrashReportActivity {
+	private static Boolean gcmEnabled = null;
 
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if(app.isUserBuild()) {
-            CheckBoxPreference wifiPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_connection_wifi_only_key));
-            PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
-            if(wifiPreference != null && dataPreferences != null) {
-                dataPreferences.removePreference(wifiPreference);
-            }
-        }
-        CheckBoxPreference crashNotificationPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_all_crash_notification_key));
-        if(null != crashNotificationPreference) {
-                crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
-        }
-    }
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		if(app.isUserBuild()) {
+			CheckBoxPreference wifiPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_connection_wifi_only_key));
+			PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
+			if(wifiPreference != null && dataPreferences != null) {
+				dataPreferences.removePreference(wifiPreference);
+			}
+		}
+		CheckBoxPreference crashNotificationPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_all_crash_notification_key));
+		if(null != crashNotificationPreference) {
+			crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
+		}
 
-    private OnPreferenceChangeListener changeNotificationListener = new OnPreferenceChangeListener(){
+		CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
+		if(null != checkGcm) {
+			checkGcm.setOnPreferenceChangeListener(gcmListener);
+			if(null == gcmEnabled)
+				gcmEnabled = checkGcm.isChecked();
+		}
 
-        public boolean onPreferenceChange(Preference preference, Object newValue) {
-            Boolean notifyAllCrashes = (Boolean)newValue;
-            if(notifyAllCrashes)
-                new NotifyEventsTask(getApplicationContext()).execute();
-            else {
-                NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
-                nMgr.cancelNotifNoCriticalEvent();
-            }
-            return true;
-        }
+		CheckBoxPreference checkGcmSound = (CheckBoxPreference)this.findPreference(getString(R.string.settings_gcm_sound_activation_key));
+		if(null != checkGcmSound) {
+			checkGcmSound.setOnPreferenceChangeListener(gcmSoundListener);
+		}
+	}
 
-    };
+	private final OnPreferenceChangeListener gcmListener = new OnPreferenceChangeListener(){
 
-    public class NotifyEventsTask extends AsyncTask<Void, Void, Void> {
+		@Override
+		public boolean onPreferenceChange(Preference preference,
+				Object newValue) {
+			if((Boolean)newValue){
+				Log.i("GeneralCrashReportActivity:GCM set to ON");
+				GcmEvent.INSTANCE.checkTokenGCM();
+			}
+			else
+				Log.i("GeneralCrashReportActivity:GCM set to OFF");
+			EventDB db = new EventDB(getApplicationContext());
+			try {
+				db.open();
+				ApplicationPreferences privatePrefs = new ApplicationPreferences(getApplicationContext());
+				db.updateDeviceToken(((Boolean)newValue?privatePrefs.getGcmToken():""));
+				db.close();
+			}
+			catch(SQLException e) {
+				Log.e("GeneralCrashReportActivity:gcmListener: Fail to access DB.");
+			}
+			return true;
+		}
+	};
 
-        private Context context;
+	private final OnPreferenceChangeListener gcmSoundListener = new OnPreferenceChangeListener(){
 
-        public NotifyEventsTask(Context ctx){
-            context = ctx;
-        }
+		@Override
+		public boolean onPreferenceChange(Preference preference,
+				Object newValue) {
+			Boolean newBooleanValue = (Boolean) newValue;
+			ApplicationPreferences preferences = new ApplicationPreferences(getApplicationContext());
+			preferences.setSoundEnabledForGcmNotifications(newBooleanValue);
+			return true;
+		}
+	};
 
-        protected Void doInBackground(Void... params) {
-            EventDB db = new EventDB(context);
-            try {
-                db.open();
-                if (db.isThereEventToNotify(true)) {
-                    NotificationMgr nMgr = new NotificationMgr(context);
-                    nMgr.notifyCriticalEvent(db.getCriticalEventsNumber(), db.getCrashToNotifyNumber());
-                }
-                db.close();
-            } catch (SQLException e) {
-                db.close();
-                throw e;
-            }
-            return null;
-        }
+	private OnPreferenceChangeListener changeNotificationListener = new OnPreferenceChangeListener(){
 
-        protected void onProgressUpdate(Void... params) {
-        }
+		public boolean onPreferenceChange(Preference preference, Object newValue) {
+			Boolean notifyAllCrashes = (Boolean)newValue;
+			if(notifyAllCrashes)
+				new NotifyEventsTask(getApplicationContext()).execute();
+			else {
+				NotificationMgr nMgr = new NotificationMgr(getApplicationContext());
+				nMgr.cancelNotifNoCriticalEvent();
+			}
+			return true;
+		}
 
-        protected void onPostExecute(Void... params) {
+	};
 
-        }
+	@Override
+	public void onDestroy() {
+		CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));
+		if(null != checkGcm && gcmEnabled != checkGcm.isChecked()) {
+			if(checkGcm.isChecked()){
+				GcmEvent.INSTANCE.enableGcm();
+				GcmEvent.INSTANCE.checkTokenGCM();
+			}
+			else {
+				GcmEvent.INSTANCE.disableGcm();
+			}
+		}
+		gcmEnabled = null;
+		super.onDestroy();
+	}
 
-    }
+	public class NotifyEventsTask extends AsyncTask<Void, Void, Void> {
+
+		private Context context;
+
+		public NotifyEventsTask(Context ctx){
+			context = ctx;
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			EventDB db = new EventDB(context);
+			try {
+				db.open();
+				if (db.isThereEventToNotify(true)) {
+					NotificationMgr nMgr = new NotificationMgr(context);
+					nMgr.notifyCriticalEvent(db.getCriticalEventsNumber(), db.getCrashToNotifyNumber());
+				}
+				db.close();
+			} catch (SQLException e) {
+				db.close();
+				throw e;
+			}
+			return null;
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... params) {
+		}
+
+		protected void onPostExecute(Void... params) {
+
+		}
+
+	}
 
 }

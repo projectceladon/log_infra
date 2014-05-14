@@ -16,13 +16,19 @@
  *
  * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
  */
-package com.intel.crashreport;
+package com.intel.crashreport.specific;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+
+import com.intel.crashreport.Log;
+import com.intel.crashreport.R;
+import com.intel.crashreport.R.drawable;
+import com.intel.crashreport.R.id;
+import com.intel.crashreport.R.layout;
 
 import android.content.Context;
 import android.view.LayoutInflater;

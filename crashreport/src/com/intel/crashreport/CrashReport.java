@@ -25,7 +25,6 @@ import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.EventDB;
 import com.intel.crashreport.specific.EventGenerator;
-import com.intel.crashreport.specific.ParserContainer;
 import com.intel.crashreport.StartServiceActivity;
 
 import android.app.Application;
@@ -58,8 +57,6 @@ public class CrashReport extends Application {
 		String version = this.getString(R.string.app_version);
 		EventGenerator.INSTANCE.setContext(getApplicationContext());
 		GeneralEventGenerator.INSTANCE.setContext(getApplicationContext());
-		ParserContainer.INSTANCE.initDirector(getApplicationContext());
-		GcmEvent.INSTANCE.setContext(getApplicationContext());
 
 		if (!privatePrefs.getVersion().contentEquals(version)) {
 			SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -101,9 +98,7 @@ public class CrashReport extends Application {
 		}
 		db.close();
 
-		//first try to register GCM TOKEN
-		if(privatePrefs.isGcmEnable())
-			GcmEvent.INSTANCE.checkTokenGCM();
+
 	}
 
 	public boolean isCheckEventsServiceStarted(){

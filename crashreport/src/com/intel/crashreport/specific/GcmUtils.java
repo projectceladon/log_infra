@@ -17,7 +17,7 @@
  * Author: Adrien Sebbane <adrienx.sebbane@intel.com>
  */
 
-package com.intel.phonedoctor.utils;
+package com.intel.crashreport.specific;
 
 import java.util.ArrayList;
 
@@ -25,9 +25,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
-import com.intel.crashreport.GcmMessage;
 import com.intel.crashreport.Log;
-import com.intel.crashreport.specific.EventDB;
 
 /**
  * A class that groups some actions that can be performed <i>on GCM</i>

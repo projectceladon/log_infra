@@ -17,7 +17,7 @@
  * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
  */
 
-package com.intel.crashreport;
+package com.intel.crashreport.specific;
 
 import java.util.ArrayList;
 
@@ -40,9 +40,15 @@ import android.widget.ListView;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
-import com.intel.crashreport.GcmMessage.GCM_ACTION;
-import com.intel.crashreport.specific.EventDB;
-import com.intel.phonedoctor.utils.GcmUtils;
+import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.Log;
+import com.intel.crashreport.NotificationMgr;
+import com.intel.crashreport.R;
+import com.intel.crashreport.R.array;
+import com.intel.crashreport.R.id;
+import com.intel.crashreport.R.layout;
+import com.intel.crashreport.R.string;
+import com.intel.crashreport.specific.GcmMessage.GCM_ACTION;
 
 public class ListGcmMessagesActivity extends Activity {
 
@@ -78,7 +84,7 @@ public class ListGcmMessagesActivity extends Activity {
 			lvEvent.setAdapter(messageAdapter);
 			lvEvent.setOnItemClickListener(listener);
 		}
-		NotificationMgr.clearGcmNotification(this);
+		GCMNotificationMgr.clearGcmNotification(this);
 
 		Button markAllAsRead = (Button) findViewById(R.id.gcm_mark_all_as_read);
 		if (markAllAsRead != null) {
@@ -231,7 +237,7 @@ public class ListGcmMessagesActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-		NotificationMgr.clearGcmNotification(this);
+		GCMNotificationMgr.clearGcmNotification(this);
 		refresh();
 		Intent incomingIntent = getIntent();
 		// Check whether we arrived here from a notification or not
@@ -244,7 +250,7 @@ public class ListGcmMessagesActivity extends Activity {
 				GcmMessage lastMessage = (GcmMessage) lvEvent.getItemAtPosition(0);
 				displayMessage(lastMessage);
 				refresh();
-				NotificationMgr.clearGcmNotification(this);
+				GCMNotificationMgr.clearGcmNotification(this);
 			}
 		}
 	}
@@ -266,7 +272,7 @@ public class ListGcmMessagesActivity extends Activity {
 		actionBar.setDisplayShowTitleEnabled(false);
 		actionBar.setListNavigationCallbacks(gcmFilterSpinner, gcmFilterListener);
 		ApplicationPreferences prefs = new ApplicationPreferences(getApplicationContext());
-		GcmFilter thefilter = prefs.getGcmFilter();
+		GcmFilter thefilter = getGcmFilter(prefs);
 		this.filter = thefilter;
 		actionBar.setSelectedNavigationItem(this.filter.compareTo(GcmFilter.NON_READ));
 	}
@@ -279,10 +285,23 @@ public class ListGcmMessagesActivity extends Activity {
 				selectedValue = GcmFilter.values()[position];
 			}
 			ApplicationPreferences prefs = new ApplicationPreferences(getApplicationContext());
-			prefs.setGcmFilter(selectedValue);
+			setGcmFilter(selectedValue,prefs);
 			filter = selectedValue;
 			refresh();
 		    return true;
 		  }
 	};
+	
+	public ListGcmMessagesActivity.GcmFilter getGcmFilter(ApplicationPreferences aPref) {
+		ListGcmMessagesActivity.GcmFilter defaultFilter = ListGcmMessagesActivity.GcmFilter.NON_READ;
+		String filterAsString = aPref.getGcmFilterAsStr(defaultFilter.toString()) ;
+		ListGcmMessagesActivity.GcmFilter filter = ListGcmMessagesActivity.GcmFilter.valueOf(filterAsString);
+		Log.d("[GCM] Returning GCM filter from preferences: " + filter);
+		return filter;
+	}
+
+	public void setGcmFilter(ListGcmMessagesActivity.GcmFilter filter, ApplicationPreferences aPref) {
+		Log.d("[GCM] Changing preference for GCM filter to: " + filter);
+		aPref.setGcmFilterAsStr(filter.toString());
+	}
 }

@@ -17,7 +17,7 @@
  * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
  */
 
-package com.intel.crashreport;
+package com.intel.crashreport.specific;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

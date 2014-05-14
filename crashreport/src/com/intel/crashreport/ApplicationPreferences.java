@@ -394,18 +394,15 @@ public class ApplicationPreferences {
 		this.sharedPrefsEditor.commit();
 	}
 
-	public ListGcmMessagesActivity.GcmFilter getGcmFilter() {
-		ListGcmMessagesActivity.GcmFilter defaultFilter = ListGcmMessagesActivity.GcmFilter.NON_READ;
+
+	public String getGcmFilterAsStr(String sDefault) {
 		String filterAsString = this.appSharedPrefs.getString(
 				mCtx.getString(R.string.settings_gcm_filter),
-				defaultFilter.toString());
-		ListGcmMessagesActivity.GcmFilter filter = ListGcmMessagesActivity.GcmFilter.valueOf(filterAsString);
-		Log.d("[GCM] Returning GCM filter from preferences: " + filter);
-		return filter;
+				sDefault);
+		return filterAsString;
 	}
 
-	public void setGcmFilter(ListGcmMessagesActivity.GcmFilter filter) {
-		Log.d("[GCM] Changing preference for GCM filter to: " + filter);
+	public void setGcmFilterAsStr(String filter) {
 		this.sharedPrefsEditor.putString(
 				mCtx.getString(R.string.settings_gcm_filter),
 				filter.toString());

@@ -56,6 +56,13 @@ public class CheckEventsService extends Service {
 		super.onCreate();
 		app = (CrashReport)getApplicationContext();
 		Log.d(MODULE+": created");
+		GcmEvent.INSTANCE.setContext(getApplicationContext());
+		ParserContainer.INSTANCE.initDirector(getApplicationContext());
+		//first try to register GCM TOKEN
+		ApplicationPreferences privatePrefs = new ApplicationPreferences(getApplicationContext());
+		if(privatePrefs.isGcmEnable())
+			GcmEvent.INSTANCE.checkTokenGCM();
+		Log.d(MODULE+": GCM init done");
 	}
 
 	@Override

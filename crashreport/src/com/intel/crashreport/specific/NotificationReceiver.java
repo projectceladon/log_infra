@@ -23,11 +23,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.SQLException;
 import android.os.DropBoxManager;
+import android.widget.Toast;
 
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportRequest;
 import com.intel.crashreport.GeneralNotificationReceiver;
 import com.intel.crashreport.Log;
+import com.intel.crashreport.NotificationMgr;
+import com.intel.crashreport.specific.GcmUtils;
 
 public class NotificationReceiver extends GeneralNotificationReceiver {
 
@@ -74,6 +77,13 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 
 		if (intent.getAction().equals(BOOT_COMPLETED_INTENT)) {
 			Log.d("NotificationReceiver: bootCompletedIntent");
+			//first, we need to check GCM token
+			CrashReport app = (CrashReport)context.getApplicationContext();
+			if(app.isGcmEnabled()){
+				//Set context for case when intent is called before service
+				GcmEvent.INSTANCE.setContext(app);
+				GcmEvent.INSTANCE.checkTokenGCM();
+			}
 			super.onReceive(context, intent);
 			//Add type to intent and send it
 			if(!serviceIsRunning) {
@@ -131,10 +141,42 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 
 				context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
 			}
+		}else if (intent.getAction().equals(GeneralNotificationReceiver.GCM_MARK_AS_READ)) {
+			int rowId = -1;
+			// Check whether a row id has been supplied
+			if(intent.hasExtra(GcmMessage.GCM_ROW_ID)) {
+				rowId = intent.getIntExtra(GcmMessage.GCM_ROW_ID, rowId);
+				Log.d("[GCM] Got GCM message with row id: " + rowId);
+			}
+			// If we found a row id
+			if(rowId >= 0) {
+				// Mark the corresponding message as read
+				markGcmMessageAsRead(rowId);
+			} else {
+				// If we don't have any row id, mark all messages as read
+				markAllGcmMessagesAsRead();
+				Toast.makeText(
+					this.context,
+					"All GCM messages marked as read.",
+					Toast.LENGTH_SHORT).show();
+			}
+			// Cancel the notification
+			GCMNotificationMgr.clearGcmNotification(this.context);
 		} else {
 			super.onReceive(context, intent);
 		}
 	}
+
+	private void markGcmMessageAsRead(int rowId) {
+		GcmUtils gcmUtils = new GcmUtils(this.context);
+		gcmUtils.markAsRead(rowId);
+	}
+
+	private void markAllGcmMessagesAsRead() {
+		GcmUtils gcmUtils = new GcmUtils(this.context);
+		gcmUtils.markAllAsRead();
+	}
+
 
 
 }

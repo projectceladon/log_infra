@@ -17,7 +17,7 @@
  * Author: Nicolas Benoit <nicolasx.benoit@intel.com>
  */
 
-package com.intel.crashreport;
+package com.intel.crashreport.specific;
 
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -28,9 +28,11 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 
 import com.google.android.gcm.GCMRegistrar;
-import com.intel.crashreport.GcmMessage.GCM_ACTION;
-import com.intel.crashreport.specific.EventDB;
-import com.intel.crashreport.specific.EventGenerator;
+import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.CustomizableEventData;
+import com.intel.crashreport.GeneralEventGenerator;
+import com.intel.crashreport.Log;
+import com.intel.crashreport.specific.GcmMessage.GCM_ACTION;
 
 public enum GcmEvent {
 

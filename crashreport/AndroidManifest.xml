@@ -17,10 +17,10 @@
            where PACKAGE is the application's package name.
     -->
     <permission
-        android:name="com.intel.crashreport.permission.C2D_MESSAGE"
+        android:name="com.intel.crashreport.specific.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
     <uses-permission
-        android:name="com.intel.crashreport.permission.C2D_MESSAGE" />
+        android:name="com.intel.crashreport.specific.permission.C2D_MESSAGE" />
 
     <!-- This app has permission to register and receive data message. -->
     <uses-permission
@@ -100,14 +100,14 @@
 		</receiver>
 
 		<receiver
-            android:name="com.google.android.gcm.GCMBroadcastReceiver"
+            android:name="com.intel.crashreport.specific.SpecificBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <!-- Receives the actual messages. -->
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <!-- Receives the registration id. -->
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-                <category android:name="com.intel.crashreport" />
+                <category android:name="com.intel.crashreport.specific" />
             </intent-filter>
         </receiver>
              <!--
@@ -117,7 +117,7 @@
           By default, it must be named .GCMIntentService, unless the
           application uses a custom BroadcastReceiver that redefines its name.
         -->
-        <service android:name=".GCMIntentService" />
+        <service android:name="com.intel.crashreport.specific.GCMIntentService" />
 
 		<service android:name=".CrashReportService">
 			<intent-filter>
@@ -196,7 +196,7 @@
 
         <service android:name=".receivers.EventReceiverService" />
 
-        <activity android:name="ListGcmMessagesActivity"
+        <activity android:name="com.intel.crashreport.specific.ListGcmMessagesActivity"
 		    android:launchMode="singleTop" />
 
     </application>

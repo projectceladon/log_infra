@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intel.crashreport;
+package com.intel.crashreport.specific;
 
 import android.content.Context;
 import android.content.Intent;
@@ -23,7 +23,9 @@ import android.util.Log;
 
 import com.google.android.gcm.GCMBaseIntentService;
 import com.google.android.gcm.GCMRegistrar;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.CrashReport;
+import com.intel.crashreport.NotificationMgr;
 
 /**
  * IntentService responsible for handling GCM messages.
@@ -97,7 +99,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 						db.close();
 						message.setRowId(rowId.intValue());
 						// Notify the user
-						NotificationMgr nMgr = new NotificationMgr(context);
+						GCMNotificationMgr nMgr = new GCMNotificationMgr(context);
 						// The message can now be safely used for notification
 						// because the database insertion will have consolidated
 						// it if required.

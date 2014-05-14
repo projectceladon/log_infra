@@ -29,6 +29,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
+import com.intel.crashreport.specific.GcmMessage;
+
 public class EventDB extends GeneralEventDB{
 
 	private static final int BEGIN_FIBONACCI = 13;
@@ -358,5 +360,68 @@ public class EventDB extends GeneralEventDB{
 
 	public boolean checkNewRain(Event event) {
 		return checkNewRain(event, -1);
+	}
+
+	/**
+	 * Writes the given GCM message to database.
+	 *
+	 * The message's date is updated if it does not have one at this point
+	 * in time.
+	 *
+	 * @param aGcmMessage the message to write
+	 *
+	 * @return the result of the database insertion request
+	 */
+	public long addGcmMessage(GcmMessage aGcmMessage) {
+		if(aGcmMessage.getDate() == null) {
+			aGcmMessage.setDate(new Date());
+		}
+
+		return addGcmMessage(
+				aGcmMessage.getTitle(),
+				aGcmMessage.getText(),
+				aGcmMessage.getType().toString(),
+				aGcmMessage.getData(),
+				aGcmMessage.getDate());
+	}
+
+	/**
+	 * Get a GcmMessage object from a GCM_MESSAGES_TABLE cursor
+	 * @param cursor a GCM_MESSAGES_TABLE cursor
+	 * @return the GcmMessage object associated with the cursor
+	 */
+	public GcmMessage fillGCMFromCursor(Cursor cursor) {
+
+		Date date = convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
+		GcmMessage message = new GcmMessage(cursor.getInt(cursor.getColumnIndex(KEY_ROWID)),
+				cursor.getString(cursor.getColumnIndex(KEY_GCM_TITLE)),
+				cursor.getString(cursor.getColumnIndex(KEY_GCM_TEXT)),
+				cursor.getString(cursor.getColumnIndex(KEY_TYPE)),
+				cursor.getString(cursor.getColumnIndex(KEY_GCM_DATA)),
+				cursor.getInt(cursor.getColumnIndex(KEY_NOTIFIED))==1,
+				date);
+
+		return message;
+	}
+
+	/**
+	 * Get a GcmMessage with its rowId
+	 * @param rowId the row id of the gcm message to get
+	 * @return the gcm message
+	 */
+	public GcmMessage getGcmMessageFromId(int rowId) {
+		Cursor mCursor;
+		String whereQuery = KEY_ROWID+"="+rowId;
+		GcmMessage message = null;
+
+		mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
+				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, whereQuery, null,
+				null, null, null, null);
+		if (mCursor != null) {
+			mCursor.moveToFirst();
+			message = fillGCMFromCursor(mCursor);
+			mCursor.close();
+		}
+		return message;
 	}
 }
