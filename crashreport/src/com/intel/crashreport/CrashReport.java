@@ -77,6 +77,12 @@ public class CrashReport extends Application {
 			}
 		}
 
+		if (!privatePrefs.getOverrideTracker()){
+			//need to update prefs value with product when there is no override
+			privatePrefs.setDefaultTracker();
+			Log.w("setDefaultTracker: update to " + privatePrefs.getBZTracker());
+		}
+
 		EventDB db = new EventDB(this.getApplicationContext());
 		try {
 			db.open();

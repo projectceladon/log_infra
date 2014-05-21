@@ -19,7 +19,7 @@
 <resources>
 <!-- App settings -->
     <string name="app_name">MCG Phone Doctor</string>
-    <string name="app_version">1.6.0</string>
+    <string name="app_version">1.7.0</string>
 
     <!-- Private settings -->
 
@@ -119,6 +119,17 @@
     <string name="settings_gcm_activation_summary">Activate the GCM Messaging system</string>
     <string name="settings_gcm_activation_value_default">true</string>
 
+    <string name="settings_bugzilla_tracker_title">Tracker</string>
+    <string name="settings_bugzilla_tracker_summary">Tracker used for bug reporting</string>
+    <string name="settings_bugzilla_tracker_key">settings_bugzilla_tracker</string>
+    <string name="settings_bugzilla_tracker_value_default">MCG</string>
+
+    <string name="settings_override_tracker_key">settings_override_tracker</string>
+    <string name="settings_override_tracker_title">Override default tracker</string>
+    <string name="settings_override_tracker_summary">Manual tracker selection overrides automatic tracker selection</string>
+    <string name="settings_override_tracker_value_default">false</string>
+
+
     <!-- Bugzilla part-->
     <string name="title_activity_bugzilla_main">BugzillaMainActivity</string>
     <string name="bugzilla_title">Summary :</string>
@@ -128,18 +139,18 @@
     <string name="bugzilla_send">Send report</string>
     <string name="bugzilla_edit">Edit report</string>
     <string name="title_activity_bugzilla_summary">BugzillaSummaryActivity</string>
-    <string name="bugzilla_type">BZ\'s type :</string>
-    <string name="bugzilla_severity">BZ\'s severity :</string>
+    <string name="bugzilla_type">Bug\'s type :</string>
+    <string name="bugzilla_severity">Bug\'s severity :</string>
     <string name="bugzilla_time">Issue occured in last :</string>
-    <string name="bugzilla_component">BZ\'s component :</string>
+    <string name="bugzilla_component">Bug\'s component :</string>
     <string name="user_informations_firstname">User first name :</string>
     <string name="user_informations_lastname">User last name :</string>
     <string name="user_informations_email">Email :</string>
     <string name="user_informations_button">Save personnal informations</string>
     <string name="enter_intel_email">Enter your intel email.</string>
     <string name="intel_email">\@intel.com</string>
-    <string name="list_bugzilla">Check my BZ history</string>
-    <string name="list_bugzilla_title">BZ events created with the phone :</string>
+    <string name="list_bugzilla">Check my bug history</string>
+    <string name="list_bugzilla_title">Bug events created with the phone :</string>
 
     <!-- Upload log part-->
     <string name="upload_log_button">Upload</string>

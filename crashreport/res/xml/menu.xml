@@ -86,6 +86,14 @@
             android:title="@string/settings_bugzilla_user_email_title"
             android:inputType="textEmailAddress|textNoSuggestions" />
 
+        <ListPreference
+        android:title="@string/settings_bugzilla_tracker_title"
+        android:summary="@string/settings_bugzilla_tracker_summary"
+        android:key="@string/settings_bugzilla_tracker_key"
+        android:defaultValue="@string/settings_bugzilla_tracker_value_default"
+        android:entries="@array/bugTrackerMenuText"
+        android:entryValues="@array/bugTrackerMenuValues" />
+
     </PreferenceCategory>
 
     <PreferenceCategory

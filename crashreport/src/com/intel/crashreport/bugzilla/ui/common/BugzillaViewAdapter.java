@@ -115,7 +115,7 @@ public class BugzillaViewAdapter extends BaseAdapter{
                 }
 
                 EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
-                text = "BZ created on : "+EVENT_DF.format(bz.getCreationDate());
+                text = "Bug created on : "+EVENT_DF.format(bz.getCreationDate());
                 holder.time.setText(text);
             }
         }

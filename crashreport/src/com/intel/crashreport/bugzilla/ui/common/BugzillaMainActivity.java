@@ -2,6 +2,7 @@ package com.intel.crashreport.bugzilla.ui.common;
 
 import java.util.ArrayList;
 
+import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.R;
 import com.intel.crashreport.bugzilla.ui.specific.AplogSelectionDisplay;
@@ -10,6 +11,7 @@ import com.intel.crashreport.specific.CrashReportHome;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.MediaStore.MediaColumns;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -39,13 +41,22 @@ public class BugzillaMainActivity extends Activity {
 	private Context context = this;
 	private static String TYPE_DEFAULT_VALUE = "medium";
 	public static String ENHANCEMENT_SEVERITY = "enhancement";
+	//the following values should be aligned with bugTrackerMenuValues from "res"
+	public static String IRDA_VALUE = "IRDA";
+	public static String STARPEAK_VALUE = "STARPEAK";
+	public static String MCG_VALUE = "MCG";
+	public static String ICONIC_VALUE = "ICONIC";
+
 	private AplogSelectionDisplay aplogSelection;
+	private boolean bShowSeverity = true;
+	private boolean bShowComponent = true;
 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		app = (CrashReport) getApplicationContext();
+		updateUIForTracker();
 		aplogSelection = new AplogSelectionDisplay(this);
 		setContentView(R.layout.activity_bugzilla_main);
 		galleryAdapter = new ScreenshotAdapter(getApplicationContext());
@@ -60,8 +71,8 @@ public class BugzillaMainActivity extends Activity {
 					CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
 					if(pictureBox != null) {
 						pictureBox.setText(
-							getResources().getText(R.string.bugzilla_screenshot) + " (" +
-							galleryAdapter.getScreenshotsSelected().size() + ")");
+								getResources().getText(R.string.bugzilla_screenshot) + " (" +
+										galleryAdapter.getScreenshotsSelected().size() + ")");
 					}
 				}
 
@@ -87,7 +98,7 @@ public class BugzillaMainActivity extends Activity {
 							screenshot.setVisibility(View.VISIBLE);
 							galleryAdapter.notifyDataSetChanged();
 							buttonView.setText(getResources().getText(R.string.bugzilla_screenshot) + " ("
-	                                                         +galleryAdapter.getScreenshotsSelected().size() + ")");
+									+galleryAdapter.getScreenshotsSelected().size() + ")");
 						}
 						else {
 							AlertDialog alert = new AlertDialog.Builder(context).create();
@@ -148,38 +159,55 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_severity = (Spinner) findViewById(R.id.bz_severity_list);
 		if(bz_severity != null) {
 			bz_severity.setAdapter(
-				ArrayAdapter.createFromResource(
-					getApplicationContext(),
-					R.array.reportBugzillaSeverityValues,
-					R.layout.spinner_bugzilla_item));
+					ArrayAdapter.createFromResource(
+							getApplicationContext(),
+							R.array.reportBugzillaSeverityValues,
+							R.layout.spinner_bugzilla_item));
+		}
+		if (!bShowSeverity){
+			bz_severity.setVisibility(View.GONE);
+			//should hide text also
+			View aView = findViewById(R.id.bz_severity_view);
+			if (aView != null) {
+				aView.setVisibility(View.GONE);
+			}
 		}
 		aplogSelection.radioButtonIsAvailable();
 
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
 		if(bz_types != null) {
 			bz_types.setAdapter(
-				ArrayAdapter.createFromResource(
-					getApplicationContext(),
-					R.array.reportBugzillaTypeValues,
-					R.layout.spinner_bugzilla_item));
+					ArrayAdapter.createFromResource(
+							getApplicationContext(),
+							R.array.reportBugzillaTypeValues,
+							R.layout.spinner_bugzilla_item));
 		}
 
 		Spinner bz_components = (Spinner) findViewById(R.id.bz_component_list);
 		if(bz_components != null) {
 			bz_components.setAdapter(
-				ArrayAdapter.createFromResource(
-					getApplicationContext(),
-					R.array.reportBugzillaComponentText,
-					R.layout.spinner_bugzilla_item));
+					ArrayAdapter.createFromResource(
+							getApplicationContext(),
+							R.array.reportBugzillaComponentText,
+							R.layout.spinner_bugzilla_item));
+		}
+
+		if (!bShowComponent){
+			bz_components.setVisibility(View.GONE);
+			//should hide text also
+			View aView = findViewById(R.id.bz_component_view);
+			if (aView != null) {
+				aView.setVisibility(View.GONE);
+			}
 		}
 
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		if(bz_time != null) {
 			bz_time.setAdapter(
-				ArrayAdapter.createFromResource(
-					getApplicationContext(),
-					R.array.reportBugzillaTimeValues,
-					R.layout.spinner_bugzilla_item));
+					ArrayAdapter.createFromResource(
+							getApplicationContext(),
+							R.array.reportBugzillaTimeValues,
+							R.layout.spinner_bugzilla_item));
 		}
 
 	}
@@ -197,9 +225,9 @@ public class BugzillaMainActivity extends Activity {
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
 		boolean isViewValid = false;
 		if(screenshot != null && bz_types != null && title != null &&
-			summary != null && bz_component != null &&
-			bz_component != null && bz_severity != null &&
-			bz_time != null && pictureBox != null) {
+				summary != null && bz_component != null &&
+				bz_component != null && bz_severity != null &&
+				bz_time != null && pictureBox != null) {
 			isViewValid = true;
 		}
 
@@ -298,7 +326,7 @@ public class BugzillaMainActivity extends Activity {
 					Cursor cursor = getApplicationContext().getContentResolver().query(imageUri, null, null, null, null);
 					if(cursor != null) {
 						if (cursor.moveToFirst()) {
-							int column_index = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+							int column_index = cursor.getColumnIndex(MediaColumns.DATA);
 							if (column_index >= 0) {
 								imageUri = Uri.parse(cursor.getString(column_index));
 								fileName = imageUri.getLastPathSegment().toString();
@@ -413,7 +441,7 @@ public class BugzillaMainActivity extends Activity {
 		boolean isViewValid = false;
 
 		if(title != null && summary != null && pictureBox != null && bz_types != null &&
-			bz_component != null && bz_severity != null && bz_time != null) {
+				bz_component != null && bz_severity != null && bz_time != null) {
 			isViewValid = true;
 		}
 
@@ -434,6 +462,7 @@ public class BugzillaMainActivity extends Activity {
 			bugzillaStorage.setBugLogLevel(iNbLog);
 			if(pictureBox.isChecked())
 				bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
+			bugzillaStorage.setTracker(getBugTrackerValue());
 		}
 	}
 
@@ -462,6 +491,19 @@ public class BugzillaMainActivity extends Activity {
 		if(bz_time != null && bz_time_label != null && bz_time_label.isShown()) {
 			bz_time.setVisibility(View.GONE);
 			bz_time_label.setVisibility(View.GONE);
+		}
+	}
+
+	public String  getBugTrackerValue() {
+		//Improvement : manage it by a bug tracker object
+		return new ApplicationPreferences(app).getBZTracker();
+	}
+
+	private void updateUIForTracker() {
+		String sTracker = getBugTrackerValue();
+		if (sTracker.equals(STARPEAK_VALUE)){
+			bShowSeverity = false;
+			bShowComponent = false;
 		}
 	}
 

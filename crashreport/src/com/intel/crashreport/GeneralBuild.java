@@ -42,6 +42,7 @@ public class GeneralBuild {
 	 * <code>variant</code> property.
 	 */
 	public static final String VARIANT_PROPERTY_NAME = "ro.product.name";
+	public static final String PRODUCT_PROPERTY_NAME = "ro.build.product";
 
 	private static String VARIANT = null;
 

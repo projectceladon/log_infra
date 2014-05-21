@@ -90,6 +90,7 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "Component : "+bugzillaStorage.getComponent()+ "\n";
 		text += "Severity : "+bugzillaStorage.getSeverity()+ "\n";
 		text += "Description : "+bugzillaStorage.getDescription()+ "\n";
+		text += "Bug Tracker selected : "+bugzillaStorage.getTracker()+ "\n";
 		if(!bugzillaStorage.getTime().equals(""))
 			text += "Issue occured in last " +  bugzillaStorage.getTime()+ ".\n \n";
 		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
@@ -180,6 +181,9 @@ public class BugzillaSummaryActivity extends Activity {
 				sArguments.add(line);
 				line = "USEREMAIL="+app.getUserEmail()+"\n";
 				sArguments.add(line);
+				line = "TRACKER="+bugzillaStorage.getTracker()+"\n";
+				sArguments.add(line);
+				
 				if (bzMode) {
 					line = "TEST=true\n";
 					sArguments.add(line);

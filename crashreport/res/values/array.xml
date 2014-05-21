@@ -102,6 +102,20 @@
 		<item>Other</item>
 	</string-array>
 
+	<string-array name="bugTrackerMenuText">
+		<item>ICONIC</item>
+		<item>IRDA</item>
+		<item>STARPEAK</item>
+		<item>MCG</item>
+	</string-array>
+
+	<string-array name="bugTrackerMenuValues">
+	    <item>ICONIC</item>
+		<item>IRDA</item>
+		<item>STARPEAK</item>
+		<item>MCG</item>
+	</string-array>
+
 	<string-array name="reportBugzillaBplogTypeValues">
 		<item>Call drop</item>
 		<item>3G Data loss</item>

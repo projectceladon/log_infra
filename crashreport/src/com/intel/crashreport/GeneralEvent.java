@@ -134,13 +134,20 @@ public class GeneralEvent {
 	}
 
 	public static String getDeviceIdFromSystem() {
+		//warning : this method is used by PDLITE
 		String sResult = "";
 		sResult += android.os.Build.SERIAL;
+		if (sResult.isEmpty()) {
+			//backup strategy to be sure to have a devideID for crashtool
+			sResult = "DEF_ID_" + SystemProperties.get(GeneralBuild.PRODUCT_PROPERTY_NAME, "MCG");
+		}
 		return sResult;
 	}
 
 	public static String getSSN(){
-		return SystemProperties.get("ro.serialno", "");
+		String sResult;
+		sResult = SystemProperties.get("ro.serialno", "");
+		return sResult;
 	}
 
 	public String readImeiFromSystem() {

@@ -29,6 +29,7 @@ import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 
 import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
+import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
 import com.intel.phonedoctor.Constants;
 
 public class ApplicationPreferences {
@@ -67,35 +68,35 @@ public class ApplicationPreferences {
 
 	public String getUploadState() {
 		return appSharedPrefs.getString(
-			mCtx.getString(R.string.settings_event_report_management_key),
-			mCtx.getString(R.string.settings_event_report_management_value_default));
+				mCtx.getString(R.string.settings_event_report_management_key),
+				mCtx.getString(R.string.settings_event_report_management_value_default));
 	}
 
 	public void setUploadStateToAsk() {
 		sharedPrefsEditor.putString(
-			mCtx.getString(R.string.settings_event_report_management_key),
-			"askForUpload");
+				mCtx.getString(R.string.settings_event_report_management_key),
+				"askForUpload");
 		sharedPrefsEditor.commit();
 	}
 
 	public void setUploadStateToUpload() {
 		sharedPrefsEditor.putString(
-			mCtx.getString(R.string.settings_event_report_management_key),
-			"uploadImmediately");
+				mCtx.getString(R.string.settings_event_report_management_key),
+				"uploadImmediately");
 		sharedPrefsEditor.commit();
 	}
 
 	public void setUploadStateToReport() {
 		sharedPrefsEditor.putString(
-			mCtx.getString(R.string.settings_event_report_management_key),
-			"uploadReported");
+				mCtx.getString(R.string.settings_event_report_management_key),
+				"uploadReported");
 		sharedPrefsEditor.commit();
 	}
 
 	public void setUploadStateToDisable() {
 		sharedPrefsEditor.putString(
-			mCtx.getString(R.string.settings_event_report_management_key),
-			"uploadDisabled");
+				mCtx.getString(R.string.settings_event_report_management_key),
+				"uploadDisabled");
 		sharedPrefsEditor.commit();
 	}
 
@@ -106,15 +107,15 @@ public class ApplicationPreferences {
 
 	public Boolean isCrashLogsUploadEnable() {
 		return appSharedPrefs.getBoolean(
-			mCtx.getString(R.string.settings_event_data_enable_key),
-			Boolean.valueOf(mCtx.getString(R.string.settings_event_data_enable_value_default)));
+				mCtx.getString(R.string.settings_event_data_enable_key),
+				Boolean.valueOf(mCtx.getString(R.string.settings_event_data_enable_value_default)));
 	}
 
 	public String[] getCrashLogsUploadTypes() {
 		return CrashLogsListPrefs.parseStoredValue(
-			appSharedPrefs.getString(
-				mCtx.getString(R.string.settings_event_data_types_key),
-				mCtx.getString(R.string.settings_event_data_types_value_default)));
+				appSharedPrefs.getString(
+						mCtx.getString(R.string.settings_event_data_types_key),
+						mCtx.getString(R.string.settings_event_data_types_value_default)));
 	}
 
 	public void resetCrashLogsUploadTypes() {
@@ -130,8 +131,8 @@ public class ApplicationPreferences {
 		}
 
 		sharedPrefsEditor.putString(
-			mCtx.getString(R.string.settings_event_data_types_key),
-			CrashLogsListPrefs.prepareToStoreStrings(savedValues));
+				mCtx.getString(R.string.settings_event_data_types_key),
+				CrashLogsListPrefs.prepareToStoreStrings(savedValues));
 		sharedPrefsEditor.commit();
 	}
 
@@ -224,8 +225,8 @@ public class ApplicationPreferences {
 			return true;
 		}
 		return appSharedPrefs.getBoolean(
-			mCtx.getString(R.string.settings_connection_wifi_only_key),
-			Boolean.valueOf(mCtx.getString(R.string.settings_connection_wifi_only_value_default)));
+				mCtx.getString(R.string.settings_connection_wifi_only_key),
+				Boolean.valueOf(mCtx.getString(R.string.settings_connection_wifi_only_value_default)));
 	}
 
 	/**
@@ -235,8 +236,8 @@ public class ApplicationPreferences {
 	 */
 	public Boolean isNotificationForAllCrash() {
 		return appSharedPrefs.getBoolean(
-			mCtx.getString(R.string.settings_all_crash_notification_key),
-			Boolean.valueOf(mCtx.getString(R.string.settings_all_crash_notification_value_default)));
+				mCtx.getString(R.string.settings_all_crash_notification_key),
+				Boolean.valueOf(mCtx.getString(R.string.settings_all_crash_notification_value_default)));
 	}
 
 
@@ -323,8 +324,8 @@ public class ApplicationPreferences {
 	 */
 	public Boolean isGcmEnable() {
 		return appSharedPrefs.getBoolean(
-			mCtx.getString(R.string.settings_gcm_activation_key),
-			Boolean.valueOf(mCtx.getString(R.string.settings_gcm_activation_value_default)));
+				mCtx.getString(R.string.settings_gcm_activation_key),
+				Boolean.valueOf(mCtx.getString(R.string.settings_gcm_activation_value_default)));
 	}
 
 	/**
@@ -405,7 +406,46 @@ public class ApplicationPreferences {
 	public void setGcmFilterAsStr(String filter) {
 		this.sharedPrefsEditor.putString(
 				mCtx.getString(R.string.settings_gcm_filter),
-				filter.toString());
+				filter);
 		this.sharedPrefsEditor.commit();
+	}
+
+
+	public boolean getOverrideTracker() {
+		boolean bResult = this.appSharedPrefs.getBoolean(
+				mCtx.getString(R.string.settings_override_tracker_key),
+				false);
+		return bResult;
+	}
+
+	public String getBZTracker() {
+		//no default value, in order to manage properly empty value
+		String filterAsString = this.appSharedPrefs.getString(
+				mCtx.getString(R.string.settings_bugzilla_tracker_key),
+				"");
+		return filterAsString;
+	}
+
+	public void setBZTracker(String tracker) {
+		this.sharedPrefsEditor.putString(
+				mCtx.getString(R.string.settings_bugzilla_tracker_key),
+				tracker);
+		this.sharedPrefsEditor.commit();
+	}
+
+	public void setDefaultTracker() {
+		//set the default tracker depending on the product
+		String sProduct = GeneralBuild.getProperty(GeneralBuild.PRODUCT_PROPERTY_NAME);
+		//for known values we use a dedicated tracker
+		if (sProduct.equalsIgnoreCase("STARPEAK")) {
+			setBZTracker(BugzillaMainActivity.STARPEAK_VALUE);
+		} else if (sProduct.equalsIgnoreCase("IRDA")) {
+			setBZTracker(BugzillaMainActivity.IRDA_VALUE);
+		} else if (sProduct.equalsIgnoreCase("ICONIC")) {
+			setBZTracker(BugzillaMainActivity.ICONIC_VALUE);
+		} else if (!sProduct.isEmpty()) {
+			//set default value to MCG
+			setBZTracker(BugzillaMainActivity.MCG_VALUE);
+		}
 	}
 }

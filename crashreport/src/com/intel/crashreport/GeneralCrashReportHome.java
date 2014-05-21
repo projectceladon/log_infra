@@ -138,7 +138,8 @@ public class GeneralCrashReportHome extends Activity {
 					getString(R.string.app_name) + " v" + getString(R.string.app_version)
 					+ "\n" + "© Intel 2014."
 					+ "\n" + "SSN : "  + Event.getSSN()
-					+ "\n" + "DeviceID : " + Event.deviceId())
+					+ "\n" + "DeviceID : " + Event.deviceId()
+					+ "\n" + "Product : " + GeneralBuild.getProperty(GeneralBuild.PRODUCT_PROPERTY_NAME))
 					.create();
 		}
 	}
