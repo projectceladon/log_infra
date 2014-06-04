@@ -63,13 +63,15 @@ public class FileIngredientBuilder implements IngredientBuilder {
 			return;
 		}
 		File file = new File(this.filePath);
+		FileReader fileReader = null;
+		BufferedReader reader = null;
 		try {
 			if(!file.exists() || !file.canRead()) {
 				Log.e("No ingredients file found.");
 				return;
 			}
-			FileReader fileReader = new FileReader(file);
-			BufferedReader reader = new BufferedReader(fileReader);
+			fileReader = new FileReader(file);
+			reader = new BufferedReader(fileReader);
 			try {
 				String line = null;
 				do {
@@ -81,6 +83,17 @@ public class FileIngredientBuilder implements IngredientBuilder {
 			}
 		} catch(FileNotFoundException notFound) {
 			Log.e("File could not be found: " + this.filePath);
+		} finally {
+			try {
+				if (reader != null) {
+					reader.close();
+				}
+				else if (fileReader != null){
+					fileReader.close();
+				}
+			} catch(IOException io) {
+				Log.e("IO error occurred while closing file: " + this.filePath);
+			}
 		}
 	}
 
