@@ -3,7 +3,9 @@ package com.intel.crashreport.bugzilla.ui.common;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
 
 import com.intel.crashreport.R;
@@ -21,7 +23,7 @@ public class ScreenshotAdapter extends BaseAdapter{
 	private Context mContext;
 	private LayoutInflater mInflater;
 	private static String TAG = "ScreenshotAdapter";
-	private HashMap<String,Boolean> screenshotsSelected;
+	private LinkedHashMap<String,Boolean> screenshotsSelected;
 
 	static class ViewHolder {
 		ImageView screenshot;
@@ -30,11 +32,11 @@ public class ScreenshotAdapter extends BaseAdapter{
 	public ScreenshotAdapter(Context context) {
 		mContext = context;
 		mInflater = LayoutInflater.from(context);
-		screenshotsSelected = new HashMap<String,Boolean>();
+		screenshotsSelected = new LinkedHashMap<String,Boolean>();
 	}
 
 	public void refreshScreenshotsSelected(ArrayList<String> screenshotsFiles) {
-		screenshotsSelected = new HashMap<String,Boolean>();
+		screenshotsSelected = new LinkedHashMap<String,Boolean>();
 		String files[] = getScreenshots();
 		if(files == null) {
 			return;
@@ -80,19 +82,28 @@ public class ScreenshotAdapter extends BaseAdapter{
 		File pictures = new File("/mnt/sdcard/Pictures/Screenshots");
 		String[] screenshots = new String[0];
 		if (pictures.exists() && pictures.isDirectory()) {
-			screenshots = pictures.list(new FilenameFilter(){
+			File[] files = pictures.listFiles(new FilenameFilter(){
 
-				public boolean accept(File dir, String filename) {
-					if (filename.endsWith(".png")) {
-						return true;
+					public boolean accept(File dir, String filename) {
+						if (filename.endsWith(".png")) {
+							return true;
+						}
+						return false;
 					}
-					return false;
+				});
+			if ( files != null ){
+				Arrays.sort(files, new Comparator<File>(){
+						public int compare(File f1, File f2){
+							return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
+						}
+					});
+				screenshots = new String[files.length];
+				for (int i = 0; i < files.length; i++){
+					screenshots[i] = files[i].getName().toString();
 				}
-
-			});
+			}
 		}
 		return screenshots;
-
 	}
 
 	public ArrayList<String> getScreenshotsSelected() {
