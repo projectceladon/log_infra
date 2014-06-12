@@ -530,7 +530,29 @@ public enum PDStatus {
 				}
 				return result;
 			}
-		});
+		}),
+		PADDING_DATA (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface(){
+
+			@Override
+			public String computeValue() {
+				return " ";
+			}
+		})
+		,
+		NVM_VALUE (PDSTATUS_TIME.BOTH_TIME, 3, new PDStatusInterface(){
+
+			@Override
+			public String computeValue() {
+				String result = "   ";
+				String sNvm =SystemProperties.get("sys.pmic.nvm.version","");
+				if(!sNvm.isEmpty()) {
+					//we suppose nvm value is 2 digit
+					result = "#"+sNvm;
+				}
+				return result;
+			}
+		})
+		;
 
 		/* The moment when the component must be computed*/
 		private final PDSTATUS_TIME whenCompute;
