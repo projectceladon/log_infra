@@ -19,6 +19,8 @@
 
 package com.intel.commands.crashinfo.subcommand;
 
+import java.io.IOException;
+
 import java.util.ArrayList;
 
 import com.intel.commands.crashinfo.DBManager;
@@ -44,9 +46,13 @@ public class GetEvent implements ISubCommand {
 	String[] myArgs;
 	Options myOptions;
 	@Override
-	public int execute() {
+	public int execute() throws IOException{
 		DBManager aDB = new DBManager();
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
 
+		int iResult = 0;
 		OptionData mainOp = myOptions.getMainOption();
 		ArrayList<OptionData> mySubOptions = myOptions.getSubOptions();
 		try{
@@ -58,16 +64,21 @@ public class GetEvent implements ISubCommand {
 				aDB.getEvent(DBManager.EventLevel.DETAIL,mySubOptions);
 			}else if (mainOp.getKey().equals(Options.HELP_COMMAND)){
 				myOptions.generateHelp();
-				return 0;
 			}else{
 				System.out.println("error : unknown op - " + mainOp.getKey());
-				return -1;
+				iResult = -1;
 			}
-			return 0;
 		}
 		catch (Exception e){
-			return -3;
+			iResult = -3;
 		}
+		finally {
+			if (aDB != null){
+				aDB.close();
+			}
+		}
+
+		return iResult;
 	}
 
 	@Override

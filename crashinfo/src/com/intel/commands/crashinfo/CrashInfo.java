@@ -115,7 +115,7 @@ public class CrashInfo {
 		System.err.println(usage.toString());
 	}
 
-	private int processArgs() {
+	private int processArgs() throws Exception {
 		int iResultCode = -1;
 		// quick (throwaway) check for unadorned command
 		if (mArgs.length < 1) {

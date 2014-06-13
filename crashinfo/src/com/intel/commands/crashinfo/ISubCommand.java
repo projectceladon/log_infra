@@ -21,7 +21,7 @@ package com.intel.commands.crashinfo;
 
 public interface ISubCommand {
 
-	public int execute();
+	public int execute() throws Exception;
 	public void setArgs(String[] subArgs);
 	public boolean checkArgs();
 

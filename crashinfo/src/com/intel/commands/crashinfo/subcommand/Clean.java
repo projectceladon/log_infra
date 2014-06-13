@@ -20,6 +20,7 @@
 package com.intel.commands.crashinfo.subcommand;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.regex.Matcher;
 
 import com.intel.commands.crashinfo.DBManager;
@@ -38,7 +39,7 @@ public class Clean implements ISubCommand {
 	Options myOptions;
 
 	@Override
-	public int execute() {
+	public int execute() throws IOException{
 		OptionData mainOp = myOptions.getMainOption();
 		if (mainOp == null){
 			baseClean();
@@ -77,9 +78,14 @@ public class Clean implements ISubCommand {
 		return myOptions.check();
 	}
 
-	private void baseClean(){
+	private void baseClean() throws IOException{
 		DBManager aDB = new DBManager();
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
+
 		String[] usedLogsDir = aDB.getAllLogsDir();
+		aDB.close();
 		if (usedLogsDir != null){
 			File logFolder = new File(Status.PATH_LOGS);
 			File SDlogFolder = new File(Status.PATH_SD_LOGS);
@@ -118,8 +124,12 @@ public class Clean implements ISubCommand {
 		}
 	}
 
-	private void timeClean(String sTimeValue){
+	private void timeClean(String sTimeValue) throws IOException{
 		DBManager aDB = new DBManager(true);
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
+
 		String[] logsToclean = aDB.getLogsDirByTime(sTimeValue);
 		if (logsToclean != null){
 			for(String sLog : logsToclean){
@@ -131,11 +141,16 @@ public class Clean implements ISubCommand {
 			}
 			aDB.cleanCrashDirByTime(sTimeValue);
 		}
+		aDB.close();
 	}
 
-	private void idClean(int iIDtoClean){
+	private void idClean(int iIDtoClean) throws IOException{
 		System.out.println("ID clean " + iIDtoClean);
 		DBManager aDB = new DBManager(true);
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
+
 		String sDirToClean = aDB.getLogDirByID(iIDtoClean);
 		if (sDirToClean.equals("")){
 			System.out.println("Nothing to clean");
@@ -147,6 +162,7 @@ public class Clean implements ISubCommand {
 			}
 			aDB.cleanCrashDirByID(iIDtoClean);
 		}
+		aDB.close();
 	}
 
 	private void forceClean(){

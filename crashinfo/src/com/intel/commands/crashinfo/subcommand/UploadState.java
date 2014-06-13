@@ -19,6 +19,8 @@
 
 package com.intel.commands.crashinfo.subcommand;
 
+import java.io.IOException;
+
 import java.util.ArrayList;
 
 import com.intel.commands.crashinfo.CrashInfo;
@@ -42,7 +44,7 @@ public class UploadState implements ISubCommand {
 	}
 
 	@Override
-	public int execute() {
+	public int execute() throws IOException{
 		OptionData mainOp = myOptions.getMainOption();
 		if (mainOp == null){
 			return -1;
@@ -69,8 +71,9 @@ public class UploadState implements ISubCommand {
 		}
 	}
 
-	private int updateUploadByID(int rowId){
-		DBManager aDB = new DBManager(true);
+	private int updateUploadByID(int rowId) throws IOException{
+		DBManager aDB = null;
+		int iResult = 0;
 		boolean bLog = false;
 		boolean bLogInvalid = false;
 		boolean bEventInvalid = false;
@@ -84,26 +87,34 @@ public class UploadState implements ISubCommand {
 		/* Displays options incompatibility error messages if necessary and exits*/
 		if (bLog && bEventInvalid) {
 			System.out.println(CrashInfo.Module+ "Error : option \"" + OPTION_UPLOADED_LOG + "\" is incompatible with option \"" + OPTION_INVALID_EVENT + "\"");
-			return -1;
+			iResult = -1;
 		}
 		if (bLog && bLogInvalid) {
 			System.out.println(CrashInfo.Module+ "Error : option \"" + OPTION_UPLOADED_LOG + "\" is incompatible with option \"" + OPTION_INVALID_LOG + "\"");
-			return -1;
+			iResult = -1;
 		}
 		if (bEventInvalid && bLogInvalid) {
 			System.out.println(CrashInfo.Module+ "Error : option \"" + OPTION_INVALID_LOG + "\" is incompatible with option \"" + OPTION_INVALID_EVENT + "\"");
-			return -1;
+			iResult = -1;
 		}
-		/* Performs actions*/
-		if (bEventInvalid)
-			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.EVENT_INVALID);
-		else if (bLogInvalid)
-			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.LOG_INVALID);
-		else if (bLog)
-			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.LOG_UPLOADED);
-		else
-			aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.EVENT_UPLOADED);
-		return 0;
+		if (iResult == 0){
+			aDB = new DBManager(true);
+			if (!aDB.isOpened()){
+				throw new IOException("Database not opened!");
+			}
+
+			/* Performs actions*/
+			if (bEventInvalid)
+				aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.EVENT_INVALID);
+			else if (bLogInvalid)
+				aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.LOG_INVALID);
+			else if (bLog)
+				aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.LOG_UPLOADED);
+			else
+				aDB.updateUploadStateByID(rowId, DBManager.eventUploadState.EVENT_UPLOADED);
+			aDB.close();
+		}
+		return iResult;
 	}
 
 	@Override

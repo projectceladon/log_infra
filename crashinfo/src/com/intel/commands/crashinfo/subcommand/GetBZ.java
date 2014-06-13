@@ -23,6 +23,7 @@ import com.intel.commands.crashinfo.ISubCommand;
 import com.intel.commands.crashinfo.option.OptionData;
 import com.intel.commands.crashinfo.option.Options;
 
+import java.io.IOException;
 
 public class GetBZ implements ISubCommand {
 	Options myOptions;
@@ -33,7 +34,7 @@ public class GetBZ implements ISubCommand {
 	}
 
 	@Override
-	public int execute() {
+	public int execute() throws Exception{
 		OptionData mainOp = myOptions.getMainOption();
 		if (mainOp == null){
 			return execGetBZ();
@@ -46,15 +47,21 @@ public class GetBZ implements ISubCommand {
 		}
 	}
 
-	private int execGetBZ(){
+	private int execGetBZ() throws IOException{
+		DBManager aDB = new DBManager();
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
+
+		int iResult = 0;
 		try {
-			DBManager aDB = new DBManager();
 			aDB.getBz();
 		}catch (Exception e) {
 			System.out.println("Exception : "+e.toString());
-			return -1;
+			iResult = -1;
 		}
-		return 0;
+		aDB.close();
+		return iResult;
 	}
 
 	@Override

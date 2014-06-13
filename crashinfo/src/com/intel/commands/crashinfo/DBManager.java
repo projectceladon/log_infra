@@ -19,6 +19,7 @@
 
 package com.intel.commands.crashinfo;
 
+import java.io.Closeable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,15 +31,17 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+
 import java.text.ParseException;
 import java.util.TimeZone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
 import java.util.Map;
 import java.util.LinkedHashMap;
 
-public class DBManager {
+public class DBManager implements Closeable{
 	private static final int COEF_S_TO_MS = 1000;
 	private final static SimpleDateFormat PARSE_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 	private final static String SEPARATOR = " | ";
@@ -97,12 +100,13 @@ public class DBManager {
 			+"(ce."+KEY_DATA5+"='' or ce."+KEY_DATA5+"=trim(e."+KEY_DATA5+"))";
 
 	public Cursor fetchAllBZs() {
-		Cursor cursor;
+		Cursor cursor = null;
 		String whereQuery = "Select bz."+KEY_ID+" as "+KEY_ID+", "+KEY_SUMMARY+" as "+KEY_SUMMARY+", "+KEY_DESCRIPTION+" as "+KEY_DESCRIPTION+", "+
 				KEY_SEVERITY+" as "+KEY_SEVERITY+", "+KEY_BZ_TYPE+" as "+KEY_BZ_TYPE+", "+KEY_BZ_COMPONENT+" as "+KEY_BZ_COMPONENT+", "+KEY_SCREENSHOT+" as "+KEY_SCREENSHOT+", "+
 				KEY_UPLOAD+" as "+KEY_UPLOAD+", "+KEY_UPLOADLOG+" as "+KEY_UPLOADLOG+", "+
 				KEY_UPLOAD_DATE+" as "+KEY_UPLOAD_DATE+", "+KEY_CREATION_DATE+" as "+KEY_CREATION_DATE+", "+KEY_SCREENSHOT_PATH+ " as "+KEY_SCREENSHOT_PATH+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_BZ_TABLE+" bz "+
 				"where bz."+KEY_ID+" = "+"e."+KEY_ID;
+
 		cursor = myDB.rawQuery(whereQuery, null);
 		if (cursor != null)
 			cursor.moveToFirst();
@@ -128,6 +132,14 @@ public class DBManager {
 		createDB(bWriteOnDB);
 	}
 
+	protected void finalize() throws Throwable {
+		try {
+			close();
+		} finally {
+			super.finalize();
+		}
+	}
+
 	private void createDB(boolean bWriteOnDB){
 		int iOpenFlag;
 		if (bWriteOnDB){
@@ -135,11 +147,17 @@ public class DBManager {
 		}else{
 			iOpenFlag = SQLiteDatabase.OPEN_READONLY;
 		}
-		myDB = SQLiteDatabase.openDatabase(
-				PATH_TO_DB
-				, null
-				, iOpenFlag
-				);
+
+		try{
+			myDB = SQLiteDatabase.openDatabase(
+					PATH_TO_DB
+					, null
+					, iOpenFlag
+					);
+		} catch (SQLException e) {
+			myDB = null;
+			System.err.println("Database could not be opened.");
+		}
 	}
 
 	public int getVersion(){
@@ -160,6 +178,7 @@ public class DBManager {
 					DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
 					+ "and ("+KEY_ID+" not in ("+SELECT_CRITICAL_EVENTS_QUERY+" ))";
 		}
+
 		mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_ID},
 				sWhereQuery, null,
 				null, null, null, null);
@@ -308,6 +327,7 @@ public class DBManager {
 			if (bChangeOrder){
 				sOrderTag = " ASC";
 			}
+
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, listColumns,
 					sSelection, null,
 					null, null, KEY_ROWID + sOrderTag, sLimit);
@@ -406,6 +426,7 @@ public class DBManager {
 	public String getLogDirByID(int iID){
 		Cursor mCursor;
 		String sResultDir = "";
+
 		try {
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_CRASHDIR},
 					KEY_ROWID + "=" + iID, null,
@@ -447,6 +468,7 @@ public class DBManager {
 	public  String[] getLogsDirByQuery(String sWhereQuery){
 		Cursor mCursor;
 		String[] sResultLogsDir = new String[0];
+
 		try {
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_CRASHDIR},
 					sWhereQuery, null,
@@ -506,6 +528,7 @@ public class DBManager {
 			updateValue.put(KEY_UPLOADLOG,"-1");
 			break;
 		}
+
 		myDB.update(DATABASE_EVENTS_TABLE, updateValue, KEY_ROWID+ "=" + iIdToUpdate,null);
 	}
 
@@ -530,6 +553,7 @@ public class DBManager {
 		long lResultUptime = 0;
 		int iLastSWUpdateID = getLastSWUpdate();
 		boolean bUptimePresent = false;
+
 		try {
 			mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_NAME,KEY_UPTIME},
 					KEY_ROWID + " > " + iLastSWUpdateID, null,
@@ -593,8 +617,9 @@ public class DBManager {
 	 * @return a cursor to the first and only row of the 'device' table
 	 */
 	public Cursor fetchDeviceInfo() {
-		Cursor cursor;
+		Cursor cursor = null;
 		String whereQuery = "Select * from "+DATABASE_DEVICE_TABLE;
+
 		cursor = myDB.rawQuery(whereQuery, null);
 		if (cursor != null)
 			cursor.moveToFirst();
@@ -663,5 +688,22 @@ public class DBManager {
 		Date convertedDate = new Date(date * COEF_S_TO_MS);
 		PARSE_DF.setTimeZone(TimeZone.getTimeZone("GMT"));
 		return PARSE_DF.format(convertedDate);
+	}
+
+	public void close() {
+		if ( myDB != null ){
+			myDB.close();
+			myDB = null;
+		}
+	}
+
+	public boolean isOpened() {
+		boolean bResult = true;
+		if ( myDB == null ){
+			bResult = false;
+			System.err.println( CrashInfo.Module+ " Database not opened!");
+		}
+
+		return bResult;
 	}
 }

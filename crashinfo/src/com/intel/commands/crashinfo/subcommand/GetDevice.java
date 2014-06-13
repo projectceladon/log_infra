@@ -29,6 +29,8 @@ import com.intel.commands.crashinfo.option.Options;
 import com.intel.commands.crashinfo.option.Options.Multiplicity;
 import com.intel.commands.crashinfo.DBManager;
 
+import java.io.IOException;
+
 public class GetDevice implements ISubCommand {
 
 	private static final String OPTION_JSON = "--json";
@@ -36,24 +38,35 @@ public class GetDevice implements ISubCommand {
 	Options myOptions;
 
 	@Override
-	public int execute() {
+	public int execute() throws IOException{
+		int iResult = 0;
+		DBManager aDB = null;
 		OptionData mainOp = myOptions.getMainOption();
 		if (mainOp == null){
-			DBManager aDB = new DBManager();
+			aDB = new DBManager();
+			if (!aDB.isOpened()){
+				throw new IOException("Database not opened!");
+			}
+
 			aDB.getDeviceInfo(DBManager.outputFormat.STANDARD);
+			aDB.close();
 		}
 		else if (mainOp.getKey().equals(OPTION_JSON)){
-			DBManager aDB = new DBManager();
+			aDB = new DBManager();
+			if (!aDB.isOpened()){
+				throw new IOException("Database not opened!");
+			}
+
 			aDB.getDeviceInfo(DBManager.outputFormat.JSON);
+			aDB.close();
 		}
 		else if (mainOp.getKey().equals(Options.HELP_COMMAND)){
 			myOptions.generateHelp();
-			return 0;
 		}else{
 			System.err.println("error : unknown op - " + mainOp.getKey());
-			return -1;
+			iResult = -1;
 		}
-		return 0;
+		return iResult;
 	}
 
 	@Override

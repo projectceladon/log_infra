@@ -19,6 +19,8 @@
 
 package com.intel.commands.crashinfo.subcommand;
 
+import java.io.IOException;
+
 import java.util.concurrent.TimeUnit;
 
 import com.intel.commands.crashinfo.CrashInfo;
@@ -40,7 +42,7 @@ public class Status implements ISubCommand {
 	}
 
 	@Override
-	public int execute() {
+	public int execute() throws IOException{
 		OptionData mainOp = myOptions.getMainOption();
 		if (mainOp == null){
 			return execBaseStatus();
@@ -56,9 +58,14 @@ public class Status implements ISubCommand {
 	}
 
 
-	private int execUptime(){
+	private int execUptime() throws IOException{
 		DBManager aDB = new DBManager();
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
+
 		long duration = aDB.getCurrentUptime() ;
+		aDB.close();
 		if (duration >=0){
 			long seconds = TimeUnit.SECONDS.toSeconds(duration) % 60;
 			long days = TimeUnit.SECONDS.toDays(duration);
@@ -106,10 +113,15 @@ public class Status implements ISubCommand {
 		return myOptions.check();
 	}
 
-	private void displayDbstatus(){
+	private void displayDbstatus() throws IOException{
 		DBManager aDB = new DBManager();
+		if (!aDB.isOpened()){
+			throw new IOException("Database not opened!");
+		}
+
 		System.out.println("Version database : "  + aDB.getVersion());
 		System.out.println("Number of critical crash : "  +aDB.getNumberEventByCriticty(true));
 		System.out.println("Number of events : "  +aDB.getNumberEventByCriticty(false));
+		aDB.close();
 	}
 }
