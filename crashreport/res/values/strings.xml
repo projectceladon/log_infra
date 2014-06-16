@@ -19,7 +19,7 @@
 <resources>
 <!-- App settings -->
     <string name="app_name">MCG Phone Doctor</string>
-    <string name="app_version">1.7.0</string>
+    <string name="app_version">1.7.1</string>
 
     <!-- Private settings -->
 

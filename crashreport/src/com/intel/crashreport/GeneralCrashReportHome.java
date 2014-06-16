@@ -49,6 +49,18 @@ public class GeneralCrashReportHome extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.home);
 
+		Button button_start = (Button) findViewById(R.id.button_report_events);
+		// Attach a click listener for launching the system settings.
+		if(button_start != null) {
+			button_start.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					Intent intent = new Intent("com.intel.crashreport.intent.START_SERVICE");
+					intent.putExtra("com.intel.crashreport.extra.fromOutside", true);
+					startActivity(intent);
+				}
+			});
+		}
+
 		Button button_bugzilla = (Button) findViewById(R.id.button_report_bugzilla);
 		if(null != button_bugzilla) {
 			button_bugzilla.setOnClickListener(new View.OnClickListener() {

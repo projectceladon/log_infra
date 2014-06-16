@@ -18,17 +18,6 @@ public class CrashReportHome extends GeneralCrashReportHome {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Button button_start = (Button) findViewById(R.id.button_report_events);
-		// Attach a click listener for launching the system settings.
-		if(button_start != null) {
-			button_start.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					Intent intent = new Intent("com.intel.crashreport.intent.START_SERVICE");
-					intent.putExtra("com.intel.crashreport.extra.fromOutside", true);
-					startActivity(intent);
-				}
-			});
-		}
 
 		Button button_logconfig = (Button) findViewById(R.id.button_logconfig);
 		CrashReport app = (CrashReport) getApplicationContext();

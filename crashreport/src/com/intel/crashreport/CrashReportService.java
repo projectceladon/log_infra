@@ -809,6 +809,10 @@ public class CrashReportService extends Service {
 				if (serviceState == ServiceState.UploadEvent) {
 					Log.i("ServiceHandler: uploadFailFromConnection");
 					sendMsgToActivity("Report fail : Server connection error");
+					ApplicationPreferences prefs = new ApplicationPreferences(getApplicationContext());
+					String serverAddress = prefs.getServerAddress();
+					int serverPort = prefs.getServerPort();
+					sendMsgToActivity("Please check "+ serverAddress +" is reachable on port " + serverPort );
 					final int time = checkDateToRetry();
 					sendMsgToActivity("Report is postponed in "+ time +" minutes");
 					sendMsgToActivity("Otherwise, exit and check again the available events");
