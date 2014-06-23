@@ -163,9 +163,11 @@ public class BugzillaMainActivity extends Activity {
 							getApplicationContext(),
 							R.array.reportBugzillaSeverityValues,
 							R.layout.spinner_bugzilla_item));
+			if (!bShowSeverity){
+				bz_severity.setVisibility(View.GONE);
+			}
 		}
 		if (!bShowSeverity){
-			bz_severity.setVisibility(View.GONE);
 			//should hide text also
 			View aView = findViewById(R.id.bz_severity_view);
 			if (aView != null) {
@@ -190,10 +192,12 @@ public class BugzillaMainActivity extends Activity {
 							getApplicationContext(),
 							R.array.reportBugzillaComponentText,
 							R.layout.spinner_bugzilla_item));
+			if (!bShowComponent){
+				bz_components.setVisibility(View.GONE);
+			}
 		}
 
 		if (!bShowComponent){
-			bz_components.setVisibility(View.GONE);
 			//should hide text also
 			View aView = findViewById(R.id.bz_component_view);
 			if (aView != null) {
