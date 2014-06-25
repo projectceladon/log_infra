@@ -24,6 +24,7 @@ import java.io.FilenameFilter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Map;
 
 import android.content.Context;
 import android.database.SQLException;
@@ -35,6 +36,7 @@ import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.Log;
 import com.intel.phonedoctor.Constants;
+import com.intel.crashreport.specific.ingredients.IngredientManager;
 
 /**
   *
@@ -464,6 +466,34 @@ public enum PDStatus {
 
 						if (line.equals("PTI"))
 							result = "E";
+					}
+				}
+				return result;
+			}
+		}),
+		INGREDIENTS (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface() {
+			/**
+			 * @brief Returns an indicator for the ingredients fields.
+			 * @return 1 if everything is OK K if at least one ingredient is missing
+			 */
+			@Override
+			public String computeValue() {
+				String result = "1";
+				List<String> sKeyList = IngredientManager.INSTANCE.parseUniqueKey(event.getUniqueKeyComponent());
+				Map <String,String> ing = IngredientManager.INSTANCE.getLastIngredients();
+				if (ing == null) {
+					return "x";
+				}
+				for (String key :sKeyList ) {
+					String sTmp = ing.get(key);
+					if (sTmp == null) {
+						result = "K";
+						break;
+					}
+					//unknown is not OK also
+					if (sTmp.equals("unknown")) {
+						result = "K";
+						break;
 					}
 				}
 				return result;

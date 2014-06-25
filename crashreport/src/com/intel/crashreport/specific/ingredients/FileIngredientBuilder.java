@@ -105,12 +105,56 @@ public class FileIngredientBuilder implements IngredientBuilder {
 		if(line == null || container == null) {
 			return;
 		}
+		//ignore # comment line
+		if (line.startsWith("#")) {
+			return;
+		}
 		Log.d("Processing line:" + line);
 		String separator = this.getSeparator();
-		String[] tokens = line.split(separator);
+		String[] tokens = line.split(separator,2);
 		if(tokens.length > 1) {
-			container.put(tokens[0], tokens[1]);
+			//first part should be filtered
+			container.put(filterNameForCrashtool(tokens[0]), tokens[1]);
 		}
+	}
+
+	private String filterNameForCrashtool(String aName) {
+		String sResult= "";
+		String sTmp = aName;
+
+		//first we remove "version" suffix
+		String sCheckString = "version";
+		if (sTmp.toLowerCase().endsWith(sCheckString)) {
+			sTmp = sTmp.substring(0, sTmp.length() - sCheckString.length());
+		}
+		// remove sys prefix
+		sCheckString = "sys";
+		if (sTmp.toLowerCase().startsWith(sCheckString)) {
+			sTmp = sTmp.substring(sCheckString.length(), sTmp.length());
+		}
+		boolean bFiltered = false;
+		for(int i = 0; i < sTmp.length(); i++)
+		{
+			char c = sTmp.charAt(i);
+			if ( !Character.isLetterOrDigit(c)){
+				bFiltered = true;
+				//ignore this character
+				continue;
+			}
+
+			if (bFiltered) {
+				c = Character.toUpperCase(c);
+			}
+			bFiltered = false;
+			if (sResult.isEmpty()){
+				// first chat in lower case
+				sResult += c;
+				sResult = sResult.toLowerCase();
+			} else {
+				sResult += c;
+			}
+		}
+		return sResult;
 	}
 }
 

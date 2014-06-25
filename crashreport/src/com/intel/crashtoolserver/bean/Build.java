@@ -1,7 +1,9 @@
 package com.intel.crashtoolserver.bean;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 public class Build implements Serializable {
 
@@ -14,6 +16,8 @@ public class Build implements Serializable {
 	public final static String DEFAULT_BUILD_TYPE = "dev";
 	public final static String LATEST_BUILD_TYPE = "latest";
 	public final static String DEFAULT_BUILD_VARIANT = "unknown";
+	
+	public final static List<String> LEGACY_UNIQUE_KEY_COMPONENTS = Arrays.asList("modem", "ifwi", "iafw", "scu", "punit", "valhooks");
 
 	private Long id;
 	private String buildId;
@@ -34,8 +38,11 @@ public class Build implements Serializable {
 	private String ingredientsJson;
 	private Ingredients ingredients;
 	private String uniqueKey;
+	
+	@Deprecated
 	private String uniqueKeyGenerationMethod;
-
+	private List<String> uniqueKeyComponents;
+	
 	@Deprecated
 	private Long mainlineId;
 	@Deprecated
@@ -44,7 +51,7 @@ public class Build implements Serializable {
 	private Date date;
 	
 	/**
-	 * Private full constructor, cannot be called straight away from any client
+	 * full constructor used internally
 	 * @param id
 	 * @param buildId
 	 * @param name
@@ -62,8 +69,7 @@ public class Build implements Serializable {
 	 * @param os
 	 * @param project
 	 * @param ingredientsJson
-	 * @param uniqueKey
-	 * @param uniquekeyGenerationMethod
+	 * @param uniqueKeyComponents
 	 * @param mainlineId
 	 * @param mainline
 	 * @param date
@@ -73,8 +79,8 @@ public class Build implements Serializable {
 			String modemVersion, String ifwiVersion, String iafwVersion,
 			String scufwVersion, String punitVersion, String valhooksVersion,
 			String variant, String type, String os, Project project,
-			String ingredientsJson, String uniqueKey,
-			String uniqueKeyGenerationMethod, Long mainlineId,
+			String ingredientsJson,
+			List<String> uniqueKeyComponents, Long mainlineId,
 			Mainline mainline, Date date) {
 		
 		super();
@@ -95,12 +101,12 @@ public class Build implements Serializable {
 		this.os = os;
 		this.project = project;
 		this.ingredientsJson = ingredientsJson;
-		this.uniqueKey = uniqueKey;
-		this.uniqueKeyGenerationMethod = uniqueKeyGenerationMethod;
+		this.uniqueKeyComponents = uniqueKeyComponents;
 		this.mainlineId = mainlineId;
 		this.mainline = mainline;
 		this.date = date;
 	}
+
 
 	/**
 	 * Default constructor
@@ -142,7 +148,7 @@ public class Build implements Serializable {
 				modemVersion, ifwiVersion, iafwVersion,
 				scufwVersion, punitVersion, valhooksVersion,
 				null, null, os, null,
-				null, null,
+				null,
 				null, 0l,
 				null, null);
 	}
@@ -170,13 +176,13 @@ public class Build implements Serializable {
 				modemVersion, ifwiVersion, iafwVersion,
 				scufwVersion, punitVersion, valhooksVersion,
 				null, null, null, null,
-				null, null,
+				null,
 				null, 0l,
 				null, null);
 	}
 	
 	/**
-	 * Used by PD above 1.6
+	 * Used by PD above 2.0
 	 * @param uniqueKey
 	 * @param uniquekeyGenerationMethod
 	 * @param buildId
@@ -186,8 +192,8 @@ public class Build implements Serializable {
 	 * @param ingredientsJson
 	 * @param os
 	 */
-	public Build(String uniqueKey,
-			String uniquekeyGenerationMethod, String buildId, String fingerPrint,
+	public Build(
+			List<String> uniquekeyComponents, String buildId, String fingerPrint,
 			String kernelVersion, String buildUserHostname, String ingredientsJson,
 			String os) {
 		
@@ -196,31 +202,25 @@ public class Build implements Serializable {
 					null, null, null,
 					null, null, null,
 					null, null, os, null,
-					ingredientsJson, uniqueKey,
-					uniquekeyGenerationMethod, 0l,
+					ingredientsJson, 
+					uniquekeyComponents, 0l,
 					null, null);
 	}
 	
 	/**
 	 * Used by CLA
-	 * @param uniqueKey
-	 * @param uniquekeyGenerationMethod
 	 * @param buildId
-	 * @param fingerPrint
-	 * @param kernelVersion
-	 * @param buildUserHostname
-	 * @param ingredientsJson
-	 * @param os
+	 * @param modemVersion
+	 * @param os, operating system
 	 */
-	public Build(String buildId, String modemVersion,
-			String os) {
+	public Build(String buildId, String modemVersion, String os) {
 		
 		 this(0l, buildId, null, null,
 					null, null,
 					modemVersion, null, null,
 					null, null, null,
 					null, null, os, null,
-					null, null,
+					null, 
 					null, 0l,
 					null, null);
 	}
@@ -452,11 +452,12 @@ public class Build implements Serializable {
 	public void setUniqueKey(String uniqueKey) {
 		this.uniqueKey = uniqueKey;
 	}
-
+	
+	@Deprecated
 	public String getUniqueKeyGenerationMethod() {
 		return uniqueKeyGenerationMethod;
 	}
-
+	@Deprecated
 	public void setUniqueKeyGenerationMethod(String uniqueKeyGenerationMethod) {
 		this.uniqueKeyGenerationMethod = uniqueKeyGenerationMethod;
 	}
@@ -505,6 +506,24 @@ public class Build implements Serializable {
 		this.ingredients = ingredients;
 	}
 	
+	public List<String> getUniqueKeyComponents() {
+		return uniqueKeyComponents;
+	}
+
+	public void setUniqueKeyComponents(List<String> uniqueKeyComponents) {
+		this.uniqueKeyComponents = uniqueKeyComponents;
+	}
+	
+	public String getUniqueKeyComponentsString() {
+		if (getUniqueKeyComponents() != null) {
+			return uniqueKeyComponents.toString();
+		}
+		else {
+			return Build.DEFAULT_VALUE;
+		}		
+	}
+
+
 	@Override
 	public String toString() {
 		return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name
@@ -516,9 +535,10 @@ public class Build implements Serializable {
 				+ punitVersion + ", valhooksVersion=" + valhooksVersion
 				+ ", variant=" + variant + ", type=" + type + ", os=" + os
 				+ ", project=" + project + ", ingredientsJson="
-				+ ingredientsJson + ", uniqueKey=" + uniqueKey
-				+ ", uniqueKeyGenerationMethod=" + uniqueKeyGenerationMethod
-				+ ", mainlineId=" + mainlineId + ", mainline=" + mainline
-				+ ", date=" + date + "]";
+				+ ingredientsJson + ", ingredients=" + ingredients
+				+ ", uniqueKey=" + uniqueKey + ", uniqueKeyGenerationMethod="
+				+ uniqueKeyGenerationMethod + ", uniqueKeyComponents="
+				+ uniqueKeyComponents + ", mainlineId=" + mainlineId
+				+ ", mainline=" + mainline + ", date=" + date + "]";
 	}
 }

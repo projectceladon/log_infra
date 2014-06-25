@@ -55,7 +55,7 @@ public class GeneralEventDB {
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
 	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
 	protected static final String DATABASE_DEVICE_TABLE = "device";
-	protected static final int DATABASE_VERSION = 14;
+	protected static final int DATABASE_VERSION = 15;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -105,6 +105,7 @@ public class GeneralEventDB {
 	public static final String KEY_VARIANT = "variant";
 	public static final String KEY_INGREDIENTS = "ingredients";
 	public static final String KEY_OS_BOOT_MODE = "bootMode";
+	public static final String KEY_UNIQUEKEY_COMPONENT = "uniqueKeyComponents";
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -124,6 +125,7 @@ public class GeneralEventDB {
 					KEY_VARIANT + " text, " +
 					KEY_INGREDIENTS + " text, " +
 					KEY_OS_BOOT_MODE + " text, " +
+					KEY_UNIQUEKEY_COMPONENT + " text, " +
 					KEY_IMEI + " text not null, " +
 					KEY_UPTIME + " text not null, " +
 					KEY_UPLOAD + " integer, " +
@@ -293,7 +295,7 @@ public class GeneralEventDB {
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, String uptime, String crashDir,
 			boolean bDataReady, String origin, String pdStatus, String variant,
-			String ingredients, String osBootMode) {
+			String ingredients, String osBootMode, String uniqueKeyComponent) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = convertDateForDb(date);
 		if (eventName.equals("")) return -2;
@@ -330,6 +332,7 @@ public class GeneralEventDB {
 		initialValues.put(KEY_VARIANT, variant);
 		initialValues.put(KEY_INGREDIENTS, ingredients);
 		initialValues.put(KEY_OS_BOOT_MODE, osBootMode);
+		initialValues.put(KEY_UNIQUEKEY_COMPONENT, uniqueKeyComponent);
 
 		CrashReport app = (CrashReport)mCtx;
 		updateDeviceInformation(deviceId,imei,GeneralEvent.getSSN(),app.getTokenGCM(),Event.getSpid());
@@ -357,7 +360,8 @@ public class GeneralEventDB {
 				event.getPdStatus(),
 				event.getVariant(),
 				event.getIngredients(),
-				event.getOsBootMode());
+				event.getOsBootMode(),
+				event.getUniqueKeyComponent());
 	}
 
 	public boolean deleteEvent(String eventId) {
@@ -370,7 +374,7 @@ public class GeneralEventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
-				KEY_OS_BOOT_MODE, KEY_IMEI, KEY_UPTIME,
+				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_IMEI, KEY_UPTIME,
 				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED,
 				KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE},
 				null, null, null, null, null);
@@ -387,7 +391,7 @@ public class GeneralEventDB {
 		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
 				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
-				KEY_OS_BOOT_MODE, KEY_IMEI, KEY_UPTIME,
+				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_IMEI, KEY_UPTIME,
 				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY,
 				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE},
 				sQuery, null, null, null, KEY_ROWID + " DESC", sNlimit);
@@ -431,7 +435,7 @@ public class GeneralEventDB {
 		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,KEY_ID, KEY_NAME, KEY_TYPE,
 				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
 				KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
-				KEY_OS_BOOT_MODE, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
+				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
 				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN,
 				KEY_PDSTATUS, KEY_LOGS_SIZE},
 				whereQuery, null, null, null, null, null);
@@ -458,6 +462,7 @@ public class GeneralEventDB {
 		event.setDeviceId(cursor.getString(cursor.getColumnIndex(KEY_DEVICEID)));
 		event.setVariant(cursor.getString(cursor.getColumnIndex(KEY_VARIANT)));
 		event.setIngredients(cursor.getString(cursor.getColumnIndex(KEY_INGREDIENTS)));
+		event.setUniqueKeyComponent(cursor.getString(cursor.getColumnIndex(KEY_UNIQUEKEY_COMPONENT)));
 		event.setOsBootMode(cursor.getString(cursor.getColumnIndex(KEY_OS_BOOT_MODE)));
 		event.setImei(cursor.getString(cursor.getColumnIndex(KEY_IMEI)));
 		event.setUptime(cursor.getString(cursor.getColumnIndex(KEY_UPTIME)));

@@ -29,6 +29,7 @@ import com.intel.crashreport.GeneralEvent;
 import com.intel.crashreport.GenericParseFile;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
+import com.intel.crashreport.specific.ingredients.IngredientManager;
 import com.intel.crashtoolserver.bean.Device;
 import com.intel.phonedoctor.Constants;
 
@@ -77,6 +78,8 @@ public class Event extends GeneralEvent{
 		fillEvent(histEvent, myBuild, isUserBuild);
 		setVariant(GeneralBuild.getVariant());
 		setIngredients(Build.getIngredients());
+		setUniqueKeyComponent(IngredientManager.INSTANCE.getUniqueKeyList().toString());
+
 		setOsBootMode(GeneralEvent.BOOT_MOS_TO_MOS);
 		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
 	}
@@ -290,6 +293,9 @@ public class Event extends GeneralEvent{
 		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
 		sBuild.setVariant(getVariant());
 		sBuild.setIngredientsJson(this.ingredients);
+		// do not use "uniquekey" of crashtool object, it is for internal use only
+		//uniqueKeyComponents should be used
+		sBuild.setUniqueKeyComponents(IngredientManager.INSTANCE.parseUniqueKey(this.uniqueKeyComponent));
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
 		//GCM not fully implemented

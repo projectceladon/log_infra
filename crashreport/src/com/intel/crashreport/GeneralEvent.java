@@ -59,6 +59,7 @@ public class GeneralEvent {
 	protected ParsableEvent mParsableEvent;
 	protected String ingredients = "";
 	protected String osBootMode = "";
+	protected String uniqueKeyComponent = "";
 	protected boolean uploaded = false;
 	protected boolean logUploaded = false;
 	/*Define event validity : not valid if a mandatory attribute is missing */
@@ -435,5 +436,13 @@ public class GeneralEvent {
 	 */
 	public void setOsBootMode(String osBootMode) {
 		this.osBootMode = osBootMode;
+	}
+
+	public String getUniqueKeyComponent() {
+		return uniqueKeyComponent;
+	}
+
+	public void setUniqueKeyComponent(String uniqueKeyComponent) {
+		this.uniqueKeyComponent = uniqueKeyComponent;
 	}
 }

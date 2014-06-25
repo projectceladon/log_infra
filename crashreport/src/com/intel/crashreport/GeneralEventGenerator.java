@@ -87,6 +87,7 @@ public enum GeneralEventGenerator {
 				event.setEventId(sha1Hash(SHA1String));
 				event.setVariant(GeneralBuild.getVariant());
 				event.setIngredients(Build.getIngredients());
+				event.setUniqueKeyComponent(Build.getUniqueKeyComponent());
 				PDStatus.INSTANCE.setContext(mContext);
 				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.INSERTION_TIME));
 

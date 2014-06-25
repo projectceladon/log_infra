@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.intel.crashtool.constant.CtDateConstants;
+import com.intel.crashtool.util.HashGenerator;
 
 /**
  * Bean Event, used to transmit event data between a client and a server
@@ -19,6 +20,8 @@ import com.intel.crashtool.constant.CtDateConstants;
 public class Event implements Serializable {
 
 	private static final long serialVersionUID = -1516767267932884874L;
+	
+	private static final String PROTOCOL_VERSION = "3.1.17";
 
 	/**
 	 * Origin exhaustive list
@@ -72,6 +75,7 @@ public class Event implements Serializable {
 	private Device device;
 	private Uptime uptimeObj;
 	private Crashtype crashtype;
+	private String protocolVersion;
 
 	public Event() {
 		super();
@@ -144,6 +148,7 @@ public class Event implements Serializable {
 	 * @param uptime
 	 * @param build
 	 */
+	@Deprecated
 	public Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3,
 			String data4, String data5, Date date,
@@ -373,7 +378,6 @@ public class Event implements Serializable {
 	
 	/**
 	 * Used by CLA
-	 * @param eventId
 	 * @param event
 	 * @param type
 	 * @param data0
@@ -383,20 +387,18 @@ public class Event implements Serializable {
 	 * @param data4
 	 * @param data5
 	 * @param date
-	 * @param uptime
-	 * @param logFile
+	 * @param logFileURI
 	 * @param build
-	 * @param origin
 	 * @param device
-	 * @param rowId
-	 * @param pdStatus
-	 * @param bootMode
 	 */
-	public Event(String eventId, String event, String type, String data0,
+	public Event(String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date,
 			String logFileURI, Build build, Device device) {
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, 0l, null, build, null, device, UNKNOWN_ROWID, null, null, logFileURI);
+		this( null, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, 0l, null, build, null, device, UNKNOWN_ROWID, null, null, logFileURI);
+		
+		// set automatically the eventId
+		this.setEventId(HashGenerator.getUniqueEventId(this));
 	}
 
 	/**
@@ -455,12 +457,13 @@ public class Event implements Serializable {
 
 		this.device = device;
 		if (date != null) {
-			this.dateString = new SimpleDateFormat(CtDateConstants.PATTERN_TIMESTAMP).format(date);
+			// this should not be modified to avoid confusion on hours between PD and crashtool!
+			this.dateString = com.intel.crashtool.crashtoolDb.bean.util.DateUtils.dateToString(date);			
 		}
 		this.rowId = rowId;
 		this.pdStatus = pdStatus;
 		this.bootMode = bootMode;
-		
+		this.protocolVersion = PROTOCOL_VERSION;
 	}
 
 
@@ -890,6 +893,15 @@ public class Event implements Serializable {
 	public void setLogFileURI(String logFileURI) {
 		this.logFileURI = logFileURI;
 	}
+	
+	public String getProtocolVersion() {
+		return protocolVersion;
+	}
+
+	public void setProtocolVersion(String protocolVersion) {
+		this.protocolVersion = protocolVersion;
+	}
+	
 
 	@Override
 	public String toString() {
@@ -900,17 +912,16 @@ public class Event implements Serializable {
 				+ dateString + ", buildId=" + buildId + ", deviceId="
 				+ deviceId + ", testId=" + testId + ", uptime=" + uptime
 				+ ", logFileName=" + logFileName + ", logFile=" + logFile
-				+ ", logFileURI=" + logFileURI + ", reportFile=" + reportFile + ", imei="
-				+ imei + ", origin=" + origin + ", fileOrigin=" + fileOrigin
-				+ ", insertedEventDate=" + insertedEventDate
+				+ ", logFileURI=" + logFileURI + ", reportFile=" + reportFile
+				+ ", imei=" + imei + ", origin=" + origin + ", fileOrigin="
+				+ fileOrigin + ", insertedEventDate=" + insertedEventDate
 				+ ", insertedFileDate=" + insertedFileDate + ", rejected="
 				+ rejected + ", bplog=" + bplog + ", rowId=" + rowId
 				+ ", pdStatus=" + pdStatus + ", logFileNotAvailable="
 				+ logFileNotAvailable + ", reportFileNotAvailable="
 				+ reportFileNotAvailable + ", bootMode=" + bootMode
 				+ ", build=" + build + ", device=" + device + ", uptimeObj="
-				+ uptimeObj + ", crashtype=" + crashtype + "]";
-	}
-	
-	
+				+ uptimeObj + ", crashtype=" + crashtype + ", protocolVersion="
+				+ protocolVersion + "]";
+	}	
 }

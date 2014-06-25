@@ -73,9 +73,22 @@ public class Device implements Serializable {
 
 		this(deviceId, imei, pid, owner, location, tag, lastUpdatedDate, null, null, null);
 	}
+	
+	/**
+	 * used By ACL
+	 * @param deviceId
+	 * @param imei
+	 * @param ssn
+	 * @param owner
+	 * @param location
+	 * @param tag
+	 */
+	public Device(String deviceId, String imei, String ssn, String owner, String location, String tag) {
+		this(deviceId, imei, null, owner, location, tag, null, ssn, null, null);
+	}
 
 	/**
-	 * used By PD under 1.6 and ACL
+	 * used By PD under 1.6
 	 * @param deviceId
 	 * @param imei
 	 * @param ssn

@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-
 import android.content.Context;
 
 import com.intel.crashreport.ApplicationPreferences;
@@ -35,6 +33,7 @@ import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.ingredients.FileIngredientBuilder;
 import com.intel.crashreport.specific.ingredients.IngredientBuilder;
+import com.intel.crashreport.specific.ingredients.IngredientManager;
 import com.intel.crashreport.propconfig.PropertyConfigLoader;
 import com.intel.crashreport.propconfig.bean.BuildAllowedValues;
 import com.intel.phonedoctor.Constants;
@@ -81,14 +80,8 @@ public class Build extends GeneralBuild{
 		IngredientBuilder builder = new FileIngredientBuilder(INGREDIENTS_FILE_PATH);
 		// Retrieve the ingredients
 		Map<String, String> ingredients = builder.getIngredients();
-		// Add the build-related ingredients.
-		// Because we are not in a Build instance we do not have
-		// any cleaner way that to compute once more the property values.
-		ingredients.put("ifwi", getProperty("sys.ifwi.version"));
-		ingredients.put("iafw", getProperty("sys.ia32.version"));
-		ingredients.put("scu", getProperty("sys.scu.version"));
-		ingredients.put("punit", getProperty("sys.punit.version"));
-		ingredients.put("valhooks", getProperty("sys.valhooks.version"));
+		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
+
 		// Create a StringBuilder for the final JSON string
 		StringBuilder ingredientsBuffer = new StringBuilder("{");
 		// Process the ingredients
@@ -102,6 +95,11 @@ public class Build extends GeneralBuild{
 		ingredientsBuffer.append("}");
 		// Return the JSON string
 		return ingredientsBuffer.toString();
+	}
+
+	//for PDLite easy integration
+	public static final String getUniqueKeyComponent() {
+		return IngredientManager.INSTANCE.getUniqueKeyList().toString();
 	}
 
 	/**
@@ -170,7 +168,7 @@ public class Build extends GeneralBuild{
 					if(configuredProperty.equals(property.getName())) {
 						// Update the property
 						String[] allowedValues =
-							ALLOWED_VALUES.getAllowedValuesForProperty(configuredProperty);
+								ALLOWED_VALUES.getAllowedValuesForProperty(configuredProperty);
 						property.setAllowedValues(Arrays.asList(allowedValues));
 						// End this loop
 						break;

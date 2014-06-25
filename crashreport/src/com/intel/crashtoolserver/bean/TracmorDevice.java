@@ -25,8 +25,7 @@ public class TracmorDevice {
 	private String ownerEmail;
 	private String idsid;
 	private String labOwner;
-	
-	
+	private String notes;	
 
 	public long getId() {
 		return id;
@@ -155,6 +154,14 @@ public class TracmorDevice {
 	public void setModifiedDate(Date modifiedDate) {
 		this.modifiedDate = modifiedDate;
 	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
 	
 	@Override
 	public String toString() {
@@ -167,6 +174,6 @@ public class TracmorDevice {
 				+ modifiedDate + ", ownerFirstName=" + ownerFirstName
 				+ ", ownerLastName=" + ownerLastName + ", ownerEmail="
 				+ ownerEmail + ", idsid=" + idsid + ", labOwner=" + labOwner
-				+ "]";
+				+ ", notes=" + notes + "]";
 	}
 }

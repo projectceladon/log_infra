@@ -41,7 +41,7 @@ public class CrashInfo {
 	 *                - JSON output format for get_device and get_event commands
 	 *                - Status command updated to return Api version
 	 */
-	public static final String API_VERSION = "1";
+	public static final String API_VERSION = "2";
 
 	/**
 	 * Crashinfo command
