@@ -85,70 +85,57 @@ public class PhoneInspector {
 	 */
 	private PhoneInspector() {}
 
-	/**
-	 * Check FullDropBox state (full or not) and set Crashlog daemon property according to this state so that
-	 * logs could be stored in /logs partition rather than in /data partition
-	 */
-	public void manageFullDropBox() {
-		ApplicationPreferences mAppPrefs = new ApplicationPreferences(mCtx);
-		if (!mAppPrefs.isFullDropboxMethodAvailable()) {
-			Log.w("DropBoxManager.isFull() method not available");
-			return;
+	public boolean newDropBoxEntryAdded(long intentTimeMs) {
+		boolean bResult = false;
+		if (intentTimeMs == 0) {
+			Log.d(Module + ": Timestamp == 0 on dropbox entry");
 		}
 
-		Method dbmIsFullM = getDropBoxManagerIsFullMethod();
-		if (dbmIsFullM == null) {
-			Log.w("DropBoxManager.isFull() method not available, save it");
-			mAppPrefs.setFullDropboxMethodNotAvailable();
-			return;
+		DropBoxManager.Entry entry = mDropBoxManager.getNextEntry(null, intentTimeMs - 1);
+
+		if (entry == null)
+			return false;
+
+		if ((entry.getFlags() & DropBoxManager.IS_EMPTY) == DropBoxManager.IS_EMPTY){
+			bResult = true;
 		}
 
-		Boolean isFull = getDropBoxManagerIsFullValue(mDropBoxManager, dbmIsFullM);
-		if (isFull == null) {
-			mAppPrefs.setFullDropboxMethodNotAvailable();
-			return;
-		}
+		entry.close();
+		setDropBoxFullState(bResult);
+		return bResult;
+	}
 
-		if (isFull) {
-			Log.i(Module + "DropBox full");
+	private void setDropBoxFullState(boolean state) {
+		if (state) {
+			Log.i(Module + "DropBox: Items dropped");
 			SystemProperties.set(FULL_DROPBOX_PROP, LOW_MEM_MODE);
 		} else {
-			Log.d(Module + "DropBox not full");
+			Log.d(Module + "DropBox: Last Item succesfully added");
 			SystemProperties.set(FULL_DROPBOX_PROP, NOMINAL_MODE);
 		}
 	}
 
-	/**
-	 * Return isFull() method of DropBoxManager class
-	 *
-	 * @return isFull() method, null if not found
-	 */
-	private static Method getDropBoxManagerIsFullMethod() {
-		Class<DropBoxManager> cl = DropBoxManager.class;
-		try {
-			return cl.getMethod("isFull", (Class[]) null);
-		} catch (NoSuchMethodException e) {}
-		return null;
+	public boolean hasDroppedEntries(boolean state) {
+		return hasDroppedEntries(state, 0);
 	}
 
-	/**
-	 * Return DropBoxManager.isFull() value
-	 *
-	 * @param mDBM DropBoxManager instance
-	 * @param isFull DropBoxManager.isFull() method
-	 * @return true or false according to the value, null if not available
-	 */
-	private static Boolean getDropBoxManagerIsFullValue(DropBoxManager mDBM, Method isFull) {
-		try {
-			return (Boolean) isFull.invoke(mDBM, (Object[]) null);
-		} catch (IllegalArgumentException e) {
-			Log.e("DropBoxManager.isFull() method invoke fail", e);
-		} catch (IllegalAccessException e) {
-			Log.e("DropBoxManager.isFull() method invoke fail", e);
-		} catch (InvocationTargetException e) {
-			Log.e("DropBoxManager.isFull() method invoke fail", e);
+	public boolean hasDroppedEntries(boolean state, long since) {
+		boolean bResult = false;
+		DropBoxManager.Entry entry = mDropBoxManager.getNextEntry(null, since);
+
+		while (entry != null){
+			long time = entry.getTimeMillis();
+			if ((entry.getFlags() & DropBoxManager.IS_EMPTY) == DropBoxManager.IS_EMPTY){
+				bResult = true;
+				entry.close();
+				break;
+			}
+			entry.close();
+			entry = mDropBoxManager.getNextEntry(null, time);
 		}
-		return null;
+
+		setDropBoxFullState(bResult);
+		return bResult;
 	}
 
 	public void addEventLogUploadFailure(String aEventid){

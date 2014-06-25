@@ -29,7 +29,6 @@ import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportRequest;
 import com.intel.crashreport.GeneralNotificationReceiver;
 import com.intel.crashreport.Log;
-import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.specific.GcmUtils;
 
 public class NotificationReceiver extends GeneralNotificationReceiver {
@@ -50,8 +49,6 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 	//PhoneInspectorService intent type values
 	public static final String DROPBOX_ENTRY_ADDED 		= "DROPBOX_ENTRY_ADDED";
 	public static final String BOOT_COMPLETED 			= "BOOT_COMPLETED";
-
-	private static boolean serviceIsRunning = false;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -86,11 +83,8 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			}
 			super.onReceive(context, intent);
 			//Add type to intent and send it
-			if(!serviceIsRunning) {
-				serviceIsRunning = true;
 				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
 				context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
-			}
 		} else if (intent.getAction().equals(START_CRASHREPORT_SERVICE)) {
 			Log.d("NotificationReceiver: startCrashReportService");
 			iStartCrashReport.startUpload(context);
@@ -133,14 +127,11 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			Log.d("NotificationReceiver: dropBoxEntryAddedIntent");
 
 			//Add data to intent
-			if(!serviceIsRunning) {
-				serviceIsRunning = true;
 				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, DROPBOX_ENTRY_ADDED);
 				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(DropBoxManager.EXTRA_TAG, intent.getStringExtra(DropBoxManager.EXTRA_TAG));
 				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
 
 				context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
-			}
 		}else if (intent.getAction().equals(GeneralNotificationReceiver.GCM_MARK_AS_READ)) {
 			int rowId = -1;
 			// Check whether a row id has been supplied

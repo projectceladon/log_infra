@@ -222,8 +222,6 @@ public class CheckEventsService extends Service {
 								if(!app.isUserBuild() && blackLister.hasDb())
 									result = !blackLister.blackList(event);
 								if (result) {
-									//Manage full Dropbox case before adding an event
-									PhoneInspector.getInstance(getApplicationContext()).manageFullDropBox();
 
 									long ret = db.addEvent(event);
 									if (ret == -1)

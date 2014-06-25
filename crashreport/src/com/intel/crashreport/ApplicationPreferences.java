@@ -296,29 +296,6 @@ public class ApplicationPreferences {
 	}
 
 	/**
-	 * Private settings to save if DropBoxManager.isFull() method is available
-	 */
-	private static final String settings_private_full_dropbox_api_available = "settings_private_full_dropbox_api_available";
-
-	/**
-	 * Return if DropBoxManager.isFull() method is available, true by default in Intel build.
-	 *
-	 * @return true if method is available, false otherwise
-	 */
-	public boolean isFullDropboxMethodAvailable() {
-		return appPrivatePrefs.getBoolean(settings_private_full_dropbox_api_available, true);
-	}
-
-	/**
-	 * Set DropBoxManager.isFull() method availability to false
-	 *
-	 * Usually, if method is not available, it will not change across executions
-	 */
-	public void setFullDropboxMethodNotAvailable() {
-		privatePrefsEditor.putBoolean(settings_private_full_dropbox_api_available, false);
-	}
-
-	/**
 	 * Chekc is the GCM Messaging system is enabled
 	 * @return True if GCM Messaging is enabled
 	 */

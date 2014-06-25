@@ -68,14 +68,11 @@ public class PhoneInspectorService extends IntentService {
 
                 //Manage FullDropBox case
                 PhoneInspector phoneInspector = PhoneInspector.getInstance(getApplicationContext());
-                phoneInspector.manageFullDropBox();
+                phoneInspector.newDropBoxEntryAdded(intentTimeMs);
             }
 
             else if( extraType.equals(NotificationReceiver.BOOT_COMPLETED)) {
 
-                //Manage FullDropBox case at boot
-                PhoneInspector phoneInspector = PhoneInspector.getInstance(getApplicationContext());
-                phoneInspector.manageFullDropBox();
             }
 
         }
