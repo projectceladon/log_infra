@@ -124,6 +124,10 @@ public class RainSignature {
 		return data3;
 	}
 
+	private String replaceEscapeSequence(String sequence){
+		return sequence.replace("'", "''");
+	}
+
 	/**
 	 * @brief return the query (with rain signature) for requests on rain of
 	 * crashes database
@@ -133,16 +137,16 @@ public class RainSignature {
 	public String querySignature() {
 		String query;
 		if (this.type.equals("TOMBSTONE")) {
-			query = KEY_TYPE + " = '" + type + "' and " +
-					KEY_DATA0 + " = '" + data0 + "' and " +
-					KEY_DATA1 + " = '" + data1 + "' and " +
-					KEY_DATA3 + " = '" + data3 + "'";
+			query = KEY_TYPE + " = '" + replaceEscapeSequence(type) + "' and " +
+					KEY_DATA0 + " = '" + replaceEscapeSequence(data0) + "' and " +
+					KEY_DATA1 + " = '" + replaceEscapeSequence(data1) + "' and " +
+					KEY_DATA3 + " = '" + replaceEscapeSequence(data3) + "'";
 		}
 		else {
-			query = KEY_TYPE + " = '" + type + "' and " +
-				KEY_DATA0 + " = '" + data0 + "' and " +
-				KEY_DATA1 + " = '" + data1 + "' and " +
-				KEY_DATA2 + " = '" + data2 + "'";
+			query = KEY_TYPE + " = '" + replaceEscapeSequence(type) + "' and " +
+				KEY_DATA0 + " = '" + replaceEscapeSequence(data0) + "' and " +
+				KEY_DATA1 + " = '" + replaceEscapeSequence(data1) + "' and " +
+				KEY_DATA2 + " = '" + replaceEscapeSequence(data2) + "'";
 		}
 		return query;
 	}

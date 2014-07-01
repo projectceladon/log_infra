@@ -54,7 +54,7 @@ public class CrashReportService extends Service {
 
 	private CrashReport app;
 	private HandlerThread handlerThread;
-	private Thread runThread;
+	private Thread runThread = null;
 	private ServiceHandler serviceHandler;
 	private ServiceState serviceState;
 	private final IBinder mBinder = new LocalBinder();
@@ -74,7 +74,6 @@ public class CrashReportService extends Service {
 		Log.d(MODULE+": onStartCommand");
 		if (app.isServiceStarted()) {
 			Log.d(MODULE+": Already started: stop");
-			stopSelf();
 		} else {
 			Log.d(MODULE+": Not already started");
 			handlerThread = new HandlerThread("CrashReportService_Thread");
@@ -101,6 +100,8 @@ public class CrashReportService extends Service {
 
 	@Override
 	public void onDestroy() {
+		stopUploadThread();
+
 		if(app.isServiceStarted()) {
 			app.setServiceStarted(false);
 			if(app.isActivityBounded()) {
@@ -147,10 +148,13 @@ public class CrashReportService extends Service {
 	}
 
 	public void cancelDownload() {
-		if (serviceState == ServiceState.UploadEvent) {
-			if ((runThread != null) && runThread.isAlive())
-				runThread.interrupt();
-		}
+		if (serviceState == ServiceState.UploadEvent)
+			stopUploadThread();
+	}
+
+	public void stopUploadThread() {
+		if ((runThread != null) && runThread.isAlive())
+			runThread.interrupt();
 	}
 
 	private Runnable processEvent = new Runnable(){
@@ -390,7 +394,7 @@ public class CrashReportService extends Service {
 		if (cursor != null) {
 			PDStatus.INSTANCE.setContext(getApplicationContext());
 			while (!cursor.isAfterLast()) {
-				if (runThread.isInterrupted()) {
+				if (runThread == null || runThread.isInterrupted()) {
 					cursor.close();
 					throw new InterruptedException();
 				}
@@ -456,6 +460,12 @@ public class CrashReportService extends Service {
 		}
 
 		public void run() {
+			if (runThread != null){
+				Log.w(MODULE +
+						": attempt to restart upload, while a thread is already running");
+				return;
+			}
+
 			context = getApplicationContext();
 			app = (CrashReport)context;
 			myBuild = ((CrashReport) context).getMyBuild();
@@ -478,7 +488,9 @@ public class CrashReportService extends Service {
 			runThread.start();
 			try {
 				runThread.join();
+				runThread = null;
 			} catch (InterruptedException e) {
+				runThread = null;
 				serviceHandler.sendEmptyMessage(ServiceMsg.cancelUpload);
 			}
 			boolean needsWifi = uploadExec.needsWifi();
