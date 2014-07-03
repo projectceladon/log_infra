@@ -526,6 +526,13 @@ public class MainParser{
 				if (sPanic.contains("Fatal exception in interrupt")){
 					sComm = "";
 				}
+				// 3 - remove CPU number in "Watchdog detected hard LOCKUP on cpu N"
+				if (bLockUpCase){
+					String sFilteredValue = simpleAwk(sPanic, " on cpu",0);
+					if (sFilteredValue != null && !sFilteredValue.isEmpty()){
+						sPanic =  sFilteredValue;
+					}
+				}
 
 				if (bLockUpCase){
 					sData0 = sDataLockUp;
