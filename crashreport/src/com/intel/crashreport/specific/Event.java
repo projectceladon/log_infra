@@ -75,12 +75,11 @@ public class Event extends GeneralEvent{
 	}
 
 	public Event(HistoryEvent histEvent, String myBuild, boolean isUserBuild) {
+		setOsBootMode(GeneralEvent.BOOT_UNDEFINED);
 		fillEvent(histEvent, myBuild, isUserBuild);
 		setVariant(GeneralBuild.getVariant());
 		setIngredients(Build.getIngredients());
 		setUniqueKeyComponent(IngredientManager.INSTANCE.getUniqueKeyList().toString());
-
-		setOsBootMode(GeneralEvent.BOOT_MOS_TO_MOS);
 		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
 	}
 
@@ -420,6 +419,7 @@ public class Event extends GeneralEvent{
 			setData2(aParseFile.getValueByName("DATA2"));
 			setData3(aParseFile.getValueByName("DATA3"));
 			setData4(aParseFile.getValueByName("DATA4"));
+			setOsBootMode(aParseFile.getValueByName("BOOTMODE"));
 		}
 	}
 

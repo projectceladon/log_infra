@@ -181,6 +181,7 @@ public class CheckEventsService extends Service {
 		BlackLister blackLister = new BlackLister(getApplicationContext());
 		boolean historyEventCorrupted = false;
 		boolean result;
+		String bootMode = "";
 		Context context = getApplicationContext();
 
 
@@ -209,6 +210,12 @@ public class CheckEventsService extends Service {
 								result = !db.isEventInDb(histEvent.getEventId()) && !db.isEventInBlackList(histEvent.getEventId());
 							if (result) {
 								event = new Event(histEvent, myBuild, app.isUserBuild());
+
+								if (!histEvent.getEventName().contentEquals("REBOOT"))
+									event.setOsBootMode(bootMode);
+								else
+									bootMode = event.getOsBootMode();
+
 								if(!app.isUserBuild() && blackLister.hasDb())
 									blackLister.cleanRain(event.getDate());
 								result = true;
@@ -250,8 +257,13 @@ public class CheckEventsService extends Service {
 										}
 									}
 								}
-							} else
+							} else {
+								if (histEvent.getEventName().contentEquals("REBOOT")){
+									event = new Event(histEvent, myBuild, app.isUserBuild());
+									bootMode = event.getOsBootMode();
+								}
 								Log.d(from+": Event already in DB, " + histEvent.getEventId());
+							}
 						} catch (SQLException e) {
 							Log.e(from+": Can't access database. Skip treatment of event " + histEvent.getEventId(), e);
 						}
