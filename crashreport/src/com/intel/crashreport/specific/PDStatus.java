@@ -445,6 +445,10 @@ public enum PDStatus {
 						}
 					});
 
+					if (debugftfilename == null){
+						//escape case for I/O errors
+						return "X";
+					}
 					if(debugftfilename.length > 0){
 						result = "0";
 						String path = DBG_DIR + "/" + DBG_FT_FILE_NAME;
