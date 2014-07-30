@@ -69,8 +69,7 @@ public class CheckEventsService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(MODULE+": onStartCommand");
 		if (app.isCheckEventsServiceStarted()) {
-			Log.d(MODULE+": Already started: stop");
-			stopSelf();
+			Log.d(MODULE+": Service already running");
 		} else {
 			Log.d(MODULE+": Not already started");
 			handlerThread = new HandlerThread("CheckEventsService_Thread");
