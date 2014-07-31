@@ -35,7 +35,6 @@ public class GeneralBuild {
 
 	private static final int FIELD_NUMBER = 10;
 
-	private static final String MODEM_VERSION_FILE = Constants.LOGS_DIR + "/modem_version.txt";
 
 	/**
 	 * The name of the property to search for when filling the
@@ -43,6 +42,7 @@ public class GeneralBuild {
 	 */
 	public static final String VARIANT_PROPERTY_NAME = "ro.product.name";
 	public static final String PRODUCT_PROPERTY_NAME = "ro.build.product";
+	public static final String SWCONF_PROPERTY_NAME  = "ro.swconf.info";
 
 	private static String VARIANT = null;
 
@@ -128,7 +128,7 @@ public class GeneralBuild {
 	 */
 	public static final String getVariant() {
 		if(VARIANT == null) {
-			String suffix = parseModemVersionFile();
+			String suffix = GeneralBuild.getProperty(SWCONF_PROPERTY_NAME);
 			StringBuffer sBuffer = new StringBuffer(
 					GeneralBuild.getProperty(VARIANT_PROPERTY_NAME));
 			if(!"".equals(suffix)) {
@@ -140,39 +140,6 @@ public class GeneralBuild {
 		return VARIANT;
 	}
 
-	/**
-	 * Reads the MODEM_VERSION_FILE and returns its content.
-	 * @return the content of MODEM_VERSION_FILE or ""
-	 */
-	private static final String parseModemVersionFile() {
-		String version = "";
-		BufferedReader reader = null;
-		File modemVersionFile = new File(MODEM_VERSION_FILE);
-		boolean fileExists = false;
-		try {
-			fileExists = modemVersionFile.exists();
-			if(fileExists) {
-				reader = new BufferedReader(
-					new FileReader(MODEM_VERSION_FILE));
-				version = reader.readLine();
-			} else {
-				Log.i("No file " + MODEM_VERSION_FILE + " on device.");
-			}
-		} catch(SecurityException securityException) {
-			Log.w("Operation not allowed on file: " + MODEM_VERSION_FILE);
-		} catch(IOException generalException) {
-			Log.w("Could not read file: " + MODEM_VERSION_FILE);
-		} finally {
-			if(reader != null) {
-				try {
-					reader.close();
-				} catch(IOException exceptionOnClose) {
-					Log.w("An error occurred while closing file: " + MODEM_VERSION_FILE);
-				}
-			}
-		}
-		return version;
-	}
 
 	@Override
 	public String toString() {
