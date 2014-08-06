@@ -436,10 +436,11 @@ public class ApplicationPreferences {
 	public void setDefaultTracker() {
 		//set the default tracker depending on the product
 		String sProduct = GeneralBuild.getProperty(GeneralBuild.PRODUCT_PROPERTY_NAME);
+		String sIncremental = GeneralBuild.getProperty("ro.build.version.incremental").toUpperCase();
 		//for known values we use a dedicated tracker
 		if (sProduct.equalsIgnoreCase("STARPEAK")) {
 			setBZTracker(BugzillaMainActivity.STARPEAK_VALUE);
-		} else if (sProduct.equalsIgnoreCase("IRDA")) {
+		} else if (sProduct.equalsIgnoreCase("COHO") || sIncremental.contains("COHO")) {
 			setBZTracker(BugzillaMainActivity.IRDA_VALUE);
 		} else if (sProduct.equalsIgnoreCase("ICONIC")) {
 			setBZTracker(BugzillaMainActivity.ICONIC_VALUE);
