@@ -34,6 +34,7 @@ import android.os.SystemProperties;
 
 public class GeneralEvent {
 
+	public static final String BOOT_UNDEFINED = "N/A-N/A";
 	public static final String BOOT_MOS_TO_MOS = "MOS-MOS";
 	public static final String BOOT_MOS_TO_POS = "MOS-POS";
 	public static final String BOOT_MOS_TO_ROS = "MOS-ROS";

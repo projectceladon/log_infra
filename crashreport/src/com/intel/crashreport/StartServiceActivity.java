@@ -85,7 +85,7 @@ public class StartServiceActivity extends Activity {
 	private EventViewAdapter eventAdapter;
 	private ListView lvEvent;
 	final Context context = this;
-	private static boolean alreadyRegistered = false;
+	private boolean alreadyRegistered = false;
 
 	public static enum EVENT_FILTER{
 		ALL,
@@ -448,7 +448,11 @@ public class StartServiceActivity extends Activity {
 	public synchronized void unregisterMsgReceiver() {
 		if(alreadyRegistered) {
 			Context appCtx = getApplicationContext();
-			appCtx.unregisterReceiver(msgReceiver);
+			try {
+				appCtx.unregisterReceiver(msgReceiver);
+			} catch (IllegalArgumentException e) {
+				Log.e("StartServiceActivity:unregisterMsgReceiver(IllegalArgumentException): " + e.getMessage());
+			}
 			alreadyRegistered = false;
 		}
 	}
