@@ -67,7 +67,9 @@ public class CrashInfo {
 		Process.setArgV0("com.intel.commands.crashinfo");
 
 		int resultCode = (new CrashInfo()).run(args);
-		System.exit(resultCode);
+		if (resultCode != 0) {
+			System.exit(resultCode);
+		}
 	}
 
 	/**
