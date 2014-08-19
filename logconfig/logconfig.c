@@ -21,33 +21,33 @@
 
 void reply_ack(int fd) {
   int ret = write(fd, ACK, 4);
-  LOGD("Reply ACK");
+  ALOGD("Reply ACK");
   if (ret < 0) {
-    LOGE("Write ACK failed, errno: %s\n", strerror(errno));
+    ALOGE("Write ACK failed, errno: %s\n", strerror(errno));
   }
 }
 
 int open_socket() {
   int s = android_get_control_socket(SERVICE_NAME);
-  LOGD("Get socket\n");
+  ALOGD("Get socket\n");
   if (s < 0) {
-    LOGE("android_get_control_socket(%s): %s\n", SERVICE_NAME, strerror(errno));
+    ALOGE("android_get_control_socket(%s): %s\n", SERVICE_NAME, strerror(errno));
     exit(1);
   }
   if (listen(s, 4) < 0) {
-    LOGE("listen(control socket): %s\n", strerror(errno));
+    ALOGE("listen(control socket): %s\n", strerror(errno));
     exit(1);
   }
-  LOGD("Listen end\n");
+  ALOGD("Listen end\n");
 
   struct sockaddr addr;
   socklen_t alen = sizeof(addr);
   int fd = accept(s, &addr, &alen);
   if (fd < 0) {
-    LOGE("accept(control socket): %s\n", strerror(errno));
+    ALOGE("accept(control socket): %s\n", strerror(errno));
     exit(1);
   }
-  LOGD("Accept done\n");
+  ALOGD("Accept done\n");
 
   return fd;
 }
@@ -65,66 +65,66 @@ void apply_set_prop_cmd(int socket) {
 
   // read prop_length
   if (read(socket, net_int.buf, sizeof(int)) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     return;
   }
   prop_length = ntohl(net_int.integer);
-  LOGD("prop_length : %d\n", prop_length);
+  ALOGD("prop_length : %d\n", prop_length);
 
   // read prop
   prop = malloc((prop_length + 1) * sizeof(char));
   if(!prop) {
-    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    ALOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
     return;
   }
   if (read(socket, prop, prop_length) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_prop;
   }
   prop[prop_length] = '\0';
-  LOGD("prop : %s", prop);
+  ALOGD("prop : %s", prop);
 
   // read value_length
   if (read(socket, net_int.buf, sizeof(int)) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_prop;
   }
   value_length = ntohl(net_int.integer);
-  LOGD("value_length : %d", value_length);
+  ALOGD("value_length : %d", value_length);
 
   // read value
   value = malloc((value_length + 1) * sizeof(char));
   if(!value) {
-    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    ALOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
     goto out_free_prop;
   }
   if (read(socket, value, value_length) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_value;
   }
   value[value_length] = '\0';
-  LOGD("value : %s", value);
+  ALOGD("value : %s", value);
 
   // read end of command char
   char buf;
   if (read(socket, &buf, 1) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_value;
   } else if (buf == '\0') {
-    LOGD("Cmd finished");
+    ALOGD("Cmd finished");
   } else {
-    LOGE("Error reading write file command\n");
+    ALOGE("Error reading write file command\n");
   }
 
   // set property if new value is empty or if different from current value
   property_get(prop, old_value, "");
   if ((strlen(value) == 0) || strcmp(old_value, value)) {
     if (property_set(prop, value) < 0) {
-      LOGE("Could not set property %s:%s, err: %s\n",
+      ALOGE("Could not set property %s:%s, err: %s\n",
            prop, value, strerror(errno));
     }
   } else {
-    LOGD("Property %s has already value %s", prop, value);
+    ALOGD("Property %s has already value %s", prop, value);
   }
 
  out_free_value:
@@ -146,74 +146,74 @@ void apply_write_fs_cmd(int socket) {
 
   // read append
   if (read(socket, &append, 1) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     return;
   }
-  LOGD("Append : %d\n", append);
+  ALOGD("Append : %d\n", append);
 
   // read path_length
   if (read(socket, net_int.buf, sizeof(int)) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     return;
   }
   path_length = ntohl(net_int.integer);
-  LOGD("path_length : %d\n", path_length);
+  ALOGD("path_length : %d\n", path_length);
 
   // read path
   path = malloc((path_length + 1) * sizeof(char));
   if(!path) {
-    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    ALOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
     return;
   }
   if (read(socket, path, path_length) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_path;
   }
   path[path_length] = '\0';
-  LOGD("path : %s", path);
+  ALOGD("path : %s", path);
 
   // read value_length
   if (read(socket, net_int.buf, sizeof(int)) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_path;
   }
   value_length = ntohl(net_int.integer);
-  LOGD("value_length : %d", value_length);
+  ALOGD("value_length : %d", value_length);
 
   // read value
   value = malloc((value_length + 1) * sizeof(char));
   if(!value) {
-    LOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
+    ALOGE("%s:malloc failed: %s\n", __FUNCTION__, strerror(errno));
     goto out_free_path;
   }
   if (read(socket, value, value_length) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_value;
   }
   value[value_length] = '\0';
-  LOGD("value : %s", value);
+  ALOGD("value : %s", value);
 
   // read end of command char
   char buf;
   if (read(socket, &buf, 1) < 0) {
-    LOGE("read failed: %s\n", strerror(errno));
+    ALOGE("read failed: %s\n", strerror(errno));
     goto out_free_value;
   } else if (buf == '\0') {
-    LOGD("Cmd finished");
+    ALOGD("Cmd finished");
   } else {
-    LOGE("Error reading write file command\n");
+    ALOGE("Error reading write file command\n");
   }
 
   // write to file
   int fd;
   fd = open(path, O_WRONLY | (O_APPEND && append));
   if (fd < 0) {
-    LOGE("open file failed: %s\n", strerror(errno));
+    ALOGE("open file failed: %s\n", strerror(errno));
     goto out_free_value;
   }
   if (write(fd, value, value_length) < 0) {
     close(fd);
-    LOGE("write in file failed: %s\n", strerror(errno));
+    ALOGE("write in file failed: %s\n", strerror(errno));
     goto out_free_value;
   }
   close(fd);
@@ -229,13 +229,13 @@ void apply_logconfig(int socket) {
   int s_read;
 
   for(;;) {
-    LOGD("Read cmd\n");
+    ALOGD("Read cmd\n");
     s_read = read(socket, buffer, 1);
     if (s_read < 0) {
-      LOGE("read failed: %s\n", strerror(errno));
+      ALOGE("read failed: %s\n", strerror(errno));
       return;
     } else if (s_read == 0) {
-      LOGD("EOF\n");
+      ALOGD("EOF\n");
       return;
     } else {
       if (buffer[0] == CMD_WRITE_FILE) {
@@ -243,7 +243,7 @@ void apply_logconfig(int socket) {
       } else if (buffer[0] == CMD_SET_PROP) {
         apply_set_prop_cmd(socket);
       } else {
-        LOGE("Command not recognized: %d\n", buffer[0]);
+        ALOGE("Command not recognized: %d\n", buffer[0]);
       }
     }
   }
