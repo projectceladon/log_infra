@@ -3,5 +3,14 @@
 base=/system
 export CLASSPATH=$base/framework/crashinfo.jar:$base/framework/crashparsing.jar::$base/framework/com.google.gson.jar
 trap "" HUP
+
+ID=$(id)
+
+if [[ $ID != *root* ]] && [[ $ID != *system* ]] ; then
+    echo "Elevated rights are required to run crashinfo."
+    echo "Please substitute user to root or system"
+    exit 1
+fi
+
 exec app_process $base/bin com.intel.commands.crashinfo.CrashInfo $*
 
