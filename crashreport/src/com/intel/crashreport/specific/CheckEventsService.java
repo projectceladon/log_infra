@@ -38,6 +38,8 @@ import com.intel.crashreport.Log;
 import com.intel.crashreport.Logger;
 import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.bugzilla.BZFile;
+import com.intel.crashreport.specific.ingredients.IngredientManager;
+import com.intel.crashreport.specific.ingredients.DeviceManager;
 import com.intel.phonedoctor.Constants;
 
 public class CheckEventsService extends Service {
@@ -180,6 +182,7 @@ public class CheckEventsService extends Service {
 		BlackLister blackLister = new BlackLister(getApplicationContext());
 		boolean historyEventCorrupted = false;
 		boolean result;
+		boolean hasModemExt;
 		String bootMode = "";
 		Context context = getApplicationContext();
 
@@ -193,6 +196,11 @@ public class CheckEventsService extends Service {
 			db.open();
 			if(!app.isUserBuild())
 				blackLister.setDb(db);
+
+			hasModemExt = DeviceManager.INSTANCE.hasModemExtension(true);
+			if (!hasModemExt) {
+				DeviceManager.INSTANCE.checkMpanicNotReady(db);
+			}
 			histFile = new HistoryEventFile();
 			histFile.open();
 			while (histFile.hasNext()) {
@@ -247,7 +255,8 @@ public class CheckEventsService extends Service {
 											}
 										}
 										Log.d(from+": Event successfully added to DB, " + event.toString());
-										if (!event.isDataReady()) {
+										//for MPANIC, ingredients manager is in charge of setting dataready field
+										if (!event.isDataReady() && !(!hasModemExt && event.getType().contains("MPANIC"))) {
 											Long lDelay = (long) Constants.CRASH_POSTPONE_DELAY*1000;
 											NotifyCrashTask notify = new NotifyCrashTask(event.getEventId(),getApplicationContext(),lDelay);
 											notify.start();
