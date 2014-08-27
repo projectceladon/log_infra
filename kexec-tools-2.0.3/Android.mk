@@ -161,7 +161,8 @@ LOCAL_C_INCLUDES := \
     external/zlib
 
 LOCAL_CFLAGS := -O0 -DDEBUG -fno-strict-aliasing -Wall -Wstrict-prototypes
-LOCAL_STATIC_LIBRARIES := libutil libz libc
+LOCAL_STATIC_LIBRARIES := libutil
+LOCAL_SHARED_LIBRARIES := libz libc
 
 include $(BUILD_EXECUTABLE)
 
