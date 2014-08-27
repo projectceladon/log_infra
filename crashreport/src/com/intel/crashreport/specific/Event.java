@@ -24,12 +24,15 @@ import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.Scanner;
 
+import android.content.Context;
+
 import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.GeneralEvent;
 import com.intel.crashreport.GenericParseFile;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashreport.specific.ingredients.IngredientManager;
+import com.intel.crashreport.specific.ingredients.DeviceManager;
 import com.intel.crashtoolserver.bean.Device;
 import com.intel.phonedoctor.Constants;
 import com.intel.phonedoctor.utils.FileOps;
@@ -141,7 +144,13 @@ public class Event extends GeneralEvent{
 					getType().equals("TOMBSTONE")) {
 				if(!isUserBuild)
 					this.setDataReady(false);
-			}else if (crashFile.getDataReady() == 0){
+			} else if (getType().contains("MPANIC") && (!isUserBuild) &&
+					!DeviceManager.INSTANCE.hasModemExtension(false) &&
+					DeviceManager.INSTANCE.isModemUnknown()) {
+				this.setDataReady(false);
+				DeviceManager.INSTANCE.addEventMPanicNotReady(this.getEventId());
+				this.setData3("not_ready");
+			} else if (crashFile.getDataReady() == 0){
 				if(!isUserBuild)
 					this.setDataReady(false);
 			}

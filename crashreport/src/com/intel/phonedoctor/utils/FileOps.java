@@ -18,6 +18,7 @@ package com.intel.phonedoctor.utils;
 
 import com.intel.crashreport.Log;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -297,5 +298,29 @@ public class FileOps {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Writes to passed file the given content.
+	 * @param path - path to the file to write
+	 * @param value - content that should be written to the file.
+	 */
+	public static void fileWriteString(String path, String value) throws
+						FileNotFoundException, IOException {
+		FileOutputStream f = null;
+
+		if (path == null || path.isEmpty() || value == null)
+			throw new IllegalArgumentException("Invalid parameters passed");
+
+		try {
+			f = new FileOutputStream(path);
+			BufferedOutputStream write = new BufferedOutputStream(f);
+			write.write(value.getBytes());
+			write.close();
+		}
+		finally {
+			if (f != null)
+				f.close();
+		}
 	}
 }
