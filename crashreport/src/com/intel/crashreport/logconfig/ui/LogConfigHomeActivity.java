@@ -64,9 +64,14 @@ public class LogConfigHomeActivity extends Activity {
     }
 
     public void updateData() {
-        ListView listConfigs = (ListView) findViewById(R.id.listLogConfig);
+        final ListView listConfigs = (ListView) findViewById(R.id.listLogConfig);
         if(listConfigs != null) {
-                listConfigs.invalidateViews();
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listConfigs.invalidateViews();
+                }
+            });
         }
     }
 
