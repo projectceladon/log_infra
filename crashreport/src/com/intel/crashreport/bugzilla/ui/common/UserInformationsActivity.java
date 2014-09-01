@@ -33,6 +33,8 @@ public class UserInformationsActivity extends Activity {
 
 			});
 		}
+
+                setTitle(getString(R.string.activity_name));
 		CrashReport app = (CrashReport) getApplicationContext();
 
 		EditText lastName = (EditText)findViewById(R.id.lastNameText);

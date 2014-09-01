@@ -1,0 +1,54 @@
+{
+    "description":"MPM continuous profiling",
+    "type": "normal",
+    "config": [
+        {
+            "type":"intent",
+            "data": {
+                "action":"intel.intent.action.mpm.START_PROFILING",
+                "extras": [
+                    {
+                        "type": "string",
+                        "key": "intel.intent.extra.mpm.PROFILE_NAME",
+                        "value": "PhoneDoctorProfile"
+                    },
+                    {
+                        "type": "string",
+                        "key": "intel.intent.extra.mpm.COLLECTION_NAME",
+                        "value": "PhoneDoctor"
+                    },
+                    {
+                        "type": "int",
+                        "key": "intel.intent.extra.mpm.SESSION_DURATION",
+                        "value": "0"
+                    },
+                    {
+                        "type": "bool",
+                        "key": "intel.intent.extra.mpm.UPLOAD_ON_FINISH",
+                        "value": "true"
+                    }
+                ]
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"intent",
+            "data": {
+                "action":"intel.intent.action.mpm.STOP_PROFILING",
+                "extras": [
+                    {
+                        "type": "string",
+                        "key": "intel.intent.extra.mpm.PROFILE_NAME",
+                        "value": "PhoneDoctorProfile"
+                    },
+                    {
+                        "type": "string",
+                        "key": "intel.intent.extra.mpm.COLLECTION_NAME",
+                        "value": "PhoneDoctor"
+                    }
+                ]
+            }
+        }
+    ]
+}

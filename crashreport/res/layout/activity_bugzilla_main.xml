@@ -1,15 +1,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00579c"
     android:orientation="vertical" >
 
  <ScrollView
         android:id="@+id/scrollView1"
         android:layout_width="match_parent"
         android:layout_height="0dip"
-        android:layout_weight="4"
-        android:background="#00579c">
+        android:layout_weight="4">
 
    <LinearLayout
        xmlns:android="http://schemas.android.com/apk/res/android"
@@ -28,9 +26,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:text="@string/bugzilla_title"
-        android:textSize="24sp"
-        android:textColor="#ffffff" />
+        android:text="@string/bugzilla_title" />
 
     <EditText
         android:id="@+id/bz_title_text"
@@ -39,14 +35,11 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:autoText="false"
-        android:background="#d8eef9"
         android:inputType="text|textCapSentences"
         android:maxLength="255"
         android:lines="1"
         android:maxLines="1"
-        android:textColor="#105372"
         android:textCursorDrawable="@null"
-        android:textSize="22sp"
         android:paddingRight="1dp"
         android:paddingLeft="1dp" >
 
@@ -60,17 +53,14 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:paddingTop="15dip"
-        android:text="@string/bugzilla_type"
-        android:textColor="#ffffff"
-        android:textSize="24sp" />
+        android:text="@string/bugzilla_type" />
 
     <Spinner
         android:id="@+id/bz_type_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:textSize="24sp" />
+        android:layout_alignParentRight="true" />
 
     <TextView
         android:id="@+id/bz_severity_view"
@@ -78,9 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:text="@string/bugzilla_severity"
-        android:textSize="24sp"
-        android:textColor="#ffffff" />
+        android:text="@string/bugzilla_severity" />
 
     <Spinner
         android:id="@+id/bz_severity_list"
@@ -95,9 +83,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:text="@string/bugzilla_component"
-        android:textSize="24sp"
-        android:textColor="#ffffff" />
+        android:text="@string/bugzilla_component" />
 
     <Spinner
         android:id="@+id/bz_component_list"
@@ -114,9 +100,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:paddingTop="15dip"
-        android:text="@string/bugzilla_summary"
-        android:textColor="#ffffff"
-        android:textSize="24sp" />
+        android:text="@string/bugzilla_summary" />
 
     <EditText
         android:id="@+id/bz_summary_text"
@@ -125,14 +109,11 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:autoText="false"
-        android:background="#d8eef9"
         android:gravity="left|top"
         android:inputType="textMultiLine|textCapSentences"
         android:paddingLeft="1dp"
         android:paddingRight="1dp"
-        android:textColor="#105372"
-        android:textCursorDrawable="@null"
-        android:textSize="22sp" />
+        android:textCursorDrawable="@null" />
 
     <TextView
         android:id="@+id/bz_time_view"
@@ -140,9 +121,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:text="@string/bugzilla_time"
-        android:textSize="24sp"
-        android:textColor="#ffffff" />
+        android:text="@string/bugzilla_time" />
 
     <Spinner
         android:id="@+id/bz_time_list"
@@ -160,9 +139,7 @@
         android:paddingTop="15dip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/select_upload"
-        android:textColor="#ffffff"
-        android:textSize="24sp" />
+        android:text="@string/select_upload" />
 
     <RadioButton
         android:id="@+id/bz_radioButtonDefault"
@@ -194,9 +171,7 @@
          android:layout_alignParentLeft="true"
          android:layout_alignParentRight="true"
          android:layout_marginTop="15dp"
-         android:text="@string/bugzilla_screenshot"
-         android:textColor="#ffffff"
-         android:textSize="24sp" />
+         android:text="@string/bugzilla_screenshot" />
 
      <Gallery
          android:id="@+id/bz_select_screenshot"
@@ -211,7 +186,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#00579c"
     android:orientation="vertical" >
 
     <Button
@@ -222,9 +196,7 @@
         android:layout_alignParentRight="true"
         android:layout_gravity="end|center"
         android:padding="0dip"
-        android:text="@string/bugzilla_apply"
-        android:textSize="24sp"
-        android:textColor="#ffffff" />
+        android:text="@string/bugzilla_apply" />
 
 </LinearLayout>
 </LinearLayout>

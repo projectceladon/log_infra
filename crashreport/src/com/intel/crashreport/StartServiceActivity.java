@@ -117,11 +117,11 @@ public class StartServiceActivity extends Activity {
 						mService.cancelDownload();
 				}
 			});
-		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+		setTitle(getString(R.string.activity_name));
 		ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		SpinnerAdapter eventFilterAdapter = ArrayAdapter.createFromResource(this, R.array.eventFilterText,
-	            android.R.layout.simple_spinner_dropdown_item);
+		SpinnerAdapter eventFilterAdapter = ArrayAdapter.createFromResource(getActionBar().getThemedContext(), R.array.eventFilterText,
+	            R.layout.spinner_dropdown_item);
 		actionBar.setListNavigationCallbacks(eventFilterAdapter, eventFilterListener);
 		search = appPrefs.getFilterChoice();
 		actionBar.setSelectedNavigationItem(search.compareTo(EVENT_FILTER.ALL));
@@ -325,7 +325,7 @@ public class StartServiceActivity extends Activity {
 	 */
 	public Dialog createAskForUploadDialog() {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("MCG Phone Doctor management");
+		builder.setTitle(getString(R.string.start_service_activity_AskForUpload_title));
 		builder.setSingleChoiceItems(R.array.uploadStateDialogText, DIALOG_REP_NOW, null); /*Don't need listener on checked items*/
 		builder.setPositiveButton(R.string.alert_dialog_ok, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {

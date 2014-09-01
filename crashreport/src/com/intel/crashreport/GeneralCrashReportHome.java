@@ -32,6 +32,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
+import android.widget.ToggleButton;
+import android.widget.ViewFlipper;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView;
+import android.widget.CompoundButton;
+import android.widget.GridView;
+import android.widget.ListView;
+import android.widget.TextView;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
 import com.intel.crashreport.bugzilla.ui.common.ListBugzillaActivity;
 import com.intel.crashreport.bugzilla.ui.common.UserInformationsActivity;
@@ -43,57 +54,90 @@ public class GeneralCrashReportHome extends Activity {
 	private MenuItem aboutMenu;
 	private MenuItem settingsMenu;
 	protected final Context context = this;
+	public  ArrayAdapterHomeScreenElement mainMenuAdapter;
+	private int activeMenu;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.home);
+		setContentView(R.layout.crashreport_main);
 
-		Button button_start = (Button) findViewById(R.id.button_report_events);
-		// Attach a click listener for launching the system settings.
-		if(button_start != null) {
-			button_start.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					Intent intent = new Intent("com.intel.crashreport.intent.START_SERVICE");
-					intent.putExtra("com.intel.crashreport.extra.fromOutside", true);
-					startActivity(intent);
-				}
-			});
-		}
+		List<HomeScreenElement> menuItems = new ArrayList<HomeScreenElement>();
+		menuItems.clear();
 
-		Button button_bugzilla = (Button) findViewById(R.id.button_report_bugzilla);
-		if(null != button_bugzilla) {
-			button_bugzilla.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
+		mainMenuAdapter = new ArrayAdapterHomeScreenElement(this, R.layout.crashreport_element, menuItems);
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_events, getString(R.string.settings_button_report), R.drawable.check_events, 4));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_bugzilla, getString(R.string.menu_bugzilla), R.drawable.report_bug, 1));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_list_bugzilla, getString(R.string.list_bugzilla),R.drawable.bug_history, 2));
+
+		ListView listViewItems = (ListView) findViewById(R.id.CrashReport_listView1);
+		listViewItems.setAdapter(mainMenuAdapter);
+		listViewItems.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				TextView textViewItem = ((TextView) view.findViewById(R.id.textViewEntry));
+
+				int cv = (Integer) textViewItem.getTag();
+				OnClickhandleMenuAction(cv);
+			}
+		});
+
+		GridView gridViewItems = (GridView) findViewById(R.id.CrashReport_gridView1);
+		gridViewItems.setAdapter(mainMenuAdapter);
+		gridViewItems.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				TextView textViewItem = ((TextView) view.findViewById(R.id.textViewEntry));
+
+				int cv = (Integer) textViewItem.getTag();
+				OnClickhandleMenuAction(cv);
+			}
+		});
+
+		activeMenu = 0;
+	}
+
+	void switchView(MenuItem item) {
+		ViewFlipper vf = (ViewFlipper)findViewById(R.id.CrashReport_viewFlipper1);
+
+		activeMenu = (activeMenu + 1)%2;
+		vf.setDisplayedChild(activeMenu);
+	}
+
+	protected void OnClickhandleMenuAction(int action) {
+		        handleMenuAction(action);
+	}
+
+	protected void handleMenuAction(int action) {
+		Intent intent;
+		switch (action) {
+			case (R.id.button_report_events):
+				intent = new Intent("com.intel.crashreport.intent.START_SERVICE");
+				intent.putExtra("com.intel.crashreport.extra.fromOutside", true);
+				startActivity(intent);
+			break;
+			case (R.id.button_report_bugzilla):
 					CrashReport app = (CrashReport)getApplicationContext();
 					if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
-						Intent intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
+						intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
 						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
 						startActivity(intent);
 					}
 					else {
-						Intent intent = new Intent(getApplicationContext(), UserInformationsActivity.class);
+						intent = new Intent(getApplicationContext(), UserInformationsActivity.class);
 						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
 						startActivity(intent);
 					}
 
-				}
-			});
-		}
-
-		Button button_list_bugzilla = (Button) findViewById(R.id.button_list_bugzilla);
-		if(null != button_list_bugzilla) {
-			button_list_bugzilla.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					Intent intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
+			break;
+			case (R.id.button_list_bugzilla):
+					intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
 					startActivity(intent);
-				}
-			});
+			break;
+			default:
 		}
-
-		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
 	}
 
 	@Override
@@ -101,8 +145,6 @@ public class GeneralCrashReportHome extends Activity {
 		settingsMenu = menu.add(R.string.menu_settings);
 		aboutMenu = menu.add(R.string.menu_about);
 		super.onCreateOptionsMenu(menu);
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.menu, menu);
 		return true;
 	}
 
@@ -117,13 +159,8 @@ public class GeneralCrashReportHome extends Activity {
 			showDialog();
 			return true;
 		}
-		switch (item.getItemId()) {
-		case R.id.settings:
-			startCrashReport();
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
+
+		return super.onOptionsItemSelected(item);
 	}
 
 	public void startCrashReport() {

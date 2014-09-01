@@ -42,7 +42,8 @@
 		android:label="@string/app_name"
 		android:versionName="@string/app_version"
 		android:name=".CrashReport"
-		android:enabled="true">
+		android:enabled="true"
+		android:theme="@style/Theme.Intel">
 
 		<uses-library android:name="com.google.gson" />
 		<uses-library android:name="crashparsing" />

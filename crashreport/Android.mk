@@ -26,8 +26,11 @@ LOCAL_PACKAGE_NAME := CrashReport
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := intel
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
-LOCAL_STATIC_JAVA_LIBRARIES := libgcmforpd
+LOCAL_STATIC_JAVA_LIBRARIES := libgcmforpd libpd-intelcommons
 LOCAL_JAVA_LIBRARIES := com.google.gson crashparsing
+LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, res)
+LOCAL_RESOURCE_DIR += $(addprefix $(LOCAL_PATH)/, ../libpd-intelcommons/res)
+LOCAL_AAPT_FLAGS := --auto-add-overlay
 LOCAL_CERTIFICATE := platform
 include $(BUILD_PACKAGE)
 

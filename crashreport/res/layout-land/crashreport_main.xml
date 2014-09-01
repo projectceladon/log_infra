@@ -1,0 +1,42 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentTop="true"
+    android:orientation="horizontal"
+    android:background="@color/white"
+    tools:context="com.example.proiecttestgrid.MainActivity" >
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="3">
+
+        <ImageView
+            android:id="@+id/CrashReport_imageView1"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:adjustViewBounds="true"
+            android:paddingTop="10dip"
+            android:paddingBottom="10dip"
+            android:paddingLeft="10dip"
+            android:paddingRight="10dip"
+            android:scaleType="centerInside"
+            android:src="@drawable/pd_icon_market" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1">
+        <ViewFlipper
+            android:id="@+id/CrashReport_viewFlipper1"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" >
+
+            <include android:id="@+id/gridul1" layout="@layout/crashreport_main_gridview" />
+            <include android:id="@+id/lista1" layout="@layout/crashreport_main_listview" />
+        </ViewFlipper>
+    </RelativeLayout>
+</LinearLayout>

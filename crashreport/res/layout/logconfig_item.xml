@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:orientation="horizontal"
-        android:paddingTop="15dp"
-        android:paddingBottom="15dp">
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal"
+    android:paddingTop="15dp"
+    android:paddingBottom="15dp">
 
-        <TextView
-            android:id="@+id/textView_description_logconfig"
-            android:layout_width="0px"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:layout_weight="2"
-         />
-        <Switch
-            android:id="@+id/switch_enabled"
-            android:layout_width="0px"
-            android:layout_height="match_parent"
-            android:layout_gravity="right"
-            android:layout_weight="1"
-         />
+    <TextView
+        android:id="@+id/textView_description_logconfig"
+        android:layout_width="0px"
+        android:paddingLeft="15dp"
+        android:layout_height="match_parent"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_weight="10"
+        android:textColor="@color/black" />
 
+    <CheckBox
+        android:id="@+id/switch_enabled"
+        android:layout_width="0px"
+        android:layout_height="match_parent"
+        android:layout_gravity="right"
+        android:layout_weight="1"
+        android:theme="@android:style/Theme.Holo.Light.DarkActionBar" />
  </LinearLayout>

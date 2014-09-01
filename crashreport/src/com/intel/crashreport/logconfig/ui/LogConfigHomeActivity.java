@@ -39,7 +39,7 @@ public class LogConfigHomeActivity extends Activity {
                 LogConfigAdapter listConfigsName = new LogConfigAdapter(getApplicationContext());
                 listConfigs.setAdapter(listConfigsName);
         }
-        setTitle(getString(R.string.app_name) + " " + getString(R.string.app_version));
+        setTitle("");
 
         // Disable all configs button
         Button submitButton = (Button) findViewById(R.id.button_logconfig);

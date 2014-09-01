@@ -20,7 +20,8 @@
      <ListView
         android:id="@+id/list_gcm_messages_all"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:textColor="@color/black">
     </ListView>
 
 </LinearLayout>

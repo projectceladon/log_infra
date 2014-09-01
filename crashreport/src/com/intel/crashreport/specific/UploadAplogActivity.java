@@ -72,6 +72,8 @@ public class UploadAplogActivity extends Activity{
 		if (rdAll != null && lAllHour > 1 ){
 			rdAll.setText(rdAll.getText() + " ("+ lAllHour + " Hours of log)");
 		}
+
+		setTitle("");
 	}
 
 	public void manageThermalData(){

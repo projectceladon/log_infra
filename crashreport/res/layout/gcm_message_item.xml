@@ -25,7 +25,8 @@
                 android:layout_weight="1"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:paddingLeft="1dp"
-                android:gravity="top|left"/>
+                android:gravity="top|left"
+                android:textColor="@color/black"/>
 
             <TextView
                 android:id="@+id/gcm_message_view_date"
@@ -33,7 +34,8 @@
                 android:layout_height="wrap_content"
                 android:gravity="top|right"
                 android:paddingLeft="1dp"
-                android:paddingRight="1dp"/>
+                android:paddingRight="1dp"
+                android:textColor="@color/black"/>
 
         </LinearLayout>
 
@@ -41,7 +43,8 @@
             android:id="@+id/gcm_message_view_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="top|left"/>
+            android:gravity="top|left"
+            android:textColor="@color/black"/>
 
     </LinearLayout>
 </LinearLayout>

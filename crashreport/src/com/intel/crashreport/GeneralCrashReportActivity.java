@@ -38,7 +38,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.menu);
-		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+		setTitle(getString(R.string.activity_name));
 		app = (CrashReport)getApplicationContext();
 		EditTextPreference editLastName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_last_name_key));
 		if(null != editLastName) {

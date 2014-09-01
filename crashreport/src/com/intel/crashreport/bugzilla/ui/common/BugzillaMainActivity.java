@@ -79,6 +79,7 @@ public class BugzillaMainActivity extends Activity {
 			});
 		}
 
+		setTitle(getString(R.string.activity_name));
 		EditText summary = (EditText)findViewById(R.id.bz_summary_text);
 		TextKeyListener tListener = TextKeyListener.getInstance(false, TextKeyListener.Capitalize.SENTENCES);
 		if(summary != null) {

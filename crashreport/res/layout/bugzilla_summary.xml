@@ -2,22 +2,18 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#00579c" >
+    android:orientation="vertical">
 
     <ScrollView
         android:id="@+id/scrollView1"
         android:layout_width="match_parent"
         android:layout_height="0dip"
-        android:layout_weight="4"
-        android:background="#00579c">
+        android:layout_weight="4">
     <TextView
         android:id="@+id/bugzilla_summary_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="0.35"
-        android:textColor="#ffffff"
-        android:textSize="22sp"
         android:scrollbarStyle="outsideOverlay"
         android:scrollbars="vertical"
     />
@@ -29,9 +25,7 @@
         android:id="@+id/bugzilla_send_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/bugzilla_send"
-        android:textColor="#ffffff"
-        android:textSize="24sp" />
+        android:text="@string/bugzilla_send" />
 
 
 
@@ -39,8 +33,6 @@
         android:id="@+id/bugzilla_edit_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/bugzilla_edit"
-        android:textColor="#ffffff"
-        android:textSize="24sp" />
+        android:text="@string/bugzilla_edit" />
 
 </LinearLayout>

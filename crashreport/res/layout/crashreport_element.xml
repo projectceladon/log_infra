@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    android:padding="10dp"
+    android:orientation="vertical" >
+
+    <ImageView
+        android:id="@+id/CrashReport_imageViewEntry1"
+        android:layout_width="fill_parent"
+        android:layout_height="70dip"
+        android:adjustViewBounds="true"
+        android:paddingTop="5dip"
+        android:paddingBottom="5dip"
+        android:paddingLeft="30dip"
+        android:paddingRight="30dip"
+        android:scaleType="centerInside"
+        android:src="@drawable/test" />
+
+    <TextView
+        android:id="@+id/textViewEntry"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:text="@string/settings_button_report"
+        android:textSize="15dp"
+        android:gravity="center"
+        android:textColor="@color/intel_blue"
+        android:textStyle="bold" />
+</LinearLayout>

@@ -2,8 +2,7 @@
  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:orientation="vertical"
-        android:background="#00579c">
+        android:orientation="vertical">
 
      <LinearLayout
        xmlns:android="http://schemas.android.com/apk/res/android"
@@ -18,19 +17,14 @@
          android:id="@+id/lastNameView"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:text="@string/user_informations_lastname"
-         android:textColor="#ffffff"
-         android:textSize="24sp" />
+         android:text="@string/user_informations_lastname" />
 
      <EditText
          android:id="@+id/lastNameText"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:background="#d8eef9"
          android:inputType="text|textNoSuggestions"
          android:lines="1"
-         android:textColor="#105372"
-         android:textSize="22sp"
          android:textCursorDrawable="@null"
          android:paddingLeft="1dp"
          android:paddingRight="1dp" >
@@ -43,19 +37,14 @@
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:paddingTop="5dip"
-         android:text="@string/user_informations_firstname"
-         android:textColor="#ffffff"
-         android:textSize="24sp" />
+         android:text="@string/user_informations_firstname" />
 
      <EditText
          android:id="@+id/firstNameText"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:background="#d8eef9"
          android:inputType="text|textNoSuggestions"
          android:lines="1"
-         android:textColor="#105372"
-         android:textSize="22sp"
          android:textCursorDrawable="@null"
          android:paddingLeft="1dp"
          android:paddingRight="1dp" >
@@ -68,22 +57,17 @@
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
          android:paddingTop="5dip"
-         android:text="@string/user_informations_email"
-         android:textColor="#ffffff"
-         android:textSize="24sp" />
+         android:text="@string/user_informations_email" />
 
      <EditText
          android:id="@+id/mailText"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:background="#d8eef9"
          android:hint="@string/enter_intel_email"
          android:inputType="textEmailAddress|textNoSuggestions"
          android:lines="1"
          android:text="@string/intel_email"
-         android:textColor="#105372"
          android:textCursorDrawable="@null"
-         android:textSize="22sp"
          android:paddingLeft="1dp"
          android:paddingRight="1dp" />
 
@@ -93,8 +77,7 @@
          android:id="@+id/infosSaveButton"
          android:layout_width="match_parent"
          android:layout_height="wrap_content"
-         android:text="@string/user_informations_button"
-         android:textColor="#ffffff" />
+         android:text="@string/user_informations_button" />
 
 </LinearLayout>
 

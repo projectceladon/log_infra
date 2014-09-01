@@ -76,7 +76,7 @@ public class ListGcmMessagesActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.list_gcm_messages);
 
-		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
+                setTitle("");
 
 		lvEvent = (ListView) findViewById(R.id.list_gcm_messages_all);
 		messageAdapter = new GcmMessageViewAdapter(getApplicationContext());
@@ -263,9 +263,9 @@ public class ListGcmMessagesActivity extends Activity {
 
 	private void buildActionBar() {
 		SpinnerAdapter gcmFilterSpinner = ArrayAdapter.createFromResource(
-				this,
+				getActionBar().getThemedContext(),
 				R.array.gcmFilter,
-	            android.R.layout.simple_spinner_dropdown_item);
+	            R.layout.spinner_dropdown_item);
 		ActionBar actionBar = getActionBar();
 		actionBar.setTitle("GCM");
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);

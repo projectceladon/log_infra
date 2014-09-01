@@ -26,8 +26,7 @@ public class ListBugzillaActivity extends Activity {
 		if(listBugzilla != null && bugzillaAdapter != null) {
 			listBugzilla.setAdapter(bugzillaAdapter);
 		}
-		setTitle(getString(R.string.app_name)+" "+getString(R.string.app_version));
-
+		setTitle(getString(R.string.activity_name));
 	}
 
 	public void onResume() {

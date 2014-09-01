@@ -13,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.Switch;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.intel.crashreport.R;
@@ -27,7 +27,7 @@ public class LogConfigAdapter extends BaseAdapter {
     private ConfigManager mConfigManager;
 
     static class ViewHolder {
-        Switch configEnabled;
+        CheckBox configEnabled;
         TextView configDescription;
     }
 
@@ -59,7 +59,7 @@ public class LogConfigAdapter extends BaseAdapter {
             holder = new ViewHolder();
             holder.configDescription = (TextView) convertView
                     .findViewById(R.id.textView_description_logconfig);
-            holder.configEnabled = (Switch) convertView.findViewById(R.id.switch_enabled);
+            holder.configEnabled = (CheckBox) convertView.findViewById(R.id.switch_enabled);
             if(null != holder.configDescription && null != holder.configEnabled) {
                 holder.configDescription.setOnClickListener(configStatusItemListener);
                 holder.configEnabled.setTag(config.getName());
@@ -97,7 +97,7 @@ public class LogConfigAdapter extends BaseAdapter {
                 boolean isChecked) {
             buttonView.setEnabled(false);
             ConfigStatus mConfigStatus =
-                    mConfigManager.getConfigStatus((String) ((Switch) buttonView).getTag());
+                    mConfigManager.getConfigStatus((String) ((CheckBox) buttonView).getTag());
             if(null == mConfigStatus) {
                 return; /* No configuration to apply */
             }
