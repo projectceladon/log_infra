@@ -27,6 +27,8 @@ import java.io.InputStreamReader;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap;
 
 /**
  * This class is intended to store helper methods on files (File Operations)
@@ -135,4 +137,51 @@ public class FileOps {
 		return isr;
 	}
 
+	/**
+	 * Returns a <code>Bitmap</code> from the given file path.
+	 * @param path to image file on disk
+	 * @param maxWidth to which an image can be resized to
+	 * @param maxHeight to which an image can be resized to
+	 * @return an <code>Bitmap</code> from the given file path if path ok
+	 *	 	or null on error
+	 */
+	public static Bitmap loadScaledImageFromFile(String path, int maxWidth, int maxHeight){
+		int scale = 1;
+		Bitmap b = null;
+		BitmapFactory.Options bfo = null;
+		File f = null;
+		FileInputStream stream = null;
+
+		if (path == null || path.isEmpty() || maxWidth <=0 || maxHeight <= 0)
+			return null;
+
+		bfo = new BitmapFactory.Options();
+		bfo.inJustDecodeBounds = true;
+
+		f = new File(path);
+		if (!f.exists() || !f.isFile())
+			return null;
+
+		try { stream = new FileInputStream(f); }
+		catch (FileNotFoundException e) { return null; }
+
+		BitmapFactory.decodeStream(stream, null, bfo);
+		try { stream.close(); } catch (IOException e) { return null; }
+
+		while ( bfo.outWidth/(2*scale) >= maxWidth &&
+			bfo.outHeight/(2*scale) >= maxHeight ) {
+			scale *= 2;
+		}
+
+		bfo = new BitmapFactory.Options();
+		bfo.inSampleSize = scale;
+
+		try { stream = new FileInputStream(f); }
+		catch (FileNotFoundException e) { return null; }
+
+		b = BitmapFactory.decodeStream(stream, null, bfo);
+		try { stream.close(); } catch (IOException e) {}
+
+		return b;
+	}
 }

@@ -9,13 +9,17 @@ import java.util.LinkedHashMap;
 import java.util.Iterator;
 
 import com.intel.crashreport.R;
+import com.intel.phonedoctor.utils.FileOps;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 
@@ -150,8 +154,14 @@ public class ScreenshotAdapter extends BaseAdapter{
 		}
 		String filename = (String)getItem(position);
 		if(holder != null && holder.screenshot != null) {
+			ViewGroup.LayoutParams viewParams = convertView.findViewById(R.id.screenshot_view).getLayoutParams();
+			Bitmap b = FileOps.loadScaledImageFromFile("/mnt/sdcard/Pictures/Screenshots/"+filename,
+							viewParams.width, viewParams.height);
+			if (b == null)
+				b = Bitmap.createBitmap(1, 1, Config.ARGB_8888);
+
 			holder.screenshot.setTag(filename);
-			holder.screenshot.setImageDrawable(Drawable.createFromPath("/mnt/sdcard/Pictures/Screenshots/"+filename));
+			holder.screenshot.setImageBitmap(b);
 		}
 		if(screenshotsSelected.get(filename))
 			convertView.setBackgroundColor(Color.parseColor("#52e0ed"));
