@@ -32,6 +32,7 @@ import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashreport.specific.ingredients.IngredientManager;
 import com.intel.crashtoolserver.bean.Device;
 import com.intel.phonedoctor.Constants;
+import com.intel.phonedoctor.utils.FileOps;
 
 public class Event extends GeneralEvent{
 
@@ -104,6 +105,8 @@ public class Event extends GeneralEvent{
 			fillInfoEvent(histEvent, myBuild);
 		//extra step : format data for specific event
 		new FormatParser(this).execFormat();
+
+		FileOps.compressFolderContent(getCrashDir());
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild, boolean isUserBuild) {

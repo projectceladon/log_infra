@@ -16,6 +16,8 @@
 
 package com.intel.phonedoctor.utils;
 
+import com.intel.crashreport.Log;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,6 +28,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import java.util.zip.GZIPOutputStream;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
@@ -34,6 +37,7 @@ import android.graphics.Bitmap;
  * This class is intended to store helper methods on files (File Operations)
  */
 public class FileOps {
+	private static long GZIP_THRESHOLD_IN_BYTES = 1 * 1024 * 1024; /* 1 MB */
 
 	/**
 	 * Delete a file/folder recursively
@@ -183,5 +187,115 @@ public class FileOps {
 		try { stream.close(); } catch (IOException e) {}
 
 		return b;
+	}
+
+	/**
+	 * @param path indicates the directory whose files are desired
+	 * to be compressed and are above a defined threshold:
+	 * GZIP_THRESHOLD_IN_BYTES. Content will be placed in the same
+	 * path with the extension gz. and original files will be removed.
+	 */
+	public static void compressFolderContent(String path) {
+		File folder = null;
+		File[] files = null;
+
+		if (path == null || path.isEmpty())
+			return;
+
+		folder = new File(path);
+		if (!folder.exists() || !folder.isDirectory())
+			return;
+
+		files = folder.listFiles();
+
+		if(files == null)
+			return;
+
+		for(File f: files) {
+			if (isGz(f.getName()))
+				continue;
+
+			try {
+				if (f.length() < GZIP_THRESHOLD_IN_BYTES)
+					continue;
+			} catch (SecurityException se) {
+				Log.e("No permission to access file: " + f.getAbsolutePath());
+				continue;
+			}
+
+			String source = f.getAbsolutePath();
+			String destination = source + ".gz";
+			if (compressFile(source, destination)) {
+				String result = f.getAbsolutePath() + " (" +
+						Long.toString(f.length()) + " bytes) -> " +
+						f.getAbsolutePath() + ".gz";
+				File f2 =new File(destination);
+				if(f2.exists()) {
+					result +=  " (" + Long.toString(f2.length()) + " bytes)";
+					f.delete();
+				}
+
+				Log.d("File compressed: " + result);
+			}
+		}
+	}
+
+	/**
+	 * Returns an <code>boolean</code> value indicating wether the
+	 * passed file has the extension gz
+	 * @param path to the file to check
+	 * @return an <code>boolean</code> value indicating wether the
+	 * passed file has the extension gz
+	 */
+	public static boolean isGz(String file) {
+		int offset;
+
+		if (file == null || file.isEmpty())
+			return false;
+
+		offset = file.lastIndexOf(".");
+		if (offset == -1 || offset == file.length())
+			return false;
+
+		String extension = file.substring(offset + 1, file.length());
+		return extension.equals("gz");
+	}
+
+	/**
+	 * Returns an <code>boolean</code> value indicating wether the
+	 * passed file was compressed ok.
+	 * @param source - path to the file to compress
+	 * @param destination - output location
+	 * @return an <code>boolean</code> value indicating wether the
+	 * passed file was compressed ok.
+	 */
+	public static boolean compressFile(String source, String destination) {
+		int length;
+		byte[] buffer = new byte[1024];
+		FileInputStream in = null;
+		GZIPOutputStream out = null;
+
+		if (source == null || source.isEmpty() || destination == null || destination.isEmpty())
+			return false;
+
+		try {
+			out = new GZIPOutputStream(new FileOutputStream(destination));
+			in = new FileInputStream(source);
+
+			while ((length = in.read(buffer)) > 0)
+				out.write(buffer, 0, length);
+
+			in.close();
+			out.finish();
+			out.close();
+		} catch (IOException ex) {
+			try { if (in != null) in.close(); } catch (IOException e) {}
+			try { if (out != null) out.close(); } catch (IOException e) {}
+
+			Log.e("File could not be compressed: " + source);
+			return false;
+		}
+
+		return true;
 	}
 }
