@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="javadoc">
+    <target name="javadoc">
+        <javadoc access="protected" additionalparam="-classpath C:\Users\dabraham\Desktop\Android\adt-bundle-windows-x86\sdk\platforms\android-17\android.jar -linkoffline http://developer.android.com/reference C:\Users\dabraham\Desktop\Android\adt-bundle-windows-x86\sdk\docs\reference " author="true" classpath="." destdir="doc" doctitle="Intel Commons for Android" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="true" source="1.6" sourcefiles="src/com/intel/commons/Identity.java,src/com/intel/commons/IntelCommonsApp.java,src/com/intel/commons/Vpn.java,src/com/intel/commons/HttpResponse.java,src/com/intel/commons/InternalWebLoader.java,src/com/intel/commons/WebLoader.java,src/com/intel/commons/Location.java,src/com/intel/commons/SplashScreen.java,src/com/intel/commons/IntelUserCertificateCallback.java" sourcepath="gen;src" splitindex="false" use="false" version="true"/>
+    </target>
+</project>

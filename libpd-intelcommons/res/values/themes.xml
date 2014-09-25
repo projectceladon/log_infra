@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    INTEL CONFIDENTIAL
+
+    Copyright (C) 2012-2013, Intel Corporation. All Rights Reserved.
+
+    The source code contained or described herein and all documents related to the source code
+    ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material
+    remains with Intel Corporation or its suppliers and licensors. The Material contains trade
+    secrets and proprietary and confidential information of Intel or its suppliers and licensors.
+    The Material is protected by worldwide copyright and trade secret laws and treaty provisions.
+    No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted,
+    transmitted, distributed, or disclosed in any way without Intel’s prior express written
+    permission.
+
+    No license under any patent, copyright, trade secret or other intellectual property right is
+    granted to or conferred upon you by disclosure or delivery of the Materials, either expressly,
+    by implication, inducement, estoppel or otherwise. Any license under such intellectual property
+    rights must be express and approved by Intel in writing.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Generated with http://android-holo-colors.com -->
+    <style name="Theme.Intel" parent="android:Theme.Holo.Light.DarkActionBar">
+        <item name="android:actionBarItemBackground">@drawable/item_background_intel</item>
+        <item name="android:actionBarStyle">@style/Widget.Intel.ActionBar</item>
+        <item name="android:actionBarTabStyle">@style/Widget.Intel.ActionBar.TabView</item>
+        <!-- item name="android:actionBarWidgetTheme">@android:style/Theme.Holo</item -->
+        <item name="android:actionDropDownStyle">@style/Widget.Intel.Spinner.DropDown.ActionBar</item>
+        <item name="android:actionModeBackground">@drawable/cab_background_top_intel</item>
+        <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom_intel</item>
+
+        <item name="android:activatedBackgroundIndicator">@drawable/activated_background_intel</item>
+
+        <item name="android:autoCompleteTextViewStyle">@style/Widget.Intel.AutoCompleteTextView</item>
+
+        <item name="android:buttonStyle">@style/Widget.Intel.Button</item>
+        <item name="android:buttonStyleSmall">@style/Widget.Intel.Button.Small</item>
+
+        <item name="android:checkboxStyle">@style/Widget.Intel.CompoundButton.CheckBox</item>
+
+        <item name="android:dropDownListViewStyle">@android:style/Widget.Holo.Light.ListView.DropDown</item>
+        <item name="android:dropDownSpinnerStyle">@style/Widget.Intel.Spinner</item>
+
+        <item name="android:editTextBackground">@drawable/edit_text_intel</item>
+
+        <item name="android:expandableListViewStyle">@style/Widget.Intel.ExpandableListView</item>
+
+        <!-- item name="android:homeAsUpIndicator">@android:drawable/ic_ab_back_holo_light</item -->
+
+        <item name="android:listChoiceBackgroundIndicator">@drawable/list_selector_intel</item>
+        <item name="android:listChoiceIndicatorSingle">@drawable/btn_radio_intel</item>
+        <item name="android:listChoiceIndicatorMultiple">@drawable/btn_check_intel</item>
+
+        <item name="android:popupMenuStyle">@style/Widget.Intel.ListPopupWindow</item>
+
+        <item name="android:progressBarStyle">@style/Widget.Intel.ProgressBar</item>
+        <!-- item name="android:progressBarStyleHorizontal">@style/Widget.Intel.ProgressBar.Horizontal</item -->
+        <item name="android:progressBarStyleLarge">@style/Widget.Intel.ProgressBar.Large</item>
+        <item name="android:progressBarStyleSmall">@style/Widget.Intel.ProgressBar.Small</item>
+        <item name="android:progressBarStyleInverse">@style/Widget.Intel.ProgressBar.Inverse</item>
+        <item name="android:progressBarStyleLargeInverse">@style/Widget.Intel.ProgressBar.Large.Inverse</item>
+        <item name="android:progressBarStyleSmallInverse">@style/Widget.Intel.ProgressBar.Small.Inverse</item>
+
+        <item name="android:radioButtonStyle">@style/Widget.Intel.CompoundButton.RadioButton</item>
+
+        <item name="android:seekBarStyle">@style/Widget.Intel.SeekBar</item>
+
+        <item name="android:selectableItemBackground">@drawable/item_background_intel</item>
+
+        <!-- item name="android:switchStyle">@style/Widget.Intel.CompoundButton.Switch</item -->
+
+
+
+
+
+<!-- item name="checkBoxPreferenceStyle">@android:style/Preference.Holo.CheckBoxPreference</item>
+<item name="switchPreferenceStyle">@android:style/Preference.Holo.SwitchPreference</item>
+<item name="yesNoPreferenceStyle">@android:style/Preference.Holo.DialogPreference.YesNoPreference</item -->
+
+<!--
+        <item name="android:imageButtonStyle">@style/ImageButtonTheme.Intel</item>
+        <item name="android:ratingBarStyle">@style/RatingBarTheme.Intel</item>
+        <item name="android:ratingBarStyleIndicator">@style/RatingBarBigTheme.Intel</item>
+        <item name="android:ratingBarStyleSmall">@style/RatingBarSmallTheme.Intel</item>
+        <item name="android:buttonStyleToggle">@style/ToggleTheme.Intel</item>
+        <item name="android:fastScrollThumbDrawable">@drawable/fastscroll_thumb_holo</item>
+-->
+
+    </style>
+</resources>
