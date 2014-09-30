@@ -59,10 +59,20 @@ public class GCMNotificationMgr {
 		this.context = context;
 	}
 
-
-
-
-
+	/**
+	 * Creates a notification for the given <code>GcmMessage</code>.
+	 *
+	 * If one or several messages have been notified and not yet
+	 * dismissed, this method will chose whether the messages titles
+	 * must be written in the notification (instead of the last message
+	 * only).
+	 *
+	 * If too many messages are to be notified a generic message will
+	 * be displayed instead.
+	 *
+	 * @param latestGcmMessage the latest <code>GcmMessage</code> that
+	 * has been received.
+	 */
 	public void notifyGcmMessage(GcmMessage latestGcmMessage) {
 		// Check that the message is not null
 		if(null == latestGcmMessage) {
@@ -71,12 +81,15 @@ public class GCMNotificationMgr {
 		}
 		// Initialize the values that will be used for the notification
 		PENDING_GCM_NOTIFICATIONS.add(latestGcmMessage);
+		Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+		long when = System.currentTimeMillis();
 		CharSequence tickerText = "PhoneDoctor notification";
-		int rowId = latestGcmMessage.getRowId();
 		String contentTitle = latestGcmMessage.getTitle();
 		CharSequence contentText = latestGcmMessage.getText();
 		int messageCount = PENDING_GCM_NOTIFICATIONS.size();
 		Log.d("[GCM] " + messageCount + " messages to notify.");
+
+		// Check whether several messages have to be notified
 		if(messageCount > 1 && messageCount <= MAX_GCM_DETAILS) {
 			contentTitle = "PhoneDoctor notifications (" + messageCount + ")";
 			tickerText = contentTitle;
@@ -95,8 +108,6 @@ public class GCMNotificationMgr {
 			contentTitle = "PhoneDoctor notifications";
 			contentText = messageCount + " messages.\nClick to view.";
 		}
-		Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-		long when = System.currentTimeMillis();
 
 		// Create the pending intent that will be user to the notification click
 		int icon = R.drawable.icon_phonedoctor;
@@ -139,6 +150,16 @@ public class GCMNotificationMgr {
 				mBuilder.build());
 	}
 
+	/**
+	 * Return the <code>PendingIntent</code> associated to the <i>click</i>
+	 * on item action.
+	 *
+	 * @param messageCount the total number of messages in the notification
+	 *
+	 * @param latestMessage the latest GCM message instance.
+	 *
+	 * @return the <code>PendingIntent</code> instance to use in notification.
+	 */
 	private PendingIntent getContentPendingIntent(int messageCount, GcmMessage latestMessage) {
 		int rowId = latestMessage.getRowId();
 		Intent notificationIntent = new Intent(context, ListGcmMessagesActivity.class);
@@ -156,8 +177,7 @@ public class GCMNotificationMgr {
 	}
 
 	/**
-	 * Return the <code>PendingIntent</code> associated to the <i>click</i>
-	 * on item action.
+	 * Return the <code>PendingIntent</code> associated to the <i>dismiss</i> action.
 	 *
 	 * @param messageCount the total number of messages in the notification
 	 *
@@ -183,13 +203,10 @@ public class GCMNotificationMgr {
 	}
 
 	/**
-	 * Return the <code>PendingIntent</code> associated to the <i>dismiss</i> action.
+	 * Clears the list of pending <i>GCM</i> notifications.
 	 *
-	 * @param messageCount the total number of messages in the notification
-	 *
-	 * @param latestMessage the latest GCM message instance.
-	 *
-	 * @return the <code>PendingIntent</code> instance to use in notification.
+	 * @param aContext the context to use to retrieve the
+	 * <code>NOTIFICATION_SERVICE</code> instance.
 	 */
 	public static void clearGcmNotification(Context aContext) {
 		NotificationManager mNotificationManager = (NotificationManager)
@@ -200,6 +217,16 @@ public class GCMNotificationMgr {
 		PENDING_GCM_NOTIFICATIONS.clear();
 	}
 
+
+	/**
+	 * Returns a <code>boolean</code> indicating whether the sound is
+	 * enabled or not.
+	 * @return
+	 * <ul>
+	 * <li><code>true</code> if sound is enabled</li>
+	 * <li><code>false</code> otherwise</li>
+	 * </ul>
+	 */
 	private boolean gcmSoundNotificationEnabled() {
 		ApplicationPreferences preferences = new ApplicationPreferences(this.context);
 		boolean soundEnabled = preferences.isSoundEnabledForGcmNotifications();

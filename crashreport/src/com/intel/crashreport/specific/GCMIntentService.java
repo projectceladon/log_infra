@@ -75,6 +75,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 			// if your key/value is a JSON string, just extract it and parse it using JSONObject
 			Bundle incomingExtras = intent.getExtras();
+			Log.d("GCM", "Intent extras: " + incomingExtras);
 			if(incomingExtras != null && intent.hasExtra(GcmMessage.GCM_EXTRA_TITLE) && intent.hasExtra(GcmMessage.GCM_EXTRA_TEXT)
 					&& intent.hasExtra(GcmMessage.GCM_EXTRA_TYPE)) {
 				String title = incomingExtras.getString(GcmMessage.GCM_EXTRA_TITLE);

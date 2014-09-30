@@ -371,16 +371,21 @@ public class EventDB extends GeneralEventDB{
 	 * @param aGcmMessage the message to write
 	 *
 	 * @return the result of the database insertion request
+	 *	(-1 if an error occurred or if the message is null).
 	 */
 	public long addGcmMessage(GcmMessage aGcmMessage) {
+		if(aGcmMessage == null) {
+			return -1;
+		}
 		if(aGcmMessage.getDate() == null) {
 			aGcmMessage.setDate(new Date());
 		}
+		String typeAsString = GcmMessage.getTypeLabel(aGcmMessage.getType());
 
 		return addGcmMessage(
 				aGcmMessage.getTitle(),
 				aGcmMessage.getText(),
-				aGcmMessage.getType().toString(),
+				typeAsString,
 				aGcmMessage.getData(),
 				aGcmMessage.getDate());
 	}

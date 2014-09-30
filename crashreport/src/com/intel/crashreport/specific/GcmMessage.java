@@ -36,6 +36,50 @@ public class GcmMessage {
 	public static final String GCM_EXTRA_DATA = "notification_action_data";
 	public static final String GCM_ROW_ID = "rowId";
 
+    //
+    // MPM-related constants
+    //
+    /**
+     * The intent action to start a <i>MPM</i> session.
+     */
+	public static final String MPM_ACTION_START = "intel.intent.action.kratos.START_PROFILING";
+
+    /**
+     * The intent action to stop a <i>MPM</i> session.
+     */
+	public static final String MPM_ACTION_STOP = "intel.intent.action.kratos.STOP_PROFILING";
+
+	/**
+	 * The <i>MPM</i> intent extra to indicate the calling application.
+	 */
+	public static final String MPM_EXTRA_CALLING_APP_NAME = "intel.intent.extra.kratos.APP_NAME";
+
+	/**
+	 * The value to use for <code>MPM_EXTRA_CALLING_APP_NAME</code> extra.
+	 */
+	public static final String MPM_EXTRA_VALUE_CALLING_APP = "PhoneDoctor";
+
+	/**
+	 * The <i>MPM</i> intent extra to indicate the profile to use for this session.
+	 */
+	public static final String MPM_EXTRA_PROFILE_NAME = "intel.intent.extra.kratos.PROFILE_NAME";
+
+	/**
+	 * The value to use for <code>MPM_EXTRA_PROFILE_NAME</code> extra.
+	 */
+	public static final String MPM_EXTRA_VALUE_PROFILE = "PhoneDoctorProfile";
+
+	/**
+	 * The GCM data value associated to <code>MPM_ACTION_START</code>.
+	 */
+	public static final String GCM_KRATOS_START = "kratos_start";
+
+	/**
+	 * The GCM data value associated to <code>MPM_ACTION_STOP</code>.
+	 */
+	public static final String GCM_KRATOS_STOP = "kratos_stop";
+
+
 	/*
 	 * Phone Doctor specific extras
 	 */
@@ -43,7 +87,7 @@ public class GcmMessage {
 
 	private final static SimpleDateFormat EVENT_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 
-	private static EnumMap<GCM_ACTION,String> messageTypesList = new EnumMap<GCM_ACTION,String>(GCM_ACTION.class);
+	private static final EnumMap<GCM_ACTION,String> messageTypesList = new EnumMap<GCM_ACTION,String>(GCM_ACTION.class);
 	static{
 		messageTypesList.put(GCM_ACTION.GCM_NONE, GCM_NONE_LABEL);
 		messageTypesList.put(GCM_ACTION.GCM_URL, GCM_URL_LABEL);
@@ -196,6 +240,18 @@ public class GcmMessage {
 		return sb.toString();
 	}
 
-
-
+	/**
+	 * Returns the string label corresponding to the given <code>GCM_ACTION</code>.
+	 *
+	 * @param actionType the <code>GCM_ACTION</code>
+	 *
+	 * @return a string representation of <code>actionType</code>
+	 */
+	public static String getTypeLabel(GCM_ACTION actionType) {
+		String label = GCM_NONE_LABEL;
+		if(actionType != null && messageTypesList.containsKey(actionType)) {
+			label = messageTypesList.get(actionType);
+		}
+		return label;
+	}
 }

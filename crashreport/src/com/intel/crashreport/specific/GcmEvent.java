@@ -26,6 +26,7 @@ import android.database.SQLException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
 import com.intel.crashreport.ApplicationPreferences;
@@ -135,12 +136,21 @@ public enum GcmEvent {
 	}
 
 	/**
-	 * Do the action associated with a Gcm message
-	 * - Open a web browser for an URL message
-	 * - Open an app for an APP message
-	 * - Nothing for a NONE message
-	 * @param message
-	 * @return true if the action has been done successfully
+	 * Performs the action associated with a Gcm message:
+	 * <ul>
+	 * <li>open a web browser for an URL message</li>
+	 * <li>open an application for an APP message</li>
+	 * <li>start/stop a MPM (Kratos) session</li>
+	 * <li>nothing for a NONE message</li>
+	 * </ul>
+	 * @param rowId the message's row ID
+	 * @param type the message's action
+	 * @param data the message's data
+	 * @return
+	 * <ul>
+	 * <li><code>true</code> if the action has been done successfully</li>
+	 * <li><code>false</code> otherwise</li>
+	 * </ul>
 	 */
 	public boolean takeGcmAction(int rowId, GCM_ACTION type, String data) {
 		boolean result = false;
@@ -155,7 +165,8 @@ public enum GcmEvent {
 			Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
 		}
 
-		if(GCM_ACTION.GCM_URL == type) {
+		switch(type) {
+		case GCM_URL: {
 			try {
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(data));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -167,7 +178,9 @@ public enum GcmEvent {
 			catch (ActivityNotFoundException e) {
 				Log.w("CrashReport:takeGcmAction: bad url format:"+data);
 			}
-		} else if(GCM_ACTION.GCM_APP == type) {
+			break;
+		}
+		case GCM_APP: {
 			try {
 				Intent intent = context.getPackageManager().getLaunchIntentForPackage(data);
 				if (intent != null)
@@ -192,8 +205,68 @@ public enum GcmEvent {
 			catch (ActivityNotFoundException e) {
 				Log.w("CrashReport:takeGcmAction: can't open application:"+data);
 			}
+			break;
+		}
+		case GCM_PHONE_DOCTOR: {
+			// Create an intent for MPM
+			Intent mpmIntent = buildMpmBroadcastIntent(data);
+			// If the intent is valid
+			if(mpmIntent != null) {
+				Log.d("[GCM] Broadcasting intent: " + mpmIntent);
+				// Start the activity
+				context.sendBroadcast(mpmIntent);
+			} else {
+				// Otherwise display a text for the end user.
+				Toast.makeText(
+						context,
+						"Invalid input data from GCM message.",
+						Toast.LENGTH_SHORT).show();
+			}
+			break;
+		}
+		default: break;
 		}
 		return result;
 	}
 
+	/**
+	 * Returns a new <code>Intent</code> instance to be broadcasted.
+	 *
+	 * The new <code>Intent</code> is built from the given <code>data</code>
+	 * that came with a <i>GCM</i> message.
+	 *
+	 * @param data the data from the GCM message.
+	 * @return the new <i>MPM</i> intent (or null if input data was
+	 * 	not valid).
+	 */
+	private static Intent buildMpmBroadcastIntent(String data) {
+		// Initialize an action
+		String action = null;
+		// Update the action according to the input parameter
+		if(GcmMessage.GCM_KRATOS_START.equals(data)) {
+			action = GcmMessage.MPM_ACTION_START;
+		} else if(GcmMessage.GCM_KRATOS_STOP.equals(data)) {
+			action = GcmMessage.MPM_ACTION_STOP;
+		}
+		// If data was not valid return null
+		if(action == null) {
+			return null;
+		}
+		// Else build an Intent to broadcast
+		Intent mpmIntent = new Intent();
+		// Mark the intent as a new task
+		mpmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		// Configure the intent action
+		mpmIntent.setAction(action);
+		// Configure the calling application name
+		mpmIntent.putExtra(
+				GcmMessage.MPM_EXTRA_CALLING_APP_NAME,
+				GcmMessage.MPM_EXTRA_VALUE_CALLING_APP);
+		// Configure the profile name.
+		mpmIntent.putExtra(
+				GcmMessage.MPM_EXTRA_PROFILE_NAME,
+				GcmMessage.MPM_EXTRA_VALUE_PROFILE);
+		// Return the intent
+		return mpmIntent;
+	}
 }

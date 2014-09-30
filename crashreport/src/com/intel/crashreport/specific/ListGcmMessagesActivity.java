@@ -114,35 +114,21 @@ public class ListGcmMessagesActivity extends Activity {
 	 * @param theMessage the message to display.
 	 */
 	private void displayMessage(final GcmMessage theMessage) {
+		// Check that the message is not null
 		if(theMessage == null) {
 			Log.e("[GCM] Got <null> message to display.");
 			return;
 		}
 
-		AlertDialog alert = new AlertDialog.Builder(context).create();
-		alert.setTitle(theMessage.getTitle());
-		StringBuffer sb = new StringBuffer("[");
-		sb.append(theMessage.getDateAsString());
-		sb.append("]\n\n");
-		sb.append(theMessage.getText());
-		alert.setMessage(sb.toString());
-		alert.getWindow().setLayout(
-				ViewGroup.LayoutParams.MATCH_PARENT,
-				ViewGroup.LayoutParams.MATCH_PARENT);
-		if(GCM_ACTION.GCM_NONE != theMessage.getType()) {
-			alert.setButton(DialogInterface.BUTTON_POSITIVE,context.getString(R.string.gcm_list_ok), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int id) {
-					if(GcmEvent.INSTANCE.takeGcmAction(theMessage.getRowId(), theMessage.getType(), theMessage.getData()))
-						refresh();
-				}
-			});
-			alert.setButton(DialogInterface.BUTTON_NEGATIVE,context.getString(R.string.alert_dialog_cancel), new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int id) {
-				}
-			});
-		} else {
+		// Create the dialog that will be used to display the message
+		AlertDialog alert = this.buildMessageDialog(theMessage);
+
+		// Retrieve the action
+		GCM_ACTION action = theMessage.getType();
+
+		// If there was nothing else to do than display the message,
+		// we may consider if as read.
+		if(GCM_ACTION.GCM_NONE == action) {
 			EventDB db = new EventDB(getApplicationContext());
 			boolean resultDelete = false;
 			try {
@@ -157,13 +143,92 @@ public class ListGcmMessagesActivity extends Activity {
 			if(resultDelete)
 				refresh();
 		}
-		// Add some buttons
-		alert.setButton(DialogInterface.BUTTON_NEUTRAL,"OK", new DialogInterface.OnClickListener() {
+
+		// Show the dialog
+		alert.show();
+	}
+
+	/**
+	 * Returns a fully configured <code>AlertDialog</code> for the given
+	 * <code>GcmMessage</code>.
+	 *
+	 * @param aMessage the message to display.
+	 *
+	 * @return a fully configured <code>AlertDialog</code> instance.
+	 */
+	private AlertDialog buildMessageDialog(final GcmMessage aMessage) {
+		// Initialize the variables used for the dialog
+		GCM_ACTION action = aMessage.getType();
+		String data = aMessage.getData();
+		String buttonLabel = "No action";
+		String negativeButtonLabel = context.getString(R.string.alert_dialog_cancel);
+		String textFooter = null;
+		StringBuffer sb = new StringBuffer();
+		// Create a simple dialog
+		AlertDialog alert = new AlertDialog.Builder(context).create();
+		// If the notification may contain some user interactions
+		if(GCM_ACTION.GCM_NONE != action) {
+			// Compute the labels and texts to display in the dialog
+			if(GCM_ACTION.GCM_APP.equals(action)) {
+				buttonLabel = "Start application";
+				sb.append("[app: ");
+				sb.append(data);
+				sb.append("]");
+				textFooter = sb.toString();
+			} else if (GCM_ACTION.GCM_URL.equals(action)) {
+				buttonLabel = "Open URL";
+				sb.append("[url: ");
+				sb.append(data);
+				sb.append("]");
+				textFooter = sb.toString();
+			} else if (GCM_ACTION.GCM_PHONE_DOCTOR.equals(action)) {
+				if(GcmMessage.GCM_KRATOS_START.equals(data)) {
+					buttonLabel = "Start MPM";
+				} else {
+					buttonLabel = "Stop MPM";
+				}
+			}
+			// Add a button that will trigger the action
+			alert.setButton(DialogInterface.BUTTON_POSITIVE, buttonLabel, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int id) {
+					if(GcmEvent.INSTANCE.takeGcmAction(
+							aMessage.getRowId(),
+							aMessage.getType(),
+							aMessage.getData())) {
+						refresh();
+					}
+				}
+			});
+		} else {
+			negativeButtonLabel = "OK";
+		}
+		// Compute the text content
+		alert.setTitle(aMessage.getTitle());
+		sb = new StringBuffer("[");
+		sb.append(aMessage.getDateAsString());
+		sb.append("]\n\n");
+		sb.append(aMessage.getText());
+		if(textFooter != null) {
+			sb.append("\n\n");
+			sb.append(textFooter);
+		}
+		alert.setMessage(sb.toString());
+		// Set the layout
+		alert.getWindow().setLayout(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT);
+		// Add a button for 'no action'
+		alert.setButton(DialogInterface.BUTTON_NEGATIVE, negativeButtonLabel, new DialogInterface.OnClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int id) {
+				GcmUtils gcmUtils = new GcmUtils(getApplicationContext());
+				gcmUtils.markAsRead(aMessage.getRowId());
+				refresh();
 			}
 		});
-		alert.show();
+		// Return the dialog
+		return alert;
 	}
 
 	/**
