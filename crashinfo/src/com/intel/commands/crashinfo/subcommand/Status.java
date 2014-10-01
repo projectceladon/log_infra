@@ -96,6 +96,7 @@ public class Status implements ISubCommand {
 			displayDbstatus();
 			System.out.println("Main Path for logs : " + PATH_LOGS);
 			System.out.println("Api version : "  + CrashInfo.API_VERSION);
+			System.out.println("Organization : "  + com.intel.parsing.ParsableEvent.ORGANIZATION_MCG);
 		}catch (Exception e) {
 			System.out.println("Exception : "+e.toString());
 			return -1;

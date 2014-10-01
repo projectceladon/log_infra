@@ -47,6 +47,7 @@ public class LegacyParser implements EventParser {
 				aEvent.setData3(aCrashfile.getValueByName("DATA3"));
 				aEvent.setData4(aCrashfile.getValueByName("DATA4"));
 				aEvent.setData5(aCrashfile.getValueByName("DATA5"));
+				aEvent.setModemVersionUsed(aCrashfile.getValueByName("MODEMVERSIONUSED"));
 			} catch (FileNotFoundException e) {
 				return false;
 			}

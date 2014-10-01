@@ -48,11 +48,11 @@ public enum DeviceManager {
 	public boolean isModemUnknown(){
 		String sModem = getModemValue();
 
-		if (sModem != null && (sModem.isEmpty() ||
-			sModem.equalsIgnoreCase("unknown")))
-			return false;
+		if (sModem == null || sModem.isEmpty() ||
+			sModem.equalsIgnoreCase("unknown"))
+			return true;
 
-		return true;
+		return false;
 	}
 
 	private String getModemExtValue(){

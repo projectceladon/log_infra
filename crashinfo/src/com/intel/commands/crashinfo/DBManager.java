@@ -91,6 +91,7 @@ public class DBManager implements Closeable{
 	public static final String KEY_GCM_TOKEN = "gcmToken";
 	public static final String KEY_SPID = "spid";
 	public static final String KEY_UNIQUEKEY_COMPONENT = "uniqueKeyComponents";
+	public static final String KEY_MODEM_VERSION_USED = "modemVersionUsed";
 
 	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
 			+" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
@@ -272,7 +273,8 @@ public class DBManager implements Closeable{
 			case FULL :
 				listColumns = new String[] {KEY_ROWID,KEY_ID, KEY_NAME,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2, KEY_DATE,
 						KEY_CRASHDIR,KEY_DATA3,KEY_DATA4,KEY_DATA5,KEY_UPTIME,KEY_UPLOAD,KEY_UPLOADLOG,KEY_BUILDID,
-						KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS, KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_IMEI,KEY_NOTIFIED,KEY_DATA_READY,KEY_PDSTATUS};
+						KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS, KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT,
+						KEY_MODEM_VERSION_USED,KEY_IMEI,KEY_NOTIFIED,KEY_DATA_READY,KEY_PDSTATUS};
 				break;
 			default :
 				listColumns = new String[]{};
