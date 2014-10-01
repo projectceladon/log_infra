@@ -185,7 +185,7 @@ public class MainParser{
 					}
 				}
 
-				if (sTag.equals("MPANIC")) {
+				if (sTag.equals("MPANIC") || sTag.equals("MPANIC_FAKE")) {
 					if (!genericCrash(sOutput)){
 						closeOutput();
 						return -1;
@@ -332,6 +332,7 @@ public class MainParser{
 		boolean bData3Found = false;
 		boolean bData4Found = false;
 		boolean bData5Found = false;
+		boolean bDataModemFound = false;
 
 		String sData0="";
 		String sData1="";
@@ -339,6 +340,7 @@ public class MainParser{
 		String sData3="";
 		String sData4="";
 		String sData5="";
+		String sModemversionUsed="";
 		String sGenFile = fileGrepSearch(".*_crashdata", aFolder);
 		if (sGenFile != ""){
 			BufferedReaderClean bufGenFile = null;
@@ -349,6 +351,7 @@ public class MainParser{
 				Pattern patternData3 = java.util.regex.Pattern.compile("DATA3=.*");
 				Pattern patternData4 = java.util.regex.Pattern.compile("DATA4=.*");
 				Pattern patternData5 = java.util.regex.Pattern.compile("DATA5=.*");
+				Pattern patternModemUsed = java.util.regex.Pattern.compile("MODEMVERSIONUSED=.*");
 				bufGenFile = new BufferedReaderClean(new FileReader(sGenFile));
 				String sCurLine;
 				while ((sCurLine = bufGenFile.readLine()) != null) {
@@ -395,6 +398,13 @@ public class MainParser{
 							bData5Found = true;
 						}
 					}
+					if (!bDataModemFound){
+						sTmp = simpleGrepAwk(patternModemUsed, sCurLine, "=", 1, true);
+						if (sTmp != null){
+							sModemversionUsed = sTmp;
+							bDataModemFound = true;
+						}
+					}
 				}
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sData1);
@@ -402,6 +412,7 @@ public class MainParser{
 				bResult &= appendToCrashfile("DATA3=" + sData3);
 				bResult &= appendToCrashfile("DATA4=" + sData4);
 				bResult &= appendToCrashfile("DATA5=" + sData5);
+				bResult &= appendToCrashfile("MODEMVERSIONUSED=" + sModemversionUsed);
 			}
 			catch(Exception e) {
 				APLog.e( "modemcrash : " + e);
@@ -536,6 +547,7 @@ public class MainParser{
 						sPanic =  sFilteredValue;
 					}
 				}
+
 
 				if (bLockUpCase){
 					sData0 = sDataLockUp;

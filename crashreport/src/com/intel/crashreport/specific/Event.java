@@ -227,6 +227,7 @@ public class Event extends GeneralEvent{
 			setData4(aParseFile.getValueByName("DATA4"));
 			setData5(aParseFile.getValueByName("DATA5"));
 			setDataReady(!aParseFile.getValueByName("DATAREADY").equals("0"));
+			setModemVersionUsed(aParseFile.getValueByName("MODEMVERSIONUSED"));
 		}
 	}
 
@@ -308,6 +309,7 @@ public class Event extends GeneralEvent{
 		// do not use "uniquekey" of crashtool object, it is for internal use only
 		//uniqueKeyComponents should be used
 		sBuild.setUniqueKeyComponents(IngredientManager.INSTANCE.parseUniqueKey(this.uniqueKeyComponent));
+		sBuild.setOrganization(com.intel.parsing.ParsableEvent.ORGANIZATION_MCG);
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
 		//GCM not fully implemented
@@ -325,6 +327,7 @@ public class Event extends GeneralEvent{
 				this.date, lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
                                 aDevice, getiRowID(),this.pdStatus );
 		event.setBootMode(this.osBootMode);
+		event.setModem(new com.intel.crashtoolserver.bean.Modem(this.getModemVersionUsed()));
 		return event;
 	}
 

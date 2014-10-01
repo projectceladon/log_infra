@@ -21,6 +21,8 @@ package com.intel.parsing;
 
 public class ParsableEvent {
 
+	public static final String ORGANIZATION_MCG = "mcg";
+
 	protected String eventId = "";
 	protected String eventName = "";
 	protected String type = "";
@@ -38,6 +40,7 @@ public class ParsableEvent {
 	protected String crashDir = "";
 	protected boolean dataReady = true;
 	protected int iRowID;
+	protected String modemVersionUsed = "";
 
 
 	public ParsableEvent(int rowid, String eventId, String eventName, String type, String data0,
@@ -173,6 +176,14 @@ public class ParsableEvent {
 
 	public void setiRowID(int iRowID) {
 		this.iRowID = iRowID;
+	}
+
+	public String getModemVersionUsed() {
+		return modemVersionUsed;
+	}
+
+	public void setModemVersionUsed(String modemVersionUsed) {
+		this.modemVersionUsed = modemVersionUsed;
 	}
 
 }
