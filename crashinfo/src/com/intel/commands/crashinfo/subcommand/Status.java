@@ -30,9 +30,11 @@ import com.intel.commands.crashinfo.option.OptionData;
 import com.intel.commands.crashinfo.option.Options;
 import com.intel.commands.crashinfo.option.Options.Multiplicity;
 
+import android.os.SystemProperties;
+
 public class Status implements ISubCommand {
 
-	public static final String PATH_LOGS = "/logs/";
+	public static final String PATH_LOGS = SystemProperties.get("persist.crashlogd.root", "/logs") + "/";
 	public static final String PATH_SD_LOGS = "/mnt/sdcard/logs";
 	String[] myArgs;
 	Options myOptions;

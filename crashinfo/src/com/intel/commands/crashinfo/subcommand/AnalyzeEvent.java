@@ -31,7 +31,6 @@ import com.intel.commands.crashinfo.option.Options.Multiplicity;
 
 public class AnalyzeEvent implements ISubCommand {
 
-	public static final String PATH_UUID = "/logs/uuid.txt";
 	String[] myArgs;
 	Options myOptions;
 	Writer myOutput = null;

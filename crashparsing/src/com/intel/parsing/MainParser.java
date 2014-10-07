@@ -33,9 +33,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import android.os.SystemProperties;
+
 public class MainParser{
 
-	public static final String PATH_UUID = "/logs/uuid.txt";
+	public static final String PATH_LOGS = SystemProperties.get("persist.crashlogd.root", "/logs");
+	public static final String PATH_UUID = PATH_LOGS + "/uuid.txt";
 
 	private final static String[] LEGACY_BOARD_FABRIC = {"redhookbay","victoriabay"};
 	private final static String[] FABRIC_TAGS = { "FABRICERR", "MEMERR",
