@@ -5,6 +5,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := crashinfo
 LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_OWNER := intel
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
 LOCAL_JAVA_LIBRARIES := com.google.gson crashparsing
 LOCAL_CERTIFICATE := platform
