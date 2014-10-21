@@ -56,6 +56,7 @@ public enum GeneralEventGenerator {
 				db.open();
 				Event event = new Event();
 				Date date= new Date();
+				String sDateTime = (new Long(date.getTime())).toString();
 				SimpleDateFormat EVENT_DF_GEN = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 				String displayDate = EVENT_DF_GEN.format(date);
 				try {
@@ -82,7 +83,9 @@ public enum GeneralEventGenerator {
 				event.setImei(event.readImeiFromSystem());
 
 				String SHA1String = event.getBuildId() + event.getDeviceId() + event.getEventName() +
-						event.getType() + event.getDateAsString();
+						event.getType() + sDateTime + event.getData0() +
+						event.getData1() + event.getData2() + event.getData3() +
+						event.getData4() + event.getData5() + event.getCrashDir();
 
 				event.setEventId(sha1Hash(SHA1String));
 				event.setVariant(GeneralBuild.getVariant());
