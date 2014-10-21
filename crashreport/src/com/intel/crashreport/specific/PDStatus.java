@@ -414,6 +414,8 @@ public enum PDStatus {
 					result = "Y";
 				} else if(variant != null && variant.endsWith("7160")) {
 					result = "1";
+				} else if(variant != null && !variant.startsWith("saltbay")) {
+					result = "0";
 				}
 				return result;
 			}
