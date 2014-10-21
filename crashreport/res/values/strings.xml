@@ -157,6 +157,7 @@
     <string name="list_bugzilla_title">Bug events created with the phone :</string>
 
     <!-- Upload log part-->
+    <string name="aplog_summary">Comment :</string>
     <string name="upload_log_button">Upload</string>
     <string name="upload_log_ALL">All logs</string>
     <string name="upload_log_DEFAULT">Default number of logs</string>

@@ -28,6 +28,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
@@ -115,8 +116,13 @@ public class UploadAplogActivity extends Activity{
 			break;
 			}
 
+			EditText summary = (EditText)findViewById(R.id.aplog_summary_text);
+			String strSummary = "";
+			if (summary != null)
+				strSummary = summary.getText().toString();
+
 			CheckBox thermalCheck = (CheckBox) findViewById(R.id.checkBoxThermal);
-			new UploadAplogTask(iNbLog, context).execute();
+			new UploadAplogTask(iNbLog, context, strSummary).execute();
 			AlertDialog alert = new AlertDialog.Builder(context).create();
 			String sMessage = "A background request of log upload has been created. \n " + aplogSelected;
 			if (null != thermalCheck && thermalCheck.isChecked()){

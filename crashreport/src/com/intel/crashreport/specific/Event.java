@@ -233,13 +233,14 @@ public class Event extends GeneralEvent{
 
 	private void fillAplogEvent(HistoryEvent histevent, String myBuild) {
 		setCrashDir(histevent.getOption());
-		setEventId(histevent.getEventId());
-		setEventName(histevent.getEventName());
-		date = convertDate(histevent.getDate());
-		setType(histevent.getType());
-		setBuildId(myBuild);
-		readDeviceIdFromFile();
-		setImei(readImeiFromSystem());
+		GenericParseFile aParseFile = null;
+		try{
+			aParseFile = new GenericParseFile(getCrashDir(), "user_comment");
+
+		}catch (FileNotFoundException e){
+			Log.w(toString() + ",parsefile couldn't be created: " + getCrashDir());
+		}
+		fillGenericEvent(histevent,myBuild,aParseFile);
 	}
 
 	private void fillBzEvent(HistoryEvent histevent, String myBuild) {

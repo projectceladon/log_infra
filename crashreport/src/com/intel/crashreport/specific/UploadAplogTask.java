@@ -31,10 +31,16 @@ import android.os.AsyncTask;
 public class UploadAplogTask extends AsyncTask<Void, Void, Void> {
 	private int m_iLog = -1;
 	private Context context;
+	private String mMessage;
 
-	public UploadAplogTask(int iLog, Context ctx){
+	public UploadAplogTask(int iLog, Context ctx, String message){
 		m_iLog = iLog;
 		context = ctx;
+		mMessage = message;
+	}
+
+	public UploadAplogTask(int iLog, Context ctx){
+		this(-1,ctx, "");
 	}
 
 	public UploadAplogTask(Context ctx){
@@ -48,6 +54,7 @@ public class UploadAplogTask extends AsyncTask<Void, Void, Void> {
 		String sArgument = "";
 		if (m_iLog > 0)
 			sArgument="APLOG=" + m_iLog + "\n";
+		sArgument += "DATA0=" + mMessage + "\n";
 		CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.APLOG, sArgument, context);
 
 		return null;

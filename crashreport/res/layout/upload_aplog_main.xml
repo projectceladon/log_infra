@@ -39,6 +39,17 @@
             android:text="@string/upload_log_ALL" />
     </RadioGroup>
 
+    <TextView
+        android:id="@+id/aplog_summary_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/aplog_summary" />
+
+    <EditText
+        android:id="@+id/aplog_summary_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <Button
         android:id="@+id/buttonUpload"
         android:layout_width="match_parent"
