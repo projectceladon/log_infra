@@ -92,12 +92,21 @@ final class InternalWebLoader extends AsyncTaskLoader<HttpResponse>
     @Override
     public HttpResponse loadInBackground()
     {
+        HttpURLConnection connection = null;
+
         // Sanity check
         if (!isConnected())
         {
             return null; // Error
         }
-        return receiveResponse(sendRequest());
+
+        connection = sendRequest();
+        if (connection == null)
+        {
+            return null; // Error
+        }
+
+        return receiveResponse(connection);
     }
 
     /**
