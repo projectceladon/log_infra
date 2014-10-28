@@ -167,8 +167,16 @@ public class BugzillaSummaryActivity extends Activity {
 				strDescription = strDescription.replace("\n", "\\n");
 				if(!strDescription.endsWith("\\n"))
 					strDescription += "\\n";
-				if(!bugzillaStorage.getTime().equals(""))
-					strDescription += "Issue occured in last " + bugzillaStorage.getTime();
+				if (strDescription.length() > 255) {
+					strDescription = strDescription.substring(0, 255);
+				}
+				if(!bugzillaStorage.getTime().equals("")) {
+					String occurrence = "Issue occured in last " + bugzillaStorage.getTime();
+					if (strDescription.length() + occurrence.length() <= 255)
+						strDescription += occurrence;
+					else if (strDescription.length() + bugzillaStorage.getTime().length() <= 255)
+						strDescription += bugzillaStorage.getTime();
+				}
 				line = "DESCRIPTION="+strDescription+"\n";
 				sArguments.add(line);
 				if(bugzillaStorage.getBugHasScreenshot()) {

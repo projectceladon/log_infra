@@ -113,6 +113,7 @@
         android:layout_alignParentRight="true"
         android:autoText="false"
         android:gravity="left|top"
+        android:maxLength="255"
         android:inputType="textMultiLine|textCapSentences"
         android:paddingLeft="1dp"
         android:paddingRight="1dp"
