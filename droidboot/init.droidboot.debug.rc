@@ -6,15 +6,20 @@ on boot
     setprop ro.g_wipe_flag 2
 
 on property:sys.adb.config=adb
-    stop droidboot
-    write /sys/module/g_android/parameters/fastboot 0
-    setprop sys.usb.config adb
+    write /sys/class/android_usb/android0/enable 0
     start adbd
+    write /sys/class/android_usb/android0/enable 1
+
+on property:sys.adb.config=fastboot2adb
+    stop droidboot
+    setprop sys.usb.config adb
+    setprop sys.adb.config adb
 
 on property:sys.adb.config=fastboot
     stop adbd
-    write /sys/module/g_android/parameters/fastboot 1
+    write /sys/class/android_usb/android0/enable 0
     start droidboot
+    write /sys/class/android_usb/android0/enable 1
 
 service adbd /sbin/adbd
     class core
