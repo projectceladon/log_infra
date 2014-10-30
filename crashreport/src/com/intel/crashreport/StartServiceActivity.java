@@ -38,6 +38,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
@@ -86,6 +87,7 @@ public class StartServiceActivity extends Activity {
 	private ListView lvEvent;
 	final Context context = this;
 	private boolean alreadyRegistered = false;
+	private int waitRequests;
 
 	public static enum EVENT_FILTER{
 		ALL,
@@ -126,6 +128,7 @@ public class StartServiceActivity extends Activity {
 		search = appPrefs.getFilterChoice();
 		actionBar.setSelectedNavigationItem(search.compareTo(EVENT_FILTER.ALL));
 		actionBar.setDisplayShowTitleEnabled(false);
+		waitRequests = 0;
 
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
 		progressBar = (ProgressBar) findViewById(R.id.progressAplog);
@@ -183,8 +186,23 @@ public class StartServiceActivity extends Activity {
 		  }
 	};
 
-	private void updateSummary() {
-			ArrayList<Event> listEvent = new ArrayList<Event>();
+
+	private class UpdateSummaryTask extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Void... params) {
+
+			final ArrayList<Event> listEvent = new ArrayList<Event>();
+
+			if (lvEvent == null)
+				return null;
+
+			runOnUiThread(new Runnable() {
+				public void run() {
+					showPleaseWait() ;
+				}
+			});
+
 			EventDB db = new EventDB(getApplicationContext());
 			try {
 				db.open();
@@ -203,12 +221,26 @@ public class StartServiceActivity extends Activity {
 			catch (Exception e){
 				Log.e("Exception occured while generating summary :" + e.getMessage());
 			}
-			if (lvEvent != null)
-			{
-				eventAdapter.setListEvent(listEvent);
-				eventAdapter.notifyDataSetChanged();
-				//lvEvent.invalidateViews();
-			}
+
+			runOnUiThread(new Runnable() {
+				public void run() {
+					eventAdapter.setListEvent(listEvent);
+					eventAdapter.notifyDataSetChanged();
+					//lvEvent.invalidateViews();
+					hidePleaseWait();
+				}
+			});
+			return null;
+		}
+
+		@Override
+		protected void onProgressUpdate(Void... params) {}
+
+		protected void onPostExecute(Void... params) {}
+	}
+
+	private void updateSummary() {
+		new UpdateSummaryTask().execute();
 	}
 
 	@Override
@@ -302,6 +334,8 @@ public class StartServiceActivity extends Activity {
 	}
 
 	private void showPleaseWait() {
+		waitRequests++;
+
 		if (waitStub != null)
 			waitStub.setVisibility(View.VISIBLE);
 		if (progressBar != null) {
@@ -312,6 +346,9 @@ public class StartServiceActivity extends Activity {
 	}
 
 	private void hidePleaseWait() {
+		waitRequests = (--waitRequests<0) ? 0 : waitRequests;
+		if (waitRequests != 0) return;
+
 		if (waitStub != null)
 			waitStub.setVisibility(View.GONE);
 		if (progressBar != null)
