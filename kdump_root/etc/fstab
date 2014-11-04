@@ -1,6 +1,0 @@
-#fs_spec	fs_file fs_type	fs_options  fs_dump fs_pass
-proc /proc proc rw,relatime 0 0
-sysfs /sys sysfs defaults 0 0
-tmpfs /dev tmpfs rw,nosuid,relatime,mode=755 0 0
-devpts /dev/pts devpts rw,relatime,mode=600 0 0
-
