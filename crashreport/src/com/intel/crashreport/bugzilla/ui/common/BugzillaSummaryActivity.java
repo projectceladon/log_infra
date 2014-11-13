@@ -128,6 +128,9 @@ public class BugzillaSummaryActivity extends Activity {
 					sArguments.add(line);
 				}
 
+				ApplicationPreferences appPrefs = new ApplicationPreferences(getApplicationContext());
+				appPrefs.setUploadStateItem(3);
+
 		        if(!app.isUserBuild()) {
 				String[] bplogTypesValues = getResources().getStringArray(R.array.reportBugzillaBplogTypeValues);
 				for (int j=0; j<bplogTypesValues.length;j++) {
@@ -183,7 +186,7 @@ public class BugzillaSummaryActivity extends Activity {
 				sArguments.add(line);
 				line = "TRACKER="+bugzillaStorage.getTracker()+"\n";
 				sArguments.add(line);
-				
+
 				if (bzMode) {
 					line = "TEST=true\n";
 					sArguments.add(line);
@@ -197,6 +200,7 @@ public class BugzillaSummaryActivity extends Activity {
 					//test  : to be updated with BZ error notification
 					nMgr.notifyBZFailure();
 				}
+				appPrefs.setUploadStateItem(-1);
 			}
 
 			return null;
