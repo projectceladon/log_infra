@@ -135,6 +135,8 @@
 
 
     <!-- Bugzilla part-->
+    <string name="reporting_state_item">-1</string>
+    <string name="warning_report_a_bug_start">Bug reporting is still progress. \nPlease retry after a few seconds. \n This check will automatically be bypassed after 3 tries, with possible impact on the previously reported issue.</string>
     <string name="title_activity_bugzilla_main">BugzillaMainActivity</string>
     <string name="bugzilla_title">Summary :</string>
     <string name="bugzilla_summary">Description :</string>

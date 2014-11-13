@@ -40,6 +40,7 @@ import android.widget.CompoundButton;
 import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -119,6 +120,16 @@ public class GeneralCrashReportHome extends Activity {
 				startActivity(intent);
 			break;
 			case (R.id.button_report_bugzilla):
+					ApplicationPreferences appPrefs = new ApplicationPreferences(getApplicationContext());
+					int state = appPrefs.getUploadStateItem();
+					if (state > 0) {
+						state--;
+						Toast.makeText(this.context, getString(R.string.warning_report_a_bug_start) +
+								" (" + Integer.toString(state) + " tries left)", Toast.LENGTH_SHORT).show();
+						appPrefs.setUploadStateItem(state);
+						return;
+					}
+
 					CrashReport app = (CrashReport)getApplicationContext();
 					if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
 						intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
