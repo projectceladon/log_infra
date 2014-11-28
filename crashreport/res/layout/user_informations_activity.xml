@@ -50,7 +50,6 @@
          android:paddingLeft="1dp"
          android:paddingRight="1dp" >
 
-         <requestFocus />
      </EditText>
 
      <TextView
