@@ -13,41 +13,36 @@ import com.google.gson.JsonSerializer;
 import com.intel.crashreport.logconfig.bean.LogSetting;
 
 @SuppressWarnings("rawtypes")
-class JsonLogSettingAdapter implements JsonSerializer, JsonDeserializer {
+class JsonLogSettingAdapter implements JsonDeserializer, JsonSerializer {
 
-    public JsonElement serialize(Object object, Type interfaceType, JsonSerializationContext context) {
-        final JsonObject wrapper = new JsonObject();
-        wrapper.addProperty("type", getNameFromClass((LogSetting) object));
-        wrapper.add("data", context.serialize(object));
-        return wrapper;
+    private JsonElement getElem(final JsonObject container, String name) {
+        final JsonElement element = container.get(name);
+        if (element == null)
+            throw new JsonParseException(name + "not found in container");
+        return element;
     }
 
-    public LogSetting deserialize(JsonElement elem, Type interfaceType,
-            JsonDeserializationContext context) throws JsonParseException {
-        final JsonObject wrapper = (JsonObject) elem;
-        final JsonElement typeName = get(wrapper, "type");
-        final JsonElement data = get(wrapper, "data");
-        final Type actualType = typeForName(typeName);
-        return context.deserialize(data, actualType);
-    }
-
-    private Type typeForName(final JsonElement typeElem) {
+    private Type classFromName(final JsonElement element) {
         try {
-            return Class.forName(getClassFromName(typeElem.getAsString()));
+            return Class.forName(getClassFromId(element.getAsString()));
         } catch (ClassNotFoundException e) {
             throw new JsonParseException(e);
         }
     }
 
-    private JsonElement get(final JsonObject wrapper, String memberName) {
-        final JsonElement elem = wrapper.get(memberName);
-        if (elem == null)
-            throw new JsonParseException("no '" + memberName
-                    + "' member found in what was expected to be an interface wrapper");
-        return elem;
+    private static String getClassFromId(String name) {
+        if (name.contentEquals("file"))
+            return new String("com.intel.crashreport.logconfig.bean.FSLogSetting");
+        else if (name.contentEquals("prop"))
+            return new String("com.intel.crashreport.logconfig.bean.PropertyLogSetting");
+        else if (name.contentEquals("event"))
+            return new String("com.intel.crashreport.logconfig.bean.EventTagLogSetting");
+        else if (name.contentEquals("intent"))
+            return new String("com.intel.crashreport.logconfig.bean.IntentLogSetting");
+        return null;
     }
 
-    private static String getNameFromClass(LogSetting c) {
+    private static String getIdFromClass(LogSetting c) {
         String fullName = c.getClass().getName();
         if (fullName.endsWith("FSLogSetting"))
             return new String("file");
@@ -60,15 +55,20 @@ class JsonLogSettingAdapter implements JsonSerializer, JsonDeserializer {
         return null;
     }
 
-    private static String getClassFromName(String name) {
-        if (name.contentEquals("file"))
-            return new String("com.intel.crashreport.logconfig.bean.FSLogSetting");
-        else if (name.contentEquals("prop"))
-            return new String("com.intel.crashreport.logconfig.bean.PropertyLogSetting");
-        else if (name.contentEquals("event"))
-            return new String("com.intel.crashreport.logconfig.bean.EventTagLogSetting");
-        else if (name.contentEquals("intent"))
-            return new String("com.intel.crashreport.logconfig.bean.IntentLogSetting");
-        return null;
+    public LogSetting deserialize(JsonElement element, Type t,
+                                  JsonDeserializationContext ctx) throws JsonParseException {
+        final JsonObject container = (JsonObject) element;
+        final JsonElement className = getElem(container, "type");
+        final JsonElement content = getElem(container, "data");
+        final Type myClass = classFromName(className);
+        return ctx.deserialize(content, myClass);
     }
+
+    public JsonElement serialize(Object obj, Type t, JsonSerializationContext ctx) {
+        final JsonObject container = new JsonObject();
+        container.addProperty("type", getIdFromClass((LogSetting) obj));
+        container.add("data", ctx.serialize(obj));
+        return container;
+    }
+
 }
