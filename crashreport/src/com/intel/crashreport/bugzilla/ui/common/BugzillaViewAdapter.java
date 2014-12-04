@@ -98,19 +98,19 @@ public class BugzillaViewAdapter extends BaseAdapter{
                 switch(bz.getState()) {
                     case BZ.UPLOADED_STATE :
                         holder.state.setText("Uploaded");
-                        holder.state.setTextColor(Color.GREEN);
+                        holder.state.setTextColor(mContext.getResources().getColor(R.color.green));
                         break;
                     case BZ.PENDING_STATE :
                         holder.state.setText("Logs not uploaded");
-                        holder.state.setTextColor(Color.YELLOW);
+                        holder.state.setTextColor(mContext.getResources().getColor(R.color.yellow_dark));
                         break;
                     case BZ.INVALID_STATE :
                         holder.state.setText("Invalid");
-                        holder.state.setTextColor(Color.MAGENTA);
+                        holder.state.setTextColor(mContext.getResources().getColor(R.color.magenta));
                         break;
                     default :
                         holder.state.setText("Not uploaded");
-                        holder.state.setTextColor(Color.RED);
+                        holder.state.setTextColor(mContext.getResources().getColor(R.color.red));
                         break;
                 }
 
