@@ -41,7 +41,7 @@ public class CrashInfo {
 	 *                - JSON output format for get_device and get_event commands
 	 *                - Status command updated to return Api version
 	 */
-	public static final String API_VERSION = "2";
+	public static final String API_VERSION = "3";
 
 	/**
 	 * Crashinfo command
@@ -106,6 +106,7 @@ public class CrashInfo {
 	private void showUsage() {
 		StringBuffer usage = new StringBuffer();
 		usage.append("usage: crashinfo getevent [--detail --full --last --filter-(id/time/type/name) --uploaded --json) ]\n");
+		usage.append("                 getctevent [--key <event id> --fileinfo <output folder>]\n");
 		usage.append("                 status [--uptime]\n");
 		usage.append("                 buildid [--spec]\n");
 		usage.append("                 clean [--filter-id --filter-time]\n");
@@ -136,6 +137,8 @@ public class CrashInfo {
 				mySubCommand = new BuildId();
 			}else if (sCurArg.equals("getevent")) {
 				mySubCommand = new GetEvent();
+			}else if (sCurArg.equals("getctevent")) {
+				mySubCommand = new GetCrashToolEvent();
 			}else if (sCurArg.equals("status")) {
 				mySubCommand = new Status();
 			}else if (sCurArg.equals("clean")) {

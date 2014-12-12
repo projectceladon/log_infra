@@ -61,8 +61,8 @@ public class GeneralEvent {
 	protected String ingredients = "";
 	protected String osBootMode = "";
 	protected String uniqueKeyComponent = "";
-	protected boolean uploaded = false;
-	protected boolean logUploaded = false;
+	protected int uploaded = 0;
+	protected int logUploaded = 0;
 	/*Define event validity : not valid if a mandatory attribute is missing */
 	private boolean valid = true;
 	protected Date date = null;
@@ -336,19 +336,27 @@ public class GeneralEvent {
 		mParsableEvent.setDataReady(dataReady);
 	}
 
-	public boolean isUploaded() {
+	public int getUploaded() {
 		return uploaded;
 	}
 
-	public void setUploaded(boolean uploaded) {
+	public boolean isUploaded() {
+		return (uploaded == 1);
+	}
+
+	public void setUploaded(int uploaded) {
 		this.uploaded = uploaded;
 	}
 
-	public boolean isLogUploaded() {
+	public int getLogUploaded() {
 		return logUploaded;
 	}
 
-	public void setLogUploaded(boolean logUploaded) {
+	public boolean isLogUploaded() {
+		return (logUploaded == 1);
+	}
+
+	public void setLogUploaded(int logUploaded) {
 		this.logUploaded = logUploaded;
 	}
 

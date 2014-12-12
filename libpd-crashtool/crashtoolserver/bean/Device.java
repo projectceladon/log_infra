@@ -15,6 +15,9 @@ import java.util.Date;
 public class Device implements Serializable {
 
 	private static final long serialVersionUID = -3175450272008389846L;
+	
+	// label identifier
+    public static final String HARDWARE_OTHER = "other";
 
 	private Long id;
 	private String deviceId;
@@ -25,6 +28,7 @@ public class Device implements Serializable {
 	@Deprecated
 	private String pid;
 	private String hwType;
+	private Long hwTypeId;
 	private String platform;
 	private String ssn;
 	private String team;
@@ -189,8 +193,16 @@ public class Device implements Serializable {
 	public void setHwType(String hwType) {
 		this.hwType = hwType;
 	}
+	
+	public Long getHwTypeId() {
+        return hwTypeId;
+    }
 
-	public String getTeam() {
+    public void setHwTypeId(Long hwTypeId) {
+        this.hwTypeId = hwTypeId;
+    }
+
+    public String getTeam() {
 		return team;
 	}
 
@@ -282,15 +294,20 @@ public class Device implements Serializable {
 		this.spid = spid;
 	}
 	
-	@Override
-	public String toString() {
-		return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei
-				+ ", pid=" + pid + ", hwType=" + hwType + ", platform="
-				+ platform + ", ssn=" + ssn + ", team=" + team + ", domain="
-				+ domain + ", owner=" + owner + ", location=" + location
-				+ ", tag=" + tag + ", lastUpdatedDate=" + lastUpdatedDate
-				+ ", gcmToken=" + gcmToken + ", spid=" + spid
-				+ ", tracmorDevice=" + tracmorDevice + "]";
+	public boolean isHardwareTypeDefined() {
+		return hwType != null && !hwType.equals(HARDWARE_OTHER);
 	}
+	
+	@Override
+    public String toString() {
+        return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei
+                + ", pid=" + pid + ", hwType=" + hwType + ", hwTypeId="
+                + hwTypeId + ", platform=" + platform + ", ssn=" + ssn
+                + ", team=" + team + ", domain=" + domain + ", owner=" + owner
+                + ", location=" + location + ", tag=" + tag
+                + ", lastUpdatedDate=" + lastUpdatedDate + ", gcmToken="
+                + gcmToken + ", spid=" + spid + ", tracmorDevice="
+                + tracmorDevice + "]";
+    }
 }
 

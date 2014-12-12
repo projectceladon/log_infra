@@ -102,6 +102,7 @@ public class Build extends GeneralBuild{
 		this.setFingerPrint(android.os.Build.FINGERPRINT);
 		this.setKernelVersion(getProperty("sys.kernel.version"));
 		this.setBuildUserHostname(getProperty("ro.build.user")+"@"+getProperty("ro.build.host"));
+		this.setOs(OS_VALUE);
 		checkAllowedProperties();
 		ApplicationPreferences prefs = new ApplicationPreferences(ctx);
 		prefs.setBuild(super.toString());

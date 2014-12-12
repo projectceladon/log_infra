@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-public class Build implements Serializable {
+public class Build implements Serializable, BuildKey {
 
 	private static final long serialVersionUID = 5286879029277574763L;
 
@@ -31,11 +31,17 @@ public class Build implements Serializable {
 	private String kernelVersion = DEFAULT_VALUE;
 	private String buildUserHostname = DEFAULT_VALUE;
 	private String modemVersion = DEFAULT_VALUE;
+	@Deprecated
 	private String ifwiVersion = DEFAULT_VALUE;
+	@Deprecated
 	private String iafwVersion  = DEFAULT_VALUE;
+	@Deprecated
 	private String scufwVersion  = DEFAULT_VALUE;
+	@Deprecated
 	private String punitVersion  = DEFAULT_VALUE;
+	@Deprecated
 	private String valhooksVersion  = DEFAULT_VALUE;
+	@Deprecated
 	private String variant;
 	private String type;
 	private String os;
@@ -49,7 +55,6 @@ public class Build implements Serializable {
 	private Modem modem;
 	private Modem modemExt;
 	
-	
 	@Deprecated
 	private String uniqueKeyGenerationMethod;
 	private List<String> uniqueKeyComponents;
@@ -60,6 +65,12 @@ public class Build implements Serializable {
 	private Mainline mainline;
 
 	private Date date;
+	
+	private String mainlineStr;
+	private String targetProduct;
+	private String targetProductScalability;
+	private String projectConfigName;
+	
 	
 	/**
 	 * full constructor used internally
@@ -92,7 +103,8 @@ public class Build implements Serializable {
 			String variant, String type, String os, Project project,
 			String ingredientsJson,
 			List<String> uniqueKeyComponents, Long mainlineId,
-			Mainline mainline, Date date, String uniqueKeyFull) {
+			Mainline mainline, Date date, String uniqueKeyFull, String organization,
+			String mainlineStr, String targetProduct, String targetProductScalability, String projectConfigName) {
 		
 		super();
 		this.id = id;
@@ -117,6 +129,11 @@ public class Build implements Serializable {
 		this.mainline = mainline;
 		this.date = date;
 		this.uniqueKeyFull = uniqueKeyFull;
+		this.organization = organization;
+		this.mainlineStr = mainlineStr;
+		this.targetProduct = targetProduct;
+		this.targetProductScalability = targetProductScalability;
+		this.projectConfigName = projectConfigName;
 	}
 
 
@@ -162,7 +179,8 @@ public class Build implements Serializable {
 				null, null, os, null,
 				null,
 				null, 0l,
-				null, null, null);
+				null, null, null, null,
+				null, null, null, null);
 	}
 	
 	/**
@@ -190,7 +208,8 @@ public class Build implements Serializable {
 				null, null, null, null,
 				null,
 				null, 0l,
-				null, null, null);
+				null, null, null, null,
+				null, null, null, null);
 	}
 	
 	/**
@@ -204,6 +223,7 @@ public class Build implements Serializable {
 	 * @param ingredientsJson
 	 * @param os
 	 */
+	@Deprecated
 	public Build(
 			List<String> uniquekeyComponents, String buildId, String fingerPrint,
 			String kernelVersion, String buildUserHostname, String ingredientsJson,
@@ -216,8 +236,65 @@ public class Build implements Serializable {
 					null, null, os, null,
 					ingredientsJson, 
 					uniquekeyComponents, 0l,
-					null, null, null);
+					null, null, null, null,
+					null, null, null, null);
 	}
+	
+	/**
+     * Used by MPTA above 3.5
+     * @param uniqueKey
+     * @param uniquekeyGenerationMethod
+     * @param buildId
+     * @param fingerPrint
+     * @param kernelVersion
+     * @param buildUserHostname
+     * @param ingredientsJson
+     * @param os
+     * @param organization
+     */
+    public Build(
+            List<String> uniquekeyComponents, String buildId, String fingerPrint,
+            String kernelVersion, String buildUserHostname, String ingredientsJson,
+            String os, String organization) {
+        
+         this(0l, buildId, null, fingerPrint,
+                    kernelVersion, buildUserHostname,
+                    null, null, null,
+                    null, null, null,
+                    null, null, os, null,
+                    ingredientsJson, 
+                    uniquekeyComponents, 0l,
+                    null, null, null, organization,
+                    null, null, null, null);
+    }
+    
+	/**
+     * Used by PD latest
+     * @param uniqueKey
+     * @param uniquekeyGenerationMethod
+     * @param buildId
+     * @param fingerPrint
+     * @param kernelVersion
+     * @param buildUserHostname
+     * @param ingredientsJson
+     * @param os
+     * @param organization
+     */
+    public Build(
+            List<String> uniquekeyComponents, String buildId, String fingerPrint,
+            String kernelVersion, String buildUserHostname, String ingredientsJson,
+            String os, String organization, String mainlineStr, String targetProduct, String targetProductScalability, String projectConfigName) {
+        
+         this(0l, buildId, null, fingerPrint,
+                    kernelVersion, buildUserHostname,
+                    null, null, null,
+                    null, null, null,
+                    null, null, os, null,
+                    ingredientsJson, 
+                    uniquekeyComponents, 0l,
+                    null, null, null, organization,
+                    mainlineStr, targetProduct, targetProductScalability, projectConfigName);
+    }
 	
 	/**
 	 * Used by CLA
@@ -234,12 +311,14 @@ public class Build implements Serializable {
 					null, null, os, null,
 					null, 
 					null, 0l,
-					null, null, null);
+					null, null, null, null,
+					null, null, null, null);
 	}
 
-	/**
-	 * @return the buildUserHostname
+	/* (non-Javadoc)
+	 * @see com.intel.crashtoolserver.bean.BuildKey#getBuildUserHostname()
 	 */
+	@Override
 	public String getBuildUserHostname() {
 		return buildUserHostname;
 	}
@@ -254,6 +333,7 @@ public class Build implements Serializable {
 	/**
 	 * @return the ifwiVersion
 	 */
+	@Deprecated
 	public String getIfwiVersion() {
 		return ifwiVersion;
 	}
@@ -261,13 +341,15 @@ public class Build implements Serializable {
 	/**
 	 * @param ifwiVersion the ifwiVersion to set
 	 */
+	@Deprecated
 	public void setIfwiVersion(String ifwiVersion) {
 		this.ifwiVersion = ifwiVersion;
 	}
 
-	/**
-	 * @return the fingerPrint
+	/* (non-Javadoc)
+	 * @see com.intel.crashtoolserver.bean.BuildKey#getFingerPrint()
 	 */
+	@Override
 	public String getFingerPrint() {
 		return fingerPrint;
 	}
@@ -279,9 +361,10 @@ public class Build implements Serializable {
 		this.fingerPrint = fingerPrint;
 	}
 
-	/**
-	 * @return the buildId
+	/* (non-Javadoc)
+	 * @see com.intel.crashtoolserver.bean.BuildKey#getBuildId()
 	 */
+	@Override
 	public String getBuildId() {
 		return buildId;
 	}
@@ -292,9 +375,10 @@ public class Build implements Serializable {
 	public void setBuildId(String buildId) {
 		this.buildId = buildId;
 	}
-	/**
-	 * @return the kernelVersion
+	/* (non-Javadoc)
+	 * @see com.intel.crashtoolserver.bean.BuildKey#getKernelVersion()
 	 */
+	@Override
 	public String getKernelVersion() {
 		return kernelVersion;
 	}
@@ -319,48 +403,56 @@ public class Build implements Serializable {
 	/**
 	 * @return the iafwVersion
 	 */
+	@Deprecated
 	public String getIafwVersion() {
 		return iafwVersion;
 	}
 	/**
 	 * @param iafwVersion the iafwVersion to set
 	 */
+	@Deprecated
 	public void setIafwVersion(String iafwVersion) {
 		this.iafwVersion = iafwVersion;
 	}
 	/**
 	 * @return the scufwVersion
 	 */
+	@Deprecated
 	public String getScufwVersion() {
 		return scufwVersion;
 	}
 	/**
 	 * @param scufwVersion the scufwVersion to set
 	 */
+	@Deprecated
 	public void setScufwVersion(String scufwVersion) {
 		this.scufwVersion = scufwVersion;
 	}
 	/**
 	 * @return the punitVersion
 	 */
+	@Deprecated
 	public String getPunitVersion() {
 		return punitVersion;
 	}
 	/**
 	 * @param punitVersion the punitVersion to set
 	 */
+	@Deprecated
 	public void setPunitVersion(String punitVersion) {
 		this.punitVersion = punitVersion;
 	}
 	/**
 	 * @return the valhooksVersion
 	 */
+	@Deprecated
 	public String getValhooksVersion() {
 		return valhooksVersion;
 	}
 	/**
 	 * @param valhooksVersion the valhooksVersion to set
 	 */
+	@Deprecated
 	public void setValhooksVersion(String valhooksVersion) {
 		this.valhooksVersion = valhooksVersion;
 	}
@@ -518,12 +610,21 @@ public class Build implements Serializable {
 		this.ingredients = ingredients;
 	}
 	
+
 	public List<String> getUniqueKeyComponents() {
 		return uniqueKeyComponents;
 	}
 
 	public void setUniqueKeyComponents(List<String> uniqueKeyComponents) {
 		this.uniqueKeyComponents = uniqueKeyComponents;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.intel.crashtoolserver.bean.BuildKey#getUniqueKeyComponents()
+	 */
+	@Override
+	public List<String> getUniqueKeyComponentsList() {
+		return getUniqueKeyComponents();
 	}
 	
 	public String getUniqueKeyComponentsString() {
@@ -570,26 +671,68 @@ public class Build implements Serializable {
     public void setModemExt(Modem modemExt) {
         this.modemExt = modemExt;
     }
-
-
+    
     @Override
-    public String toString() {
-        return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name
-                + ", fingerPrint=" + fingerPrint + ", kernelVersion="
-                + kernelVersion + ", buildUserHostname=" + buildUserHostname
-                + ", modemVersion=" + modemVersion + ", ifwiVersion="
-                + ifwiVersion + ", iafwVersion=" + iafwVersion
-                + ", scufwVersion=" + scufwVersion + ", punitVersion="
-                + punitVersion + ", valhooksVersion=" + valhooksVersion
-                + ", variant=" + variant + ", type=" + type + ", os=" + os
-                + ", project=" + project + ", ingredientsJson="
-                + ingredientsJson + ", ingredients=" + ingredients
-                + ", uniqueKey=" + uniqueKey + ", uniqueKeyFull="
-                + uniqueKeyFull + ", organization=" + organization
-                + ", uniqueKeyGenerationMethod=" + uniqueKeyGenerationMethod
-                + ", uniqueKeyComponents=" + uniqueKeyComponents
-                + ", mainlineId=" + mainlineId + ", mainline=" + mainline
-                + ", date=" + date + "]";
+    public IngredientsKey getIngredientsKey() {
+    	return ingredients;
     }
 
+	public String getMainlineStr() {
+		return mainlineStr;
+	}
+
+	public void setMainlineStr(String mainlineStr) {
+		this.mainlineStr = mainlineStr;
+	}
+
+	public String getTargetProduct() {
+		return targetProduct;
+	}
+
+	public void setTargetProduct(String targetProduct) {
+		this.targetProduct = targetProduct;
+	}
+
+	public String getTargetProductScalability() {
+		return targetProductScalability;
+	}
+
+	public void setTargetProductScalability(String targetProductScalability) {
+		this.targetProductScalability = targetProductScalability;
+	}
+
+	public String getProjectConfigName() {
+		return projectConfigName;
+	}
+
+	public void setProjectConfigName(String projectConfigName) {
+		this.projectConfigName = projectConfigName;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name
+				+ ", fingerPrint=" + fingerPrint + ", kernelVersion="
+				+ kernelVersion + ", buildUserHostname=" + buildUserHostname
+				+ ", modemVersion=" + modemVersion + ", ifwiVersion="
+				+ ifwiVersion + ", iafwVersion=" + iafwVersion
+				+ ", scufwVersion=" + scufwVersion + ", punitVersion="
+				+ punitVersion + ", valhooksVersion=" + valhooksVersion
+				+ ", variant=" + variant + ", type=" + type + ", os=" + os
+				+ ", project=" + project + ", ingredientsJson="
+				+ ingredientsJson + ", ingredients=" + ingredients
+				+ ", uniqueKey=" + uniqueKey + ", uniqueKeyFull="
+				+ uniqueKeyFull + ", organization=" + organization + ", modem="
+				+ modem + ", modemExt=" + modemExt
+				+ ", uniqueKeyGenerationMethod=" + uniqueKeyGenerationMethod
+				+ ", uniqueKeyComponents=" + uniqueKeyComponents
+				+ ", mainlineId=" + mainlineId + ", mainline=" + mainline
+				+ ", date=" + date + ", mainlineStr=" + mainlineStr
+				+ ", targetProduct=" + targetProduct
+				+ ", targetProductScalability=" + targetProductScalability
+				+ ", projectConfigName=" + projectConfigName + "]";
+	}
 }

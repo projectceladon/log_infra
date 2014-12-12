@@ -43,6 +43,7 @@ public class GeneralBuild {
 	public static final String VARIANT_PROPERTY_NAME = "ro.product.name";
 	public static final String PRODUCT_PROPERTY_NAME = "ro.build.product";
 	public static final String SWCONF_PROPERTY_NAME  = "ro.swconf.info";
+	public static final String OS_VALUE              = "Android";
 
 	private static String VARIANT = null;
 
@@ -50,26 +51,36 @@ public class GeneralBuild {
 	protected final BuildProperty fingerPrint = new BuildProperty("fingerPrint");
 	protected final BuildProperty kernelVersion = new BuildProperty("kernelVersion");
 	protected final BuildProperty buildUserHostname = new BuildProperty("buildUserHostname");
+	protected final BuildProperty os = new BuildProperty("os");
 
 	private final List<BuildProperty> properties = new ArrayList<GeneralBuild.BuildProperty>();
 
-	public GeneralBuild(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname) {
+	public GeneralBuild(String buildId, String fingerPrint, String kernelVersion,
+			String buildUserHostname, String os) {
 		super();
 		this.setBuildId(buildId);
 		this.setFingerPrint(fingerPrint);
 		this.setKernelVersion(kernelVersion);
 		this.setBuildUserHostname(buildUserHostname);
+		this.setOs(os);
+	}
+
+	public GeneralBuild(String buildId, String fingerPrint, String kernelVersion,
+			String buildUserHostname) {
+		this(buildId, fingerPrint, kernelVersion, buildUserHostname, OS_VALUE);
 	}
 
 	public GeneralBuild(String longBuildId) {
 		if (longBuildId != null) {
 			if (longBuildId.contains(",")) {
 				String buildFields[] = longBuildId.split(",");
-				if ((buildFields != null) && (buildFields.length == FIELD_NUMBER)) {
+				if ((buildFields != null) && (buildFields.length >= FIELD_NUMBER)) {
 					this.setBuildId(buildFields[0]);
 					this.setFingerPrint(buildFields[1]);
 					this.setKernelVersion(buildFields[2]);
 					this.setBuildUserHostname(buildFields[3]);
+					if (buildFields.length > FIELD_NUMBER)
+						this.setOs(buildFields[4]);
 				}
 			}
 		}
@@ -90,7 +101,8 @@ public class GeneralBuild {
 				"",
 				"",
 				"",
-				"");
+				"",
+				this.getOs());
 	}
 
 	protected static String getProperty(String name) {
@@ -125,7 +137,8 @@ public class GeneralBuild {
 	@Override
 	public String toString() {
 		return this.getBuildId() + "," + this.getFingerPrint() + "," +
-				this.getKernelVersion() + "," + this.getBuildUserHostname();
+				this.getKernelVersion() + "," + this.getBuildUserHostname() + "," +
+				this.getOs();
 	}
 
 	public String getBuildId() {
@@ -158,6 +171,14 @@ public class GeneralBuild {
 
 	public void setBuildUserHostname(String buildUserHostname) {
 		this.buildUserHostname.setValue(buildUserHostname);
+	}
+
+	public String getOs() {
+		return os.getValue();
+	}
+
+	public void setOs(String os) {
+		this.os.setValue(os);
 	}
 
 	/**

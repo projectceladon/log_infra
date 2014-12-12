@@ -322,12 +322,15 @@ public class Event extends GeneralEvent{
 		}else{
 			aDevice = new Device(getDeviceId(), getImei(), sSSN, sTokenGCM, sSPID);
 		}
-		event = new com.intel.crashtoolserver.bean.Event(this.getEventId(), this.getEventName(), this.getType(),
-				this.getData0(), this.getData1(), this.getData2(), this.getData3(), this.getData4(), this.getData5(),
-				this.date, lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
-                                aDevice, getiRowID(),this.pdStatus );
-		event.setBootMode(this.osBootMode);
-		event.setModem(new com.intel.crashtoolserver.bean.Modem(this.getModemVersionUsed()));
+		event = new com.intel.crashtoolserver.bean.Event(this.getEventId(),
+				this.getEventName(), this.getType(), this.getData0(),
+				this.getData1(), this.getData2(), this.getData3(),
+				this.getData4(), this.getData5(), this.date,
+				lUptime, null /* logfile */, sBuild,
+                                com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
+                                aDevice, getiRowID(), this.pdStatus, this.osBootMode,
+				new com.intel.crashtoolserver.bean.Modem(this.getModemVersionUsed()),
+				getCrashDir(), this.getUploaded(), this.getLogUploaded());
 		return event;
 	}
 

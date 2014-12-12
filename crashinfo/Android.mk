@@ -7,7 +7,7 @@ LOCAL_MODULE := crashinfo
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := intel
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
-LOCAL_STATIC_JAVA_LIBRARIES := com.google.gson crashparsing
+LOCAL_STATIC_JAVA_LIBRARIES := com.google.gson crashparsing libpd-crashtool
 LOCAL_CERTIFICATE := platform
 LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_JAVA_LIBRARY)

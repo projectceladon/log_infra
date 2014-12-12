@@ -20,6 +20,8 @@
 package com.intel.commands.crashinfo;
 
 import java.io.Closeable;
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,6 +33,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
+import android.os.SystemProperties;
 
 import java.text.ParseException;
 import java.util.TimeZone;
@@ -40,8 +44,16 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.List;
+
+import com.intel.crashtoolserver.bean.Event;
+import com.intel.crashtoolserver.bean.FileInfo;
+import com.intel.crashtoolserver.bean.Build;
+import com.intel.crashtoolserver.bean.Device;
+import java.lang.reflect.Modifier;
 
 public class DBManager implements Closeable{
+	private static final int FIELD_NUMBER = 4;
 	private static final int COEF_S_TO_MS = 1000;
 	private final static SimpleDateFormat PARSE_DF = new SimpleDateFormat("yyyy-MM-dd/HH:mm:ss");
 	private final static String SEPARATOR = " | ";
@@ -53,6 +65,7 @@ public class DBManager implements Closeable{
 	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
 	private static final String DATABASE_BZ_TABLE = "bz_events";
 	private static final String DATABASE_DEVICE_TABLE = "device";
+	private static final String OS = "Android";
 	public static final String KEY_CRITICAL = "critical";
 
 	public static final String KEY_ROWID = "_id";
@@ -92,6 +105,7 @@ public class DBManager implements Closeable{
 	public static final String KEY_SPID = "spid";
 	public static final String KEY_UNIQUEKEY_COMPONENT = "uniqueKeyComponents";
 	public static final String KEY_MODEM_VERSION_USED = "modemVersionUsed";
+	private static final String PATTERN_ISO8601_Z = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_EVENTS_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
 			+" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
@@ -248,6 +262,178 @@ public class DBManager implements Closeable{
 		}
 	}
 
+	protected static Date convertDateForJava(int date) {
+		long dateLong = date;
+		dateLong = dateLong * COEF_S_TO_MS;
+		return new Date(dateLong);
+	}
+
+	protected static String getProperty(String name) {
+		String property = "";
+		try {
+			property = SystemProperties.get(name, "");
+		} catch (IllegalArgumentException e) {}
+
+		return property;
+	}
+
+	static private List<String> parseUniqueKey(String aKey) {
+		List<String> resultList = new ArrayList<String>();
+		String filteredKey = aKey.replaceAll("\\[", "" );
+		filteredKey = filteredKey.replaceAll("\\]", "" );
+		String[] tmpList = filteredKey.split(", ");
+		for (String retval:tmpList) {
+			resultList.add(retval);
+		}
+		return resultList;
+	}
+
+	private Event fillEventFromCursor(Cursor cursor) {
+		String bootMode = cursor.getString(cursor.getColumnIndex(KEY_OS_BOOT_MODE));
+		String buildID = cursor.getString(cursor.getColumnIndex(KEY_BUILDID));
+		String eventId = cursor.getString(cursor.getColumnIndex(KEY_ID));
+		String eventName = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+		String type = cursor.getString(cursor.getColumnIndex(KEY_TYPE));
+		String data0 = cursor.getString(cursor.getColumnIndex(KEY_DATA0));
+		String data1 = cursor.getString(cursor.getColumnIndex(KEY_DATA1));
+		String data2 = cursor.getString(cursor.getColumnIndex(KEY_DATA2));
+		String data3 = cursor.getString(cursor.getColumnIndex(KEY_DATA3));
+		String data4 = cursor.getString(cursor.getColumnIndex(KEY_DATA4));
+		String data5 = cursor.getString(cursor.getColumnIndex(KEY_DATA5));
+		String crashdir = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
+		String ingredients = cursor.getString(cursor.getColumnIndex(KEY_INGREDIENTS));
+		String uniqueKeyComponents = cursor.getString(cursor.getColumnIndex(KEY_UNIQUEKEY_COMPONENT));
+		Date date = convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
+		String pdStatus = cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS));
+		long lUptime = convertUptime(cursor.getString(cursor.getColumnIndex(KEY_UPTIME)));
+		int rowID = cursor.getInt(cursor.getColumnIndex(KEY_ROWID));
+		String modemVersionUsed = cursor.getString(cursor.getColumnIndex(KEY_MODEM_VERSION_USED));
+		int uploaded = (cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD)));
+		int logsuploaded = (cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG)));
+		String variant = cursor.getString(cursor.getColumnIndex(KEY_VARIANT));
+
+		Build sBuild = new Build();
+		if (buildID != null && buildID.contains(",")) {
+			String buildFields[] = buildID.split(",");
+			if ((buildFields != null) && (buildFields.length >= FIELD_NUMBER)) {
+				sBuild.setBuildId(buildFields[0]);
+				sBuild.setFingerPrint(buildFields[1]);
+				sBuild.setKernelVersion(buildFields[2]);
+				sBuild.setBuildUserHostname(buildFields[3]);
+				if (buildFields.length > FIELD_NUMBER)
+					sBuild.setOs(buildFields[4]);
+			}
+		}
+		else
+			sBuild.setBuildId(buildID);
+
+		sBuild.setVariant(variant);
+
+		sBuild.setIngredientsJson(ingredients);
+		sBuild.setUniqueKeyComponents(parseUniqueKey(uniqueKeyComponents));
+		sBuild.setOrganization(com.intel.parsing.ParsableEvent.ORGANIZATION_MCG);
+
+		Cursor mCursor;
+		mCursor = fetchDeviceInfo();
+
+		String imei = mCursor.getString(mCursor.getColumnIndex(KEY_IMEI));
+		String deviceId = mCursor.getString(mCursor.getColumnIndex(KEY_DEVICEID));
+		String sSSN = mCursor.getString(mCursor.getColumnIndex(KEY_SSN));
+		String sSPID = mCursor.getString(mCursor.getColumnIndex(KEY_SPID));
+		String sTokenGCM = mCursor.getString(mCursor.getColumnIndex(KEY_GCM_TOKEN));
+                mCursor.close();
+
+		if (sSSN.equals("")) sSSN = null;
+		Device aDevice = new Device(deviceId, imei, sSSN, sTokenGCM, sSPID);
+
+		Event event = new Event(eventId, eventName, type, data0, data1, data2, data3,
+					data4, data5, date, lUptime, null /*logfile*/, sBuild,
+					Event.Origin.CLOTA, aDevice, rowID, pdStatus, bootMode,
+					new com.intel.crashtoolserver.bean.Modem(modemVersionUsed),
+					crashdir, uploaded, logsuploaded);
+		return event;
+	}
+
+	private Cursor fetchEventFromWhereQuery(String whereQuery) throws SQLException {
+		Cursor mCursor;
+
+		mCursor = myDB.query(true, DATABASE_EVENTS_TABLE, new String[] {KEY_ROWID,KEY_ID, KEY_NAME, KEY_TYPE,
+				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
+				KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
+				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME,
+				KEY_CRASHDIR, KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_PDSTATUS},
+				whereQuery, null, null, null, null, null);
+		if (mCursor != null) {
+			mCursor.moveToFirst();
+		}
+		return mCursor;
+	}
+
+	public List<Event> getEvent(String sId)
+	{
+		List<Event> curEvent = null;
+		try {
+			Cursor cursor = fetchEventFromWhereQuery(KEY_ID + " like '%" + sId +"%'");
+
+			if (cursor == null)
+				return curEvent;
+
+			curEvent = new ArrayList<Event>();
+			while (!cursor.isAfterLast()) {
+				curEvent.add(fillEventFromCursor(cursor));
+				cursor.moveToNext();
+			}
+			cursor.close();
+		} catch (SQLException e) {
+			System.err.println( "count SQLException");
+		}
+
+		return curEvent;
+	}
+
+	public List<FileInfo> getFileInfo(String sId, File cacheDir)
+	{
+		List<FileInfo> fileInfo = null;
+		Event curEvent = null;
+		try {
+			Cursor cursor = fetchEventFromWhereQuery(KEY_ID + " like '%" + sId +"%'");
+
+			if (cursor == null)
+				return fileInfo;
+
+			fileInfo = new ArrayList<FileInfo>();
+			while (!cursor.isAfterLast()) {
+				File crashLogs = null;
+				String eventId = cursor.getString(cursor.getColumnIndex(KEY_ID));
+				String crashdir = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
+				int iDate = cursor.getInt(cursor.getColumnIndex(KEY_DATE));
+				cursor.moveToNext();
+
+				try { crashLogs = FileOperations.getCrashLogsFile(cacheDir, crashdir, eventId); }
+				catch (IOException e) {}
+
+				if (crashLogs != null) {
+					Date date = convertDateForJava(iDate);
+					SimpleDateFormat gmt = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");
+					gmt.setTimeZone(TimeZone.getTimeZone("GMT"));
+					String dayDate = gmt.format(date).toString();
+
+					fileInfo.add(new FileInfo(
+							crashLogs.getName(),
+							crashLogs.getAbsolutePath(),
+							crashLogs.length(),
+							dayDate,
+							eventId));
+				}
+			}
+			cursor.close();
+
+		} catch (SQLException e) {
+			System.err.println( "count SQLException");
+		}
+
+		return fileInfo;
+	}
 
 	public void getEvent(EventLevel aLevel, ArrayList<OptionData> mySubOptions) throws Exception
 	{
@@ -672,6 +858,8 @@ public class DBManager implements Closeable{
 		try {
 			/* Json convert and print */
 			GsonBuilder gsonBuilder = new GsonBuilder();
+			gsonBuilder.setExclusionStrategies(new EventDateExclusionStrategy());
+			gsonBuilder.excludeFieldsWithModifiers(Modifier.STATIC);
 			Gson gson = gsonBuilder.create();
 			System.out.println(gson.toJson(src));
 			return 0;

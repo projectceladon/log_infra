@@ -476,10 +476,10 @@ public class GeneralEventDB {
 		event.setImei(cursor.getString(cursor.getColumnIndex(KEY_IMEI)));
 		event.setUptime(cursor.getString(cursor.getColumnIndex(KEY_UPTIME)));
 		event.setCrashDir(cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR)));
-		event.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))==1);
+		event.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD)));
 		event.setValid(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))!=-1);
 		event.setDataReady(cursor.getInt(cursor.getColumnIndex(KEY_DATA_READY))==1);
-		event.setLogUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG))==1);
+		event.setLogUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG)));
 		event.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
 		event.setPdStatus(cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS)));
 		event.setLogsSize(cursor.getInt(cursor.getColumnIndex(KEY_LOGS_SIZE)));
