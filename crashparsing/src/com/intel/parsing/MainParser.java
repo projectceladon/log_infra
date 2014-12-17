@@ -186,7 +186,7 @@ public class MainParser{
 				}
 
 				if (sTag.equals("MPANIC")) {
-					if (!modemcrash(sOutput)){
+					if (!genericCrash(sOutput)){
 						closeOutput();
 						return -1;
 					}
@@ -315,37 +315,6 @@ public class MainParser{
 
 				if (first != last) {
 					bResult &= appendToCrashfile("DATA0=" + sCoreDumpFile.substring(first+1, last));
-				}
-			}
-		}else{
-			//using default parsing method
-			return genericCrash(aFolder);
-		}
-		return bResult;
-	}
-
-	private boolean modemcrash(String aFolder){
-		boolean bResult = true;
-
-		String sData0="";
-		String sModemFile = fileGrepSearch(".*mpanic.*", aFolder);
-		if (sModemFile != ""){
-			BufferedReaderClean bufModemFile = null;
-			try{
-				bufModemFile = new BufferedReaderClean(new FileReader(sModemFile));
-				String sCurLine;
-				while ((sCurLine = bufModemFile.readLine()) != null) {
-					sData0 += sCurLine;
-				}
-				bResult &= appendToCrashfile("DATA0=" + sData0);
-			}
-			catch(Exception e) {
-				APLog.e( "modemcrash : " + e);
-				e.printStackTrace();
-				return false;
-			} finally {
-				if (bufModemFile != null) {
-					bufModemFile.close();
 				}
 			}
 		}else{
