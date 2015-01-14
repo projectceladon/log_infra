@@ -26,95 +26,58 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.os.SystemProperties;
+
 import com.intel.crashreport.Log;
 
 public class FileIngredientBuilder implements IngredientBuilder {
-	public static final String DEFAULT_SEPARATOR = "=";
+	private static final String UNDEFINED_CONFIG = "UNDEFINED";
+	private static final String DEFAULT_MODEM_SECTION = "MODEM";
 
 	private final String filePath;
-	private final String separator;
 	private Map<String, String> ingredients = null;
 
 	public FileIngredientBuilder(String filePath) {
 		this.filePath = filePath;
-		this.separator = DEFAULT_SEPARATOR;
-	}
-
-	public FileIngredientBuilder(String filePath, String separator) {
-		this.filePath = filePath;
-		if(separator == null) {
-			this.separator = DEFAULT_SEPARATOR;
-		} else {
-			this.separator = separator;
-		}
 	}
 
 	@Override
 	public Map<String, String> getIngredients() {
 		if(this.ingredients == null) {
 			this.ingredients = new HashMap<String, String>();
-			this.parseFile();
+			IniFileParser ifp = new IniFileParser(this.filePath);
+
+			loadSection(ifp.findSection("GETPROP"));
+			loadSection(ifp.findSection("LIBDMI"));
+
+			IniFileParser.Section modemSection = ifp.findSection(getModemSectionName());
+			if (modemSection != null) {
+				loadSection(modemSection);
+			}
+			else {
+				loadSection(ifp.findSection(DEFAULT_MODEM_SECTION));
+			}
 		}
 		return this.ingredients;
 	}
 
-	private void parseFile() {
-		if(this.filePath == null) {
-			return;
-		}
-		File file = new File(this.filePath);
-		FileReader fileReader = null;
-		BufferedReader reader = null;
-		try {
-			if(!file.exists() || !file.canRead()) {
-				Log.e("No ingredients file found.");
-				return;
-			}
-			fileReader = new FileReader(file);
-			reader = new BufferedReader(fileReader);
-			try {
-				String line = null;
-				do {
-					line = reader.readLine();
-					this.processLine(line, this.ingredients);
-				} while(line != null);
-			} catch(IOException io) {
-				Log.e("IO error occurred while reading file: " + this.filePath);
-			}
-		} catch(FileNotFoundException notFound) {
-			Log.e("File could not be found: " + this.filePath);
-		} finally {
-			try {
-				if (reader != null) {
-					reader.close();
-				}
-				else if (fileReader != null){
-					fileReader.close();
-				}
-			} catch(IOException io) {
-				Log.e("IO error occurred while closing file: " + this.filePath);
-			}
-		}
+	private String getModemSectionName() {
+		String modemConfig = SystemProperties.get("persist.radio.multisim.config", UNDEFINED_CONFIG);
+
+		if (modemConfig.equals(UNDEFINED_CONFIG))
+			return DEFAULT_MODEM_SECTION;
+
+		return DEFAULT_MODEM_SECTION + "." + modemConfig.toUpperCase();
 	}
 
-	public String getSeparator() {
-		return this.separator;
-	}
+	private void loadSection(IniFileParser.Section section) {
+		if (section == null)
+			return;
 
-	private void processLine(String line, Map<String, String> container) {
-		if(line == null || container == null) {
-			return;
-		}
-		//ignore # comment line
-		if (line.startsWith("#")) {
-			return;
-		}
-		Log.d("Processing line:" + line);
-		String separator = this.getSeparator();
-		String[] tokens = line.split(separator,2);
-		if(tokens.length > 1) {
-			//first part should be filtered
-			container.put(filterNameForCrashtool(tokens[0]), tokens[1]);
+		int index = section.getEntriesCount();
+		while(index-- > 0) {
+			IniFileParser.KVPair entry = section.getEntry(index);
+			ingredients.put(filterNameForCrashtool(entry.getKey()), entry.getValue());
 		}
 	}
 
