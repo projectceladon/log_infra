@@ -434,7 +434,7 @@ public class MainParser{
 		boolean bResult = true;
 		String sData0 = "";
 
-		String sIPanicFile = fileGrepSearch(".*ipanic_console.*", aFolder);
+		String sIPanicFile = fileGrepSearch(".*panic_console.*", aFolder);
 		if (sIPanicFile == ""){
 			//2nd chance : use last_kmsg pattern
 			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
