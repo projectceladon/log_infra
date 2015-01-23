@@ -123,16 +123,6 @@
     <string name="settings_gcm_activation_summary">Activate the GCM Messaging system</string>
     <string name="settings_gcm_activation_value_default">true</string>
 
-    <string name="settings_bugzilla_tracker_title">Tracker</string>
-    <string name="settings_bugzilla_tracker_summary">Tracker used for bug reporting</string>
-    <string name="settings_bugzilla_tracker_key">settings_bugzilla_tracker</string>
-    <string name="settings_bugzilla_tracker_value_default">MCG</string>
-
-    <string name="settings_override_tracker_key">settings_override_tracker</string>
-    <string name="settings_override_tracker_title">Override default tracker</string>
-    <string name="settings_override_tracker_summary">Manual tracker selection overrides automatic tracker selection</string>
-    <string name="settings_override_tracker_value_default">false</string>
-
 
     <!-- Bugzilla part-->
     <string name="reporting_state_item">-1</string>
