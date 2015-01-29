@@ -24,12 +24,15 @@ import java.io.FileNotFoundException;
 import java.util.Date;
 import java.util.Scanner;
 
+import android.content.Context;
+
 import com.intel.crashreport.GeneralBuild;
 import com.intel.crashreport.GeneralEvent;
 import com.intel.crashreport.GenericParseFile;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashreport.specific.ingredients.IngredientManager;
+import com.intel.crashreport.specific.ingredients.DeviceManager;
 import com.intel.crashtoolserver.bean.Device;
 import com.intel.phonedoctor.Constants;
 import com.intel.phonedoctor.utils.FileOps;
@@ -141,7 +144,13 @@ public class Event extends GeneralEvent{
 					getType().equals("TOMBSTONE")) {
 				if(!isUserBuild)
 					this.setDataReady(false);
-			}else if (crashFile.getDataReady() == 0){
+			} else if (getType().contains("MPANIC") && (!isUserBuild) &&
+					!DeviceManager.INSTANCE.hasModemExtension(false) &&
+					DeviceManager.INSTANCE.isModemUnknown()) {
+				this.setDataReady(false);
+				DeviceManager.INSTANCE.addEventMPanicNotReady(this.getEventId());
+				this.setData3("not_ready");
+			} else if (crashFile.getDataReady() == 0){
 				if(!isUserBuild)
 					this.setDataReady(false);
 			}
@@ -218,6 +227,7 @@ public class Event extends GeneralEvent{
 			setData4(aParseFile.getValueByName("DATA4"));
 			setData5(aParseFile.getValueByName("DATA5"));
 			setDataReady(!aParseFile.getValueByName("DATAREADY").equals("0"));
+			setModemVersionUsed(aParseFile.getValueByName("MODEMVERSIONUSED"));
 		}
 	}
 
@@ -299,6 +309,7 @@ public class Event extends GeneralEvent{
 		// do not use "uniquekey" of crashtool object, it is for internal use only
 		//uniqueKeyComponents should be used
 		sBuild.setUniqueKeyComponents(IngredientManager.INSTANCE.parseUniqueKey(this.uniqueKeyComponent));
+		sBuild.setOrganization(com.intel.parsing.ParsableEvent.ORGANIZATION_MCG);
 		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
 		//GCM not fully implemented
@@ -316,6 +327,7 @@ public class Event extends GeneralEvent{
 				this.date, lUptime, null /*logfile*/,sBuild,com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
                                 aDevice, getiRowID(),this.pdStatus );
 		event.setBootMode(this.osBootMode);
+		event.setModem(new com.intel.crashtoolserver.bean.Modem(this.getModemVersionUsed()));
 		return event;
 	}
 

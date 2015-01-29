@@ -18,4 +18,5 @@
 
 <resources>
     <color name="red">#ffed1c24</color>
+    <color name="magenta">#ffdc127a</color>
 </resources>

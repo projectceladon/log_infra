@@ -446,4 +446,12 @@ public class GeneralEvent {
 	public void setUniqueKeyComponent(String uniqueKeyComponent) {
 		this.uniqueKeyComponent = uniqueKeyComponent;
 	}
+	public String getModemVersionUsed() {
+		return mParsableEvent.getModemVersionUsed();
+	}
+
+	public void setModemVersionUsed(String modemVersionUsed) {
+		mParsableEvent.setModemVersionUsed(modemVersionUsed);
+	}
+
 }

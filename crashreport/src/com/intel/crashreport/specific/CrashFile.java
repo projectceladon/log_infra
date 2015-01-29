@@ -53,6 +53,7 @@ public class CrashFile {
 	private String board = "";
 	private int dataReady = 1;
 	private String operator="";
+	private String modemVersionUsed="";
 
 	private File crashFile;
 
@@ -129,6 +130,7 @@ public class CrashFile {
 			record.write("DATA3="+data3+"\n");
 			record.write("DATA4="+data4+"\n");
 			record.write("DATA5="+data5+"\n");
+			record.write("MODEMVERSIONUSED="+modemVersionUsed+"\n");
 			record.write("_END\n");
 			record.close();
 		}
@@ -221,6 +223,8 @@ public class CrashFile {
 						data4 = value;
 					else if (name.equals("DATA5"))
 						data5 = value;
+					else if (name.equals("MODEMVERSIONUSED"))
+						modemVersionUsed = value;
 					else if (name.equals("PARSER")){
 						//ignoring this value but this field is expected
 					} else
@@ -382,5 +386,13 @@ public class CrashFile {
 
 	public void setOperator(String operator) {
 		this.operator = operator;
+	}
+
+	public String getModemVersionUsed() {
+		return modemVersionUsed;
+	}
+
+	public void setModemVersionUsed(String modemVersionUsed) {
+		this.modemVersionUsed = modemVersionUsed;
 	}
 }

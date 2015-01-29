@@ -48,6 +48,15 @@ public class ApplicationPreferences {
 		this.sharedPrefsEditor = appSharedPrefs.edit();
 	}
 
+	public int getReportingState() {
+		return appPrivatePrefs.getInt(mCtx.getString(R.string.reporting_state_item), -1);
+	}
+
+	public void setReportingState(int state) {
+		privatePrefsEditor.putInt(mCtx.getString(R.string.reporting_state_item), state);
+		privatePrefsEditor.commit();
+	}
+
 	public int getUploadStateItem() {
 		return appPrivatePrefs.getInt(mCtx.getString(R.string.upload_state_item_index), -1);
 	}

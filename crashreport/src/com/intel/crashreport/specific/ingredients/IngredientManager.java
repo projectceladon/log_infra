@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 public enum IngredientManager {
 	INSTANCE;
 
@@ -84,6 +83,20 @@ public enum IngredientManager {
 
 	public Map<String, String> getLastIngredients() {
 		return lastIngredients;
+	}
+
+	public String getIngredient(String key) {
+		if (lastIngredients == null)
+			return null;
+		return lastIngredients.get(key);
+	}
+
+	public void refreshIngredients() {
+		//need to update lastingredients
+		IngredientBuilder builder = new FileIngredientBuilder(com.intel.crashreport.specific.Build.INGREDIENTS_FILE_PATH);
+		// Retrieve the ingredients
+		Map<String, String> ingredients = builder.getIngredients();
+		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
 	}
 
 }

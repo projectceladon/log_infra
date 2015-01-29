@@ -18,7 +18,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.text.Editable;
 import android.text.method.TextKeyListener;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -80,10 +83,31 @@ public class BugzillaMainActivity extends Activity {
 		}
 
 		setTitle(getString(R.string.activity_name));
-		EditText summary = (EditText)findViewById(R.id.bz_summary_text);
+		final EditText summary = (EditText)findViewById(R.id.bz_summary_text);
 		TextKeyListener tListener = TextKeyListener.getInstance(false, TextKeyListener.Capitalize.SENTENCES);
 		if(summary != null) {
+			final Toast toast = Toast.makeText(BugzillaMainActivity.this,
+						"Description should be up to 255 characters in length.", Toast.LENGTH_SHORT);
+			toast.show();
 			summary.setKeyListener(tListener);
+			summary.addTextChangedListener(new TextWatcher(){
+				public void afterTextChanged(Editable s) {}
+				public void beforeTextChanged(CharSequence s, int start, int count, int after){}
+				public void onTextChanged(CharSequence s, int start, int before, int count){
+					int length = summary.getText().length();
+					int lineEndings = length - summary.getText().toString().replace("\n", "").length();
+
+					if (length + lineEndings > 255) {
+						toast.show();
+						lineEndings = (lineEndings > 255) ? 255 : lineEndings;
+						summary.setText(summary.getText().toString().substring(0,255-lineEndings));
+						summary.setSelection(summary.length());
+					}
+					else if (length==255) {
+						toast.show();
+					}
+				}
+			});
 		}
 
 		CheckBox pictureBox = (CheckBox)findViewById(R.id.bz_screenshot_box);
