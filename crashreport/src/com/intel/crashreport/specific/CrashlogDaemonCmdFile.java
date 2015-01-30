@@ -111,7 +111,12 @@ public class CrashlogDaemonCmdFile {
 			write.close();
 			//wait for 10 seconds and check if file has been consumed
 			try{
-				Thread.sleep(10000);
+				int retries = 20;
+				while (retries-- != 0) {
+					Thread.sleep(500);
+					if (!mCommandFile.exists())
+						return true;
+				}
 			}
 			catch(InterruptedException e){
 				Log.d("CreateCrashlogdCmdFile : Interrupted Exception");

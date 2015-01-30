@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="BugzillaFont">
+        <item name="android:textSize">21sp</item>
+    </style>
+    <style name="BugzillaFontPadTop5">
+        <item name="android:textSize">21sp</item>
+        <item name="android:paddingTop">5dip</item>
+    </style>
+    <style name="BugzillaFontPadTop15">
+        <item name="android:textSize">21sp</item>
+        <item name="android:paddingTop">15dip</item>
+    </style>
+</resources>

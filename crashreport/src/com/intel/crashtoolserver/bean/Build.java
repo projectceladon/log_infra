@@ -17,6 +17,11 @@ public class Build implements Serializable {
 	public final static String LATEST_BUILD_TYPE = "latest";
 	public final static String DEFAULT_BUILD_VARIANT = "unknown";
 	
+	public final static String ORGANIZATION_NDG = "ndg";
+	public final static String ORGANIZATION_MCG = "mcg";
+	public final static String DEFAULT_ORGANIZATION = ORGANIZATION_MCG;
+    
+	
 	public final static List<String> LEGACY_UNIQUE_KEY_COMPONENTS = Arrays.asList("modem", "ifwi", "iafw", "scu", "punit", "valhooks");
 
 	private Long id;
@@ -38,6 +43,12 @@ public class Build implements Serializable {
 	private String ingredientsJson;
 	private Ingredients ingredients;
 	private String uniqueKey;
+	private String uniqueKeyFull;
+	private String organization;
+	
+	private Modem modem;
+	private Modem modemExt;
+	
 	
 	@Deprecated
 	private String uniqueKeyGenerationMethod;
@@ -81,7 +92,7 @@ public class Build implements Serializable {
 			String variant, String type, String os, Project project,
 			String ingredientsJson,
 			List<String> uniqueKeyComponents, Long mainlineId,
-			Mainline mainline, Date date) {
+			Mainline mainline, Date date, String uniqueKeyFull) {
 		
 		super();
 		this.id = id;
@@ -105,6 +116,7 @@ public class Build implements Serializable {
 		this.mainlineId = mainlineId;
 		this.mainline = mainline;
 		this.date = date;
+		this.uniqueKeyFull = uniqueKeyFull;
 	}
 
 
@@ -150,7 +162,7 @@ public class Build implements Serializable {
 				null, null, os, null,
 				null,
 				null, 0l,
-				null, null);
+				null, null, null);
 	}
 	
 	/**
@@ -178,7 +190,7 @@ public class Build implements Serializable {
 				null, null, null, null,
 				null,
 				null, 0l,
-				null, null);
+				null, null, null);
 	}
 	
 	/**
@@ -204,7 +216,7 @@ public class Build implements Serializable {
 					null, null, os, null,
 					ingredientsJson, 
 					uniquekeyComponents, 0l,
-					null, null);
+					null, null, null);
 	}
 	
 	/**
@@ -222,7 +234,7 @@ public class Build implements Serializable {
 					null, null, os, null,
 					null, 
 					null, 0l,
-					null, null);
+					null, null, null);
 	}
 
 	/**
@@ -523,22 +535,61 @@ public class Build implements Serializable {
 		}		
 	}
 
+	public String getUniqueKeyFull() {
+        return uniqueKeyFull;
+    }
 
-	@Override
-	public String toString() {
-		return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name
-				+ ", fingerPrint=" + fingerPrint + ", kernelVersion="
-				+ kernelVersion + ", buildUserHostname=" + buildUserHostname
-				+ ", modemVersion=" + modemVersion + ", ifwiVersion="
-				+ ifwiVersion + ", iafwVersion=" + iafwVersion
-				+ ", scufwVersion=" + scufwVersion + ", punitVersion="
-				+ punitVersion + ", valhooksVersion=" + valhooksVersion
-				+ ", variant=" + variant + ", type=" + type + ", os=" + os
-				+ ", project=" + project + ", ingredientsJson="
-				+ ingredientsJson + ", ingredients=" + ingredients
-				+ ", uniqueKey=" + uniqueKey + ", uniqueKeyGenerationMethod="
-				+ uniqueKeyGenerationMethod + ", uniqueKeyComponents="
-				+ uniqueKeyComponents + ", mainlineId=" + mainlineId
-				+ ", mainline=" + mainline + ", date=" + date + "]";
-	}
+
+    public void setUniqueKeyFull(String uniqueKeyFull) {
+        this.uniqueKeyFull = uniqueKeyFull;
+    }
+    
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
+    }
+    
+    public Modem getModem() {
+        return modem;
+    }
+
+
+    public void setModem(Modem modem) {
+        this.modem = modem;
+    }
+
+
+    public Modem getModemExt() {
+        return modemExt;
+    }
+
+
+    public void setModemExt(Modem modemExt) {
+        this.modemExt = modemExt;
+    }
+
+
+    @Override
+    public String toString() {
+        return "Build [id=" + id + ", buildId=" + buildId + ", name=" + name
+                + ", fingerPrint=" + fingerPrint + ", kernelVersion="
+                + kernelVersion + ", buildUserHostname=" + buildUserHostname
+                + ", modemVersion=" + modemVersion + ", ifwiVersion="
+                + ifwiVersion + ", iafwVersion=" + iafwVersion
+                + ", scufwVersion=" + scufwVersion + ", punitVersion="
+                + punitVersion + ", valhooksVersion=" + valhooksVersion
+                + ", variant=" + variant + ", type=" + type + ", os=" + os
+                + ", project=" + project + ", ingredientsJson="
+                + ingredientsJson + ", ingredients=" + ingredients
+                + ", uniqueKey=" + uniqueKey + ", uniqueKeyFull="
+                + uniqueKeyFull + ", organization=" + organization
+                + ", uniqueKeyGenerationMethod=" + uniqueKeyGenerationMethod
+                + ", uniqueKeyComponents=" + uniqueKeyComponents
+                + ", mainlineId=" + mainlineId + ", mainline=" + mainline
+                + ", date=" + date + "]";
+    }
+
 }

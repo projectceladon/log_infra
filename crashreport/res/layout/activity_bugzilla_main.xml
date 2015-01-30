@@ -21,6 +21,7 @@
 
     <TextView
         android:id="@+id/bz_title_view"
+        style="@style/BugzillaFont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -48,11 +49,11 @@
 
     <TextView
         android:id="@+id/bz_type_view"
+        style="@style/BugzillaFontPadTop15"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:paddingTop="15dip"
         android:text="@string/bugzilla_type" />
 
     <Spinner
@@ -64,6 +65,7 @@
 
     <TextView
         android:id="@+id/bz_severity_view"
+        style="@style/BugzillaFont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -79,6 +81,7 @@
 
     <TextView
         android:id="@+id/bz_component_view"
+        style="@style/BugzillaFont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -95,11 +98,11 @@
 
     <TextView
         android:id="@+id/bz_summary_view"
+        style="@style/BugzillaFontPadTop15"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
-        android:paddingTop="15dip"
         android:text="@string/bugzilla_summary" />
 
     <EditText
@@ -110,6 +113,7 @@
         android:layout_alignParentRight="true"
         android:autoText="false"
         android:gravity="left|top"
+        android:maxLength="255"
         android:inputType="textMultiLine|textCapSentences"
         android:paddingLeft="1dp"
         android:paddingRight="1dp"
@@ -117,6 +121,7 @@
 
     <TextView
         android:id="@+id/bz_time_view"
+        style="@style/BugzillaFont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
@@ -136,7 +141,7 @@
 
     <TextView
         android:id="@+id/bz_textViewSelect"
-        android:paddingTop="15dip"
+        style="@style/BugzillaFontPadTop15"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/select_upload" />
@@ -190,12 +195,12 @@
 
     <Button
         android:id="@+id/bz_apply_button"
+        style="@style/BugzillaFont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentRight="true"
         android:layout_gravity="end|center"
-        android:padding="0dip"
         android:text="@string/bugzilla_apply" />
 
 </LinearLayout>
