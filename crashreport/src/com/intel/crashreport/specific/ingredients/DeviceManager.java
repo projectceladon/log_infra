@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -70,10 +71,6 @@ public enum DeviceManager {
 		lMpanicNotReady.add(aEventid);
 	}
 
-	public void removeEventMPanicNotReady(String aEventid) {
-		lMpanicNotReady.remove(aEventid);
-	}
-
 	public void checkMpanicNotReady(EventDB db) {
 		if (lMpanicNotReady.isEmpty()) {
 			return;
@@ -84,7 +81,9 @@ public enum DeviceManager {
 			return;
 		}
 		//we have modem events to update!
-		for (String sId : lMpanicNotReady){
+		Iterator<String> it = lMpanicNotReady.iterator();
+		while (it.hasNext()){
+			String sId = it.next();
 			Cursor cursor = db.getEventFromId(sId);
 			Event curEvent = db.fillEventFromCursor(cursor);
 			cursor.close();
@@ -111,7 +110,7 @@ public enum DeviceManager {
 			}
 			//finally, we tag the event as ready
 			db.updateEventDataReady(sId);
-			removeEventMPanicNotReady(sId);
+			it.remove();
 		}
 	}
 }
