@@ -99,4 +99,13 @@ public enum IngredientManager {
 		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
 	}
 
+        public boolean IsIngredientEnabled() {
+                // test conf file exits
+                File confFile = new File(ING_CONF_FILE_PATH);
+                if (confFile.exists()){
+                        //no file => consider ingredient disabled
+                        return true;
+                }
+                return false;
+        }
 }

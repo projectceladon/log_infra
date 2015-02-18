@@ -47,6 +47,10 @@ public enum DeviceManager {
 	}
 
 	public boolean isModemUnknown(){
+		if (!IngredientManager.INSTANCE.IsIngredientEnabled()) {
+			return false;
+		}
+
 		String sModem = getModemValue();
 
 		if (sModem == null || sModem.isEmpty() ||
