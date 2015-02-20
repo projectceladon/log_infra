@@ -292,9 +292,9 @@ public class EventDB extends GeneralEventDB{
 	 * the input signature. 0 if no rain matching the input signature exist.
 	 * @throws SQLException
 	 */
-	public int getLastCrashDate(CrashSignature signature) throws SQLException {
+	public int getLastCrashDate(RainSignature signature) throws SQLException {
 
-		Cursor mCursor = getRainEventInfo(new RainSignature(signature));
+		Cursor mCursor = getRainEventInfo(signature);
 		if (mCursor != null) {
 			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
 			mCursor.close();
@@ -307,7 +307,6 @@ public class EventDB extends GeneralEventDB{
 		Cursor mCursor;
 		int lastEvent;
 		Date date = event.getDate();
-		CrashSignature signature = new CrashSignature(event);
 		RainSignature rainSignature = new RainSignature(event);
 
 		if(-1 != lastRain)
@@ -317,7 +316,7 @@ public class EventDB extends GeneralEventDB{
 			lastEvent -= RAIN_DURATION_MAX;
 		}
 		//Fetch from events database the events with matching signature and with a matching date value
-		String whereQuery = signature.querySignature() + " AND " + KEY_DATE + " > " + lastEvent;
+		String whereQuery = rainSignature.querySignature() + " AND " + KEY_DATE + " > " + lastEvent;
 
 		int count = -1;
 

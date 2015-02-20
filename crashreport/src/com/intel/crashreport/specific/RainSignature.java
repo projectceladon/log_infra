@@ -29,7 +29,7 @@ public class RainSignature {
 	private String data0;
 	private String data1;
 	private String data2;
-	private String data3;
+	private String data3 = "";
 	/** Constants used to build database queries*/
 	public static final String KEY_TYPE = "type";
 	public static final String KEY_DATA0 = "data0";
@@ -46,13 +46,10 @@ public class RainSignature {
 		type = event.getType();
 		data0 = event.getData0();
 		data1 = event.getData1();
+		data2 = event.getData2();
+
 		if (type.equals("TOMBSTONE")) {
-			data2 = "";
 			data3 = event.getData3();
-		}
-		else {
-			data2 = event.getData2();
-			data3 = "";
 		}
 	}
 
@@ -61,19 +58,13 @@ public class RainSignature {
 	 *
 	 * @param crashSignature from which the signature is computed
 	 */
-	public RainSignature(CrashSignature crashSignature){
+	public RainSignature(RainSignature crashSignature){
 
 		type = crashSignature.getType();
 		data0 = crashSignature.getData0();
 		data1 = crashSignature.getData1();
-		if (type.equals("TOMBSTONE")) {
-			data2 = "";
-			data3 = crashSignature.getData3();
-		}
-		else {
-			data2 = crashSignature.getData2();
-			data3 = "";
-		}
+		data2 = crashSignature.getData2();
+		data3 = crashSignature.getData3();
 	}
 
 	/**
@@ -89,13 +80,10 @@ public class RainSignature {
 		this.type = type;
 		this.data0 = data0;
 		this.data1 = data1;
+		this.data2 = data2;
+
 		if (this.type.equals("TOMBSTONE")) {
-			this.data2 = "";
 			this.data3 = data3;
-		}
-		else {
-			this.data2 = data2;
-			this.data3 = "";
 		}
 	}
 
@@ -135,19 +123,16 @@ public class RainSignature {
 	 * @return the string containing the query
 	 */
 	public String querySignature() {
-		String query;
+		String query = KEY_TYPE + " = '" + replaceEscapeSequence(type) + "' and " +
+			KEY_DATA0 + " = '" + replaceEscapeSequence(data0) + "' and " +
+			KEY_DATA1 + " = '" + replaceEscapeSequence(data1) + "' and " +
+			KEY_DATA2 + " = '" + replaceEscapeSequence(data2) + "'";
+
 		if (this.type.equals("TOMBSTONE")) {
-			query = KEY_TYPE + " = '" + replaceEscapeSequence(type) + "' and " +
-					KEY_DATA0 + " = '" + replaceEscapeSequence(data0) + "' and " +
-					KEY_DATA1 + " = '" + replaceEscapeSequence(data1) + "' and " +
-					KEY_DATA3 + " = '" + replaceEscapeSequence(data3) + "'";
+			query += " and " +
+				KEY_DATA3 + " = '" + replaceEscapeSequence(data3) + "'";
 		}
-		else {
-			query = KEY_TYPE + " = '" + replaceEscapeSequence(type) + "' and " +
-				KEY_DATA0 + " = '" + replaceEscapeSequence(data0) + "' and " +
-				KEY_DATA1 + " = '" + replaceEscapeSequence(data1) + "' and " +
-				KEY_DATA2 + " = '" + replaceEscapeSequence(data2) + "'";
-		}
+
 		return query;
 	}
 
@@ -158,7 +143,7 @@ public class RainSignature {
 	 */
 	public boolean isEmpty() {
 		if (this.type.equals("TOMBSTONE"))
-			return (data0.equals("") || data1.equals("") || data3.equals(""));
+			return (data0.equals("") || data1.equals("") || (data2.equals("") && data3.equals("")));
 		else
 			return (data0.equals("") || data1.equals("") || data2.equals(""));
 	}
