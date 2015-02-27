@@ -434,7 +434,7 @@ public class MainParser{
 		boolean bResult = true;
 		String sData0 = "";
 
-		String sIPanicFile = fileGrepSearch(".*ipanic_console.*", aFolder);
+		String sIPanicFile = fileGrepSearch(".*panic_console.*", aFolder);
 		if (sIPanicFile == ""){
 			//2nd chance : use last_kmsg pattern
 			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
@@ -1219,7 +1219,7 @@ public class MainParser{
 	private boolean anr(String aFolder){
 		boolean bResult = true;
 
-		String sSysANRGZ = fileGrepSearch(".*_app_anr.*txt.gz", aFolder);
+		String sSysANRGZ = fileGrepSearch(".*_(app|server)_anr.*txt.gz", aFolder);
 		BufferedReaderClean sysANRReader = null;
 		FileInputStream f = null;
 		try {
@@ -1229,7 +1229,7 @@ public class MainParser{
 				sysANRReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractAnrData(sysANRReader);
 			}else{
-				String sSysANR = fileGrepSearch(".*_app_anr.*txt" , aFolder);
+				String sSysANR = fileGrepSearch(".*_(app|server)_anr.*txt" , aFolder);
 				if (sSysANR != ""){
 					sysANRReader = new BufferedReaderClean(new FileReader(sSysANR));
 					bResult = extractAnrData(sysANRReader);

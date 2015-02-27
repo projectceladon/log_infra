@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import android.content.Context;
+import java.io.File;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.GeneralBuild;
@@ -76,6 +77,13 @@ public class Build extends GeneralBuild{
 	 * @return the ingredients as string.
 	 */
 	public static final String getIngredients() {
+		//First check existence of file
+		File ingFile = new File(INGREDIENTS_FILE_PATH);
+		if (!ingFile.exists()){
+			// should return an explicit null value in case
+			// ingredients are not activated
+			return "";
+		}
 		// Create an ingredient builder
 		IngredientBuilder builder = new FileIngredientBuilder(INGREDIENTS_FILE_PATH);
 		// Retrieve the ingredients
