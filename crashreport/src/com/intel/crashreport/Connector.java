@@ -24,6 +24,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.ObjectOutputStream;
@@ -31,9 +32,22 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -97,7 +111,12 @@ public class Connector {
 		ApplicationPreferences prefs = new ApplicationPreferences(mCtx);
 		String serverAddress = prefs.getServerAddress();
 		int serverPort = prefs.getServerPort();
-		mSocket = new Socket();
+
+		if (mSocket != null)
+			closeServerConnection();
+
+		mSocket = getSecureSocket();
+
 		if (mSocket == null)
 			throw new IOException("mSocket == null");
 		mSocket.setSoTimeout(SERVER_CONNECTION_TIME_OUT);
@@ -122,8 +141,14 @@ public class Connector {
 			mObjectOutputStream.writeObject("END");
 			mObjectOutputStream.flush();
 		}
-		if (mSocket != null)
-			mSocket.close();
+		if (mSocket != null) {
+			try {
+				mSocket.close();
+			}
+			finally {
+				mSocket = null;
+			}
+		}
 		Log.d("Connector: Disconnected from server");
 	}
 
@@ -174,6 +199,47 @@ public class Connector {
 			serviceHandler.sendEmptyMessage(ServiceMsg.wifiConnectedInternal);
 		else
 			serviceHandler.sendEmptyMessage(ServiceMsg.wifiNotConnected);
+	}
+
+	private Socket getSecureSocket() {
+		InputStream caInput = mCtx.getResources().openRawResource(R.raw.crashtool);
+
+		try {
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			Certificate ca = cf.generateCertificate(caInput);
+
+			String keyStoreType = KeyStore.getDefaultType();
+			KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+			keyStore.load(null, null);
+			keyStore.setCertificateEntry("ca", ca);
+
+			String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(tmfAlgorithm);
+			tmf.init(keyStore);
+
+			SSLContext context = SSLContext.getInstance("TLS");
+			context.init(null, tmf.getTrustManagers(), null);
+
+			return context.getSocketFactory().createSocket();
+		} catch (KeyStoreException e) {
+			Log.d("Connector: Could not set up socket - " + e);
+		} catch (NoSuchAlgorithmException e) {
+			Log.d("Connector: Could not set up socket - " + e);
+		} catch (CertificateException e) {
+			Log.d("Connector: Could not set up socket - " + e);
+		} catch (KeyManagementException e) {
+			Log.d("Connector: Could not set up socket - " + e);
+		} catch (IOException e) {
+			Log.d("Connector: Could not set up socket - " + e);
+		} finally {
+			try {
+				caInput.close();
+			} catch (IOException e) {
+				Log.d("Connector: Could not close input stream - " + e);
+			}
+		}
+
+		return null;
 	}
 
 	public void connect() {

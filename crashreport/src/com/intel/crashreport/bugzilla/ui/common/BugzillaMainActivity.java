@@ -44,22 +44,13 @@ public class BugzillaMainActivity extends Activity {
 	private Context context = this;
 	private static String TYPE_DEFAULT_VALUE = "medium";
 	public static String ENHANCEMENT_SEVERITY = "enhancement";
-	//the following values should be aligned with bugTrackerMenuValues from "res"
-	public static String IRDA_VALUE = "IRDA";
-	public static String STARPEAK_VALUE = "STARPEAK";
-	public static String MCG_VALUE = "MCG";
-	public static String ICONIC_VALUE = "ICONIC";
-
 	private AplogSelectionDisplay aplogSelection;
-	private boolean bShowSeverity = true;
-	private boolean bShowComponent = true;
 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		app = (CrashReport) getApplicationContext();
-		updateUIForTracker();
 		aplogSelection = new AplogSelectionDisplay(this);
 		setContentView(R.layout.activity_bugzilla_main);
 		galleryAdapter = new ScreenshotAdapter(getApplicationContext());
@@ -188,17 +179,8 @@ public class BugzillaMainActivity extends Activity {
 							getApplicationContext(),
 							R.array.reportBugzillaSeverityValues,
 							R.layout.spinner_bugzilla_item));
-			if (!bShowSeverity){
-				bz_severity.setVisibility(View.GONE);
-			}
 		}
-		if (!bShowSeverity){
-			//should hide text also
-			View aView = findViewById(R.id.bz_severity_view);
-			if (aView != null) {
-				aView.setVisibility(View.GONE);
-			}
-		}
+
 		aplogSelection.radioButtonIsAvailable();
 
 		Spinner bz_types = (Spinner) findViewById(R.id.bz_type_list);
@@ -217,17 +199,6 @@ public class BugzillaMainActivity extends Activity {
 							getApplicationContext(),
 							R.array.reportBugzillaComponentText,
 							R.layout.spinner_bugzilla_item));
-			if (!bShowComponent){
-				bz_components.setVisibility(View.GONE);
-			}
-		}
-
-		if (!bShowComponent){
-			//should hide text also
-			View aView = findViewById(R.id.bz_component_view);
-			if (aView != null) {
-				aView.setVisibility(View.GONE);
-			}
 		}
 
 		Spinner bz_time = (Spinner) findViewById(R.id.bz_time_list);
@@ -491,7 +462,6 @@ public class BugzillaMainActivity extends Activity {
 			bugzillaStorage.setBugLogLevel(iNbLog);
 			if(pictureBox.isChecked())
 				bugzillaStorage.setBugScreenshotPath(galleryAdapter.getScreenshotsSelected());
-			bugzillaStorage.setTracker(getBugTrackerValue());
 		}
 	}
 
@@ -522,19 +492,4 @@ public class BugzillaMainActivity extends Activity {
 			bz_time_label.setVisibility(View.GONE);
 		}
 	}
-
-	public String  getBugTrackerValue() {
-		//Improvement : manage it by a bug tracker object
-		return new ApplicationPreferences(app).getBZTracker();
-	}
-
-	private void updateUIForTracker() {
-		String sTracker = getBugTrackerValue();
-		if (sTracker.equals(STARPEAK_VALUE)){
-			bShowSeverity = false;
-			bShowComponent = false;
-		}
-	}
-
-
 }

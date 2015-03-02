@@ -19,7 +19,6 @@ public class BugStorage {
 	private static String BUGZILLA_SCREENSHOT_PATH = "bugzillaScreenshotPath";
 	private static String BUGZILLA_LOG_LEVEL= "bugzillaLogLevel";
 	private static String BUGZILLA_TIME= "bugzillaTime";
-	private static String BUGZILLA_TRACKER= "bugtracker";
 	private Context mCtx;
 	private SharedPreferences mPrivatePrefs;
 	private Editor mPrivatePrefsEditor;
@@ -76,15 +75,6 @@ public class BugStorage {
 	public void setBugTime(String time) {
 		mPrivatePrefsEditor.putString(BUGZILLA_TIME, time);
 		mPrivatePrefsEditor.commit();
-	}
-
-	public void setTracker(String tracker) {
-		mPrivatePrefsEditor.putString(BUGZILLA_TRACKER, tracker);
-		mPrivatePrefsEditor.commit();
-	}
-
-	public String getTracker() {
-		return mPrivatePrefs.getString(BUGZILLA_TRACKER, "");
 	}
 
 	public String getSummary() {

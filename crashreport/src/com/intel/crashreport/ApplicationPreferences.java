@@ -395,44 +395,4 @@ public class ApplicationPreferences {
 				filter);
 		this.sharedPrefsEditor.commit();
 	}
-
-
-	public boolean getOverrideTracker() {
-		boolean bResult = this.appSharedPrefs.getBoolean(
-				mCtx.getString(R.string.settings_override_tracker_key),
-				false);
-		return bResult;
-	}
-
-	public String getBZTracker() {
-		//no default value, in order to manage properly empty value
-		String filterAsString = this.appSharedPrefs.getString(
-				mCtx.getString(R.string.settings_bugzilla_tracker_key),
-				"");
-		return filterAsString;
-	}
-
-	public void setBZTracker(String tracker) {
-		this.sharedPrefsEditor.putString(
-				mCtx.getString(R.string.settings_bugzilla_tracker_key),
-				tracker);
-		this.sharedPrefsEditor.commit();
-	}
-
-	public void setDefaultTracker() {
-		//set the default tracker depending on the product
-		String sProduct = GeneralBuild.getProperty(GeneralBuild.PRODUCT_PROPERTY_NAME);
-		String sIncremental = GeneralBuild.getProperty("ro.build.version.incremental").toUpperCase();
-		//for known values we use a dedicated tracker
-		if (sProduct.equalsIgnoreCase("STARPEAK")) {
-			setBZTracker(BugzillaMainActivity.STARPEAK_VALUE);
-		} else if (sProduct.equalsIgnoreCase("COHO") || sIncremental.contains("COHO")) {
-			setBZTracker(BugzillaMainActivity.IRDA_VALUE);
-		} else if (sProduct.equalsIgnoreCase("ICONIC")) {
-			setBZTracker(BugzillaMainActivity.ICONIC_VALUE);
-		} else if (!sProduct.isEmpty()) {
-			//set default value to MCG
-			setBZTracker(BugzillaMainActivity.MCG_VALUE);
-		}
-	}
 }
