@@ -7,7 +7,7 @@ LOCAL_MODULE_OWNER := intel
 
 LOCAL_REQUIRED_MODULES :=  \
     CrashReport \
-    crashinfo \
+    crashinfo-cmd \
     com.google.gson \
     com.google.gson.xml \
     logconfig \
