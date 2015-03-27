@@ -83,16 +83,15 @@ public class BlackLister {
 	public boolean blackListCrash(Event event) {
 		boolean result = false;
 		try{
-			CrashSignature signature = new CrashSignature(event);
 			RainSignature rainSignature = new RainSignature(event);
-			if(!signature.isEmpty()) {
+			if(!rainSignature.isEmpty()) {
 				if(db.isRainEventExist(rainSignature)){
 					if(db.isInTheCurrentRain(event)){
 						db.updateRainEvent(rainSignature, event.getDate());
 						result = true;
 					}
 					else
-						result = db.checkNewRain(event, db.getLastCrashDate(signature));
+						result = db.checkNewRain(event, db.getLastCrashDate(rainSignature));
 				}
 				else
 					result = db.checkNewRain(event);
