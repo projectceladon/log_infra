@@ -340,6 +340,7 @@ public class GeneralEventDB {
 
 		CrashReport app = (CrashReport)mCtx;
 		updateDeviceInformation(deviceId,imei,GeneralEvent.getSSN(),app.getTokenGCM(),Event.getSpid());
+		removeOldCrashdir(crashDir);
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
 	}
 
@@ -621,6 +622,16 @@ public class GeneralEventDB {
 			args.put(KEY_LOGS_SIZE, 0);
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+	}
+
+	public boolean removeOldCrashdir(String crashDir) {
+		ContentValues args = new ContentValues();
+
+		args.put(KEY_CRASHDIR, "");
+		if(crashDir.isEmpty())
+			return false;
+
+		return mDb.update(DATABASE_TABLE, args, KEY_CRASHDIR + "='" + crashDir + "'", null) > 0;
 	}
 
 	public boolean updateEventField(String eventId, String field, String data) {

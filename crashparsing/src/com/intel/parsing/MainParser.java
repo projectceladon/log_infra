@@ -1003,7 +1003,7 @@ public class MainParser{
 			String sStackLibs = "";
 			String sFaultAddress = "";
 			String sFaultAddrSeparator = "fault addr ";
-			String sHexCharactersPattern = "[0-9A-Fa-f]+";
+			String sHexCharactersPattern = "(0x)?[0-9A-Fa-f]+";
 			boolean bProcessFound = false;
 			boolean bSignalFound = false;
 			boolean bSubSignalFound = false;
@@ -1040,19 +1040,18 @@ public class MainParser{
 							bSubSignalFound = true;
 						}
 						if (bSubSignalFound){
-							//Search SubSignal and FaultAddress patterns only in the 4 lines following the line
+							//Search SubSignal and FaultAddress patterns only in the 5 lines following the line
 							//containing SignalStack pattern
-							if (iSubSignalCount < 4){
+							if (iSubSignalCount < 5){
 								sTmp = simpleGrepAwk(patternSubSignal, sCurLine, "\\(", 1);
 								sTmp = simpleAwk(sTmp,"\\)", 0);
 								if (sTmp != null){
 									sSignal = sTmp;
 									bSignalFound = true;
 									//signal has been found : it is assumed the fault address is always in the same line
-									//and shall necessary be an 8 hex characters long string
+									//and will be the last entry on the line being a hex value either f1e7a375 or 0x3180
 									sTmp = simpleAwk(sCurLine,sFaultAddrSeparator, 1);
 									if (sTmp != null){
-										sTmp = sTmp.substring(0, 8);
 										if (sTmp.matches(sHexCharactersPattern)){
 											sFaultAddress = sTmp;
 										}
