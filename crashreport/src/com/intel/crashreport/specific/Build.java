@@ -25,7 +25,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import android.content.Context;
 import java.io.File;
 
@@ -38,6 +37,8 @@ import com.intel.crashreport.specific.ingredients.IngredientManager;
 import com.intel.crashreport.propconfig.PropertyConfigLoader;
 import com.intel.crashreport.propconfig.bean.BuildAllowedValues;
 import com.intel.phonedoctor.Constants;
+
+import org.json.JSONObject;
 
 public class Build extends GeneralBuild{
 
@@ -72,7 +73,7 @@ public class Build extends GeneralBuild{
 	 * @return the ingredients as string.
 	 */
 	public static final String getIngredients() {
-		Map<String, String> ingredients;
+		JSONObject ingredients = null;
 		//First check existence of file
 		File ingFile = new File(INGREDIENTS_FILE_PATH);
 		if (!ingFile.exists()) {
@@ -87,51 +88,14 @@ public class Build extends GeneralBuild{
 		}
 		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
 
-		// Create a StringBuilder for the final JSON string
-		StringBuilder ingredientsBuffer = new StringBuilder("{");
-		// Process the ingredients
-		appendIngredients(ingredients, ingredientsBuffer);
-		// Remove the last coma if any
-		int lastComa = ingredientsBuffer.lastIndexOf(",");
-		if (lastComa != -1) {
-			ingredientsBuffer.deleteCharAt(lastComa);
-		}
-		// End the JSON string property
-		ingredientsBuffer.append("}");
 		// Return the JSON string
-		return ingredientsBuffer.toString();
+		return ingredients.toString();
 	}
 
 	//for PDLite easy integration
 	public static final String getUniqueKeyComponent() {
 		return IngredientManager.INSTANCE.getUniqueKeyList().toString();
 	}
-
-	/**
-	 * Appends the given ingredients to the given buffer.
-	 * @param ingredients the ingredients to write to buffer
-	 * @param buffer the buffer in which to write.
-	 */
-	private static void appendIngredients(Map<String, String> ingredients, StringBuilder buffer) {
-		/* Do nothing if parameters are not valid. */
-		if(ingredients == null || buffer == null) {
-			return;
-		}
-		// Iterate on the ingredients
-		for(String key : ingredients.keySet()) {
-			// Add each ingredient value to the JSON string
-			String value = ingredients.get(key);
-			if(value == null) {
-				value = "";
-			}
-			buffer.append("\"");
-			buffer.append(key);
-			buffer.append("\":\"");
-			buffer.append(value);
-			buffer.append("\",");
-		}
-	}
-
 
 	public void fillBuildWithSystem() {
 		this.setBuildId(android.os.Build.VERSION.INCREMENTAL);

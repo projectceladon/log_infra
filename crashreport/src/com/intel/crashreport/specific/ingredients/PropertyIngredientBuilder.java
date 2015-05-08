@@ -23,14 +23,15 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.json.JSONObject;
+import org.json.JSONException;
 
 public class PropertyIngredientBuilder implements IngredientBuilder {
 
 	private final List<String> properties = new ArrayList<String>();
-	private Map<String, String> ingredients = null;
+	private JSONObject ingredients = null;
 
 	public PropertyIngredientBuilder(String propertyName) {
 		this.properties.add(propertyName);
@@ -41,12 +42,14 @@ public class PropertyIngredientBuilder implements IngredientBuilder {
 	}
 
 	@Override
-	public Map<String, String> getIngredients() {
+	public JSONObject getIngredients() {
 		if(this.ingredients == null) {
-			this.ingredients = new HashMap<String, String>();
+			this.ingredients = new JSONObject();
 			for(String propertyName : this.properties) {
 				String value = SystemProperties.get(propertyName, "");
-				this.ingredients.put(propertyName, value);
+				try {
+					this.ingredients.put(propertyName, value);
+				} catch (JSONException e) { }
 			}
 		}
 		return this.ingredients;

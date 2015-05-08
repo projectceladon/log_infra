@@ -18,10 +18,10 @@
  */
 package com.intel.crashreport.specific.ingredients;
 
-import java.util.Map;
+import org.json.JSONObject;
 
 public interface IngredientBuilder {
 
-	public Map<String, String> getIngredients();
+	public JSONObject getIngredients();
 }
 

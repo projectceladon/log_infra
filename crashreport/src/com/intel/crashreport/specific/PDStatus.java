@@ -24,7 +24,6 @@ import java.io.FilenameFilter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Map;
 
 import android.content.Context;
 import android.database.SQLException;
@@ -37,6 +36,9 @@ import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.Log;
 import com.intel.phonedoctor.Constants;
 import com.intel.crashreport.specific.ingredients.IngredientManager;
+
+import org.json.JSONObject;
+import org.json.JSONException;
 
 /**
   *
@@ -502,12 +504,18 @@ public enum PDStatus {
 				}
 
 				List<String> sKeyList = IngredientManager.INSTANCE.parseUniqueKey(event.getUniqueKeyComponent());
-				Map <String,String> ing = IngredientManager.INSTANCE.getLastIngredients();
+				JSONObject ing = IngredientManager.INSTANCE.getLastIngredients();
 				if (ing == null) {
 					return "x";
 				}
 				for (String key :sKeyList ) {
-					String sTmp = ing.get(key);
+					String sTmp = null;
+					try {
+						sTmp = ing.getString(key);
+					} catch (JSONException e) {
+						result = "K";
+						break;
+					}
 					if (sTmp == null) {
 						result = "K";
 						break;
