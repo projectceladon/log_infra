@@ -51,6 +51,18 @@ public class Constants {
     public static final int LOGS_CRITICAL_SIZE = 20000000;
 
     /**
+     * Percentage representing the critical size for the logs partition,
+     * before launching the cleanup of uploaded logs.
+     * */
+    public static final int LOGS_CRITICAL_SIZE_STAGE1 = 20;
+
+    /**
+     * Percentage representing the critical size for the logs partition,
+     * before launching the cleanup of oldest logs.
+     * */
+    public static final int LOGS_CRITICAL_SIZE_STAGE2 = 10;
+
+    /**
      * crash delay postpone in sec
      */
     public static final int CRASH_POSTPONE_DELAY = 120;

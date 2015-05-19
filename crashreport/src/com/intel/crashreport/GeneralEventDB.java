@@ -107,6 +107,7 @@ public class GeneralEventDB {
 	public static final String KEY_OS_BOOT_MODE = "bootMode";
 	public static final String KEY_UNIQUEKEY_COMPONENT = "uniqueKeyComponents";
 	public static final String KEY_MODEM_VERSION_USED = "modemVersionUsed";
+	public static final String KEY_EVENT_CLEANED = "eventCleaned";
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -137,7 +138,8 @@ public class GeneralEventDB {
 					KEY_DATA_READY + " integer, "+
 					KEY_ORIGIN + " text, " +
 					KEY_PDSTATUS + " text, " +
-					KEY_LOGS_SIZE + " integer);";
+					KEY_LOGS_SIZE + " integer, " +
+					KEY_EVENT_CLEANED + " integer);";
 
 	private static final String DATABASE_TYPE_CREATE =
 			"create table " + DATABASE_TYPE_TABLE + " ("+
@@ -1331,5 +1333,48 @@ public class GeneralEventDB {
 	 */
 	private static boolean isEventLogsValid( String eventType ) {
 		return ( !Arrays.asList(Constants.INVALID_EVENTS).contains(eventType) );
+	}
+
+	public Cursor fetchMatchingLogPaths(String logsDir) {
+		String where =  KEY_CRASHDIR + " like '" + logsDir + "%'";
+
+		return mDb.query(DATABASE_TABLE, new String[] {KEY_CRASHDIR},
+				where, null, null, null, null);
+	}
+
+	public boolean updateEventFolderPath(String orginal, String target) {
+		String where =  KEY_CRASHDIR + "='" + orginal + "'";
+		ContentValues args = new ContentValues();
+		args.put(KEY_CRASHDIR, target);
+
+		return mDb.update(DATABASE_TABLE, args, where, null) > 0;
+	}
+
+	public boolean isEventLogCleaned( String eventID ) {
+		Cursor mCursor = null;
+		String where =  KEY_ID + "='" + eventID + "'";
+
+		mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_EVENT_CLEANED},
+				where, null, null, null, null);
+
+		try {
+			if(mCursor.moveToFirst()) {
+				return (mCursor.getInt(0) == 0) ? false : true;
+			}
+		} catch (SQLException e) {
+			Log.e("Could not move cursor to expected record.");
+		} finally {
+			mCursor.close();
+		}
+
+		return true;
+	}
+
+	public boolean setEventLogCleaned( String eventPath ) {
+		String where =  KEY_CRASHDIR + "='" + eventPath + "'";
+		ContentValues args = new ContentValues();
+		args.put(KEY_EVENT_CLEANED, "1");
+
+		return mDb.update(DATABASE_TABLE, args, where, null) > 0;
 	}
 }
