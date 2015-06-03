@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -430,156 +432,256 @@ public class MainParser{
 
 
 
-	private boolean ipanic(String aFolder){
-		boolean bResult = true;
-		String sData0 = "";
+	private Map<String,String> ipanicByFile(String aFile){
 
-		String sIPanicFile = fileGrepSearch(".*panic_console.*", aFolder);
-		if (sIPanicFile == ""){
-			//2nd chance : use last_kmsg pattern
-			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
-			if (sIPanicFile == ""){
-				//3rd chance : use console-ramoops pattern
-				sIPanicFile = fileGrepSearch(".*console-ramoops.*", aFolder);
+		String sData0 = "";
+		Map<String,String> computedData = new HashMap<String,String>();
+
+		String sDataDefault="";
+		String sDataLockUp="";
+		String sComm = "";
+		String sPanic= "";
+		boolean bDataFound = false;
+		boolean bDataRipFound = false;
+		boolean bCommFound = false;
+		boolean bCandidateCommFound = false;
+		boolean bPanicFound = false;
+		boolean bNmiFound = false;
+		boolean bLockUpCase = false;
+		int iCallTraceCount = 0;
+
+		BufferedReaderClean bufPanicFile = null;
+		try{
+			bufPanicFile = new BufferedReaderClean(new FileReader(aFile));
+			Pattern patternData = java.util.regex.Pattern.compile("EIP:.*SS:ESP");
+			Pattern patternData_64 = java.util.regex.Pattern.compile("RIP  \\[.*ffffffff.*\\].*");
+			Pattern patternComm = java.util.regex.Pattern.compile("(c|C)omm: .*");
+			Pattern patternPanic = java.util.regex.Pattern.compile("Kernel panic - not syncing: .*");
+			Pattern patternHardLock = java.util.regex.Pattern.compile("hard LOCKUP.*");
+			Pattern patternNmiEnd = java.util.regex.Pattern.compile("nmi_stack_correct.*");
+
+			String sCurLine;
+			while ((sCurLine = bufPanicFile.readLine()) != null) {
+				String sTmp;
+				if (!bDataFound){
+					sTmp = simpleGrepAwk(patternData, sCurLine, " ", 2);
+					if (sTmp==null){
+						//second chance with 64 pattern
+						sTmp = simpleGrepAwk(patternData_64, sCurLine, " ", 3);
+						if (sTmp==null){
+							if (bDataRipFound){
+								sTmp = simpleAwk( sCurLine, ">]", 1);
+								//third chance check on next "rip" line
+							}
+						}
+					}
+					bDataRipFound = false;
+					if (sTmp != null){
+						sDataDefault = sTmp;
+						bDataFound = true;
+						if (bCandidateCommFound){
+							//we use last "comm" found
+							bCommFound = true;
+						}
+					}
+					//pre-requisite for the 3rd chance
+					if (sCurLine.contains("RIP")){
+						bDataRipFound = true;
+					}
+				}
+
+
+				if (!bCommFound){
+					sTmp = simpleGrepAwk(patternComm, sCurLine, " ", 1);
+					if (sTmp != null){
+						sComm = sTmp;
+						//considered found when data "SS:EP" is found
+						//Panicfound is also a condition to store "comm"
+						//if it is not found, we keep value but continue seeking pattern
+						if (bDataFound || bPanicFound){
+							bCommFound = true;
+						}else{
+							bCandidateCommFound = true;
+						}
+					}
+				}
+
+				if (!bPanicFound){
+					sTmp = simpleGrepAwk(patternPanic, sCurLine, ":", 1);
+					if (sTmp != null){
+						sPanic = sTmp;
+						bPanicFound = true;
+						sTmp = simpleGrepAwk(patternHardLock, sCurLine, "", 0);
+						if (sTmp != null)
+							bLockUpCase = true;
+					}
+				}
+
+				if (bLockUpCase){
+					if(!bNmiFound) {
+						sTmp = simpleGrepAwk(patternNmiEnd, sCurLine, "", 0);
+						if (sTmp != null){
+							bNmiFound = true;
+						}
+					} else if (iCallTraceCount < 4){
+						//get line value with a stack trace filter
+						String sCallLine = formatStackTrace(sCurLine);
+						if (!sCallLine.equals("")){
+							sDataLockUp += sCallLine;
+							iCallTraceCount++;
+						}
+					}
+				}
+			}
+
+			//filter step
+			// 1 - remove number after "/" pattern
+			if (sComm.contains("/")){
+				String sFilteredValue = simpleAwk(sComm, "/",0);
+				if (sFilteredValue != null && !sFilteredValue.isEmpty()){
+					sComm =  sFilteredValue;
+				}
+			}
+			// 2 - remove thread name if "Fatal exception in interrupt"
+			if (sPanic.contains("Fatal exception in interrupt")){
+				sComm = "";
+			}
+			// 3 - remove CPU number in "Watchdog detected hard LOCKUP on cpu N"
+			if (bLockUpCase){
+				String sFilteredValue = simpleAwk(sPanic, " on cpu",0);
+				if (sFilteredValue != null && !sFilteredValue.isEmpty()){
+					sPanic =  sFilteredValue;
+				}
+			}
+
+
+			if (bLockUpCase){
+				sData0 = sDataLockUp;
+			} else {
+				sData0 = getStackForPanic(sPanic,aFile);
+			}
+
+			if (sData0.isEmpty()){
+				//use default data
+				sData0 = sDataDefault;
+			}
+			computedData.put("DATA0", sData0);
+			computedData.put("DATA1", sComm);
+			computedData.put("DATA2", sPanic);
+			if (aFile.contains("emmc_ipanic_console")){
+				computedData.put("DATA3", "emmc");
+			} else {
+				if (aFile.contains("ram_ipanic_console")){
+					computedData.put("DATA3", "ram");
+				}
 			}
 		}
+		catch(Exception e) {
+			APLog.e( "iPanicByFile : " + e);
+			e.printStackTrace();
+			return computedData;
+		} finally {
+			if (bufPanicFile != null){
+				bufPanicFile.close();
+			}
+		}
+		return computedData;
+	}
+
+	private boolean checkSignature(Map<String,String> aData){
+		String sTmp;
+
+		if (aData == null){
+			return false;
+		}
+		sTmp = aData.get("DATA0");
+		if (sTmp != null){
+			if (!sTmp.isEmpty()){
+				return true;
+			}
+		}
+
+		sTmp = aData.get("DATA1");
+		if (sTmp != null){
+			if (!sTmp.isEmpty()){
+				return true;
+			}
+		}
+
+		sTmp = aData.get("DATA2");
+		if (sTmp != null){
+			if (!sTmp.isEmpty()){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+
+	private boolean ipanic(String aFolder){
+		boolean bResult = true;
+		boolean bFoundOnce = false;
+		Map<String,String> resultData = null;
+
+		String sIPanicFile = fileGrepSearch(".*panic_console.*", aFolder);
 		if (sIPanicFile != ""){
-			String sDataDefault="";
-			String sDataLockUp="";
-			String sComm = "";
-			String sPanic= "";
-			boolean bDataFound = false;
-			boolean bCommFound = false;
-			boolean bCandidateCommFound = false;
-			boolean bPanicFound = false;
-			boolean bNmiFound = false;
-			boolean bLockUpCase = false;
-			int iCallTraceCount = 0;
+			bFoundOnce = true;
+			resultData = ipanicByFile(sIPanicFile);
+		}
 
-			BufferedReaderClean bufPanicFile = null;
-			try{
-				bufPanicFile = new BufferedReaderClean(new FileReader(sIPanicFile));
-				Pattern patternData = java.util.regex.Pattern.compile("EIP:.*SS:ESP");
-				Pattern patternData_64 = java.util.regex.Pattern.compile("RIP  \\[.*ffffffff.*\\].*");
-				Pattern patternComm = java.util.regex.Pattern.compile("(c|C)omm: .*");
-				Pattern patternPanic = java.util.regex.Pattern.compile("Kernel panic - not syncing: .*");
-				Pattern patternHardLock = java.util.regex.Pattern.compile("hard LOCKUP.*");
-				Pattern patternNmiEnd = java.util.regex.Pattern.compile("nmi_stack_correct.*");
-
-				String sCurLine;
-				while ((sCurLine = bufPanicFile.readLine()) != null) {
-					String sTmp;
-					if (!bDataFound){
-						sTmp = simpleGrepAwk(patternData, sCurLine, " ", 2);
-						if (sTmp==null){
-							//second chance with 64 pattern
-							sTmp = simpleGrepAwk(patternData_64, sCurLine, " ", 3);
-						}
-						if (sTmp != null){
-							sDataDefault = sTmp;
-							bDataFound = true;
-							if (bCandidateCommFound){
-								//we use last "comm" found
-								bCommFound = true;
-							}
-						}
-					}
-
-					if (!bCommFound){
-						sTmp = simpleGrepAwk(patternComm, sCurLine, " ", 1);
-						if (sTmp != null){
-							sComm = sTmp;
-							//considered found when data "SS:EP" is found
-							//Panicfound is also a condition to store "comm"
-							//if it is not found, we keep value but continue seeking pattern
-							if (bDataFound || bPanicFound){
-								bCommFound = true;
-							}else{
-								bCandidateCommFound = true;
-							}
-						}
-					}
-
-					if (!bPanicFound){
-						sTmp = simpleGrepAwk(patternPanic, sCurLine, ":", 1);
-						if (sTmp != null){
-							sPanic = sTmp;
-							bPanicFound = true;
-							sTmp = simpleGrepAwk(patternHardLock, sCurLine, "", 0);
-							if (sTmp != null)
-								bLockUpCase = true;
-						}
-					}
-
-					if (bLockUpCase){
-						if(!bNmiFound) {
-							sTmp = simpleGrepAwk(patternNmiEnd, sCurLine, "", 0);
-							if (sTmp != null){
-								bNmiFound = true;
-							}
-						} else if (iCallTraceCount < 4){
-							//get line value with a stack trace filter
-							String sCallLine = formatStackTrace(sCurLine);
-							if (!sCallLine.equals("")){
-								sDataLockUp += sCallLine;
-								iCallTraceCount++;
-							}
-						}
-					}
-				}
-
-				//filter step
-				// 1 - remove number after "/" pattern
-				if (sComm.contains("/")){
-					String sFilteredValue = simpleAwk(sComm, "/",0);
-					if (sFilteredValue != null && !sFilteredValue.isEmpty()){
-						sComm =  sFilteredValue;
-					}
-				}
-				// 2 - remove thread name if "Fatal exception in interrupt"
-				if (sPanic.contains("Fatal exception in interrupt")){
-					sComm = "";
-				}
-				// 3 - remove CPU number in "Watchdog detected hard LOCKUP on cpu N"
-				if (bLockUpCase){
-					String sFilteredValue = simpleAwk(sPanic, " on cpu",0);
-					if (sFilteredValue != null && !sFilteredValue.isEmpty()){
-						sPanic =  sFilteredValue;
-					}
-				}
-
-
-				if (bLockUpCase){
-					sData0 = sDataLockUp;
-				} else {
-					sData0 = getStackForPanic(sPanic,sIPanicFile);
-				}
-
-				if (sData0.isEmpty()) {
-					//use default data
-					sData0 = sDataDefault;
-				}
-				bResult &= appendToCrashfile("DATA0=" + sData0);
-				bResult &= appendToCrashfile("DATA1=" + sComm );
-				bResult &= appendToCrashfile("DATA2=" + sPanic );
-				if (sIPanicFile.contains("emmc_ipanic_console")){
-					bResult &= appendToCrashfile("DATA3=emmc");
-				} else {
-					if (sIPanicFile.contains("ram_ipanic_console")){
-						bResult &= appendToCrashfile("DATA3=ram");
-					}
-				}
+		if (!checkSignature(resultData)){
+			resultData = null;
+			//2nd chance : use last_kmsg pattern
+			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
+			if (sIPanicFile != ""){
+				bFoundOnce = true;
+				resultData = ipanicByFile(sIPanicFile);
 			}
-			catch(Exception e) {
-				APLog.e( "iPanic : " + e);
-				e.printStackTrace();
-				return false;
-			} finally {
-				if (bufPanicFile != null) {
-					bufPanicFile.close();
-				}
+		}
+		if (!checkSignature(resultData)){
+			resultData = null;
+			//3rd chance : use console-ramoops pattern
+			sIPanicFile = fileGrepSearch(".*console-ramoops.*", aFolder);
+			if (sIPanicFile != ""){
+				bFoundOnce = true;
+				resultData = ipanicByFile(sIPanicFile);
 			}
-		}else{
+		}
+
+
+		if (resultData != null){
+			String sData0 = "";
+			String sData1 = "";
+			String sData2 = "";
+			String sData3 = "";
+			String sTmp;
+
+			sTmp = resultData.get("DATA0");
+			if (sTmp != null){
+				sData0 = sTmp;
+			}
+			sTmp = resultData.get("DATA1");
+			if (sTmp != null){
+				sData1 = sTmp;
+			}
+			sTmp = resultData.get("DATA2");
+			if (sTmp != null){
+				sData2 = sTmp;
+			}
+			sTmp = resultData.get("DATA3");
+			if (sTmp != null){
+				sData3 = sTmp;
+			}
+
+			bResult &= appendToCrashfile("DATA0=" + sData0);
+			bResult &= appendToCrashfile("DATA1=" + sData1);
+			bResult &= appendToCrashfile("DATA2=" + sData2);
+			bResult &= appendToCrashfile("DATA3=" + sData3);
+
+
+		}
+		if (!bFoundOnce){
 			//4th chance, try header
 			String sHeaderFile = fileGrepSearch(".*ipanic_header.*", aFolder);
 			if (sHeaderFile != ""){
