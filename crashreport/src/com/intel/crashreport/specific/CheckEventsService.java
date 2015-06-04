@@ -238,12 +238,12 @@ public class CheckEventsService extends Service {
 									else if (ret == -3)
 										Log.w(from+": Event " +event.toString() + " with wrong date, addition in DB canceled");
 									else {
+										if (event.getType().contentEquals("SWUPDATE") &&
+											event.getEventName().contentEquals("INFO")){
+											db.deleteEventsBeforeUpdate(event.getEventId());
+										}
 										if (event.getEventName().contentEquals("REBOOT")) {
-											if (event.getType().contentEquals("SWUPDATE")){
-												db.deleteEventsBeforeUpdate(event.getEventId());
-											}else{
-												db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
-											}
+											db.updateEventsNotReadyBeforeREBOOT(event.getEventId());
 										}
 										if (event.getEventName().equals("BZ")) {
 											try {
