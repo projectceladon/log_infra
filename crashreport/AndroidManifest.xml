@@ -91,6 +91,9 @@
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.MARK_AS_READ" />
 			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.DEVICE_STORAGE_LOW" />
+			</intent-filter>
 		</receiver>
 
 		<receiver

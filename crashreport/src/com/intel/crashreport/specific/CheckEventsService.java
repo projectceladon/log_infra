@@ -298,6 +298,9 @@ public class CheckEventsService extends Service {
 		} catch (SQLException e) {
 			db.close();
 			throw e;
+		} finally {
+			PhoneInspector.getInstance(getApplicationContext()).
+				manageFreeSpace(Constants.LOGS_DIR);
 		}
 
 	}

@@ -343,18 +343,26 @@ public class EventDB extends GeneralEventDB{
 		return false;
 	}
 
-	public boolean isPathUploaded(String sPath) throws SQLException {
+	public int checkPathStatus(String sPath) throws SQLException {
 		Cursor mCursor;
-		Boolean ret;
-		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-				KEY_CRASHDIR + " = '" + sPath + "' AND " + KEY_UPLOADLOG + "=1", null,
+		int ret;
+		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_UPLOADLOG},
+				KEY_CRASHDIR + " = '" + sPath + "'", null,
 				null, null, null, null);
 		if (mCursor != null) {
-			ret = mCursor.moveToFirst();
+			mCursor.moveToNext();
+			if (mCursor.isAfterLast()) {
+				// unreferenced path
+				ret = -1;
+			}
+			else {
+				ret = mCursor.getInt(mCursor.getColumnIndex(KEY_UPLOADLOG));
+			}
+
 			mCursor.close();
 			return ret;
 		}
-		return false;
+		return 0;
 	}
 
 	public boolean checkNewRain(Event event) {

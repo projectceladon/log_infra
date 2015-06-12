@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.intel.crashreport.Log;
+import com.intel.phonedoctor.Constants;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -69,6 +70,11 @@ public class PhoneInspectorService extends IntentService {
                 //Manage FullDropBox case
                 PhoneInspector phoneInspector = PhoneInspector.getInstance(getApplicationContext());
                 phoneInspector.newDropBoxEntryAdded(intentTimeMs);
+            }
+
+            else if( extraType.equals(NotificationReceiver.MANAGE_FREE_SPACE)) {
+                PhoneInspector phoneInspector = PhoneInspector.getInstance(getApplicationContext());
+                phoneInspector.manageFreeSpace(Constants.LOGS_DIR);
             }
 
             else if( extraType.equals(NotificationReceiver.BOOT_COMPLETED)) {

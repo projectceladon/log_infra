@@ -48,6 +48,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 	public static final String EXTRA_TYPE			 	= "type";
 	//PhoneInspectorService intent type values
 	public static final String DROPBOX_ENTRY_ADDED 		= "DROPBOX_ENTRY_ADDED";
+	public static final String MANAGE_FREE_SPACE 		= "MANAGE_FREE_SPACE";
 	public static final String BOOT_COMPLETED 			= "BOOT_COMPLETED";
 
 	@Override
@@ -121,6 +122,8 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 						else
 							app.setNeedToUpload(true);
 					}
+					PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
+					context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
 				}
 			}
 		} else if (intent.getAction().equals(DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED)) {
@@ -153,6 +156,9 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			}
 			// Cancel the notification
 			GCMNotificationMgr.clearGcmNotification(this.context);
+		} else if (intent.getAction().equals(Intent.ACTION_DEVICE_STORAGE_LOW)) {
+			PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
+			context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
 		} else {
 			super.onReceive(context, intent);
 		}

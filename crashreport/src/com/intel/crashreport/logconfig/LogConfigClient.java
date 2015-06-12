@@ -47,6 +47,11 @@ public class LogConfigClient {
         if (isLowLevelStarted && mInputStream != null && mOutputStream != null)
             return;
 
+        String logConfigProp = SystemProperties.get("intel.logconfig.available", "");
+        if (!logConfigProp.equals("1")) {
+            throw new IllegalStateException("Log config service not enabled");
+        }
+
         // Start service which will open the server socket
         SystemProperties.set("ctl.start", "logconfig");
         mSocket = new LocalSocket();

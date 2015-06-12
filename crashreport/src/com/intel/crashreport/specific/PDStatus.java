@@ -45,7 +45,7 @@ import com.intel.crashreport.specific.ingredients.IngredientManager;
   * Check if the expected crashfiles are present for MPANIC, IPANIC, FABRICERR, WDT_UNHANDLED.
   * Check if the EventId in the database is the same that the EventId in the
   * crashfile.
-  * Check if the dropbox is full or not.
+  * Check if the event was cleaned or not.
   * Check if crashlogger daemon is still running or not.
   * Check if apklogfs is running or not.
   * Check if there is enough space available on the /logs partition.
@@ -155,20 +155,33 @@ public enum PDStatus {
 				}
 				return result;
 			}}),
-		FULL_DROPBOX (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface(){
+		EVENT_FILES_CLEANED (PDSTATUS_TIME.UPLOAD_TIME, 1, new PDStatusInterface(){
 
 			/**
-			 * @brief Check if the dropbox is full or not with the help of the persist.sys.crashlogd.mode property value.
-			 * @return String : F full dropbox, 0 else.
+			 * @brief Check whether the event files were removed
+			 * @return String : F if event files removed, x if database cannot
+			 * be opened, 0 otherwise.
 			 */
 			@Override
 			public String computeValue() {
+
 				String result = "x";
-				result = SystemProperties.get("persist.sys.crashlogd.mode","x");
-				if(result.equals("nominal"))
-					result = "0";
-				else if (!result.equals("x"))
-					result = "F";
+				EventDB db = new EventDB(context);
+
+				if( null != db) {
+					try{
+						db.open();
+
+						if (db.isEventLogCleaned(event.getEventId()))
+							result = "F";
+						else
+							result = "0";
+
+						db.close();
+					}catch(SQLException e){
+						result = "x";
+					}
+				}
 				return result;
 			}
 		}),
@@ -220,8 +233,6 @@ public enum PDStatus {
 					else {
 						// initial value L, switch to K for analysis purpose
 						result = "K";
-						//launch phone inspector cleaning  process
-						PhoneInspector.getInstance(context).checkLogsPartition();
 					}
 				}
 				return result;
