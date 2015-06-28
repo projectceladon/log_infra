@@ -366,8 +366,8 @@ public enum PDStatus {
 			@Override
 			public String computeValue() {
 				String result = "x";
-				CrashReport app = (CrashReport)context;
-				result = app.getMyBuild().testVersion()?"0":"V";
+				//obsolete - keep value for format & processing issue
+				// available slot for new PDSTATUS check
 				return result;
 			}
 		}),
@@ -496,6 +496,11 @@ public enum PDStatus {
 			@Override
 			public String computeValue() {
 				String result = "1";
+				//for disabled ingredients, need to return K also
+				if (!IngredientManager.INSTANCE.IsIngredientEnabled()) {
+					return "K";
+				}
+
 				List<String> sKeyList = IngredientManager.INSTANCE.parseUniqueKey(event.getUniqueKeyComponent());
 				Map <String,String> ing = IngredientManager.INSTANCE.getLastIngredients();
 				if (ing == null) {

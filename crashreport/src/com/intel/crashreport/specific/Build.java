@@ -46,12 +46,9 @@ public class Build extends GeneralBuild{
 	private static BuildAllowedValues ALLOWED_VALUES = null;
 	private Context ctx;
 
-	public Build(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname, String modemVersion,
-			String ifwiVersion, String iafwVersion, String scufwVersion, String punitVersion, String valhooksVersion) {
-		super(buildId, fingerPrint, kernelVersion, buildUserHostname, modemVersion,
-				ifwiVersion, iafwVersion, scufwVersion, punitVersion, valhooksVersion);
+	public Build(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname) {
+		super(buildId, fingerPrint, kernelVersion, buildUserHostname);
 		checkAllowedProperties();
-		consolidateModemVersion();
 	}
 
 	public Build(String longBuildId) {
@@ -59,8 +56,6 @@ public class Build extends GeneralBuild{
 		if (longBuildId != null) {
 			if (longBuildId.contains(",")) {
 				checkAllowedProperties();
-				consolidateModemVersion();
-				checkBuild();
 			}
 		}
 	}
@@ -77,17 +72,19 @@ public class Build extends GeneralBuild{
 	 * @return the ingredients as string.
 	 */
 	public static final String getIngredients() {
+		Map<String, String> ingredients;
 		//First check existence of file
 		File ingFile = new File(INGREDIENTS_FILE_PATH);
-		if (!ingFile.exists()){
-			// should return an explicit null value in case
+		if (!ingFile.exists()) {
+			// should return a default value in case
 			// ingredients are not activated
-			return "";
+			ingredients = IngredientManager.INSTANCE.getDefaultIngredients();
+		} else {
+			// Create an ingredient builder
+			IngredientBuilder builder = new FileIngredientBuilder(INGREDIENTS_FILE_PATH);
+			// Retrieve the ingredients
+			ingredients = builder.getIngredients();
 		}
-		// Create an ingredient builder
-		IngredientBuilder builder = new FileIngredientBuilder(INGREDIENTS_FILE_PATH);
-		// Retrieve the ingredients
-		Map<String, String> ingredients = builder.getIngredients();
 		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
 
 		// Create a StringBuilder for the final JSON string
@@ -96,7 +93,7 @@ public class Build extends GeneralBuild{
 		appendIngredients(ingredients, ingredientsBuffer);
 		// Remove the last coma if any
 		int lastComa = ingredientsBuffer.lastIndexOf(",");
-		if(lastComa != -1) {
+		if (lastComa != -1) {
 			ingredientsBuffer.deleteCharAt(lastComa);
 		}
 		// End the JSON string property
@@ -141,15 +138,7 @@ public class Build extends GeneralBuild{
 		this.setFingerPrint(android.os.Build.FINGERPRINT);
 		this.setKernelVersion(getProperty("sys.kernel.version"));
 		this.setBuildUserHostname(getProperty("ro.build.user")+"@"+getProperty("ro.build.host"));
-		this.setModemVersion(getProperty("gsm.version.baseband"));
-		this.setIfwiVersion(getProperty("sys.ifwi.version"));
-		this.setIafwVersion(getProperty("sys.ia32.version"));
-		this.setScufwVersion(getProperty("sys.scu.version"));
-		this.setPunitVersion(getProperty("sys.punit.version"));
-		this.setValhooksVersion(getProperty("sys.valhooks.version"));
 		checkAllowedProperties();
-		consolidateModemVersion();
-		consolidateBuildId();
 		ApplicationPreferences prefs = new ApplicationPreferences(ctx);
 		prefs.setBuild(super.toString());
 	}
@@ -186,90 +175,10 @@ public class Build extends GeneralBuild{
 		}
 	}
 
-	private void consolidateModemVersion(){
-		//for crashtool identification, we need to be sure modem version is present
-		if (modemVersion.equals("")){
-			//fill it with modemid.txt
-			BufferedReader modemid = null;
-			FileReader f = null;
-			try {
-				f = new FileReader(PATH_MODEMID);
-				modemid = new BufferedReader(new FileReader(PATH_MODEMID));
-				String sTmp = modemid.readLine();
-				if (sTmp != null){
-					modemVersion.setValue(sTmp);
-				}
-			} catch (FileNotFoundException e) {
-				Log.w(" consolidateModemVersion :" + e.getMessage());
-			} catch (IOException e) {
-				Log.w(" consolidateModemVersion :" + e.getMessage());
-			} finally {
-				if (f != null) {
-					try {
-						f.close();
-					} catch (IOException e) {
-						Log.w(" consolidateModemVersion :" + e.getMessage());
-					}
-				}
-				if (modemid != null) {
-					try {
-						modemid.close();
-					} catch (IOException e) {
-						Log.w(" consolidateModemVersion :" + e.getMessage());
-					}
-				}
-			}
-		}
-	}
-
-	private void consolidateBuildId() {
-		if(isWrongValue(ifwiVersion) ||
-				isWrongValue(iafwVersion) ||
-				isWrongValue(scufwVersion) ||
-				isWrongValue(punitVersion) ||
-				isWrongValue(valhooksVersion) ) {
-			ApplicationPreferences prefs = new ApplicationPreferences(ctx);
-			String build = prefs.getBuild();
-			if(!build.isEmpty()) {
-				GeneralBuild oldBuild = new GeneralBuild(build);
-				if(isWrongValue(ifwiVersion))
-					ifwiVersion.setValue(oldBuild.getIfwiVersion());
-				if(isWrongValue(iafwVersion))
-					iafwVersion.setValue(oldBuild.getIafwVersion());
-				if(isWrongValue(scufwVersion))
-					scufwVersion.setValue(oldBuild.getScufwVersion());
-				if(isWrongValue(punitVersion))
-					punitVersion.setValue(oldBuild.getPunitVersion());
-				if(isWrongValue(valhooksVersion))
-					valhooksVersion.setValue(oldBuild.getValhooksVersion());
-			}
-		}
-	}
-
-	private void checkBuild() {
-		if(isWrongValue(ifwiVersion))
-			ifwiVersion.setValue(getProperty("sys.ifwi.version"));
-		if(isWrongValue(iafwVersion))
-			iafwVersion.setValue(getProperty("sys.ia32.version"));
-		if(isWrongValue(scufwVersion))
-			scufwVersion.setValue(getProperty("sys.scu.version"));
-		if(isWrongValue(punitVersion))
-			punitVersion.setValue(getProperty("sys.punit.version"));
-		if(isWrongValue(valhooksVersion))
-			valhooksVersion.setValue(getProperty("sys.valhooks.version"));
-	}
 
 	private boolean isWrongValue(BuildProperty property) {
 		return property.isWrongValue();
 	}
 
-	public boolean testVersion() {
-		checkAllowedProperties();
-		return !(isWrongValue(ifwiVersion) ||
-				isWrongValue(iafwVersion) ||
-				isWrongValue(scufwVersion) ||
-				isWrongValue(punitVersion) ||
-				isWrongValue(valhooksVersion));
-	}
 
 }

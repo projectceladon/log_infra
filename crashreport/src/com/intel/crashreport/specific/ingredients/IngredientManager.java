@@ -23,6 +23,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import android.os.SystemProperties;
 
 public enum IngredientManager {
 	INSTANCE;
@@ -83,6 +85,15 @@ public enum IngredientManager {
 
 	public Map<String, String> getLastIngredients() {
 		return lastIngredients;
+	}
+
+	public Map<String, String> getDefaultIngredients() {
+		Map<String, String> ingredients = new HashMap<String, String>();
+		ingredients.put("ifwi", SystemProperties.get("sys.ifwi.version"));
+		ingredients.put("pmic", SystemProperties.get("sys.pmic.version"));
+		ingredients.put("punit", SystemProperties.get("sys.punit.version"));
+		ingredients.put("modem", SystemProperties.get("gsm.version.baseband"));
+		return ingredients;
 	}
 
 	public String getIngredient(String key) {
