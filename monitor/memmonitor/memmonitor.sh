@@ -4,7 +4,7 @@ while [ 1 ]; do
     echo "DATA0=" > /logs/stats/memmonitor_trigger
 	sleep 20
   fi
-  /system/bin/memmonitor_hours.sh & /system/bin/memmonitor_seconds.sh
+  /system/vendor/bin/memmonitor_hours.sh & /system/vendor/bin/memmonitor_seconds.sh
   echo "DATA0=" > /logs/stats/memmonitor_trigger
   sleep 20
 done

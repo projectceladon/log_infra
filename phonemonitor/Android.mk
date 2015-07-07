@@ -7,6 +7,6 @@ LOCAL_PACKAGE_NAME := phonemonitor
 LOCAL_CERTIFICATE := platform
 LOCAL_PROGUARD_ENABLED := disabled
 LOCAL_JAVA_LIBRARIES := telephony-common
-
+LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_PACKAGE)
 

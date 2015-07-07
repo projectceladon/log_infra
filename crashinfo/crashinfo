@@ -1,7 +1,7 @@
 # Script to start "crashinfo" on the device
 #
-base=/system
-export CLASSPATH=$base/framework/crashinfo.jar:$base/framework/crashparsing.jar::$base/framework/com.google.gson.jar
+base=/system/vendor
+export CLASSPATH=$base/framework/crashinfo.jar
 trap "" HUP
 
 ID=$(id)

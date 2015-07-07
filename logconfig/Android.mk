@@ -6,4 +6,5 @@ LOCAL_MODULE := logconfig
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := intel
 LOCAL_SHARED_LIBRARIES := libcutils liblog
+LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_EXECUTABLE)

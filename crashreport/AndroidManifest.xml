@@ -45,8 +45,6 @@
 		android:enabled="true"
 		android:theme="@style/CrashReportAppTheme">
 
-		<uses-library android:name="com.google.gson" />
-		<uses-library android:name="crashparsing" />
 		<activity
 			android:name=".specific.CrashReportActivity"
 			android:label="@string/label" />

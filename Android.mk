@@ -8,11 +8,7 @@ LOCAL_MODULE_OWNER := intel
 LOCAL_REQUIRED_MODULES :=  \
     CrashReport \
     crashinfo-cmd \
-    com.google.gson \
-    com.google.gson.xml \
-    logconfig \
-    crashparsing \
-    crashparsing.xml
+    logconfig
 
 include $(BUILD_PHONY_PACKAGE)
 include $(call first-makefiles-under,$(LOCAL_PATH))
