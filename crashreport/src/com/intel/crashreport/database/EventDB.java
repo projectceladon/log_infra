@@ -33,10 +33,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
-import com.intel.crashreport.specific.Event;
-import com.intel.crashreport.specific.EventGenerator;
-import com.intel.crashreport.specific.RainSignature;
-
+import com.intel.crashreport.GeneralEvent;
 
 import com.intel.crashreport.specific.GcmMessage;
 
@@ -44,18 +41,40 @@ public class EventDB extends GeneralEventDB{
 
 	private static final int BEGIN_FIBONACCI = 13;
 	private static final int BEGIN_FIBONACCI_BEFORE = 8;
-	public static final int RAIN_DURATION_MAX = 3600;
-	private static final int MAX_DELAY_RAIN = 600;
-	private static final int RAIN_CRASH_NUMBER = 10;
-
-	public static final String KEY_REASON = "reason";
-	public static final String KEY_OCCURRENCES = "occurrences";
-	public static final String KEY_LAST_FIBONACCI = "last_fibo";
-	public static final String KEY_NEXT_FIBONACCI = "next_fibo";
-	public static final String KEY_RAINID = "raindId";
 
 	public EventDB(Context ctx) {
 		super(ctx);
+	}
+
+	public int getEntriesCount(String table, String where) {
+		Cursor cursor;
+		int count = -1;
+		cursor = mDb.rawQuery("SELECT count(*) FROM " + table
+				+ ((where != null) ? " WHERE " + where : ""), null);
+
+		if (cursor == null) {
+			Log.e("Cursor instance creation failed.");
+			return count;
+		}
+
+		try {
+			if(cursor.moveToFirst()) {
+				count = cursor.getInt(0);
+			}
+		} catch (SQLException e) {
+			Log.e("Could not move cursor to expected record.");
+		} finally {
+			cursor.close();
+		}
+
+		return count;
+	}
+
+	public int getMatchingRainEventsCount(int lastEvent, String signature) {
+
+		return getEntriesCount(DATABASE_TABLE,
+				signature + " AND "
+				+ KEY_DATE + " > " + lastEvent);
 	}
 
 	/**
@@ -66,11 +85,12 @@ public class EventDB extends GeneralEventDB{
 	 * @return the row ID of the newly inserted row, or -1 if an error occurred
 	 * @throws SQLException
 	 */
-	public long addBlackEvent(Event event, String reason) throws SQLException {
+	public long addBlackEvent(GeneralEvent event, String reason, String signature)
+			throws SQLException {
 		ContentValues initialValues = new ContentValues();
 
 		if(reason.equals("RAIN")) {
-			Cursor cursor = getRainEventInfo(new RainSignature(event));
+			Cursor cursor = getRainEventInfo(signature);
 			if(cursor != null){
 				initialValues.put(KEY_RAINID, cursor.getString(cursor.getColumnIndex(KEY_ID)));
 				cursor.close();
@@ -124,11 +144,10 @@ public class EventDB extends GeneralEventDB{
 	 * @return the cursor set to the first row if found, null otherwise
 	 * @throws SQLException
 	 */
-	public Cursor fetchLastRain(Date date) throws SQLException {
+	public Cursor fetchLastRain(Date date, int maxDuration) throws SQLException {
 		int mDate = convertDateForDb(date);
-		mDate -=  RAIN_DURATION_MAX;
-		String query = KEY_DATE + " < " + mDate;
-		return fetchRainOfCrashesFromQuery(query);
+		mDate -= maxDuration;
+		return fetchRainOfCrashesFromQuery(KEY_DATE + " < " + mDate);
 	}
 
 	/**
@@ -138,15 +157,13 @@ public class EventDB extends GeneralEventDB{
 	 * @return the row ID of the newly inserted row(here the rain event), or -1 if
 	 * an error occurred
 	 */
-	public long addRainEvent(Event event) {
+	public long addRainEvent(GeneralEvent event) {
 		ContentValues initialValues = new ContentValues();
-		//Get the rain signature associated to this event
-		RainSignature signature = new RainSignature(event);
-		initialValues.put(KEY_TYPE, signature.getType());
-		initialValues.put(KEY_DATA0, signature.getData0());
-		initialValues.put(KEY_DATA1, signature.getData1());
-		initialValues.put(KEY_DATA2, signature.getData2());
-		initialValues.put(KEY_DATA3, signature.getData3());
+		initialValues.put(KEY_TYPE, event.getType());
+		initialValues.put(KEY_DATA0, event.getData0());
+		initialValues.put(KEY_DATA1, event.getData1());
+		initialValues.put(KEY_DATA2, event.getData2());
+		initialValues.put(KEY_DATA3, event.getData3());
 		initialValues.put(KEY_DATE, convertDateForDb(event.getDate()));
 		initialValues.put(KEY_OCCURRENCES, 1);
 		initialValues.put(KEY_LAST_FIBONACCI, BEGIN_FIBONACCI_BEFORE);
@@ -156,91 +173,70 @@ public class EventDB extends GeneralEventDB{
 		return mDb.insert(DATABASE_RAIN_OF_CRASHES_TABLE, null, initialValues);
 	}
 
-	private Cursor getRainEventInfo(RainSignature signature) throws SQLException {
-		return fetchRainOfCrashesFromQuery(signature.querySignature());
+	public Cursor getRainEventInfo(String signature) throws SQLException {
+		return fetchRainOfCrashesFromQuery(signature);
 	}
 
-	/**
-	 * Fetch the rain event from the rain of crashes db that matchs the input
-	 * signature and generate an event RAIN with its number of occurrences
-	 *
-	 * @param signature is the signature of the ended rain
-	 * @throws SQLException
-	 */
-	public void endOfRain(RainSignature signature) throws SQLException {
+	public static int getRainLastFibo(Cursor cursor) {
+		return cursor.getInt(cursor.getColumnIndex(KEY_LAST_FIBONACCI));
+	}
+
+	public static int getRainNextFibo(Cursor cursor) {
+		return cursor.getInt(cursor.getColumnIndex(KEY_NEXT_FIBONACCI));
+	}
+
+	public static int getRainOccurances(Cursor cursor) {
+		return cursor.getInt(cursor.getColumnIndex(KEY_OCCURRENCES));
+	}
+
+	public int getRainOccurances(String signature) {
 		Cursor cursor = getRainEventInfo(signature);
-
-		if(cursor != null) {
-			int occurences = cursor.getInt(cursor.getColumnIndex(KEY_OCCURRENCES));
+		int occurances = 0;
+		if (cursor != null) {
+			occurances = getRainOccurances(getRainEventInfo(signature));
 			cursor.close();
-
-			if( occurences > 0)
-				EventGenerator.INSTANCE.generateEventRain(signature, occurences);
 		}
-
+		return occurances;
 	}
 
-	public boolean resetRainEvent(RainSignature signature, Date date) throws SQLException {
+	public boolean resetRainEvent(String signature, Date date)
+			throws SQLException {
 		ContentValues args = new ContentValues();
-		endOfRain(signature);
 		args.put(KEY_OCCURRENCES, 1);
 		args.put(KEY_DATE, convertDateForDb(date) );
 		args.put(KEY_LAST_FIBONACCI, BEGIN_FIBONACCI_BEFORE);
 		args.put(KEY_NEXT_FIBONACCI, BEGIN_FIBONACCI);
-		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature.querySignature(), null) > 0;
+		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature, null) > 0;
 	}
 
-	public boolean updateRainEvent(RainSignature signature, Date date) throws SQLException {
+
+	public boolean updateRainEvent(String signature, Date date, int occurences) {
 		ContentValues args = new ContentValues();
+		args.put(KEY_DATE, convertDateForDb(date));
+		args.put(KEY_OCCURRENCES, occurences);
 
-		Cursor cursor = getRainEventInfo(signature);
-		if(cursor != null) {
-			int occurences = cursor.getInt(cursor.getColumnIndex(KEY_OCCURRENCES));
-			int nextFibo = cursor.getInt(cursor.getColumnIndex(KEY_NEXT_FIBONACCI));
-			int lastFibo = cursor.getInt(cursor.getColumnIndex(KEY_LAST_FIBONACCI));
-
-			occurences++;
-
-			args.put(KEY_DATE, convertDateForDb(date) );
-			cursor.close();
-			if( occurences == nextFibo) {
-				args.put(KEY_NEXT_FIBONACCI, lastFibo + nextFibo);
-				args.put(KEY_LAST_FIBONACCI, nextFibo);
-				args.put(KEY_OCCURRENCES, 0);
-				EventGenerator.INSTANCE.generateEventRain(signature, nextFibo);
-			}
-			else
-				args.put(KEY_OCCURRENCES, occurences);
-
-
-			return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature.querySignature(), null) > 0;
-		}
-		return false;
-
+		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature, null) > 0;
 	}
 
-	public boolean deleteRainEvent(RainSignature signature) {
-		String whereQuery = signature.querySignature();
-		endOfRain(signature);
+	public boolean updateRainEvent(String signature, Date date, int occurences,
+			int nextFibo, int lastFibo) {
+		ContentValues args = new ContentValues();
+		args.put(KEY_DATE, convertDateForDb(date));
+		args.put(KEY_OCCURRENCES, occurences);
+		args.put(KEY_NEXT_FIBONACCI, nextFibo);
+		args.put(KEY_LAST_FIBONACCI, lastFibo);
+
+		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature, null) > 0;
+	}
+
+	public boolean deleteRainEvent(String signature) {
+		String whereQuery = signature;
 		return mDb.delete(DATABASE_RAIN_OF_CRASHES_TABLE, whereQuery, null) > 0;
 	}
 
-	public boolean isRainEventExist(RainSignature signature) {
-		Cursor mCursor;
-		boolean ret;
-		try {
-			mCursor = mDb.query(true, DATABASE_RAIN_OF_CRASHES_TABLE, new String[] {KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2,KEY_DATA3},
-					signature.querySignature(), null,
-					null, null, null, null);
-			if (mCursor != null) {
-				ret = mCursor.moveToFirst();
-				mCursor.close();
-				return ret;
-			}
-		} catch (SQLException e) {
-			Log.e("isRainEventExist : " + e.getMessage());
-		}
-		return false;
+	public boolean isRainEventExist(String signature) {
+		return ((getEntriesCount(DATABASE_RAIN_OF_CRASHES_TABLE,
+				signature) > 0) ? true : false);
 	}
 
 	/**
@@ -273,16 +269,17 @@ public class EventDB extends GeneralEventDB{
 	 * @return true if the event belongs to the current rain with matching signature. False otherwise.
 	 * @throws SQLException
 	 */
-	public boolean isInTheCurrentRain(Event event) throws SQLException {
+	public boolean isInTheCurrentRain(GeneralEvent event, String signature, int maxDelay)
+			throws SQLException {
 		Date date = event.getDate();
 
-		Cursor mCursor = getRainEventInfo(new RainSignature(event));
+		Cursor mCursor = getRainEventInfo(signature);
 		if (mCursor != null) {
 			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
 			mCursor.close();
 			int newDate = convertDateForDb(date);
 			if( lastEvent <= newDate) {
-				if ( (newDate - lastEvent) <=  MAX_DELAY_RAIN) {
+				if ( (newDate - lastEvent) <=  maxDelay) {
 					return true;
 				}
 				else
@@ -301,7 +298,7 @@ public class EventDB extends GeneralEventDB{
 	 * the input signature. 0 if no rain matching the input signature exist.
 	 * @throws SQLException
 	 */
-	public int getLastCrashDate(RainSignature signature) throws SQLException {
+	public int getLastCrashDate(String signature) throws SQLException {
 
 		Cursor mCursor = getRainEventInfo(signature);
 		if (mCursor != null) {
@@ -312,47 +309,6 @@ public class EventDB extends GeneralEventDB{
 		return 0;
 	}
 
-	public boolean checkNewRain(Event event, int lastRain) {
-		Cursor mCursor;
-		int lastEventDate, defaultDate;
-		Date date = event.getDate();
-		RainSignature rainSignature = new RainSignature(event);
-
-		//robustness for all corner case around date
-		defaultDate =convertDateForDb(date);
-		if ((lastRain != -1) && (lastRain < defaultDate)) {
-			lastEventDate = lastRain;
-		} else {
-			lastEventDate = defaultDate;
-			lastEventDate -= RAIN_DURATION_MAX;
-		}
-		//Fetch from events database the events with matching signature and with a matching date value
-		String whereQuery = rainSignature.querySignature() + " AND " + KEY_DATE + " > " + lastEventDate;
-
-		int count = -1;
-
-		try {
-			mCursor = mDb.query(true, "events", new String[] {"date"},
-					whereQuery, null,
-					null, null, "date desc", "0,"+RAIN_CRASH_NUMBER);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				mCursor.close();
-				if (count >= RAIN_CRASH_NUMBER) {
-					if (-1 == lastRain)
-						addRainEvent(event);
-					else
-						resetRainEvent(rainSignature, date);
-					EventGenerator.INSTANCE.generateEventRain(rainSignature, RAIN_CRASH_NUMBER);
-					return true;
-				}
-			}
-		}
-		catch (SQLException e){
-			Log.e("checkNewRain : " + e.getMessage());
-		}
-		return false;
-	}
 
 	public int checkPathStatus(String sPath) throws SQLException {
 		Cursor mCursor;
@@ -374,10 +330,6 @@ public class EventDB extends GeneralEventDB{
 			return ret;
 		}
 		return 0;
-	}
-
-	public boolean checkNewRain(Event event) {
-		return checkNewRain(event, -1);
 	}
 
 	/**

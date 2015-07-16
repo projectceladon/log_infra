@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.Date;
 
 import com.intel.crashreport.database.EventDB;
+import com.intel.crashreport.database.Utils;
 import com.intel.crashreport.Log;
 
 import android.content.Context;
@@ -40,6 +41,10 @@ public class BlackLister {
 	private static final String module = "BlackLister: ";
 	private EventDB db;
 	private static Context mCtxt;
+
+	private static final int RAIN_DURATION_MAX = 3600;
+	private static final int MAX_DELAY_RAIN = 600;
+	private static final int RAIN_CRASH_NUMBER = 10;
 
 	/**
 	 * Constructor
@@ -86,6 +91,65 @@ public class BlackLister {
 		db = mDb;
 	}
 
+        private void notifyEndOfRain(RainSignature rainSignature) {
+		int occurences = db.getRainOccurances(rainSignature.querySignature());
+		if( occurences > 0)
+			EventGenerator.INSTANCE.generateEventRain(
+				rainSignature, occurences);
+	}
+
+        private void updateRainOccurance(RainSignature rainSignature, Date date) {
+		String signature = rainSignature.querySignature();
+		Cursor cursor = db.getRainEventInfo(signature);
+		int occurences = db.getRainOccurances(cursor);
+		int lastFibo = db.getRainLastFibo(cursor);
+		int nextFibo = db.getRainNextFibo(cursor);
+		if (cursor != null)
+			cursor.close();
+
+		occurences++;
+		if (occurences == nextFibo) {
+			db.updateRainEvent(signature, date, 0,
+				lastFibo + nextFibo, nextFibo);
+			EventGenerator.INSTANCE.generateEventRain(rainSignature, occurences);
+		}
+		else
+			db.updateRainEvent(signature, date, occurences);
+        }
+
+	public boolean checkNewRain(Event event, int lastRain) {
+		Cursor mCursor;
+		int lastEventDate, defaultDate;
+		Date date = event.getDate();
+		RainSignature rainSignature = new RainSignature(event);
+
+		//robustness for all corner case around date
+		defaultDate = Utils.convertDateForDb(date);
+		if ((lastRain != -1) && (lastRain < defaultDate)) {
+			lastEventDate = lastRain;
+		} else {
+			lastEventDate = defaultDate;
+			lastEventDate -= RAIN_DURATION_MAX;
+		}
+
+		// Fetch from events database the number of events with
+		// matching signature and with a matching date value
+		int count = db.getMatchingRainEventsCount(lastEventDate,
+			rainSignature.querySignature());
+
+		if (count < RAIN_CRASH_NUMBER)
+			return false;
+
+		if (-1 == lastRain)
+			db.addRainEvent(event);
+		else {
+			notifyEndOfRain(rainSignature);
+			db.resetRainEvent(rainSignature.querySignature(), date);
+		}
+		EventGenerator.INSTANCE.generateEventRain(rainSignature, RAIN_CRASH_NUMBER);
+		return true;
+	}
+
 	public boolean blackListCrash(Event event) {
 		boolean result = false;
 		int lastCrashDate;
@@ -97,30 +161,33 @@ public class BlackLister {
 				//exit condition
 				return false;
 			}
-			if (db.isRainEventExist(rainSignature)) {
-				if (db.isInTheCurrentRain(event)) {
-					db.updateRainEvent(rainSignature, event.getDate());
+
+			String signature = rainSignature.querySignature();
+			if(db.isRainEventExist(signature)) {
+				if(db.isInTheCurrentRain(event, signature, MAX_DELAY_RAIN)) {
+					updateRainOccurance(rainSignature, event.getDate());
 					result = true;
 				}
 				else {
 					//need to check last crash date consistency for corner case
-					lastCrashDate = db.getLastCrashDate(rainSignature);
-					if (lastCrashDate > GeneralEventDB.convertDateForDb(event.getDate())) {
-						//wrong last date, need clean
-						Log.w("BlackLister: wrong date detected - "+ lastCrashDate);
-						cleanRain(GeneralEventDB.convertDateForJava(lastCrashDate +
-											 EventDB.RAIN_DURATION_MAX + 1 ));
+					int eventDate = Utils.convertDateForDb(event.getDate());
+					lastCrashDate = db.getLastCrashDate(signature);
+					if (lastCrashDate > eventDate) {
+						Log.w("BlackLister: wrong date detected - "
+							+ lastCrashDate);
+						cleanRain(Utils.convertDateForJava(lastCrashDate
+							+ RAIN_DURATION_MAX + 1 ));
 						lastCrashDate = -1;
 					}
 
-					result = db.checkNewRain(event, lastCrashDate);
+					result = checkNewRain(event, lastCrashDate);
 				}
 			}
 			else {
-				result = db.checkNewRain(event);
+				result = checkNewRain(event, -1);
 			}
-			if (result) {
-				db.addBlackEvent(event, "RAIN");
+			if(result) {
+				db.addBlackEvent(event, "RAIN", rainSignature.querySignature());
 				Log.w("BlackLister: event "+event.getEventId()+" is RAIN");
 			}
 		}
@@ -137,7 +204,7 @@ public class BlackLister {
 	public void cleanRain(Date date) {
 		Cursor cursor = null;
 		try{
-			cursor = db.fetchLastRain(date);
+			cursor = db.fetchLastRain(date, RAIN_DURATION_MAX);
 			if(cursor != null){
 				while(!cursor.isAfterLast()) {
 					String type = cursor.getString(cursor.getColumnIndex("type"));
@@ -163,7 +230,11 @@ public class BlackLister {
 						}
 						blackEvents.close();
 					}
-					db.deleteRainEvent(new RainSignature(type,data0,data1,data2,data3));
+
+					RainSignature rain = new RainSignature(type, data0,
+							data1, data2, data3);
+					notifyEndOfRain(rain);
+					db.deleteRainEvent(rain.querySignature());
 					cursor.moveToNext();
 				}
 				cursor.close();
@@ -222,7 +293,7 @@ public class BlackLister {
 				}
 			}
 			if (isEventDuplicate) {
-				db.addBlackEvent(event, "DUPLICATE");
+				db.addBlackEvent(event, "DUPLICATE", (new RainSignature(event)).querySignature() );
 				Log.i(module +"event "+event.getEventId()+" is DUPLICATE");
 				//the event is blacklisted so its crashlog directory shall be removed
 				CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
