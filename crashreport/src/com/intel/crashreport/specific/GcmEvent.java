@@ -35,6 +35,7 @@ import android.widget.Toast;
 import com.google.android.gcm.GCMRegistrar;
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CustomizableEventData;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.GeneralEventGenerator;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.GcmMessage.GCM_ACTION;

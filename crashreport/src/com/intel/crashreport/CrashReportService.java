@@ -48,7 +48,7 @@ import android.os.SystemProperties;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.Event;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.specific.PDStatus;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.crashreport.threads.EventUploadThread;
@@ -402,7 +402,7 @@ public class CrashReportService extends Service {
 					cursor.close();
 					throw new InterruptedException();
 				}
-				event = db.fillEventFromCursor(cursor);
+				event = new Event(db.fillEventFromCursor(cursor));
 				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.UPLOAD_TIME));
 				com.intel.crashtoolserver.bean.Event sEvent = event.getEventForServer(myBuild, app.getTokenGCM());
 				if (con.sendEvent(sEvent)) {

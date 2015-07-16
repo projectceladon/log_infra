@@ -30,21 +30,13 @@ import java.util.Scanner;
 
 import com.intel.crashreport.Log;
 
-public class BZFile {
-
-		private String summary = "";
-		private String description = "";
-		private String type = "";
-		private String component = "";
-		private String severity = "";
-		private ArrayList<String> screenshotsPath;
-		private boolean hasScreenshotPath = false;
+public class BZFile extends BZ {
 
 		private File bzFile;
 
 		public BZFile(String path) throws FileNotFoundException {
 			bzFile = openBzFile(path);
-			screenshotsPath = new ArrayList<String>();
+			screenshots = new ArrayList<String>();
 			fillBzFile(bzFile);
 
 		}
@@ -97,8 +89,8 @@ public class BZFile {
 						else if (name.equals("SEVERITY"))
 							severity = value;
 						else if (name.equals("SCREENSHOT")) {
-							screenshotsPath.add(value);
-							hasScreenshotPath = true;
+							screenshots.add(value);
+							hasScreenshot = true;
 						}
 						else if (name.equals("APLOG")) {
 							//nothing to do
@@ -115,89 +107,6 @@ public class BZFile {
 			}
 		}
 
-		public String getSummary() {
-			return summary;
-		}
-
-		public void setSummary(String summary) {
-			this.summary = summary;
-		}
-
-		public String getDescription() {
-			return description;
-		}
-
-		public void setDescription(String description) {
-			this.description = description;
-		}
-
-		public String getType() {
-			return type;
-		}
-
-		public void setType(String type) {
-			this.type = type;
-		}
-
-		public String getComponent() {
-			return component;
-		}
-
-		public void setComponent(String component) {
-			this.component = component;
-		}
-
-		public String getSeverity() {
-			return severity;
-		}
-
-		public void setSeverity(String severity) {
-			this.severity = severity;
-		}
-
-		public ArrayList<String> getScreenshotsPath() {
-			return screenshotsPath;
-		}
-
-		public String getScreenshotsPathToString() {
-			String path = "";
-			for(String screen:screenshotsPath) {
-				if(path.equals(""))
-					path = screen;
-				else
-					path += "," + screen;
-
-			}
-			return path;
-		}
-
-		public void setScreenshotsPath(String screenshotPath) {
-			try{
-				String screens[] = screenshotPath.split(",");
-				if(screens.length > 0) {
-					for(String screenshot:screens){
-						screenshotsPath.add(screenshot);
-					}
-				}
-
-			}
-			catch(NullPointerException e){
-				Log.w("BZ:setScreenshots: not screenshot founded");
-			}
-		}
-
-		public void setScreenshotsPath(ArrayList<String> listScreenshots) {
-			screenshotsPath = listScreenshots;
-		}
-
-		public boolean hasScreenshotPath() {
-			return hasScreenshotPath;
-		}
-
-		public void setHasScreenshotPath(boolean hasScreenshotPath) {
-			this.hasScreenshotPath = hasScreenshotPath;
-		}
-
 		public File getBzFile() {
 			return bzFile;
 		}
@@ -205,7 +114,4 @@ public class BZFile {
 		public void setBzFile(File bzFile) {
 			this.bzFile = bzFile;
 		}
-
-
-
 }

@@ -103,6 +103,21 @@ public class GeneralEvent {
 		this.date = date;
 	}
 
+	public GeneralEvent(GeneralEvent event) {
+		mParsableEvent = event.mParsableEvent;
+		ingredients = event.ingredients;
+		osBootMode = event.osBootMode;
+		uniqueKeyComponent = event.uniqueKeyComponent;
+		uploaded = event.uploaded;
+		logUploaded = event.logUploaded;
+		valid = event.valid;
+		date = event.date;
+
+		origin = event.origin;
+		pdStatus = event.pdStatus;
+		logsSize = event.logsSize;
+	}
+
 	public void readDeviceIdFromSystem() {
 		setDeviceId(getDeviceIdFromSystem());
 	}

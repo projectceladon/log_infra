@@ -60,7 +60,8 @@ import android.widget.TextView;
 import com.intel.crashreport.CrashReportService.LocalBinder;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 import com.intel.crashreport.specific.Event;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
+import com.intel.phonedoctor.Constants.EVENT_FILTER;
 import android.app.ActionBar;
 
 public class StartServiceActivity extends Activity {
@@ -92,12 +93,6 @@ public class StartServiceActivity extends Activity {
 	final Context context = this;
 	private boolean alreadyRegistered = false;
 	private int waitRequests;
-
-	public static enum EVENT_FILTER{
-		ALL,
-		INFO,
-		CRASH
-	}
 
 	private EVENT_FILTER search = EVENT_FILTER.ALL;
 
@@ -214,7 +209,8 @@ public class StartServiceActivity extends Activity {
 				if (cursor != null) {
 					cursor.moveToFirst();
 					while (!cursor.isAfterLast()) {
-						Event aEvent = db.fillEventFromCursor(cursor);
+						Event aEvent = new Event(
+								db.fillEventFromCursor(cursor));
 						listEvent.add(aEvent);
 						cursor.moveToNext();
 					}
@@ -654,7 +650,7 @@ public class StartServiceActivity extends Activity {
 			cursor = db.fetchNotNotifiedEvents(critical);
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
-					event = db.fillEventFromCursor(cursor);
+					event = new Event(db.fillEventFromCursor(cursor));
 					db.updateEventToNotified(event.getEventId());
 					cursor.moveToNext();
 				}

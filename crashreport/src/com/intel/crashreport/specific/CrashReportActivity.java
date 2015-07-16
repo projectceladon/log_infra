@@ -26,6 +26,7 @@ package com.intel.crashreport.specific;
 import java.io.FileNotFoundException;
 
 import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.GeneralCrashReportActivity;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.NotificationMgr;

@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
 import com.intel.phonedoctor.Constants;
 import com.intel.phonedoctor.utils.FileOps;

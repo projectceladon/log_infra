@@ -44,7 +44,7 @@ import com.intel.crashreport.CrashReportService.ServiceMsg;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.specific.Build;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.specific.Event;
 import com.intel.crashreport.specific.PhoneInspector;
 import com.intel.crashtoolserver.bean.FileInfo;
@@ -293,7 +293,7 @@ public class EventUploadThread implements Runnable {
 
 	private boolean processNextEvent(Build myBuild, Thread theRunningThread)
 			throws InterruptedException, ProtocolException {
-		Event event = eventDb.fillEventFromCursor(mCursor);
+		Event event = new Event(eventDb.fillEventFromCursor(mCursor));
 		if (PhoneInspector.getInstance(this.context).isUploadableLog(event.getEventId())){
 			File crashLogs = CrashLogs.getCrashLogsFile(
 					context,

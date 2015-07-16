@@ -21,17 +21,22 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport.specific;
+package com.intel.crashreport.database;
 
 import java.util.Date;
 
-import com.intel.crashreport.GeneralEventDB;
+import com.intel.crashreport.database.GeneralEventDB;
 import com.intel.crashreport.Log;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
+
+import com.intel.crashreport.specific.Event;
+import com.intel.crashreport.specific.EventGenerator;
+import com.intel.crashreport.specific.RainSignature;
+
 
 import com.intel.crashreport.specific.GcmMessage;
 

@@ -33,6 +33,7 @@ import com.google.android.gcm.GCMBaseIntentService;
 import com.google.android.gcm.GCMRegistrar;
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.NotificationMgr;
 
 /**

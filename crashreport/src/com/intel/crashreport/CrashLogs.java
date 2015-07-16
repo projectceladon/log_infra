@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 import com.intel.phonedoctor.utils.FileOps;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteException;

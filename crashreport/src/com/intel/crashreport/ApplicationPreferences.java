@@ -32,7 +32,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 
-import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
+import com.intel.phonedoctor.Constants.EVENT_FILTER;
 import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
 import com.intel.phonedoctor.Constants;
 

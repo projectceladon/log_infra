@@ -39,7 +39,7 @@ import android.telephony.TelephonyManager;
 import com.intel.crashreport.bugzilla.BZFile;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.Event;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.specific.PDStatus;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
 import com.intel.phonedoctor.utils.FileOps;
@@ -100,9 +100,15 @@ public enum GeneralEventGenerator {
 				event.setPdStatus(PDStatus.INSTANCE.computePDStatus(event, PDSTATUS_TIME.INSERTION_TIME));
 
 				db.addEvent(event);
+				CrashReport ap = (CrashReport)mContext;
+				db.updateDeviceInformation(event.getDeviceId(), event.getImei(),
+						Event.getSSN(), ap.getTokenGCM(), Event.getSpid());
+
 				if(event.getEventName().equals("BZ")){
 					BZFile bzDescription = new BZFile(event.getCrashDir());
-					db.addBZ(event.getEventId(), bzDescription, event.getDate());
+					bzDescription.setEventId(event.getEventId());
+					bzDescription.setCreationDate(event.getDate());
+					db.addBZ(bzDescription);
 				}
 				db.close();
 				if (toNotify) {

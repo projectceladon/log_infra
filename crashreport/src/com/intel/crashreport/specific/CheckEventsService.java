@@ -39,6 +39,7 @@ import android.os.Message;
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportService;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.Logger;
 import com.intel.crashreport.NotificationMgr;
@@ -235,6 +236,9 @@ public class CheckEventsService extends Service {
 								if (result) {
 
 									long ret = db.addEvent(event);
+									db.updateDeviceInformation(event.getDeviceId(), event.getImei(),
+											Event.getSSN(), app.getTokenGCM(),
+											Event.getSpid());
 									if (ret == -1)
 										Log.w(from+": Event error when added to DB, " + event.toString());
 									else if (ret == -2)
@@ -252,7 +256,9 @@ public class CheckEventsService extends Service {
 										if (event.getEventName().equals("BZ")) {
 											try {
 												BZFile bzfile = new BZFile(event.getCrashDir());
-												db.addBZ(event.getEventId(), bzfile, event.getDate());
+												bzfile.setEventId(event.getEventId());
+												bzfile.setCreationDate(event.getDate());
+												db.addBZ(bzfile);
 												Log.d(from+": BZ added in DB, " + histEvent.getEventId());
 											} catch (FileNotFoundException e) {
 												Log.e("bzfile not found during history_event parsing");

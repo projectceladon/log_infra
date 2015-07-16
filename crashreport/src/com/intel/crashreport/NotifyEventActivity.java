@@ -32,7 +32,7 @@ import android.database.Cursor;
 import java.util.*;
 
 import com.intel.crashreport.specific.Event;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 
 
 public class NotifyEventActivity extends Activity {
@@ -68,7 +68,7 @@ public class NotifyEventActivity extends Activity {
 			cursor = db.fetchNotNotifiedEvents(critical);
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
-					event = db.fillEventFromCursor(cursor);
+					event = new Event(db.fillEventFromCursor(cursor));
 					String eventType = event.getType();
 					if (eventType != null && infos.containsKey(eventType)) {
 						Integer resultHash = infos.get(eventType);
@@ -114,7 +114,7 @@ public class NotifyEventActivity extends Activity {
 			cursor = db.fetchNotNotifiedEvents(critical);
 			if (cursor != null) {
 				while (!cursor.isAfterLast()) {
-					event = db.fillEventFromCursor(cursor);
+					event = new Event(db.fillEventFromCursor(cursor));
 					db.updateEventToNotified(event.getEventId());
 					cursor.moveToNext();
 				}

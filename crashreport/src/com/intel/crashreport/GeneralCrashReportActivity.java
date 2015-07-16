@@ -32,8 +32,6 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceActivity;
 import android.widget.Toast;
 
-import com.intel.crashreport.specific.EventDB;
-
 public class GeneralCrashReportActivity extends PreferenceActivity {
 
 	protected CrashReport app;

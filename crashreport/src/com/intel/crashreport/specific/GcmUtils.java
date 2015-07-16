@@ -29,6 +29,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
 
 /**

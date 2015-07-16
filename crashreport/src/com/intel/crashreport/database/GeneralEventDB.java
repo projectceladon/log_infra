@@ -21,11 +21,11 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport;
+package com.intel.crashreport.database;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.Arrays;  
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -38,12 +38,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.intel.crashreport.StartServiceActivity.EVENT_FILTER;
 import com.intel.crashreport.bugzilla.BZ;
-import com.intel.crashreport.bugzilla.BZFile;
-import com.intel.crashreport.specific.Event;
+import com.intel.crashreport.CrashLogs;
+import com.intel.crashreport.GeneralEvent;
+import com.intel.crashreport.Log;
 
 import com.intel.phonedoctor.Constants;
+import com.intel.phonedoctor.Constants.EVENT_FILTER;
 
 public class GeneralEventDB {
 
@@ -344,13 +345,11 @@ public class GeneralEventDB {
 		initialValues.put(KEY_UNIQUEKEY_COMPONENT, uniqueKeyComponent);
 		initialValues.put(KEY_MODEM_VERSION_USED, modemVersionUsed);
 
-		CrashReport app = (CrashReport)mCtx;
-		updateDeviceInformation(deviceId,imei,GeneralEvent.getSSN(),app.getTokenGCM(),Event.getSpid());
 		removeOldCrashdir(crashDir);
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
 	}
 
-	public long addEvent(Event event) {
+	public long addEvent(GeneralEvent event) {
 		return addEvent(event.getEventId(),
 				event.getEventName(),
 				event.getType(),
@@ -457,8 +456,8 @@ public class GeneralEventDB {
 		return mCursor;
 	}
 
-	public Event fillEventFromCursor(Cursor cursor) {
-		Event event = new Event();
+	public GeneralEvent fillEventFromCursor(Cursor cursor) {
+		GeneralEvent event = new GeneralEvent();
 		event.setiRowID(cursor.getInt(cursor.getColumnIndex(KEY_ROWID)));
 		event.setEventId(cursor.getString(cursor.getColumnIndex(KEY_ID)));
 		event.setEventName(cursor.getString(cursor.getColumnIndex(KEY_NAME)));
@@ -914,9 +913,10 @@ public class GeneralEventDB {
 		return isEventExistFromWhereQuery(bQuery.toString());
 	}
 
-	public long addBZ(String eventId,BZFile bzfile,Date date) {
-		return addBZ(eventId,bzfile.getSummary(),bzfile.getDescription(),bzfile.getType(),bzfile.getSeverity(),bzfile.getComponent(),
-				bzfile.getScreenshotsPathToString(),date);
+	public long addBZ(BZ bz) {
+		return addBZ(bz.getEventId(), bz.getSummary(), bz.getDescription(), bz.getType(),
+				bz.getSeverity(), bz.getComponent(), bz.getScreenshotsToString(),
+				bz.getCreationDate());
 	}
 
 	public long addBZ(String eventId, String summary, String description,

@@ -38,6 +38,7 @@ import android.os.SystemProperties;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
 import com.intel.phonedoctor.Constants;
 import com.intel.crashreport.specific.ingredients.IngredientManager;

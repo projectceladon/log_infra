@@ -30,19 +30,19 @@ import com.intel.crashreport.Log;
 
 public class BZ {
 
-	private String eventId = "";
-	private String summary = "";
-	private String description = "";
-	private String component = "";
-	private String severity = "";
-	private String type = "";
-	private boolean hasScreenshot = false;
-	private ArrayList<String> screenshots;
-	private boolean isUploaded = false;
-	private boolean logsAreUploaded = false;
-	private boolean isValid = true;
-	private Date creationDate;
-	private Date uploadDate;
+	protected String eventId = "";
+	protected String summary = "";
+	protected String description = "";
+	protected String component = "";
+	protected String severity = "";
+	protected String type = "";
+	protected boolean hasScreenshot = false;
+	protected ArrayList<String> screenshots;
+	protected boolean isUploaded = false;
+	protected boolean logsAreUploaded = false;
+	protected boolean isValid = true;
+	protected Date creationDate;
+	protected Date uploadDate;
 	public static final int INVALID_STATE = -1;
 	public static final int UPLOADED_STATE = 0;
 	public static final int NOT_UPLOADED_STATE = 3;
@@ -76,6 +76,18 @@ public class BZ {
 
 	public void setScreenshots(ArrayList<String> screen) {
 		screenshots = screen;
+	}
+
+	public String getScreenshotsToString() {
+		String path = "";
+		for(String screen:screenshots) {
+			if(path.equals(""))
+				path = screen;
+			else
+				path += "," + screen;
+
+		}
+		return path;
 	}
 
 	public void setScreenshots(String screen) {

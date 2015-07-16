@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 import com.intel.crashreport.bugzilla.ui.common.BugStorage;
 import com.intel.crashreport.specific.Build;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.specific.EventGenerator;
 import com.intel.crashreport.StartServiceActivity;
 

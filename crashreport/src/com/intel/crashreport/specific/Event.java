@@ -51,6 +51,10 @@ public class Event extends GeneralEvent{
 		super();
 	}
 
+	public Event(GeneralEvent event) {
+		super(event);
+	}
+
 	public Event(int rowid, String eventId, String eventName, String type, String data0,
 			String data1, String data2, String data3,
 			String data4, String data5, String date, String buildId,

@@ -45,6 +45,7 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import com.intel.crashreport.ApplicationPreferences;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.R;

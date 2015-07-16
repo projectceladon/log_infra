@@ -28,12 +28,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-import com.intel.crashreport.GeneralEventDB;
+import com.intel.crashreport.database.GeneralEventDB;
 
 public class BlackLister {
 	private static final String module = "BlackLister: ";

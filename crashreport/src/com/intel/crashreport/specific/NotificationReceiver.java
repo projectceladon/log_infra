@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportRequest;
 import com.intel.crashreport.CrashReportService;
+import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.GeneralNotificationReceiver;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.GcmUtils;

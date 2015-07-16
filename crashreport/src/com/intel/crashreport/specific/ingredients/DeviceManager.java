@@ -35,7 +35,7 @@ import org.json.JSONObject;
 
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.Event;
-import com.intel.crashreport.specific.EventDB;
+import com.intel.crashreport.database.EventDB;
 import com.intel.phonedoctor.utils.FileOps;
 
 import android.database.Cursor;
@@ -93,7 +93,7 @@ public enum DeviceManager {
 		while (it.hasNext()){
 			String sId = it.next();
 			Cursor cursor = db.getEventFromId(sId);
-			Event curEvent = db.fillEventFromCursor(cursor);
+			Event curEvent = new Event(db.fillEventFromCursor(cursor));
 			cursor.close();
 
 			if (curEvent == null)
