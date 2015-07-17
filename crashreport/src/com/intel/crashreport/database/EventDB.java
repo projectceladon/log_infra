@@ -25,17 +25,17 @@ package com.intel.crashreport.database;
 
 import java.util.Date;
 
+import com.intel.crashreport.GeneralEvent;
 import com.intel.crashreport.database.GeneralEventDB;
 import com.intel.crashreport.Log;
+import com.intel.crashreport.specific.GcmMessage;
+
+import com.intel.crashtoolserver.bean.Device;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
-
-import com.intel.crashreport.GeneralEvent;
-
-import com.intel.crashreport.specific.GcmMessage;
 
 public class EventDB extends GeneralEventDB{
 
@@ -44,30 +44,6 @@ public class EventDB extends GeneralEventDB{
 
 	public EventDB(Context ctx) {
 		super(ctx);
-	}
-
-	public int getEntriesCount(String table, String where) {
-		Cursor cursor;
-		int count = -1;
-		cursor = mDb.rawQuery("SELECT count(*) FROM " + table
-				+ ((where != null) ? " WHERE " + where : ""), null);
-
-		if (cursor == null) {
-			Log.e("Cursor instance creation failed.");
-			return count;
-		}
-
-		try {
-			if(cursor.moveToFirst()) {
-				count = cursor.getInt(0);
-			}
-		} catch (SQLException e) {
-			Log.e("Could not move cursor to expected record.");
-		} finally {
-			cursor.close();
-		}
-
-		return count;
 	}
 
 	public int getMatchingRainEventsCount(int lastEvent, String signature) {
@@ -92,7 +68,8 @@ public class EventDB extends GeneralEventDB{
 		if(reason.equals("RAIN")) {
 			Cursor cursor = getRainEventInfo(signature);
 			if(cursor != null){
-				initialValues.put(KEY_RAINID, cursor.getString(cursor.getColumnIndex(KEY_ID)));
+				initialValues.put(KEY_RAINID,
+						cursor.getString(cursor.getColumnIndex(KEY_ID)));
 				cursor.close();
 			}
 		}
@@ -105,15 +82,13 @@ public class EventDB extends GeneralEventDB{
 	}
 
 	public Cursor fetchAllBlackEvents() throws SQLException {
-		return mDb.query(DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID, KEY_REASON}, null, null, null, null, null);
+		return selectEntries(DATABASE_BLACK_EVENTS_TABLE,
+				new String[] {KEY_ID, KEY_REASON});
 	}
 
 	public Cursor fetchBlackEventsFromQuery(String query) throws SQLException {
-		Cursor mCursor;
-		mCursor = mDb.query(DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID, KEY_REASON,KEY_CRASHDIR}, query, null, null, null, null);
-		if(mCursor != null)
-			mCursor.moveToFirst();
-		return mCursor;
+		return selectEntries(DATABASE_BLACK_EVENTS_TABLE,
+				new String[] {KEY_ID, KEY_REASON, KEY_CRASHDIR}, query);
 	}
 
 	/**
@@ -124,11 +99,7 @@ public class EventDB extends GeneralEventDB{
 	 * @throws SQLException
 	 */
 	public Cursor fetchRainOfCrashesFromQuery(String query) throws SQLException {
-		Cursor mCursor;
-		mCursor = mDb.query(DATABASE_RAIN_OF_CRASHES_TABLE, new String[] {KEY_DATE,KEY_TYPE,KEY_DATA0,KEY_DATA1,KEY_DATA2,KEY_DATA3,KEY_ID,KEY_OCCURRENCES,KEY_LAST_FIBONACCI,KEY_NEXT_FIBONACCI}, query, null, null, null, null);
-		if(mCursor != null)
-			mCursor.moveToFirst();
-		return mCursor;
+		return selectEntries(DATABASE_RAIN_OF_CRASHES_TABLE, rainTableColums, query);
 	}
 
 	public Cursor fetchBlackEventsRain(String rainId) throws SQLException {
@@ -145,7 +116,7 @@ public class EventDB extends GeneralEventDB{
 	 * @throws SQLException
 	 */
 	public Cursor fetchLastRain(Date date, int maxDuration) throws SQLException {
-		int mDate = convertDateForDb(date);
+		int mDate = Utils.convertDateForDb(date);
 		mDate -= maxDuration;
 		return fetchRainOfCrashesFromQuery(KEY_DATE + " < " + mDate);
 	}
@@ -164,7 +135,7 @@ public class EventDB extends GeneralEventDB{
 		initialValues.put(KEY_DATA1, event.getData1());
 		initialValues.put(KEY_DATA2, event.getData2());
 		initialValues.put(KEY_DATA3, event.getData3());
-		initialValues.put(KEY_DATE, convertDateForDb(event.getDate()));
+		initialValues.put(KEY_DATE, Utils.convertDateForDb(event.getDate()));
 		initialValues.put(KEY_OCCURRENCES, 1);
 		initialValues.put(KEY_LAST_FIBONACCI, BEGIN_FIBONACCI_BEFORE);
 		initialValues.put(KEY_NEXT_FIBONACCI, BEGIN_FIBONACCI);
@@ -203,16 +174,15 @@ public class EventDB extends GeneralEventDB{
 			throws SQLException {
 		ContentValues args = new ContentValues();
 		args.put(KEY_OCCURRENCES, 1);
-		args.put(KEY_DATE, convertDateForDb(date) );
+		args.put(KEY_DATE, Utils.convertDateForDb(date));
 		args.put(KEY_LAST_FIBONACCI, BEGIN_FIBONACCI_BEFORE);
 		args.put(KEY_NEXT_FIBONACCI, BEGIN_FIBONACCI);
 		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature, null) > 0;
 	}
 
-
 	public boolean updateRainEvent(String signature, Date date, int occurences) {
 		ContentValues args = new ContentValues();
-		args.put(KEY_DATE, convertDateForDb(date));
+		args.put(KEY_DATE, Utils.convertDateForDb(date));
 		args.put(KEY_OCCURRENCES, occurences);
 
 		return mDb.update(DATABASE_RAIN_OF_CRASHES_TABLE, args, signature, null) > 0;
@@ -221,7 +191,7 @@ public class EventDB extends GeneralEventDB{
 	public boolean updateRainEvent(String signature, Date date, int occurences,
 			int nextFibo, int lastFibo) {
 		ContentValues args = new ContentValues();
-		args.put(KEY_DATE, convertDateForDb(date));
+		args.put(KEY_DATE, Utils.convertDateForDb(date) );
 		args.put(KEY_OCCURRENCES, occurences);
 		args.put(KEY_NEXT_FIBONACCI, nextFibo);
 		args.put(KEY_LAST_FIBONACCI, lastFibo);
@@ -230,8 +200,7 @@ public class EventDB extends GeneralEventDB{
 	}
 
 	public boolean deleteRainEvent(String signature) {
-		String whereQuery = signature;
-		return mDb.delete(DATABASE_RAIN_OF_CRASHES_TABLE, whereQuery, null) > 0;
+		return mDb.delete(DATABASE_RAIN_OF_CRASHES_TABLE, signature, null) > 0;
 	}
 
 	public boolean isRainEventExist(String signature) {
@@ -247,17 +216,8 @@ public class EventDB extends GeneralEventDB{
 	 * @throws SQLException
 	 */
 	public boolean isEventInBlackList(String eventId) throws SQLException{
-		Cursor mCursor;
-		Boolean ret;
-		mCursor = mDb.query(true, DATABASE_BLACK_EVENTS_TABLE, new String[] {KEY_ID},
-				KEY_ID + " = '" + eventId + "'", null,
-				null, null, null, null);
-		if (mCursor != null) {
-			ret = mCursor.moveToFirst();
-			mCursor.close();
-			return ret;
-		}
-		return false;
+		return ((getEntriesCount(DATABASE_BLACK_EVENTS_TABLE,
+				KEY_ID + " = '" + eventId + "'") > 0) ? true : false);
 	}
 
 	/**
@@ -266,18 +226,18 @@ public class EventDB extends GeneralEventDB{
 	 * exceed the maximum delay, it is considered as part of the current rain.
 	 *
 	 * @param event to test
-	 * @return true if the event belongs to the current rain with matching signature. False otherwise.
+	 * @return true only if the event belongs to the current rain with matching signature.
 	 * @throws SQLException
 	 */
 	public boolean isInTheCurrentRain(GeneralEvent event, String signature, int maxDelay)
 			throws SQLException {
 		Date date = event.getDate();
 
-		Cursor mCursor = getRainEventInfo(signature);
-		if (mCursor != null) {
-			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
-			mCursor.close();
-			int newDate = convertDateForDb(date);
+		Cursor cursor = getRainEventInfo(signature);
+		if (cursor != null) {
+			int lastEvent = cursor.getInt(cursor.getColumnIndex(KEY_DATE));
+			cursor.close();
+			int newDate = Utils.convertDateForDb(date);
 			if( lastEvent <= newDate) {
 				if ( (newDate - lastEvent) <=  maxDelay) {
 					return true;
@@ -300,10 +260,10 @@ public class EventDB extends GeneralEventDB{
 	 */
 	public int getLastCrashDate(String signature) throws SQLException {
 
-		Cursor mCursor = getRainEventInfo(signature);
-		if (mCursor != null) {
-			int lastEvent = mCursor.getInt(mCursor.getColumnIndex(KEY_DATE));
-			mCursor.close();
+		Cursor cursor = getRainEventInfo(signature);
+		if (cursor != null) {
+			int lastEvent = cursor.getInt(cursor.getColumnIndex(KEY_DATE));
+			cursor.close();
 			return lastEvent;
 		}
 		return 0;
@@ -311,25 +271,17 @@ public class EventDB extends GeneralEventDB{
 
 
 	public int checkPathStatus(String sPath) throws SQLException {
-		Cursor mCursor;
-		int ret;
-		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_UPLOADLOG},
-				KEY_CRASHDIR + " = '" + sPath + "'", null,
-				null, null, null, null);
-		if (mCursor != null) {
-			mCursor.moveToNext();
-			if (mCursor.isAfterLast()) {
-				// unreferenced path
-				ret = -1;
-			}
-			else {
-				ret = mCursor.getInt(mCursor.getColumnIndex(KEY_UPLOADLOG));
-			}
+		int ret = -1;
+		Cursor cursor = selectEntries(DATABASE_TABLE,
+				new String[] {KEY_UPLOADLOG},
+				KEY_CRASHDIR + " = '" + sPath + "'");
 
-			mCursor.close();
-			return ret;
-		}
-		return 0;
+		if (cursor == null)
+			return 0;
+
+		ret = cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG));
+		cursor.close();
+		return ret;
 	}
 
 	/**
@@ -350,12 +302,11 @@ public class EventDB extends GeneralEventDB{
 		if(aGcmMessage.getDate() == null) {
 			aGcmMessage.setDate(new Date());
 		}
-		String typeAsString = GcmMessage.getTypeLabel(aGcmMessage.getType());
 
 		return addGcmMessage(
 				aGcmMessage.getTitle(),
 				aGcmMessage.getText(),
-				typeAsString,
+				GcmMessage.getTypeLabel(aGcmMessage.getType()),
 				aGcmMessage.getData(),
 				aGcmMessage.getDate());
 	}
@@ -367,13 +318,15 @@ public class EventDB extends GeneralEventDB{
 	 */
 	public GcmMessage fillGCMFromCursor(Cursor cursor) {
 
-		Date date = convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
-		GcmMessage message = new GcmMessage(cursor.getInt(cursor.getColumnIndex(KEY_ROWID)),
+		Date date = Utils.convertDateForJava(
+			cursor.getInt(cursor.getColumnIndex(KEY_DATE)));
+		GcmMessage message = new GcmMessage(
+				cursor.getInt(cursor.getColumnIndex(KEY_ROWID)),
 				cursor.getString(cursor.getColumnIndex(KEY_GCM_TITLE)),
 				cursor.getString(cursor.getColumnIndex(KEY_GCM_TEXT)),
 				cursor.getString(cursor.getColumnIndex(KEY_TYPE)),
 				cursor.getString(cursor.getColumnIndex(KEY_GCM_DATA)),
-				cursor.getInt(cursor.getColumnIndex(KEY_NOTIFIED))==1,
+				cursor.getInt(cursor.getColumnIndex(KEY_NOTIFIED)) == 1,
 				date);
 
 		return message;
@@ -385,18 +338,42 @@ public class EventDB extends GeneralEventDB{
 	 * @return the gcm message
 	 */
 	public GcmMessage getGcmMessageFromId(int rowId) {
-		Cursor mCursor;
-		String whereQuery = KEY_ROWID+"="+rowId;
+		Cursor cursor;
 		GcmMessage message = null;
 
-		mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
-				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, whereQuery, null,
-				null, null, null, null);
-		if (mCursor != null) {
-			mCursor.moveToFirst();
-			message = fillGCMFromCursor(mCursor);
-			mCursor.close();
+		cursor = selectEntries(DATABASE_GCM_MESSAGES_TABLE, gcmTableColums,
+				KEY_ROWID + "=" + rowId);
+
+		if (cursor != null) {
+			message = fillGCMFromCursor(cursor);
+			cursor.close();
 		}
 		return message;
+	}
+
+	private Device fillDeviceFromCursor(Cursor cursor) {
+		String imei = cursor.getString(cursor.getColumnIndex(KEY_IMEI));
+		String deviceId = cursor.getString(cursor.getColumnIndex(KEY_DEVICEID));
+		String sSSN = cursor.getString(cursor.getColumnIndex(KEY_DEVICE_SSN));
+		String sSPID = cursor.getString(cursor.getColumnIndex(KEY_DEVICE_SPID));
+		String sTokenGCM = cursor.getString(cursor.getColumnIndex(KEY_DEVICE_TOKEN));
+
+		if (sSSN.equals("")) sSSN = null;
+		return new Device(deviceId, imei, sSSN, sTokenGCM, sSPID);
+	}
+
+	public Device fillDeviceInformation() {
+		Cursor cursor;
+		Device device = null;
+
+		cursor = selectEntries(DATABASE_DEVICE_TABLE,
+				deviceTableColums);
+
+		if (cursor != null) {
+			cursor.moveToFirst();
+			device = fillDeviceFromCursor(cursor);
+			cursor.close();
+		}
+		return device;
 	}
 }

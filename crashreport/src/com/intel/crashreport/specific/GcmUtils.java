@@ -113,22 +113,22 @@ public class GcmUtils {
 	/**
 	 * Marks all the GCM messages as read.
 	 *
-	 * @return the number of messages that have been updated.
+	 * @return boolean value indicating whether or not entries within
+	 *		the database have been updated.
 	 */
-	public int markAllAsRead() {
+	public boolean markAllAsRead() {
 		// Update all the GCM messages
-		int count = -1;
+		boolean modified = false;
 		try {
 			EventDB db = new EventDB(this.getContext());
 			db.open();
-			count = db.markAllGcmMessagesAsRead();
+			modified = db.markAllGcmMessagesAsRead();
 			db.close();
-			return count;
 		}
 		catch (SQLException e){
 			Log.e("Exception occured while generating GCM messages list :" + e.getMessage());
 		}
-		return count;
+		return modified;
 	}
 
 	/**

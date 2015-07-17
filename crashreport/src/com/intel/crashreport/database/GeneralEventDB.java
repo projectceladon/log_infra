@@ -25,7 +25,7 @@ package com.intel.crashreport.database;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;  
+import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -46,9 +46,9 @@ import com.intel.crashreport.Log;
 import com.intel.phonedoctor.Constants;
 import com.intel.phonedoctor.Constants.EVENT_FILTER;
 
-public class GeneralEventDB {
+import java.util.List;
 
-	private static final int COEF_S_TO_MS = 1000;
+public class GeneralEventDB extends General {
 
 	private static final String DATABASE_NAME = "eventlogs.db";
 	protected static final String DATABASE_TABLE = "events";
@@ -228,75 +228,37 @@ public class GeneralEventDB {
 					KEY_DEVICE_TOKEN + " text, " +
 					KEY_DEVICE_SPID + " text);";
 
-	private DatabaseHelper mDbHelper;
-	protected SQLiteDatabase mDb;
+	public static final String[] gcmTableColums = new String[] {KEY_ROWID, KEY_GCM_TITLE,
+			KEY_GCM_TEXT, KEY_TYPE, KEY_GCM_DATA, KEY_DATE, KEY_NOTIFIED};
 
-	private final Context mCtx;
+	public static final String[] deviceTableColums = new String[] {KEY_DEVICEID, KEY_IMEI,
+			KEY_DEVICE_SSN, KEY_DEVICE_TOKEN, KEY_DEVICE_SPID};
 
-	private static class DatabaseHelper extends SQLiteOpenHelper {
+	public static final String[] eventsTableColums = new String[] {KEY_ROWID, KEY_ID, KEY_NAME,
+				KEY_TYPE, KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4,
+				KEY_DATA5, KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT,
+				KEY_INGREDIENTS, KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT,
+				KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME, KEY_UPLOAD,
+				KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY,
+				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE, KEY_EVENT_CLEANED};
 
-		DatabaseHelper(Context context) {
-			super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		}
+	public static final String[] rainTableColums = new String[] {KEY_DATE, KEY_TYPE, KEY_DATA0,
+				KEY_DATA1, KEY_DATA2, KEY_DATA3,  KEY_ID, KEY_OCCURRENCES,
+				KEY_LAST_FIBONACCI, KEY_NEXT_FIBONACCI};
 
-		@Override
-		public void onCreate(SQLiteDatabase db) {
-			db.execSQL(DATABASE_CREATE);
-			db.execSQL(DATABASE_TYPE_CREATE);
-			db.execSQL(DATABASE_CRITICAL_EVENTS_CREATE);
-			db.execSQL(DATABASE_BZ_CREATE);
-			db.execSQL(DATABASE_BLACK_EVENTS_CREATE);
-			db.execSQL(DATABASE_RAIN_CREATE);
-			db.execSQL(DATABASE_GCM_MESSAGES_CREATE);
-			db.execSQL(DATABASE_DEVICE_CREATE);
-		}
-
-		@Override
-		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			Log.w("Upgrading database from version " + oldVersion + " to "
-					+ newVersion + ", which will destroy all old data");
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BZ_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TYPE_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_EVENTS_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_GCM_MESSAGES_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_DEVICE_TABLE);
-			onCreate(db);
-		}
-
-		@Override
-		public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			Log.w("Downgrading database from version " + oldVersion + " to "
-					+ newVersion + ", which will destroy all old data");
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BZ_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TYPE_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_EVENTS_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_CRITICAL_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_BLACK_EVENTS_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_RAIN_OF_CRASHES_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_GCM_MESSAGES_TABLE);
-			db.execSQL("DROP TABLE IF EXISTS " + DATABASE_DEVICE_TABLE);
-			onCreate(db);
-		}
-	}
+	public static final List<Table> tables = Arrays.asList(
+		new Table(DATABASE_TABLE, DATABASE_CREATE),
+		new Table(DATABASE_TYPE_TABLE, DATABASE_TYPE_CREATE),
+		new Table(DATABASE_CRITICAL_EVENTS_TABLE, DATABASE_CRITICAL_EVENTS_CREATE),
+		new Table(DATABASE_BLACK_EVENTS_TABLE, DATABASE_BLACK_EVENTS_CREATE),
+		new Table(DATABASE_RAIN_OF_CRASHES_TABLE, DATABASE_RAIN_CREATE),
+		new Table(DATABASE_BZ_TABLE, DATABASE_BZ_CREATE),
+		new Table(DATABASE_GCM_MESSAGES_TABLE, DATABASE_GCM_MESSAGES_CREATE),
+		new Table(DATABASE_DEVICE_TABLE, DATABASE_DEVICE_CREATE)
+	);
 
 	public GeneralEventDB(Context ctx) {
-		this.mCtx = ctx;
-	}
-
-	public GeneralEventDB open() throws SQLException, SQLiteException {
-		mDbHelper = new DatabaseHelper(mCtx);
-		mDb = mDbHelper.getWritableDatabase();
-		return this;
-	}
-
-	public void close() {
-		if (mDb != null)
-			mDb.close();
+		super(ctx, DATABASE_NAME, DATABASE_VERSION, tables);
 	}
 
 	public long addEvent(String eventId, String eventName, String type,
@@ -307,7 +269,7 @@ public class GeneralEventDB {
 			String ingredients, String osBootMode, String uniqueKeyComponent,
 			String modemVersionUsed) {
 		ContentValues initialValues = new ContentValues();
-		int eventDate = convertDateForDb(date);
+		int eventDate = Utils.convertDateForDb(date);
 		if (eventName.equals("")) return -2;
 		else if (eventDate == -1) return -3;
 
@@ -325,16 +287,18 @@ public class GeneralEventDB {
 		initialValues.put(KEY_DEVICEID, deviceId);
 		initialValues.put(KEY_IMEI, imei);
 		initialValues.put(KEY_UPTIME, uptime);
-		initialValues.put(KEY_UPLOAD, isEventLogsValid(type) ? 0 : -1); /* Set event as invalid if needed */
+				/* Set event as invalid if needed */
+		initialValues.put(KEY_UPLOAD, Utils.isEventLogsValid(type) ? 0 : -1);
 		initialValues.put(KEY_CRASHDIR, crashDir);
-		initialValues.put(KEY_UPLOADLOG, isEventLogsValid(type) ? 0 : -1);
+		initialValues.put(KEY_UPLOADLOG, Utils.isEventLogsValid(type) ? 0 : -1);
 		initialValues.put(KEY_NOTIFIED, 0);
 		if(bDataReady)
 			initialValues.put(KEY_DATA_READY, 1);
 		else
 			initialValues.put(KEY_DATA_READY, 0);
 		if (bDataReady && !crashDir.isEmpty())
-			initialValues.put(KEY_LOGS_SIZE, CrashLogs.getCrashLogsSize(mCtx,crashDir,eventId));
+			initialValues.put(KEY_LOGS_SIZE,
+					CrashLogs.getCrashLogsSize(mCtx,crashDir,eventId));
 		else
 			initialValues.put(KEY_LOGS_SIZE, 0);
 		initialValues.put(KEY_ORIGIN, origin);
@@ -375,85 +339,48 @@ public class GeneralEventDB {
 				event.getModemVersionUsed());
 	}
 
-	public boolean deleteEvent(String eventId) {
-
-		return mDb.delete(DATABASE_TABLE, KEY_ID + "='" + eventId + "'", null) > 0;
-	}
-
-	public Cursor fetchAllEvents() {
-
-		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
-				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
-				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
-				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED,
-				KEY_DATA_READY, KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE},
-				null, null, null, null, null);
-	}
-
 	public Cursor fetchLastNEvents(String sNlimit, EVENT_FILTER filter) {
-
 		String sQuery = null;
 
 		if(EVENT_FILTER.INFO == filter)
 			sQuery = KEY_NAME + "<> 'STATS'";
 		else if(EVENT_FILTER.CRASH == filter)
 			sQuery = KEY_NAME + "= 'CRASH'";
-		return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_ID, KEY_NAME, KEY_TYPE,
-				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5,
-				KEY_DATE, KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
-				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT,KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME,
-				KEY_UPLOAD, KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY,
-				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE},
-				sQuery, null, null, null, KEY_ROWID + " DESC", sNlimit);
+
+		return selectEntries(DATABASE_TABLE, eventsTableColums,
+				sQuery, KEY_ROWID, true, sNlimit);
 	}
 
-
 	public Cursor fetchNotUploadedEvents() throws SQLException {
-		String whereQuery = KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1'";
+		String whereQuery = KEY_UPLOAD + "='0' and " + KEY_DATA_READY + "='1'";
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
 	public Cursor fetchNotUploadedLogs(String crashTypes[]) throws SQLException {
-		StringBuilder bQuery = new StringBuilder("");
-		//need a big event name block
-		//starting block
-		bQuery.append("(");
-		bQuery.append("("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0') or ");
+		StringBuilder bQuery = new StringBuilder(
+				"( ("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES + " ) and "
+				+ KEY_UPLOADLOG + "='0') or (" + KEY_NAME + "='CRASH' and "
+				+ KEY_UPLOADLOG + "='0' and " + KEY_DATA_READY + "='1'");
+
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
 			if (sExcludedType != "") {
-				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in ("+sExcludedType+") and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
-			} else {
-				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
+				bQuery.append(" and " + KEY_TYPE
+						+ " not in (" + sExcludedType + ")");
 			}
-		} else {
-			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
-		//ending block
-		bQuery.append(")");
+		bQuery.append(") )");
 		/* Only logs for events already uploaded*/
-		bQuery.append(" and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR+" != ''");
-		Log.d("fetchNotUploadedLogs : Query string = " +bQuery.toString() );
+		bQuery.append(" and " + KEY_UPLOAD + "='1' and "
+				+ KEY_CRASHDIR+" != ''");
+		Log.d("fetchNotUploadedLogs : Query string = " + bQuery.toString() );
 		return fetchEventFromWhereQuery(bQuery.toString());
 
 	}
 
 	private Cursor fetchEventFromWhereQuery(String whereQuery) throws SQLException {
-		Cursor mCursor;
-
-		mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,KEY_ID, KEY_NAME, KEY_TYPE,
-				KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_DATE,
-				KEY_BUILDID, KEY_DEVICEID, KEY_VARIANT, KEY_INGREDIENTS,
-				KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT, KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME, KEY_CRASHDIR,
-				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY, KEY_ORIGIN,
-				KEY_PDSTATUS, KEY_LOGS_SIZE},
-				whereQuery, null, null, null, null, null);
-		if (mCursor != null) {
-			mCursor.moveToFirst();
-		}
-		return mCursor;
+		return selectEntries(DATABASE_TABLE, eventsTableColums, whereQuery);
 	}
 
 	public GeneralEvent fillEventFromCursor(Cursor cursor) {
@@ -468,13 +395,16 @@ public class GeneralEventDB {
 		event.setData3(cursor.getString(cursor.getColumnIndex(KEY_DATA3)));
 		event.setData4(cursor.getString(cursor.getColumnIndex(KEY_DATA4)));
 		event.setData5(cursor.getString(cursor.getColumnIndex(KEY_DATA5)));
-		event.setDate(convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_DATE))));
+		event.setDate(Utils.convertDateForJava(
+				cursor.getInt(cursor.getColumnIndex(KEY_DATE))));
 		event.setBuildId(cursor.getString(cursor.getColumnIndex(KEY_BUILDID)));
 		event.setDeviceId(cursor.getString(cursor.getColumnIndex(KEY_DEVICEID)));
 		event.setVariant(cursor.getString(cursor.getColumnIndex(KEY_VARIANT)));
 		event.setIngredients(cursor.getString(cursor.getColumnIndex(KEY_INGREDIENTS)));
-		event.setUniqueKeyComponent(cursor.getString(cursor.getColumnIndex(KEY_UNIQUEKEY_COMPONENT)));
-		event.setModemVersionUsed(cursor.getString(cursor.getColumnIndex(KEY_MODEM_VERSION_USED)));
+		event.setUniqueKeyComponent(
+				cursor.getString(cursor.getColumnIndex(KEY_UNIQUEKEY_COMPONENT)));
+		event.setModemVersionUsed(
+				cursor.getString(cursor.getColumnIndex(KEY_MODEM_VERSION_USED)));
 		event.setOsBootMode(cursor.getString(cursor.getColumnIndex(KEY_OS_BOOT_MODE)));
 		event.setImei(cursor.getString(cursor.getColumnIndex(KEY_IMEI)));
 		event.setUptime(cursor.getString(cursor.getColumnIndex(KEY_UPTIME)));
@@ -487,7 +417,6 @@ public class GeneralEventDB {
 		event.setPdStatus(cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS)));
 		event.setLogsSize(cursor.getInt(cursor.getColumnIndex(KEY_LOGS_SIZE)));
 
-
 		return event;
 	}
 
@@ -498,12 +427,11 @@ public class GeneralEventDB {
 	 * @throws SQLException
 	 */
 	public Cursor getEventFromId(String eventId) throws SQLException{
-		String whereQuery = KEY_ID + "='" + eventId +"'";
-		return fetchEventFromWhereQuery(whereQuery);
+		return fetchEventFromWhereQuery(KEY_ID + "='" + eventId +"'");
 	}
 
 	public Boolean isEventInDb(String eventId) throws SQLException {
-		return isEventExistFromWhereQuery(KEY_ID + "='" + eventId + "'");
+		return isEventInDatabase(KEY_ID + "='" + eventId + "'");
 	}
 
 	private String getExcludeTypeInLine(String crashTypes[])
@@ -519,40 +447,41 @@ public class GeneralEventDB {
 	}
 
 	public Boolean isThereEventToUpload() throws SQLException {
-		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1'");
-		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
-		return isEventExistFromWhereQuery(bQuery.toString());
+		String where = KEY_UPLOAD + "='0' and " + KEY_DATA_READY + "='1'";
+		Log.d("isThereEventToUpload : Query string = " + where);
+		return isEventInDatabase(where);
 	}
 
 	public Boolean isThereEventToUpload(String crashTypes[]) throws SQLException {
-		StringBuilder bQuery = new StringBuilder("("+KEY_UPLOAD+"='0' and "+KEY_DATA_READY+"='1')");
-		bQuery.append(" or ("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
-		appendQueryForCrashTypes(crashTypes,bQuery);
-		Log.d("isThereEventToUpload : Query string = " +bQuery.toString() );
-		return isEventExistFromWhereQuery(bQuery.toString());
+		StringBuilder where = new StringBuilder("(" + KEY_UPLOAD + "='0' and "
+				+ KEY_DATA_READY+"='1') or (" + KEY_NAME + " in ( "
+				+ OTHER_EVENT_NAMES + " ) and " + KEY_UPLOADLOG + "='0' and "
+				+ KEY_CRASHDIR + "!='' )");
+		appendQueryForCrashTypes(crashTypes,where);
+		Log.d("isThereEventToUpload : Query string = " + where.toString() );
+		return isEventInDatabase(where.toString());
 	}
 
 	public void appendQueryForCrashTypes(String crashTypes[],StringBuilder aQuery ) {
-		if (crashTypes != null) {
 
+		aQuery.append(" or (" + KEY_NAME + "='CRASH' and " + KEY_UPLOADLOG + "='0' and "
+				+ KEY_CRASHDIR + "!='' and " + KEY_DATA_READY + "='1' ");
+
+		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
 			if (sExcludedType != "") {
-				aQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in("+ sExcludedType +") and "
-						+KEY_UPLOADLOG + "='0' and "+ KEY_CRASHDIR + "!='' and "+ KEY_DATA_READY + "='1' )");
-			} else {
-				// Case with no excluded type but still need to check Uploadlog
-				aQuery.append(" or ("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' and "+ KEY_DATA_READY + "='1' )");
+				aQuery.append(" and " + KEY_TYPE
+						+ " not in(" + sExcludedType + ")");
 			}
-		} else {
-			// Case with no excluded type but still need to check Uploadlog
-			aQuery.append(" or ("+KEY_NAME+"='CRASH' and "+ KEY_UPLOADLOG +"='0' and "+ KEY_CRASHDIR + "!='' and "+ KEY_DATA_READY + "='1' )");
 		}
+		aQuery.append(")");
 	}
 
 	public int getEventNumberLogToUpload(String crashTypes[]) {
 		StringBuilder bQuery = new StringBuilder(KEY_UPLOAD+"='1'");
-		bQuery.append(" and( ("+KEY_NAME+ " in  ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0' and "+ KEY_CRASHDIR + "!='' )");
+		bQuery.append(" and( ("+KEY_NAME + " in  ( " + OTHER_EVENT_NAMES +" ) and "
+				+ KEY_UPLOADLOG + "='0' and " + KEY_CRASHDIR + "!='' )");
 		appendQueryForCrashTypes(crashTypes,bQuery);
 		//required to close the query properly
 		bQuery.append(")");
@@ -561,34 +490,21 @@ public class GeneralEventDB {
 	}
 
 	public Boolean isThereEventToUploadNoReboot() throws SQLException {
-		return isEventExistFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "<>'REBOOT' AND "+KEY_DATA_READY + "='1'");
+		return isEventInDatabase(KEY_UPLOAD + "='0' AND "
+				+ KEY_NAME + "<>'REBOOT' AND " + KEY_DATA_READY + "='1'");
 	}
 
 	public Boolean isThereRebootToUpload() {
-		return isEventExistFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='REBOOT'");
+		return isEventInDatabase(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='REBOOT'");
 	}
 
-	protected Boolean isEventExistFromWhereQuery(String whereQuery) throws SQLException {
-		Cursor mCursor;
-		Boolean ret;
-		try{
-			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				ret = mCursor.moveToFirst();
-				mCursor.close();
-				return ret;
-			}
-		}catch(NullPointerException e){
-			Log.w("isEventExistsFromWhereQuery: Can't access to DB");
-			throw new SQLException("Can't open DB");
-		}
-		return false;
+	protected boolean isEventInDatabase(String where) throws SQLException {
+		return ((getEntriesCount(DATABASE_TABLE, where) > 0) ? true : false);
 	}
 
 	public int getNewCrashNumber() {
-		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND " + KEY_NAME + "='CRASH' and "+ KEY_DATA_READY + "='1'");
+		return getNumberFromWhereQuery(KEY_UPLOAD + "='0' AND "
+				+ KEY_NAME + "='CRASH' and " + KEY_DATA_READY + "='1'");
 	}
 
 	public int getNewUptimeNumber() {
@@ -604,19 +520,11 @@ public class GeneralEventDB {
 	}
 
 	public boolean updateEventToUploaded(String eventId) {
-		ContentValues args = new ContentValues();
-
-		args.put(KEY_UPLOAD, 1);
-
-		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return updateEventField(eventId, KEY_UPLOAD, "1");
 	}
 
 	public boolean updateEventLogToUploaded(String eventId) {
-		ContentValues args = new ContentValues();
-
-		args.put(KEY_UPLOADLOG, 1);
-
-		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return updateEventField(eventId, KEY_UPLOADLOG, "1");
 	}
 
 	public boolean updateEventCrashdir(String eventId, String crashDir) {
@@ -626,107 +534,65 @@ public class GeneralEventDB {
 		if(crashDir.isEmpty())
 			args.put(KEY_LOGS_SIZE, 0);
 
-		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return mDb.update(DATABASE_TABLE, args,
+				KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
 	public boolean removeOldCrashdir(String crashDir) {
+		return updateEventsOnLogPaths(crashDir, KEY_CRASHDIR, "");
+	}
+
+	public boolean updateEventsOnLogPaths(String crashDir, String field, String data) {
 		ContentValues args = new ContentValues();
 
-		args.put(KEY_CRASHDIR, "");
 		if(crashDir.isEmpty())
 			return false;
 
-		return mDb.update(DATABASE_TABLE, args, KEY_CRASHDIR + "='" + crashDir + "'", null) > 0;
+		args.put(field, data);
+		return mDb.update(DATABASE_TABLE, args,
+				KEY_CRASHDIR + "='" + crashDir + "'", null) > 0;
 	}
 
 	public boolean updateEventField(String eventId, String field, String data) {
 		ContentValues args = new ContentValues();
-
 		args.put(field, data);
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
-	}
-
-	public static int convertDateForDb(Date date) {
-		if (date==null) {
-			return -1;
-		}
-		return (int)(date.getTime() / COEF_S_TO_MS);
-	}
-
-	public static Date convertDateForJava(int date) {
-		long dateLong = date;
-		dateLong = dateLong * COEF_S_TO_MS;
-		return new Date(dateLong);
 	}
 
 	public long addType(String type,int critical) {
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_TYPE, type);
-		initialValues.put(KEY_CRITICAL,critical);
+		initialValues.put(KEY_CRITICAL, critical);
 
 		return mDb.insert(DATABASE_TYPE_TABLE, null, initialValues);
 	}
 
-	public void addTypes(String[] types,int critical){
+	public void addTypes(String[] types, int critical){
 		for(String type : types){
-			addType(type,critical);
+			addType(type, critical);
 		}
 	}
 
-	public Boolean isTypeListEmpty() throws SQLException {
-		return !isTypeExistFromWhereQuery(null);
+	public boolean isTypeListEmpty() throws SQLException {
+		return !isTypeInDatabase(null);
 	}
 
-	private int getNumberFromWhereQuery(String whereQuery) {
-		Cursor mCursor;
-		int count;
-		try {
-			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				mCursor.close();
-				return count;
-			}
-		} catch (SQLException e) {
-			return 0;
-		} catch (NullPointerException e) {
-			return 0;
-		}
-		return 0;
+	private int getNumberFromWhereQuery(String where) {
+		return getEntriesCount(DATABASE_TABLE, where);
 	}
 
 	public boolean updateEventToNotified(String eventId) {
-		ContentValues args = new ContentValues();
-
-		args.put(KEY_NOTIFIED, 1);
-
-		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return updateEventField(eventId, KEY_UPLOAD, "1");
 	}
 
-	private Boolean isTypeExistFromWhereQuery(String whereQuery) {
-		Cursor mCursor;
-		Boolean ret;
-		try {
-			mCursor = mDb.query(true, DATABASE_TYPE_TABLE, new String[] {KEY_TYPE},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				ret = mCursor.moveToFirst();
-				mCursor.close();
-				return ret;
-			}
-		} catch (SQLException e) {
-			return false;
-		}
-		return false;
+	private boolean isTypeInDatabase(String where) {
+		return ((getEntriesCount(DATABASE_TYPE_TABLE, where) > 0) ? true : false);
 	}
 
 	public boolean isTypeInDb(String type){
-		return isTypeExistFromWhereQuery(KEY_TYPE + "='" + type + "'");
+		return isTypeInDatabase(KEY_TYPE + "='" + type + "'");
 	}
 
 	/**
@@ -736,63 +602,56 @@ public class GeneralEventDB {
 	 * @throws SQLException
 	 */
 	public Cursor fetchNotNotifiedEvents(boolean critical) throws SQLException {
-		String whereQuery = KEY_NOTIFIED+"='0' and "+
-				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"="+(critical?"1":"0")+")"
-				+ (critical?" or":" and")+" ("+KEY_ID+(critical?"":" not")+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+		String whereQuery = KEY_NOTIFIED+"='0' and "+ "("
+				+ KEY_TYPE + " in (select " + KEY_TYPE
+				+ " from " + DATABASE_TYPE_TABLE
+				+ " where " + KEY_CRITICAL + "="
+				+ (critical?"1":"0")+")" + (critical?" or":" and")
+				+ " ("+KEY_ID + (critical?"":" not")
+				+ " in (" + SELECT_CRITICAL_EVENTS_QUERY + " )))";
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
 	/**
 	 * Check if there is events to be notified.
-	 * @param bAllCrashes true crashes events or critical events to notify, false only critical events to notify
+	 * @param bAllCrashes   true crashes events or critical events to notify,
+	 *			false only critical events to notify
 	 * @return true if there are events to notify
 	 * @throws SQLException
 	 */
 	public boolean isThereEventToNotify(boolean bAllCrashes) throws SQLException {
 
-		String whereQuery;
+		String where = KEY_NOTIFIED+"='0' and (";
 		if (bAllCrashes){
-			//all events related to known event_type are used (corresponds to crashes)
-			whereQuery= KEY_NOTIFIED+"='0' and ("+
-					KEY_NAME+"='CRASH' "
-					+ "or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+			//all events related to known event_type are used
+			where += KEY_NAME+"='CRASH'";
 		}else{
 			//critical only
-			whereQuery= KEY_NOTIFIED+"='0' and "+
-					"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-					DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"=1)"
-					+ " or ("+KEY_ID+" in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
+			where += KEY_TYPE + " in (select " + KEY_TYPE
+					+ " from " + DATABASE_TYPE_TABLE
+					+ " where " + KEY_CRITICAL + "=1)";
 
 		}
-		return isEventExistFromWhereQuery(whereQuery);
+		where += " or (" + KEY_ID + " in (" + SELECT_CRITICAL_EVENTS_QUERY + " )))";
+		return isEventInDatabase(where);
 	}
 
 	/**
 	 * Get number of events to notify
-	 * @param crash true to get uncritical crashes number, false to get all critical events number
+	 * @param crash true to get uncritical crashes number,
+	 * 		false to get all critical events number
 	 * @return uncritical crashes number or critical events number
 	 */
 	public int getEventsToNotifyNumber(boolean crash) {
-		Cursor mCursor;
-		int count;
-		String whereQuery = KEY_NOTIFIED+"='0' and "+
-				"("+KEY_TYPE + " in (select "+KEY_TYPE+" from "+
-				DATABASE_TYPE_TABLE+" where "+KEY_CRITICAL+"="+(crash?"0":"1")+")"
-				+ (crash?" and":" or")+" ("+KEY_ID+" "+(crash?"not ":"")+"in ("+SELECT_CRITICAL_EVENTS_QUERY+" )))";
-		try {
-			mCursor = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ID},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				mCursor.close();
-				return count;
-			}
-		} catch (SQLException e) {
-			return 0;
-		}
-		return 0;
+		String where = KEY_NOTIFIED + "='0' and " + "("
+				+ KEY_TYPE + " in (select " + KEY_TYPE
+				+ " from " + DATABASE_TYPE_TABLE + " where "
+				+ KEY_CRITICAL + "=" + (crash ? "0" : "1") + ")"
+				+ (crash ? " and" : " or") + " (" + KEY_ID + " "
+				+ (crash?"not ":"") + "in ("
+				+ SELECT_CRITICAL_EVENTS_QUERY + " )))";
+
+		return getEntriesCount(DATABASE_TABLE, where);
 	}
 
 	public int getCriticalEventsNumber() {
@@ -803,12 +662,12 @@ public class GeneralEventDB {
 		return getEventsToNotifyNumber(true);
 	}
 
-
 	public void deleteAllTypes(){
 		mDb.execSQL(DATABASE_TYPE_EMPTY);
 	}
 
-	public long insertCricitalEvent(String type, String data0, String data1, String data2, String data3, String data4, String data5){
+	public long insertCricitalEvent(String type, String data0, String data1,
+			String data2, String data3, String data4, String data5){
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_TYPE, type);
@@ -828,89 +687,80 @@ public class GeneralEventDB {
 
 	public boolean updateEventDataReady(String eventId) {
 		ContentValues args = new ContentValues();
+		Cursor cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_CRASHDIR},
+				KEY_ID + "='" + eventId + "'");
+		String crashDir = "";
 
-		args.put(KEY_DATA_READY, 1);
-		try{
-			String crashDir = getEventCrashDir(eventId);
-			if(!crashDir.isEmpty()){
-				args.put(KEY_LOGS_SIZE, CrashLogs.getCrashLogsSize(mCtx, crashDir, eventId));
+		if (cursor != null) {
+			try {
+				crashDir = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
+			} catch (SQLException e) {
+				crashDir = "";
 			}
+			cursor.close();
 		}
-		catch(SQLException e){
-			Log.e("GeneralEventDB:updateEventDataReady: can't access database");
-		}
+		args.put(KEY_DATA_READY, 1);
+
+		if(!crashDir.isEmpty())
+			args.put(KEY_LOGS_SIZE,
+					CrashLogs.getCrashLogsSize(mCtx, crashDir, eventId));
 
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
 	public boolean eventDataAreReady(String eventId) throws SQLException {
-		String whereQuery = KEY_ID+"='"+eventId+"' and "+KEY_DATA_READY+"=1";
-		return isEventExistFromWhereQuery(whereQuery);
+		String whereQuery = KEY_ID + "='" + eventId + "' and " + KEY_DATA_READY + "=1";
+		return isEventInDatabase(whereQuery);
 	}
 
 	public boolean updatePDStatus(String pdStatus, String eventId) {
-		ContentValues args = new ContentValues();
-
-		args.put(KEY_PDSTATUS, pdStatus);
-
-		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return updateEventField(eventId, KEY_PDSTATUS, pdStatus);
 	}
 
 	public void deleteEventsBeforeUpdate(String eventId){
-		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId+"')"
+		String whereQuery = KEY_ROWID + " < (select " + KEY_ROWID + " from "
+				+ DATABASE_TABLE + " where " + KEY_ID + "='" + eventId+"')"
 				+ " and "+KEY_NAME+"<> 'BZ'";
 		mDb.delete(DATABASE_TABLE, whereQuery, null);
 	}
 
-	/**
-	 * Get the crashlogs repository of an event
-	 * @param eventId event id of the crashlogs event repository to search
-	 * @return crashlogs repository
-	 * @throws SQLException
-	 */
-	public String getEventCrashDir(String eventId) throws SQLException{
-		String crashDir = "";
-		Cursor cursor = mDb.query(true,DATABASE_TABLE, new String[] {KEY_CRASHDIR}, KEY_ID + "='"+eventId+"'", null, null, null,
-				null,null);
-		if (cursor != null) {
-			if(cursor.moveToFirst())
-				crashDir = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
-			cursor.close();
-		}
-		return crashDir;
-	}
-
-	public Boolean isThereLogToUploadWithoutWifi(String crashTypes[]) throws SQLException {
+	public boolean isThereLogToUploadWithoutWifi(String crashTypes[])
+			throws SQLException {
 		return isThereLogToUploadByWifi(false, crashTypes);
 	}
 
-	public Boolean isThereLogToUploadWithWifi(String crashTypes[]) throws SQLException {
+	public boolean isThereLogToUploadWithWifi(String crashTypes[])
+			throws SQLException {
 		return isThereLogToUploadByWifi(true, crashTypes);
 	}
 
-	public Boolean isThereLogToUploadByWifi(boolean bWithWifi, String crashTypes[]) throws SQLException {
-		StringBuilder bQuery = new StringBuilder("");
-		bQuery.append("(("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES +" ) and "+KEY_UPLOADLOG+"='0') or ");
+	public boolean isThereLogToUploadByWifi(boolean bWithWifi, String crashTypes[])
+			throws SQLException {
+		StringBuilder bQuery = new StringBuilder("(("+KEY_NAME+" in ( " + OTHER_EVENT_NAMES
+				+ " ) and " + KEY_UPLOADLOG + "='0') or "
+				+ "(" + KEY_NAME + "='CRASH' and "
+				+ KEY_UPLOADLOG + "='0' and " + KEY_DATA_READY + "='1'");
+
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
 			if (sExcludedType != "") {
-				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_TYPE+" not in ("+sExcludedType+") and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
-			} else {
-				bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
+				bQuery.append(" and " + KEY_TYPE
+						+ " not in (" + sExcludedType + ")");
 			}
-		} else {
-			bQuery.append("("+KEY_NAME+"='CRASH' and "+KEY_UPLOADLOG+"='0' and "+KEY_DATA_READY+"='1')");
 		}
+		bQuery.append(")");
+
 		/* Only logs for events already uploaded*/
 		String sLogOperator;
 		if (bWithWifi)
 			sLogOperator = ">=";
 		else
 			sLogOperator = "<";
-		bQuery.append(") and "+KEY_UPLOAD+"='1' and "+KEY_CRASHDIR + "!='' and "+ KEY_LOGS_SIZE + sLogOperator +Constants.WIFI_LOGS_SIZE);
-		Log.d("isThereLogToUploadWithWifi : Query string = " +bQuery.toString() );
-		return isEventExistFromWhereQuery(bQuery.toString());
+		bQuery.append(") and " + KEY_UPLOAD + "='1' and " + KEY_CRASHDIR + "!='' and "
+				+ KEY_LOGS_SIZE + sLogOperator + Constants.WIFI_LOGS_SIZE);
+		Log.d("isThereLogToUploadWithWifi : Query string = " + bQuery.toString());
+		return isEventInDatabase(bQuery.toString());
 	}
 
 	public long addBZ(BZ bz) {
@@ -920,7 +770,8 @@ public class GeneralEventDB {
 	}
 
 	public long addBZ(String eventId, String summary, String description,
-			String type, String severity, String component, String screenshotPath, Date creationDate) {
+			String type, String severity, String component,
+			String screenshotPath, Date creationDate) {
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_ID, eventId);
@@ -936,23 +787,26 @@ public class GeneralEventDB {
 			initialValues.put(KEY_SCREENSHOT, 1);
 			initialValues.put(KEY_SCREENSHOT_PATH, screenshotPath);
 		}
-		initialValues.put(KEY_CREATION_DATE, convertDateForDb(creationDate));
+		initialValues.put(KEY_CREATION_DATE, Utils.convertDateForDb(creationDate));
 
 		return mDb.insert(DATABASE_BZ_TABLE, null, initialValues);
 	}
 
 	public boolean deleteBZ(String eventId) {
-
 		return mDb.delete(DATABASE_BZ_TABLE, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
 	public Cursor fetchAllBZs() {
 		Cursor cursor;
-		String whereQuery = "Select bz."+KEY_ID+" as "+KEY_ID+", "+KEY_SUMMARY+" as "+KEY_SUMMARY+", "+KEY_DESCRIPTION+" as "+KEY_DESCRIPTION+", "+
-				KEY_SEVERITY+" as "+KEY_SEVERITY+", "+KEY_BZ_TYPE+" as "+KEY_BZ_TYPE+", "+KEY_BZ_COMPONENT+" as "+KEY_BZ_COMPONENT+", "+KEY_SCREENSHOT+" as "+KEY_SCREENSHOT+", "+
-				KEY_UPLOAD+" as "+KEY_UPLOAD+", "+KEY_UPLOADLOG+" as "+KEY_UPLOADLOG+", "+
-				KEY_UPLOAD_DATE+" as "+KEY_UPLOAD_DATE+", "+KEY_CREATION_DATE+" as "+KEY_CREATION_DATE+", "+KEY_SCREENSHOT_PATH+ " as "+KEY_SCREENSHOT_PATH+" from "+DATABASE_TABLE+" e,"+DATABASE_BZ_TABLE+" bz "+
-				"where bz."+KEY_ID+" = "+"e."+KEY_ID + " order by "+KEY_CREATION_DATE+" DESC";
+		String whereQuery = "Select "
+				+ "bz." + KEY_ID + " as " + KEY_ID + ", " + KEY_SUMMARY + ", "
+				+ KEY_DESCRIPTION + ", " + KEY_SEVERITY + ", " + KEY_BZ_TYPE + ", "
+				+ KEY_BZ_COMPONENT + ", " + KEY_SCREENSHOT + ", "
+				+ KEY_UPLOAD + ", " + KEY_UPLOADLOG + ", " + KEY_UPLOAD_DATE +", "
+				+ KEY_CREATION_DATE + ", " + KEY_SCREENSHOT_PATH
+				+ " from " + DATABASE_TABLE + " e," + DATABASE_BZ_TABLE + " bz "
+				+ "where bz." + KEY_ID + " = e." + KEY_ID
+				+ " order by " + KEY_CREATION_DATE + " DESC";
 		cursor = mDb.rawQuery(whereQuery, null);
 		if (cursor != null)
 			cursor.moveToFirst();
@@ -970,64 +824,56 @@ public class GeneralEventDB {
 		bz.setSeverity(cursor.getString(cursor.getColumnIndex(KEY_SEVERITY)));
 		bz.setHasScreenshot(cursor.getInt(cursor.getColumnIndex(KEY_SCREENSHOT)));
 		if (bz.hasScreenshot()) {
-			bz.setScreenshots(cursor.getString(cursor.getColumnIndex(KEY_SCREENSHOT_PATH)));
+			bz.setScreenshots(cursor.getString(
+				cursor.getColumnIndex(KEY_SCREENSHOT_PATH)));
 		}
 		bz.setValidity(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD))!=-1);
 		bz.setUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD)));
 		bz.setLogsUploaded(cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG)));
 		if (bz.logsAreUploaded()) {
-			bz.setUploadDate(convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD_DATE))));
+			bz.setUploadDate(Utils.convertDateForJava(
+				cursor.getInt(cursor.getColumnIndex(KEY_UPLOAD_DATE))));
 		}
-		bz.setCreationDate(convertDateForJava(cursor.getInt(cursor.getColumnIndex(KEY_CREATION_DATE))));
+		bz.setCreationDate(Utils.convertDateForJava(
+				cursor.getInt(cursor.getColumnIndex(KEY_CREATION_DATE))));
 
 		return bz;
 	}
 
 	public boolean updateBzToUpload(String eventId) {
 		ContentValues args = new ContentValues();
-
 		args.put(KEY_UPLOAD, 1);
 
-		return mDb.update(DATABASE_BZ_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return mDb.update(DATABASE_BZ_TABLE, args,
+				KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
 	public boolean updateBzLogsToUpload(String eventId) {
 		ContentValues args = new ContentValues();
-
 		args.put(KEY_UPLOADLOG, 1);
 
-		return mDb.update(DATABASE_BZ_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
+		return mDb.update(DATABASE_BZ_TABLE, args,
+				KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
 	public int getBzNumber() {
-		Cursor mCursor;
-		int count;
-		try {
-			mCursor = mDb.query(true, DATABASE_BZ_TABLE, new String[] {KEY_ID},
-					null, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				mCursor.close();
-				return count;
-			}
-		} catch (SQLException e) {
-			return 0;
-		}
-		return 0;
+		return getEntriesCount(DATABASE_BZ_TABLE);
 	}
 
 	public void updateEventsNotReadyBeforeREBOOT(String eventId) {
-		String whereQuery = KEY_ROWID+" < (select "+KEY_ROWID+" from "+DATABASE_TABLE+" where "+KEY_ID+"='"+eventId
-				+"')  AND " +KEY_DATA_READY + "=0";
+		String where = KEY_ROWID + " < (select " + KEY_ROWID
+				+ " from " + DATABASE_TABLE
+				+ " where " + KEY_ID + "='" + eventId
+				+ "')  AND " + KEY_DATA_READY + "=0";
+
 		ContentValues args = new ContentValues();
 		args.put(KEY_DATA_READY, 1);
-		mDb.update(DATABASE_TABLE, args,whereQuery, null) ;
+		mDb.update(DATABASE_TABLE, args, where, null);
 	}
 
 	public boolean isOriginExist(String origin) throws SQLException {
 		String query = KEY_ORIGIN + " = '" + origin + "'";
-		return isEventExistFromWhereQuery(query);
+		return isEventInDatabase(query);
 	}
 
 	/**
@@ -1038,7 +884,7 @@ public class GeneralEventDB {
 	 */
 	public boolean isOriginBasenameExist(String originBasename) {
 		String query = KEY_ORIGIN + " LIKE '" + originBasename + "%'";
-		return isEventExistFromWhereQuery(query);
+		return isEventInDatabase(query);
 	}
 
 	/**
@@ -1063,7 +909,8 @@ public class GeneralEventDB {
 	 *
 	 * @return the result of the database insertion request
 	 */
-	public long addGcmMessage(String title, String text, String type, String data, Date date) {
+	public long addGcmMessage(String title, String text, String type,
+			String data, Date date) {
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_GCM_TITLE, title);
@@ -1083,20 +930,18 @@ public class GeneralEventDB {
 		} catch (ParseException e) {
 			date = new Date();
 		}
-		initialValues.put(KEY_DATE,convertDateForDb(date));
+		initialValues.put(KEY_DATE, Utils.convertDateForDb(date));
 
 		return mDb.insert(DATABASE_GCM_MESSAGES_TABLE, null, initialValues);
 	}
-
-
 
 	/**
 	 * Get the list of all GCM Messages not cancelled by the user
 	 * @return GCM Messages list
 	 */
 	public Cursor fetchAllGcmMessages() {
-		return mDb.query(DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
-				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, null, null, null, null, KEY_ROWID+" DESC");
+		return selectEntries(DATABASE_GCM_MESSAGES_TABLE,
+				gcmTableColums, null, KEY_ROWID, true);
 	}
 
 	/**
@@ -1105,16 +950,8 @@ public class GeneralEventDB {
 	 * @throws SQLException
 	 */
 	public Cursor fetchNewGcmMessages() throws SQLException {
-		Cursor mCursor;
-		String whereQuery = KEY_NOTIFIED+"=0";
-
-		mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID, KEY_GCM_TITLE, KEY_GCM_TEXT, KEY_TYPE,
-				KEY_GCM_DATA,KEY_DATE,KEY_NOTIFIED}, whereQuery, null,
-				null, null, KEY_ROWID+" DESC", null);
-		if (mCursor != null) {
-			mCursor.moveToFirst();
-		}
-		return mCursor;
+		return selectEntries(DATABASE_GCM_MESSAGES_TABLE,
+				gcmTableColums, KEY_NOTIFIED + "=0", KEY_ROWID, true);
 	}
 
 	/**
@@ -1123,12 +960,7 @@ public class GeneralEventDB {
 	 * @return the number of unread messages.
 	 */
 	public long getUnreadGcmMessageCount() {
-		String whereQuery = KEY_NOTIFIED+"=0";
-		long count = DatabaseUtils.queryNumEntries(
-				mDb,
-				DATABASE_GCM_MESSAGES_TABLE,
-                whereQuery);
-		return count;
+		return getEntriesCount(DATABASE_GCM_MESSAGES_TABLE, KEY_NOTIFIED + "=0");
 	}
 
 	/**
@@ -1137,13 +969,8 @@ public class GeneralEventDB {
 	 * @return the number of messages.
 	 */
 	public long getTotalGcmMessageCount() {
-		long count = DatabaseUtils.queryNumEntries(
-				mDb,
-				DATABASE_GCM_MESSAGES_TABLE);
-		return count;
+		return getEntriesCount(DATABASE_GCM_MESSAGES_TABLE);
 	}
-
-
 
 	/**
 	 * Delete a gcm message in the GCM_MESSAGES_TABLE
@@ -1151,8 +978,8 @@ public class GeneralEventDB {
 	 * @return True if the delete works
 	 */
 	public boolean deleteGcmMessage(int id) {
-
-	return mDb.delete(DATABASE_GCM_MESSAGES_TABLE, KEY_ROWID + "='" + id + "'", null) > 0;
+		return mDb.delete(DATABASE_GCM_MESSAGES_TABLE,
+			KEY_ROWID + "='" + id + "'", null) > 0;
 	}
 
 	/**
@@ -1162,10 +989,10 @@ public class GeneralEventDB {
 	 */
 	public boolean updateGcmMessageToCancelled(int id) {
 		ContentValues args = new ContentValues();
-
 		args.put(KEY_NOTIFIED, 1);
 
-		return mDb.update(DATABASE_GCM_MESSAGES_TABLE, args, KEY_ROWID + "=" + id + "", null) > 0;
+		return mDb.update(DATABASE_GCM_MESSAGES_TABLE, args,
+				KEY_ROWID + "=" + id + "", null) > 0;
 	}
 
 	/**
@@ -1173,12 +1000,11 @@ public class GeneralEventDB {
 	 *
 	 * @return the numbers of rows affected
 	 */
-	public int markAllGcmMessagesAsRead() {
+	public boolean markAllGcmMessagesAsRead() {
 		ContentValues args = new ContentValues();
-
 		args.put(KEY_NOTIFIED, 1);
 
-		return mDb.update(DATABASE_GCM_MESSAGES_TABLE, args, null, null);
+		return mDb.update(DATABASE_GCM_MESSAGES_TABLE, args, null, null) > 0;
 	}
 
 	/**
@@ -1187,21 +1013,7 @@ public class GeneralEventDB {
 	 * @return number of GCM Messages
 	 */
 	private int getNumberFromWhereQueryForGcm(String whereQuery) {
-		Cursor mCursor;
-		int count;
-		try {
-			mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID},
-					whereQuery, null,
-					null, null, null, null);
-			if (mCursor != null) {
-				count = mCursor.getCount();
-				mCursor.close();
-				return count;
-			}
-		} catch (SQLException e) {
-			return 0;
-		}
-		return 0;
+		return getEntriesCount(DATABASE_GCM_MESSAGES_TABLE, whereQuery);
 	}
 
 	/**
@@ -1218,36 +1030,21 @@ public class GeneralEventDB {
 	 * or -1 on error.
 	 */
 	public int getLastGCMRowId() {
-		Cursor mCursor = null;
 		int rowId = -1;
+		Cursor cursor = null;
+		cursor = selectEntries(DATABASE_GCM_MESSAGES_TABLE,
+			new String[] {KEY_ROWID}, KEY_NOTIFIED + "='0'", KEY_ROWID, true, "1");
+
+		if (cursor == null)
+			return rowId;
 
 		try {
-			mCursor = mDb.query(true, DATABASE_GCM_MESSAGES_TABLE, new String[] {KEY_ROWID},
-				KEY_NOTIFIED + "='0'", null,
-				null, null, KEY_ROWID+" DESC", "1");
-		} catch (SQLException e) {
-			Log.e("An error occurred while creating the cursor.");
-			return rowId;
-		}
+			rowId = cursor.getInt(cursor.getColumnIndex(KEY_ROWID));
+		} catch (SQLException e) {}
 
-		if (mCursor == null) {
-			Log.e("Cursor instance creation failed.");
-			return rowId;
-		}
-
-		try {
-			if(mCursor.moveToFirst()) {
-				rowId = mCursor.getInt(0);
-			}
-		} catch (SQLException e) {
-			Log.e("Could not move cursor to expected record.");
-		} finally {
-			mCursor.close();
-		}
-
+		cursor.close();
 		return rowId;
 	}
-
 
 	/**
 	 * Add a device in the database
@@ -1258,7 +1055,8 @@ public class GeneralEventDB {
 	 * @param spid the spid of the board
 	 * @return the result of the database insertion request
 	 */
-	public long addDevice(String deviceId, String imei, String ssn, String token, String spid) {
+	public long addDevice(String deviceId, String imei, String ssn,
+			String token, String spid) {
 		ContentValues initialValues = new ContentValues();
 
 		initialValues.put(KEY_DEVICEID, deviceId);
@@ -1277,17 +1075,7 @@ public class GeneralEventDB {
 	 * @throws SQLException
 	 */
 	protected Boolean isDeviceExist() throws SQLException {
-		Cursor mCursor;
-		Boolean ret;
-		mCursor = mDb.query(true, DATABASE_DEVICE_TABLE, new String[] {KEY_DEVICEID},
-				null, null,
-				null, null, null, null);
-		if (mCursor != null) {
-			ret = mCursor.moveToFirst();
-			mCursor.close();
-			return ret;
-		}
-		return false;
+		return ((getEntriesCount(DATABASE_DEVICE_TABLE) > 0) ? true : false);
 	}
 
 	/**
@@ -1299,8 +1087,8 @@ public class GeneralEventDB {
 	 * @param spid the spid of the board
 	 * @return True if the update succeed
 	 */
-	public boolean updateDeviceInformation(String deviceId, String imei, String ssn, String token, String spid) {
-
+	public boolean updateDeviceInformation(String deviceId, String imei,
+			String ssn, String token, String spid) {
 		if(isDeviceExist()) {
 			ContentValues args = new ContentValues();
 			args.put(KEY_DEVICEID, deviceId);
@@ -1310,11 +1098,8 @@ public class GeneralEventDB {
 			args.put(KEY_DEVICE_SPID, spid);
 			return mDb.update(DATABASE_DEVICE_TABLE, args, null, null) > 0;
 		}
-		else {
-			long result = addDevice(deviceId, imei, ssn, token, spid);
-			return (result!=-1);
-		}
 
+		return (addDevice(deviceId, imei, ssn, token, spid) != -1);
 	}
 
 	/**
@@ -1340,45 +1125,22 @@ public class GeneralEventDB {
 	}
 
 	public Cursor fetchMatchingLogPaths(String logsDir) {
-		String where =  KEY_CRASHDIR + " like '" + logsDir + "%'";
-
-		return mDb.query(DATABASE_TABLE, new String[] {KEY_CRASHDIR},
-				where, null, null, null, null);
+		return selectEntries(DATABASE_TABLE, new String[] {KEY_CRASHDIR},
+				KEY_CRASHDIR + " like '" + logsDir + "%'");
 	}
 
 	public boolean updateEventFolderPath(String orginal, String target) {
-		String where =  KEY_CRASHDIR + "='" + orginal + "'";
-		ContentValues args = new ContentValues();
-		args.put(KEY_CRASHDIR, target);
-
-		return mDb.update(DATABASE_TABLE, args, where, null) > 0;
+		return updateEventsOnLogPaths(orginal, KEY_CRASHDIR, target);
 	}
 
 	public boolean isEventLogCleaned( String eventID ) {
-		Cursor mCursor = null;
-		String where =  KEY_ID + "='" + eventID + "'";
-
-		mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_EVENT_CLEANED},
-				where, null, null, null, null);
-
-		try {
-			if(mCursor.moveToFirst()) {
-				return (mCursor.getInt(0) == 0) ? false : true;
-			}
-		} catch (SQLException e) {
-			Log.e("Could not move cursor to expected record.");
-		} finally {
-			mCursor.close();
-		}
-
-		return true;
+		Cursor cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_EVENT_CLEANED},
+				KEY_ID + "='" + eventID + "'");
+		return ((cursor.getInt(cursor.getColumnIndex(KEY_EVENT_CLEANED)) == 0)
+			? false : true);
 	}
 
 	public boolean setEventLogCleaned( String eventPath ) {
-		String where =  KEY_CRASHDIR + "='" + eventPath + "'";
-		ContentValues args = new ContentValues();
-		args.put(KEY_EVENT_CLEANED, "1");
-
-		return mDb.update(DATABASE_TABLE, args, where, null) > 0;
+		return updateEventsOnLogPaths(eventPath, KEY_EVENT_CLEANED, "");
 	}
 }

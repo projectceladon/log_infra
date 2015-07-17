@@ -239,9 +239,10 @@ public class ListGcmMessagesActivity extends Activity {
 	/**
 	 * Marks all the GCM messages as read.
 	 *
-	 * @return the number of messages that have been updated.
+	 * @return boolean value indicating whether or not entries within
+	 *		the database have been updated.
 	 */
-	private int markAllAsRead() {
+	private boolean markAllAsRead() {
 		GcmUtils gcmUtils = new GcmUtils(getApplicationContext());
 		return gcmUtils.markAllAsRead();
 	}

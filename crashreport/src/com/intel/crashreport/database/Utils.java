@@ -23,6 +23,9 @@
 
 package com.intel.crashreport.database;
 
+import com.intel.phonedoctor.Constants;
+
+import java.util.Arrays;
 import java.util.Date;
 
 public class Utils {
@@ -39,5 +42,9 @@ public class Utils {
 		long dateLong = date;
 		dateLong = dateLong * COEF_S_TO_MS;
 		return new Date(dateLong);
+	}
+
+	public static boolean isEventLogsValid( String eventType ) {
+		return ( !Arrays.asList(Constants.INVALID_EVENTS).contains(eventType) );
 	}
 }
