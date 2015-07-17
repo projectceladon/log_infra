@@ -23,7 +23,8 @@
 
 package com.intel.phonedoctor.utils;
 
-import com.intel.crashreport.Log;
+import com.intel.crashreport.common.IEventLog;
+import com.intel.crashreport.core.Logger;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -48,6 +49,7 @@ import android.graphics.Bitmap;
  */
 public class FileOps {
 	private static long GZIP_THRESHOLD_IN_BYTES = 1 * 1024 * 1024; /* 1 MB */
+	private static final IEventLog log = Logger.getLog();
 
 	/**
 	 * Delete a file/folder recursively
@@ -287,7 +289,7 @@ public class FileOps {
 				if (f.length() < GZIP_THRESHOLD_IN_BYTES)
 					continue;
 			} catch (SecurityException se) {
-				Log.e("No permission to access file: " + f.getAbsolutePath());
+				log.e("No permission to access file: " + f.getAbsolutePath());
 				continue;
 			}
 
@@ -303,7 +305,9 @@ public class FileOps {
 					f.delete();
 				}
 
-				Log.d("File compressed: " + result);
+				log.d("File compressed: " + result);
+			} else {
+				log.e("File could not be compressed: " + source);
 			}
 		}
 	}
@@ -360,7 +364,6 @@ public class FileOps {
 			try { if (in != null) in.close(); } catch (IOException e) {}
 			try { if (out != null) out.close(); } catch (IOException e) {}
 
-			Log.e("File could not be compressed: " + source);
 			return false;
 		}
 

@@ -21,7 +21,7 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport.specific;
+package com.intel.crashreport.core;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

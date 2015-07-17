@@ -84,10 +84,4 @@ public class Constants {
      * to prevent any log upload to crashtool server.
     */
     public static final String[] INVALID_EVENTS = new String [] { "KDUMP" };
-
-    public static enum EVENT_FILTER {
-        ALL,
-        INFO,
-        CRASH
-    }
 }

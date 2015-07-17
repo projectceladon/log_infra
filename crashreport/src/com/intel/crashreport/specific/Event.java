@@ -30,8 +30,7 @@ import java.util.Scanner;
 
 import android.content.Context;
 
-import com.intel.crashreport.GeneralBuild;
-import com.intel.crashreport.GeneralEvent;
+import com.intel.crashreport.core.GeneralEvent;
 import com.intel.crashreport.GenericParseFile;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.PDStatus.PDSTATUS_TIME;
@@ -89,7 +88,7 @@ public class Event extends GeneralEvent{
 	public Event(HistoryEvent histEvent, String myBuild, boolean isUserBuild) {
 		setOsBootMode(GeneralEvent.BOOT_UNDEFINED);
 		fillEvent(histEvent, myBuild, isUserBuild);
-		setVariant(GeneralBuild.getVariant());
+		setVariant(Build.getVariant());
 		setIngredients(Build.getIngredients());
 		setUniqueKeyComponent(IngredientManager.INSTANCE.getUniqueKeyList().toString());
 		pdStatus = PDStatus.INSTANCE.computePDStatus(this, PDSTATUS_TIME.INSERTION_TIME);
@@ -300,49 +299,26 @@ public class Event extends GeneralEvent{
 	}
 
 	public com.intel.crashtoolserver.bean.Event getEventForServer(com.intel.crashreport.specific.Build build, String sToken) {
-
-		com.intel.crashtoolserver.bean.Event event;
-		long lUptime = convertUptime(getUptime());
-		com.intel.crashreport.specific.Build mBuild;
-		if (getBuildId().contentEquals(build.toString()))
-			mBuild = build;
-		else {
-			mBuild = new com.intel.crashreport.specific.Build(getBuildId());
-			if (mBuild.getBuildId().contentEquals(""))
-				mBuild = build;
-		}
-		com.intel.crashtoolserver.bean.Build sBuild = mBuild.getBuildForServer();
-		sBuild.setVariant(getVariant());
-		sBuild.setIngredientsJson(this.ingredients);
-		// do not use "uniquekey" of crashtool object, it is for internal use only
-		//uniqueKeyComponents should be used
-		sBuild.setUniqueKeyComponents(IngredientManager.INSTANCE.parseUniqueKey(this.uniqueKeyComponent));
-		sBuild.setOrganization(com.intel.parsing.ParsableEvent.ORGANIZATION_MCG);
-		com.intel.crashtoolserver.bean.Device aDevice;
 		String sSSN = getSSN();
-		//GCM not fully implemented
+		sSSN = (sSSN.equals("")) ? null : sSSN;
+		com.intel.crashtoolserver.bean.Device aDevice = new Device(getDeviceId(),
+			getImei(), sSSN, sToken, getSPIDFromFile());
 
-		String sTokenGCM = sToken;
-
-		String sSPID = getSPIDFromFile();
-		if (sSSN.equals("")){
-			aDevice = new Device(getDeviceId(), getImei(), null /*ssn not implemented if property empty*/, sTokenGCM, sSPID);
-		}else{
-			aDevice = new Device(getDeviceId(), getImei(), sSSN, sTokenGCM, sSPID);
-		}
-		event = new com.intel.crashtoolserver.bean.Event(this.getEventId(),
-				this.getEventName(), this.getType(), this.getData0(),
-				this.getData1(), this.getData2(), this.getData3(),
-				this.getData4(), this.getData5(), this.date,
-				lUptime, null /* logfile */, sBuild,
-                                com.intel.crashtoolserver.bean.Event.Origin.CLOTA,
-                                aDevice, getiRowID(), this.pdStatus, this.osBootMode,
-				new com.intel.crashtoolserver.bean.Modem(this.getModemVersionUsed()),
-				getCrashDir(), this.getUploaded(), this.getLogUploaded());
-		return event;
+		return super.getEventForServer(aDevice, build);
 	}
 
 	@Override
+	public String readImeiFromSystem() {
+		String imeiRead = "";
+		try {
+			imeiRead = super.readImeiFromSystem();
+		}
+		catch (IllegalArgumentException e) {
+			Log.d("CrashReportService: IMEI not available");
+		}
+		return imeiRead;
+	}
+
 	public void readDeviceIdFromFile() {
 		setDeviceId(getDeviceIdFromFile());
 	}

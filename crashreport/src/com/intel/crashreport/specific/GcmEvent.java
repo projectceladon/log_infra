@@ -38,7 +38,8 @@ import com.intel.crashreport.CustomizableEventData;
 import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.GeneralEventGenerator;
 import com.intel.crashreport.Log;
-import com.intel.crashreport.specific.GcmMessage.GCM_ACTION;
+import com.intel.crashreport.core.GcmMessage;
+import com.intel.crashreport.core.GcmMessage.GCM_ACTION;
 
 public enum GcmEvent {
 

@@ -36,6 +36,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import com.intel.crashreport.database.GeneralEventDB;
+import com.intel.crashreport.database.Utils;
 
 public class BlackLister {
 	private static final String module = "BlackLister: ";

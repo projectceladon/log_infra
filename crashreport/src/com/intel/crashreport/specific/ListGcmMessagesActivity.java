@@ -53,7 +53,8 @@ import com.intel.crashreport.R.array;
 import com.intel.crashreport.R.id;
 import com.intel.crashreport.R.layout;
 import com.intel.crashreport.R.string;
-import com.intel.crashreport.specific.GcmMessage.GCM_ACTION;
+import com.intel.crashreport.core.GcmMessage;
+import com.intel.crashreport.core.GcmMessage.GCM_ACTION;
 
 public class ListGcmMessagesActivity extends Activity {
 

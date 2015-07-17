@@ -35,6 +35,7 @@ import com.intel.crashreport.CrashReportService;
 import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.GeneralNotificationReceiver;
 import com.intel.crashreport.Log;
+import com.intel.crashreport.core.GcmMessage;
 import com.intel.crashreport.specific.GcmUtils;
 
 public class NotificationReceiver extends GeneralNotificationReceiver {

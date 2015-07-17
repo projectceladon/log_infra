@@ -28,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+import com.intel.crashreport.core.BZ;
 import com.intel.crashreport.Log;
 
 public class BZFile extends BZ {

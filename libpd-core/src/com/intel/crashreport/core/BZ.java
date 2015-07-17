@@ -21,14 +21,15 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport.bugzilla;
+package com.intel.crashreport.core;
+
+import com.intel.crashreport.common.IEventLog;
 
 import java.util.ArrayList;
 import java.util.Date;
 
-import com.intel.crashreport.Log;
-
 public class BZ {
+	private static final IEventLog log = Logger.getLog();
 
 	protected String eventId = "";
 	protected String summary = "";
@@ -91,18 +92,17 @@ public class BZ {
 	}
 
 	public void setScreenshots(String screen) {
-		try{
-			String screens[] = screen.split(",");
-			if(screens.length > 0) {
-				screenshots = new ArrayList<String>();
-				for(String screenshot:screens){
-					screenshots.add(screenshot);
-				}
-			}
+		if (screen == null) {
+			log.w("BZ:setScreenshots: not screenshot founded");
+			return;
+                }
 
-		}
-		catch(NullPointerException e){
-			Log.w("BZ:setScreenshots: not screenshot founded");
+		String screens[] = screen.split(",");
+		if(screens.length > 0) {
+			screenshots = new ArrayList<String>();
+			for(String screenshot:screens){
+				screenshots.add(screenshot);
+			}
 		}
 	}
 

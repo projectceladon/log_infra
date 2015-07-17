@@ -40,7 +40,7 @@ import com.intel.crashreport.Log;
 import com.intel.crashreport.NotificationMgr;
 import com.intel.crashreport.R;
 import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
-import com.intel.crashreport.specific.GcmMessage;
+import com.intel.crashreport.core.GcmMessage;
 import com.intel.crashreport.specific.GcmMessageViewAdapter;
 import com.intel.crashreport.specific.ListGcmMessagesActivity;
 

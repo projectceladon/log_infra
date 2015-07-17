@@ -29,7 +29,7 @@ import java.util.TimeZone;
 
 import com.intel.crashreport.Log;
 import com.intel.crashreport.R;
-import com.intel.crashreport.bugzilla.BZ;
+import com.intel.crashreport.core.BZ;
 
 import android.content.Context;
 import android.graphics.Color;

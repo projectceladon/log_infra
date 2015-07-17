@@ -33,7 +33,7 @@ import android.os.Bundle;
 import android.widget.ListView;
 
 import com.intel.crashreport.*;
-import com.intel.crashreport.bugzilla.BZ;
+import com.intel.crashreport.core.BZ;
 import com.intel.crashreport.database.EventDB;
 
 public class ListBugzillaActivity extends Activity {

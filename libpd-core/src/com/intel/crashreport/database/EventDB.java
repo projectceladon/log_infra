@@ -25,10 +25,9 @@ package com.intel.crashreport.database;
 
 import java.util.Date;
 
-import com.intel.crashreport.GeneralEvent;
+import com.intel.crashreport.core.GeneralEvent;
 import com.intel.crashreport.database.GeneralEventDB;
-import com.intel.crashreport.Log;
-import com.intel.crashreport.specific.GcmMessage;
+import com.intel.crashreport.core.GcmMessage;
 
 import com.intel.crashtoolserver.bean.Device;
 

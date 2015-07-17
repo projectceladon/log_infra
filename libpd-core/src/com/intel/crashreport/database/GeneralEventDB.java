@@ -38,13 +38,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.intel.crashreport.bugzilla.BZ;
+import com.intel.crashreport.core.BZ;
+import com.intel.crashreport.core.GeneralEvent;
 import com.intel.crashreport.CrashLogs;
-import com.intel.crashreport.GeneralEvent;
-import com.intel.crashreport.Log;
 
-import com.intel.phonedoctor.Constants;
-import com.intel.phonedoctor.Constants.EVENT_FILTER;
+import com.intel.crashreport.common.Constants;
+import com.intel.crashreport.common.Utils.EVENT_FILTER;
 
 import java.util.List;
 
@@ -374,7 +373,6 @@ public class GeneralEventDB extends General {
 		/* Only logs for events already uploaded*/
 		bQuery.append(" and " + KEY_UPLOAD + "='1' and "
 				+ KEY_CRASHDIR+" != ''");
-		Log.d("fetchNotUploadedLogs : Query string = " + bQuery.toString() );
 		return fetchEventFromWhereQuery(bQuery.toString());
 
 	}
@@ -448,7 +446,6 @@ public class GeneralEventDB extends General {
 
 	public Boolean isThereEventToUpload() throws SQLException {
 		String where = KEY_UPLOAD + "='0' and " + KEY_DATA_READY + "='1'";
-		Log.d("isThereEventToUpload : Query string = " + where);
 		return isEventInDatabase(where);
 	}
 
@@ -458,7 +455,6 @@ public class GeneralEventDB extends General {
 				+ OTHER_EVENT_NAMES + " ) and " + KEY_UPLOADLOG + "='0' and "
 				+ KEY_CRASHDIR + "!='' )");
 		appendQueryForCrashTypes(crashTypes,where);
-		Log.d("isThereEventToUpload : Query string = " + where.toString() );
 		return isEventInDatabase(where.toString());
 	}
 
@@ -485,7 +481,6 @@ public class GeneralEventDB extends General {
 		appendQueryForCrashTypes(crashTypes,bQuery);
 		//required to close the query properly
 		bQuery.append(")");
-		Log.d("getEventNumberLogToUpload : Query string = " +bQuery.toString() );
 		return getNumberFromWhereQuery(bQuery.toString());
 	}
 
@@ -758,8 +753,8 @@ public class GeneralEventDB extends General {
 		else
 			sLogOperator = "<";
 		bQuery.append(") and " + KEY_UPLOAD + "='1' and " + KEY_CRASHDIR + "!='' and "
-				+ KEY_LOGS_SIZE + sLogOperator + Constants.WIFI_LOGS_SIZE);
-		Log.d("isThereLogToUploadWithWifi : Query string = " + bQuery.toString());
+				+ KEY_LOGS_SIZE + sLogOperator
+				+ com.intel.crashreport.common.Utils.WIFI_LOGS_SIZE);
 		return isEventInDatabase(bQuery.toString());
 	}
 
@@ -1111,17 +1106,6 @@ public class GeneralEventDB extends General {
 		ContentValues args = new ContentValues();
 		args.put(KEY_DEVICE_TOKEN, gcmToken);
 		return mDb.update(DATABASE_DEVICE_TABLE, args, null, null) > 0;
-	}
-
-	/**
-	 * Returns if the event log is valid or not depending on the event type.
-	 * This aims to never upload very large event logs whatever the
-	 * available connection type is.
-	 * @param eventType is the type of the event
-	 * @return true if the event log is valid by default. False otherwise.
-	 */
-	private static boolean isEventLogsValid( String eventType ) {
-		return ( !Arrays.asList(Constants.INVALID_EVENTS).contains(eventType) );
 	}
 
 	public Cursor fetchMatchingLogPaths(String logsDir) {

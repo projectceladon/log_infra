@@ -93,7 +93,7 @@ public enum GeneralEventGenerator {
 						event.getData4() + event.getData5() + event.getCrashDir();
 
 				event.setEventId(sha1Hash(SHA1String));
-				event.setVariant(GeneralBuild.getVariant());
+				event.setVariant(Build.getVariant());
 				event.setIngredients(Build.getIngredients());
 				event.setUniqueKeyComponent(Build.getUniqueKeyComponent());
 				PDStatus.INSTANCE.setContext(mContext);

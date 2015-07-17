@@ -33,7 +33,7 @@ import android.content.Context;
 import java.io.File;
 
 import com.intel.crashreport.ApplicationPreferences;
-import com.intel.crashreport.GeneralBuild;
+import com.intel.crashreport.core.GeneralBuild;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.ingredients.FileIngredientBuilder;
 import com.intel.crashreport.specific.ingredients.IngredientBuilder;
@@ -43,6 +43,7 @@ import com.intel.crashreport.propconfig.bean.BuildAllowedValues;
 import com.intel.phonedoctor.Constants;
 
 import org.json.JSONObject;
+import android.os.SystemProperties;
 
 public class Build extends GeneralBuild{
 
@@ -69,6 +70,33 @@ public class Build extends GeneralBuild{
 		super();
 		ctx = context;
 		checkAllowedProperties();
+	}
+
+	public static String getProperty(String name) {
+		try {
+			return SystemProperties.get(name, "");
+		} catch (IllegalArgumentException e) {
+			Log.d("Propery not available : "+name);
+		}
+		return "";
+	}
+
+	/**
+	 * Returns the modem version (variant).
+	 * @return the variant as String
+	 */
+	public static final String getVariant() {
+		if(VARIANT == null) {
+			String suffix = getProperty(SWCONF_PROPERTY_NAME);
+			StringBuffer sBuffer = new StringBuffer(
+					getProperty(VARIANT_PROPERTY_NAME));
+			if(!"".equals(suffix)) {
+				sBuffer.append("-");
+				sBuffer.append(suffix);
+			}
+			VARIANT = sBuffer.toString();
+		}
+		return VARIANT;
 	}
 
 	/**

@@ -29,6 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import com.intel.crashreport.core.GcmMessage;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.R;
 import com.intel.crashreport.R.drawable;

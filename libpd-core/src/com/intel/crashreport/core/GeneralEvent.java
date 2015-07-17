@@ -21,7 +21,7 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport;
+package com.intel.crashreport.core;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,7 +32,11 @@ import java.util.Scanner;
 import java.util.TimeZone;
 
 import com.intel.parsing.ParsableEvent;
-import com.intel.phonedoctor.Constants;
+import com.intel.crashreport.common.Constants;
+import com.intel.crashreport.common.Utils;
+
+import com.intel.crashtoolserver.bean.Event;
+import com.intel.crashtoolserver.bean.Device;
 
 import android.os.SystemProperties;
 
@@ -130,37 +134,13 @@ public class GeneralEvent {
 			return new String("Event: " + getEventId() + ":" + getEventName() + ":" + getType());
 	}
 
-	public void readDeviceIdFromFile() {
-		setDeviceId(getDeviceIdFromFile());
-	}
-
-	public static String getDeviceIdFromFile() {
-		String sResult = "";
-		File uuidFile = new File(UUID_FILE_PATH);
-		Scanner scan = null;
-		try {
-			scan = new Scanner(uuidFile);
-			if (scan.hasNext())
-				sResult = scan.nextLine();
-		} catch (FileNotFoundException e) {
-			Log.w("CrashReportService: deviceId not set");
-		} catch (IllegalStateException e) {
-			Log.e("CrashReportService: deviceId not in good state");
-		} finally {
-			if (scan != null) {
-				scan.close();
-			}
-		}
-		return sResult;
-	}
-
 	public static String getDeviceIdFromSystem() {
 		//warning : this method is used by PDLITE
 		String sResult = "";
 		sResult += android.os.Build.SERIAL;
 		if (sResult.isEmpty()) {
 			//backup strategy to be sure to have a devideID for crashtool
-			sResult = "DEF_ID_" + SystemProperties.get(GeneralBuild.PRODUCT_PROPERTY_NAME, "MCG");
+			sResult = "DEF_ID_" + SystemProperties.get(Constants.PRODUCT_PROPERTY_NAME, "MCG");
 		}
 		return sResult;
 	}
@@ -172,17 +152,7 @@ public class GeneralEvent {
 	}
 
 	public String readImeiFromSystem() {
-		String imeiRead = "";
-		try {
-			imeiRead = SystemProperties.get("persist.radio.device.imei", "");
-			if(imeiRead.equals("")) {
-				imeiRead = GeneralEventGenerator.INSTANCE.getImei();
-			}
-		}
-		catch (IllegalArgumentException e) {
-			Log.w("CrashReportService: IMEI not available");
-		}
-		return imeiRead;
+		return SystemProperties.get("persist.radio.device.imei", "");
 	}
 
 	public static Date convertDate(String date) {
@@ -426,10 +396,6 @@ public class GeneralEvent {
 		mParsableEvent.setVariant(variant);
 	}
 
-	public ParsableEvent getParsableEvent(){
-		return mParsableEvent;
-	}
-
 	/**
 	 * Returns this object's <i>ingredients</i> as JSON string.
 	 * @return this object <i>ingredients</i>.
@@ -481,4 +447,39 @@ public class GeneralEvent {
 		mParsableEvent.setModemVersionUsed(modemVersionUsed);
 	}
 
+	public com.intel.crashtoolserver.bean.Event getEventForServer(Device device) {
+		return getEventForServer(device, null);
+	}
+
+	public com.intel.crashtoolserver.bean.Event getEventForServer(
+			Device device, GeneralBuild altBuild) {
+		com.intel.crashtoolserver.bean.Event retEvent;
+
+		GeneralBuild build = new GeneralBuild(this.getBuildId());
+		if (build.getBuildId().contentEquals("") && altBuild != null)
+				build = altBuild;
+
+		com.intel.crashtoolserver.bean.Build sBuild = build.getBuildForServer();
+		sBuild.setVariant(this.getVariant());
+		sBuild.setIngredientsJson(this.ingredients);
+		// do not use "uniquekey" of crashtool object, it is for internal use only
+		//uniqueKeyComponents should be used
+		sBuild.setUniqueKeyComponents(Utils.parseUniqueKey(this.uniqueKeyComponent));
+		sBuild.setOrganization(com.intel.crashtoolserver.bean.Build.ORGANIZATION_MCG);
+
+		retEvent = new com.intel.crashtoolserver.bean.Event(getEventId(), getEventName(),
+				getType(), getData0(), getData1(), getData2(), getData3(),
+				getData4(), getData5(), date, convertUptime(getUptime()),
+				null /*logfile*/, sBuild,
+				com.intel.crashtoolserver.bean.Event.Origin.CLOTA, device,
+				getiRowID(), pdStatus, this.osBootMode,
+				new com.intel.crashtoolserver.bean.Modem(getModemVersionUsed()),
+				getCrashDir(), uploaded, logUploaded);
+
+		return retEvent;
+	}
+
+	public com.intel.parsing.ParsableEvent getParsableEvent(){
+		return mParsableEvent;
+	}
 }

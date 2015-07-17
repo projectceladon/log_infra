@@ -34,8 +34,10 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.intel.crashreport.database.EventDB;
 import com.intel.phonedoctor.utils.FileOps;
+import com.intel.crashreport.database.EventDB;
+import com.intel.crashreport.common.IEventLog;
+import com.intel.crashreport.core.Logger;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteException;
 import android.content.Context;
@@ -43,6 +45,7 @@ import android.content.Context;
 public class CrashLogs {
 
 	private static final int BUFFER_SIZE = 1024;
+	private static final IEventLog log = Logger.getLog();
 
 	/**
 	 * Compress a crashlog directory content and return it as a zipped file. If this zipped file
@@ -69,21 +72,23 @@ public class CrashLogs {
 		crashLogsFile.deleteOnExit();
 		if (crashLogsFile.exists()) {
 			//A crashlog zipped file already exists in cache directory
-			Log.w("getCrashLogsFile: "+crashLogsFileName+" exists in cachedir");
+			log.w("getCrashLogsFile: " + crashLogsFileName + " exists in cachedir");
 			try {
 				if (FileOps.isValidZipFile(crashLogsFile))
 					return crashLogsFile;
-				else {
-					Log.w("CrashLogs: unvalid zip file in cache dir: "+crashLogsFile.getName());
-				}
+				else
+					log.w("CrashLogs: unvalid zip file in cache "
+						+ "dir: " + crashLogsFile.getName());
 			} catch (IOException e) {
-				Log.w("CrashLogs: can't read zip file in cache dir: "+crashLogsFile.getName());
+				log.w("CrashLogs: can't read zip file in cache dir: "
+					+ crashLogsFile.getName());
 			}
 			if (!crashLogsFile.delete())
-				Log.w("CrashLogs: can't delete file: "+crashLogsFile.getName());
+				log.w("CrashLogs: can't delete file: "
+					+ crashLogsFile.getName());
 		}
 		//Nominal case : the crashlog directory needs to be compressed and returned as a zipped file
-		Log.d("getCrashLogsFile: start "+crashLogsFileName+" creation");
+		log.d("getCrashLogsFile: start "+crashLogsFileName+" creation");
 		try {
 			return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
 		} catch (IllegalArgumentException e) {
@@ -99,7 +104,8 @@ public class CrashLogs {
 				db.open();
 				db.updateEventCrashdir(eventId, "");
 				db.close();
-				Log.i("CrashLogs: event "+eventId+" \'crashdir\' key reset in Event database");
+				log.i("CrashLogs: event " + eventId
+					+ " \'crashdir\' key reset in Event database");
 			}
 		}
 		return null;
@@ -119,7 +125,8 @@ public class CrashLogs {
 	private static File createCrashLogsZip(String crashDirPath, String fileName, File outDir) throws IllegalArgumentException, UnsupportedOperationException {
 		File crashDir = new File(crashDirPath);
 		if ( !(crashDir.exists() && crashDir.isDirectory()) ) {
-			Log.w("CrashLogs: createCrashLogsZip input "+crashDirPath+" arg doesn't exist or is not a directory");
+			log.w("CrashLogs: createCrashLogsZip input " + crashDirPath
+				+ " arg doesn't exist or is not a directory");
 			throw new IllegalArgumentException();
 		}
 		/*Check crashlog directory is not empty*/
@@ -131,18 +138,21 @@ public class CrashLogs {
 				if (FileOps.isValidZipFile(crashLogsFile))
 					return crashLogsFile;
 				else
-					Log.w("CrashLogs: unvalid zip file : "+crashLogsFile.getName());
+					log.w("CrashLogs: unvalid zip file : "
+						+ crashLogsFile.getName());
 			} catch (FileNotFoundException e) {
-				Log.w("CrashLogs: file read error ", e);
+				log.w("CrashLogs: file read error ", e);
 			} catch (IOException e) { //catches all IOExceptions concerning stream and zip entries operations
-				Log.w("CrashLogs: IOException when writing in zipfile: "+crashLogsFile.getName(), e);
+				log.w("CrashLogs: IOException when writing "
+					+ "in zipfile: "+crashLogsFile.getName(), e);
 			}
 			if (!crashLogsFile.delete())
-				Log.w("CrashLogs: can't delete file: "+crashLogsFile.getName());
+				log.w("CrashLogs: can't delete file: " + crashLogsFile.getName());
 		}
 		else
 		{
-			Log.w("CrashLogs: "+fileName+" creation cancelled : "+crashDir.getAbsolutePath()+" is empty");
+			log.w("CrashLogs: " + fileName + " creation cancelled : "
+				+ crashDir.getAbsolutePath() + " is empty");
 			throw new UnsupportedOperationException();
 		}
 		return null;
@@ -159,17 +169,18 @@ public class CrashLogs {
 		/* We do something only if input parameters are not null */
 		if(crashLogsFile == null || fileList == null) {
 			String errorMessage = "Cannot write <null> file or cannot read from <null> file list.";
-			Log.e(errorMessage);
+			log.e(errorMessage);
 			throw new IOException(errorMessage);
 		}
 		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(crashLogsFile)));
 		File fileInfo = null;
 		try {
 			for(int i=0; i < fileList.length; i++) {
-				Log.d("Compress Adding: " + fileList[i].getName());
+				log.d("Compress Adding: " + fileList[i].getName());
 
 				if (!(fileList[i].exists() && fileList[i].canRead() && (fileList[i].getName().length() < Integer.MAX_VALUE))){
-					Log.w("CrashLogs: can't read file "+fileList[i].getName()+" to be added in "+crashLogsFile.getName());
+					log.w("CrashLogs: can't read file " + fileList[i].getName()
+						+ " to be added in " + crashLogsFile.getName());
 					FileWriter info = null;
 					try{
 						boolean append = true;
@@ -182,7 +193,10 @@ public class CrashLogs {
 						info.write(fileList[i].getName()+"\n");
 					}
 					catch(IOException e){
-						Log.e("CrashLogs: Can't write "+fileList[i].getName()+" in "+fileList[i].getParent()+"/unavailableFiles");
+						log.e("CrashLogs: Can't write "
+							+ fileList[i].getName() + " in "
+							+ fileList[i].getParent()
+							+ "/unavailableFiles");
 					} finally {
 						if(info != null) {
 							info.close();
@@ -195,7 +209,8 @@ public class CrashLogs {
 			}
 			if(fileInfo != null) {
 				if (!(fileInfo.exists() && fileInfo.canRead() && (fileInfo.getName().length() < Integer.MAX_VALUE)))
-					Log.w("CrashLogs: can't read file "+fileInfo.getName()+" to be added in "+crashLogsFile.getName());
+					log.w("CrashLogs: can't read file " + fileInfo.getName()
+						+ " to be added in " + crashLogsFile.getName());
 				else
 					addFileToZip(fileInfo, out);
 			}
@@ -220,7 +235,7 @@ public class CrashLogs {
 			}
 		}
 		catch(SQLException e){
-			Log.e("CrashLogs:getCrashLogsSize: can't access Database");
+			log.w("CrashLogs:getCrashLogsSize: can't access Database");
 		}
 		return totalSize;
 	}

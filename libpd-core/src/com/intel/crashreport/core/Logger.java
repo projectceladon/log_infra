@@ -21,30 +21,42 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport.database;
+package com.intel.crashreport.core;
 
-import com.intel.phonedoctor.Constants;
+import com.intel.crashreport.common.IEventLog;
 
-import java.util.Arrays;
-import java.util.Date;
+public class Logger implements IEventLog {
+	private static IEventLog mLogger;
 
-public class Utils {
-	private static final int COEF_S_TO_MS = 1000;
+	private Logger() {
+	}
 
-	public static int convertDateForDb(Date date) {
-		if (date==null) {
-			return -1;
+	//@SuppressWarnings("unchecked")
+	public static IEventLog getLog() {
+		if (mLogger != null)
+			return mLogger;
+
+		try {
+			Class c = Class.forName("com.intel.crashreport.specific.EventLog");
+			mLogger = (IEventLog)c.newInstance();
 		}
-		return (int)(date.getTime() / COEF_S_TO_MS);
+		catch (ClassNotFoundException e) {
+			mLogger = new Logger();
+		}
+		catch (Exception e) {
+			mLogger = new Logger();
+		}
+
+		return mLogger;
 	}
 
-	public static Date convertDateForJava(int date) {
-		long dateLong = date;
-		dateLong = dateLong * COEF_S_TO_MS;
-		return new Date(dateLong);
-	}
+	public void d(String msg){}
+	public void e(String msg){}
+	public void w(String msg){}
+	public void i(String msg){}
 
-	public static boolean isEventLogsValid( String eventType ) {
-		return ( !Arrays.asList(Constants.INVALID_EVENTS).contains(eventType) );
-	}
+	public void d(String msg, Throwable tr){}
+	public void e(String msg, Throwable tr){}
+	public void w(String msg, Throwable tr){}
+	public void i(String msg, Throwable tr){}
 }

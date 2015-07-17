@@ -32,13 +32,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.intel.crashreport.Log;
+import com.intel.crashreport.common.IEventLog;
+import com.intel.crashreport.core.Logger;
 
 import java.io.Closeable;
 import java.util.List;
 
 public class General implements Closeable {
 
+	private static final IEventLog log = Logger.getLog();
 	private DatabaseHelper mDbHelper;
 	protected SQLiteDatabase mDb;
 	protected String mDbName;
@@ -88,9 +90,8 @@ public class General implements Closeable {
 
 		if (orderBy != null) orderBy += (orderDesc) ? " DESC" : " ASC";
 		cursor = mDb.query(true, table, fields, where, null, null, null, orderBy, limit);
-		if (cursor != null) {
+		if (cursor != null)
 			cursor.moveToFirst();
-		}
 		return cursor;
 	}
 
@@ -105,19 +106,17 @@ public class General implements Closeable {
 				+ ((where != null) ? " WHERE " + where : ""), null);
 
 		if (cursor == null) {
-			Log.e("Cursor instance creation failed.");
+			log.e("Cursor instance creation failed.");
 			return count;
 		}
 
 		try {
-			if(cursor.moveToFirst()) {
+			if(cursor.moveToFirst())
 				count = cursor.getInt(0);
-			}
 		} catch (SQLException e) {
-			Log.e("Could not move cursor to expected record.");
-		} finally {
-			cursor.close();
+			log.e("Could not move cursor to expected record.");
 		}
+		cursor.close();
 
 		return count;
 	}
@@ -150,19 +149,18 @@ public class General implements Closeable {
 
 		@Override
 		public void onCreate(SQLiteDatabase db) {
-			for(int i = 0; i < mTables.size(); i++) {
+			for(int i = 0; i < mTables.size(); i++)
 				db.execSQL(mTables.get(i).getCreateStatement());
-			}
 		}
 
 		private void regenerate_tables(SQLiteDatabase db, int reason,
 				int oldVersion, int newVersion) {
-			Log.w(((reason == 1) ? "Up" : "Down") + "grading database from version "
-					+ oldVersion + " to " + newVersion
-					+ ", which will destroy all old data");
-			for(int i = 0; i < mTables.size(); i++) {
+			log.w(((reason == 1) ? "Up" : "Down")
+				+ "grading database from version "
+				+ oldVersion + " to " + newVersion
+				+ ", which will destroy all old data");
+			for(int i = 0; i < mTables.size(); i++)
 				db.execSQL("DROP TABLE IF EXISTS " + mTables.get(i).getName());
-			}
 			onCreate(db);
 		}
 

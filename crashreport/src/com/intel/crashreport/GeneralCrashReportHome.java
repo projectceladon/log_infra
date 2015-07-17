@@ -51,6 +51,7 @@ import java.util.List;
 import com.intel.crashreport.bugzilla.ui.common.BugzillaMainActivity;
 import com.intel.crashreport.bugzilla.ui.common.ListBugzillaActivity;
 import com.intel.crashreport.bugzilla.ui.common.UserInformationsActivity;
+import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.CrashReportActivity;
 import com.intel.crashreport.specific.Event;
 
@@ -203,7 +204,7 @@ public class GeneralCrashReportHome extends Activity {
 					+ "\n" + "© Intel 2014."
 					+ "\n" + "SSN : "  + Event.getSSN()
 					+ "\n" + "DeviceID : " + Event.deviceId()
-					+ "\n" + "Product : " + GeneralBuild.getProperty(GeneralBuild.PRODUCT_PROPERTY_NAME))
+					+ "\n" + "Product : " + Build.getProperty(com.intel.crashreport.common.Constants.PRODUCT_PROPERTY_NAME))
 					.create();
 		}
 	}

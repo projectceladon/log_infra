@@ -21,7 +21,7 @@
  * Intel in writing.
  */
 
-package com.intel.crashreport;
+package com.intel.crashreport.core;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.List;
 
 import android.os.SystemProperties;
 
-import com.intel.phonedoctor.Constants;
+import com.intel.crashreport.common.Constants;
 
 public class GeneralBuild {
 
@@ -50,7 +50,7 @@ public class GeneralBuild {
 	public static final String SWCONF_PROPERTY_NAME  = "ro.swconf.info";
 	public static final String OS_VALUE              = "Android";
 
-	private static String VARIANT = null;
+	protected static String VARIANT = null;
 
 	protected final BuildProperty buildId = new BuildProperty("buildId");
 	protected final BuildProperty fingerPrint = new BuildProperty("fingerPrint");
@@ -110,34 +110,9 @@ public class GeneralBuild {
 				this.getOs());
 	}
 
-	protected static String getProperty(String name) {
-		try {
-			String property = SystemProperties.get(name, "");
-			return property;
-		} catch (IllegalArgumentException e) {
-			Log.w("Propery not available : "+name);
-		}
-		return "";
+	public static String getProperty(String name) {
+		return SystemProperties.get(name, "");
 	}
-
-	/**
-	 * Returns the modem version (variant).
-	 * @return the variant as String
-	 */
-	public static final String getVariant() {
-		if(VARIANT == null) {
-			String suffix = GeneralBuild.getProperty(SWCONF_PROPERTY_NAME);
-			StringBuffer sBuffer = new StringBuffer(
-					GeneralBuild.getProperty(VARIANT_PROPERTY_NAME));
-			if(!"".equals(suffix)) {
-				sBuffer.append("-");
-				sBuffer.append(suffix);
-			}
-			VARIANT = sBuffer.toString();
-		}
-		return VARIANT;
-	}
-
 
 	@Override
 	public String toString() {

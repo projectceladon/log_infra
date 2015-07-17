@@ -61,7 +61,7 @@ import com.intel.crashreport.CrashReportService.LocalBinder;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 import com.intel.crashreport.specific.Event;
 import com.intel.crashreport.database.EventDB;
-import com.intel.phonedoctor.Constants.EVENT_FILTER;
+import com.intel.crashreport.common.Utils.EVENT_FILTER;
 import android.app.ActionBar;
 
 public class StartServiceActivity extends Activity {
