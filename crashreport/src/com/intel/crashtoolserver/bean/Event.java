@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.text.DateFormat;
+import java.util.TimeZone;
 
 import com.intel.crashtool.constant.CtDateConstants;
 import com.intel.crashtool.util.HashGenerator;
@@ -518,7 +520,7 @@ public class Event implements Serializable {
 
 		this.device = device;
 		if (date != null) {
-			this.dateString = new SimpleDateFormat(CtDateConstants.PATTERN_TIMESTAMP).format(date);
+			this.dateString = dateToString(date, new SimpleDateFormat(CtDateConstants.PATTERN_TIMESTAMP));
 		}
 		this.rowId = rowId;
 		this.pdStatus = pdStatus;
@@ -981,6 +983,21 @@ public class Event implements Serializable {
 
     public void setModem(Modem modem) {
         this.modem = modem;
+    }
+
+    /**
+     * convert a date to string with a pattern in parameter, null safe
+     * We have to keep it in the been has it is shared with PD and MPTA with no external dependencies (ie : crashtoolUtil is not shared)
+     * @param date
+     * @return
+     */
+    private static String dateToString(Date date, DateFormat formatter) {
+           String result = null;
+           if (date != null) {
+                   formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+                   result = formatter.format(date);
+           }
+           return result;
     }
 
     /* (non-Javadoc)

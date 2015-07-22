@@ -33,7 +33,7 @@ import com.intel.phonedoctor.Constants;
 
 public class GeneralBuild {
 
-	private static final int FIELD_NUMBER = 10;
+	private static final int FIELD_NUMBER = 4;
 
 
 	/**
@@ -50,28 +50,15 @@ public class GeneralBuild {
 	protected final BuildProperty fingerPrint = new BuildProperty("fingerPrint");
 	protected final BuildProperty kernelVersion = new BuildProperty("kernelVersion");
 	protected final BuildProperty buildUserHostname = new BuildProperty("buildUserHostname");
-	protected final BuildProperty modemVersion = new BuildProperty("modemVersion");
-	protected final BuildProperty ifwiVersion = new BuildProperty("ifwiVersion");
-	protected final BuildProperty iafwVersion = new BuildProperty("iafwVersion");
-	protected final BuildProperty scufwVersion = new BuildProperty("scufwVersion");
-	protected final BuildProperty punitVersion = new BuildProperty("punitVersion", "");
-	protected final BuildProperty valhooksVersion = new BuildProperty("valhooksVersion");
 
 	private final List<BuildProperty> properties = new ArrayList<GeneralBuild.BuildProperty>();
 
-	public GeneralBuild(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname, String modemVersion,
-			String ifwiVersion, String iafwVersion, String scufwVersion, String punitVersion, String valhooksVersion) {
+	public GeneralBuild(String buildId, String fingerPrint, String kernelVersion, String buildUserHostname) {
 		super();
 		this.setBuildId(buildId);
 		this.setFingerPrint(fingerPrint);
 		this.setKernelVersion(kernelVersion);
 		this.setBuildUserHostname(buildUserHostname);
-		this.setModemVersion(modemVersion);
-		this.setIfwiVersion(ifwiVersion);
-		this.setIafwVersion(iafwVersion);
-		this.setScufwVersion(scufwVersion);
-		this.setPunitVersion(punitVersion);
-		this.setValhooksVersion(valhooksVersion);
 	}
 
 	public GeneralBuild(String longBuildId) {
@@ -83,12 +70,6 @@ public class GeneralBuild {
 					this.setFingerPrint(buildFields[1]);
 					this.setKernelVersion(buildFields[2]);
 					this.setBuildUserHostname(buildFields[3]);
-					this.setModemVersion(buildFields[4]);
-					this.setIfwiVersion(buildFields[5]);
-					this.setIafwVersion(buildFields[6]);
-					this.setScufwVersion(buildFields[7]);
-					this.setPunitVersion(buildFields[8]);
-					this.setValhooksVersion(buildFields[9]);
 				}
 			}
 		}
@@ -104,12 +85,12 @@ public class GeneralBuild {
 				fingerPrint.getValue(),
 				kernelVersion.getValue(),
 				buildUserHostname.getValue(),
-				modemVersion.getValue(),
-				ifwiVersion.getValue(),
-				iafwVersion.getValue(),
-				scufwVersion.getValue(),
-				punitVersion.getValue(),
-				valhooksVersion.getValue());
+				"",
+				"",
+				"",
+				"",
+				"",
+				"");
 	}
 
 	protected static String getProperty(String name) {
@@ -144,10 +125,7 @@ public class GeneralBuild {
 	@Override
 	public String toString() {
 		return this.getBuildId() + "," + this.getFingerPrint() + "," +
-				this.getKernelVersion() + "," + this.getBuildUserHostname() + "," +
-				this.getModemVersion() + "," + this.getIfwiVersion() + "," +
-				this.getIafwVersion() + "," + this.getScufwVersion() + "," +
-				this.getPunitVersion() + "," + this.getValhooksVersion();
+				this.getKernelVersion() + "," + this.getBuildUserHostname();
 	}
 
 	public String getBuildId() {
@@ -180,54 +158,6 @@ public class GeneralBuild {
 
 	public void setBuildUserHostname(String buildUserHostname) {
 		this.buildUserHostname.setValue(buildUserHostname);
-	}
-
-	public String getModemVersion() {
-		return modemVersion.getValue();
-	}
-
-	public void setModemVersion(String modemVersion) {
-		this.modemVersion.setValue(modemVersion);
-	}
-
-	public String getIfwiVersion() {
-		return ifwiVersion.getValue();
-	}
-
-	public void setIfwiVersion(String ifwiVersion) {
-		this.ifwiVersion.setValue(ifwiVersion);
-	}
-
-	public String getIafwVersion() {
-		return iafwVersion.getValue();
-	}
-
-	public void setIafwVersion(String iafwVersion) {
-		this.iafwVersion.setValue(iafwVersion);
-	}
-
-	public String getScufwVersion() {
-		return scufwVersion.getValue();
-	}
-
-	public void setScufwVersion(String scufwVersion) {
-		this.scufwVersion.setValue(scufwVersion);
-	}
-
-	public String getPunitVersion() {
-		return punitVersion.getValue();
-	}
-
-	public void setPunitVersion(String punitVersion) {
-		this.punitVersion.setValue(punitVersion);
-	}
-
-	public String getValhooksVersion() {
-		return valhooksVersion.getValue();
-	}
-
-	public void setValhooksVersion(String valhooksVersion) {
-		this.valhooksVersion.setValue(valhooksVersion);
 	}
 
 	/**
