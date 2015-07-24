@@ -47,7 +47,7 @@ public class General implements Closeable {
 	protected int mDbVersion;
 	protected List<Table> mTables;
 
-	protected final Context mCtx;
+	protected Context mCtx;
 
 	public General(Context ctx, String dbName, int dbVersion, List<Table> tables) {
 		this.mCtx = ctx;
@@ -56,9 +56,34 @@ public class General implements Closeable {
 		this.mTables = tables;
 	}
 
+	public General() { }
+
+	protected void finalize() throws Throwable {
+		try {
+			close();
+		} finally {
+			super.finalize();
+		}
+	}
+
 	public General open() throws SQLException, SQLiteException {
 		mDbHelper = new DatabaseHelper(mCtx, mDbName, mDbVersion, mTables);
 		mDb = mDbHelper.getWritableDatabase();
+		return this;
+	}
+
+	public General open(String dbPath, boolean writeMode) throws SQLException, SQLiteException {
+		try{
+			mDb = SQLiteDatabase.openDatabase(
+					dbPath
+					, null
+					, (writeMode) ? SQLiteDatabase.OPEN_READWRITE :
+							SQLiteDatabase.OPEN_READONLY
+					);
+		} catch (SQLException e) {
+			mDb = null;
+		}
+
 		return this;
 	}
 

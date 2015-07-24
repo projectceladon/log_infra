@@ -23,12 +23,28 @@
 
 package com.intel.crashreport.database;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class Utils {
 	private static final int COEF_S_TO_MS = 1000;
 	public static final String[] INVALID_EVENTS = new String [] { "KDUMP" };
+
+	public static int convertDateForDB(String sDate) {
+		int iResult = -1;
+		Date cDate = null;
+		if (sDate != null) {
+			try {
+				com.intel.crashreport.common.Utils.PARSE_DF.setTimeZone(
+					TimeZone.getTimeZone("GMT"));
+				iResult = convertDateForDb(
+					com.intel.crashreport.common.Utils.PARSE_DF.parse(sDate));
+			} catch (ParseException e) { }
+		}
+		return iResult;
+	}
 
 	public static int convertDateForDb(Date date) {
 		if (date==null) {

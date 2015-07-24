@@ -51,10 +51,10 @@ public class GeneralEventDB extends General {
 
 	private static final String DATABASE_NAME = "eventlogs.db";
 	protected static final String DATABASE_TABLE = "events";
-	private static final String DATABASE_TYPE_TABLE = "events_type";
-	private static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
-	private static final String DATABASE_CRITICAL_TABLE = "critical_events_type";
-	private static final String DATABASE_BZ_TABLE = "bz_events";
+	protected static final String DATABASE_TYPE_TABLE = "events_type";
+	protected static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
+	protected static final String DATABASE_CRITICAL_TABLE = "critical_events_type";
+	protected static final String DATABASE_BZ_TABLE = "bz_events";
 	protected static final String DATABASE_BLACK_EVENTS_TABLE = "black_events";
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
 	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
@@ -188,7 +188,7 @@ public class GeneralEventDB extends General {
 	private static final String DATABASE_CRITICAL_EVENTS_EMPTY =
 			"delete from "+DATABASE_CRITICAL_EVENTS_TABLE+";";
 
-	private static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
+	public static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
 			+" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
 			+"(ce."+KEY_DATA1+"='' or ce."+KEY_DATA1+"=trim(e."+KEY_DATA1+")) and "
 			+"(ce."+KEY_DATA2+"='' or ce."+KEY_DATA2+"=trim(e."+KEY_DATA2+")) and "
@@ -241,9 +241,21 @@ public class GeneralEventDB extends General {
 				KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY,
 				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE, KEY_EVENT_CLEANED};
 
+	public static final String[] eventsTableBaseColums = new String[] {KEY_ROWID, KEY_ID,
+				KEY_NAME, KEY_TYPE, KEY_DATA0, KEY_DATA1, KEY_DATA2,
+				KEY_DATE,KEY_CRASHDIR};
+
+	public static final String[] eventsTableDetailColums = new String[] {KEY_ROWID, KEY_ID,
+				KEY_NAME, KEY_TYPE, KEY_DATA0, KEY_DATA1, KEY_DATA2, KEY_DATE,
+				KEY_CRASHDIR, KEY_DATA3, KEY_DATA4, KEY_DATA5, KEY_UPTIME,
+				KEY_UPLOAD, KEY_UPLOADLOG, KEY_DATA_READY};
+
 	public static final String[] rainTableColums = new String[] {KEY_DATE, KEY_TYPE, KEY_DATA0,
 				KEY_DATA1, KEY_DATA2, KEY_DATA3,  KEY_ID, KEY_OCCURRENCES,
 				KEY_LAST_FIBONACCI, KEY_NEXT_FIBONACCI};
+	public static final String[] bzColums = new String[]{KEY_ID, KEY_SUMMARY,
+				KEY_DESCRIPTION, KEY_SEVERITY, KEY_BZ_TYPE, KEY_BZ_COMPONENT,
+				KEY_SCREENSHOT, KEY_SCREENSHOT_PATH};
 
 	public static final List<Table> tables = Arrays.asList(
 		new Table(DATABASE_TABLE, DATABASE_CREATE),
@@ -255,6 +267,10 @@ public class GeneralEventDB extends General {
 		new Table(DATABASE_GCM_MESSAGES_TABLE, DATABASE_GCM_MESSAGES_CREATE),
 		new Table(DATABASE_DEVICE_TABLE, DATABASE_DEVICE_CREATE)
 	);
+
+	public GeneralEventDB() {
+		super();
+	}
 
 	public GeneralEventDB(Context ctx) {
 		super(ctx, DATABASE_NAME, DATABASE_VERSION, tables);
@@ -377,7 +393,7 @@ public class GeneralEventDB extends General {
 
 	}
 
-	private Cursor fetchEventFromWhereQuery(String whereQuery) throws SQLException {
+	public Cursor fetchEventFromWhereQuery(String whereQuery) throws SQLException {
 		return selectEntries(DATABASE_TABLE, eventsTableColums, whereQuery);
 	}
 
@@ -655,6 +671,16 @@ public class GeneralEventDB extends General {
 
 	public int getCrashToNotifyNumber() {
 		return getEventsToNotifyNumber(true);
+	}
+
+	public int getNumberEventByCriticty(boolean bCritical){
+		String where = KEY_TYPE + ((bCritical) ? "" : " not") + " in (select " + KEY_TYPE
+				+ " from " + DATABASE_TYPE_TABLE
+				+ " where " + KEY_CRITICAL + "=1) " + ((bCritical) ? "or" : "and")
+				+ " (" + KEY_ID +  ((bCritical) ? "" : " not") + " in ("
+				+ SELECT_CRITICAL_EVENTS_QUERY + " ))";
+
+		return getNumberFromWhereQuery(where);
 	}
 
 	public void deleteAllTypes(){

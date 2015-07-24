@@ -25,21 +25,31 @@ package com.intel.crashreport.database;
 
 import java.util.Date;
 
+import com.intel.crashreport.core.GcmMessage;
 import com.intel.crashreport.core.GeneralEvent;
 import com.intel.crashreport.database.GeneralEventDB;
-import com.intel.crashreport.core.GcmMessage;
 
 import com.intel.crashtoolserver.bean.Device;
+import com.intel.crashtoolserver.bean.Event;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 public class EventDB extends GeneralEventDB{
 
 	private static final int BEGIN_FIBONACCI = 13;
 	private static final int BEGIN_FIBONACCI_BEFORE = 8;
+
+	public EventDB() {
+		super();
+	}
 
 	public EventDB(Context ctx) {
 		super(ctx);
@@ -374,5 +384,150 @@ public class EventDB extends GeneralEventDB{
 			cursor.close();
 		}
 		return device;
+	}
+
+	public Cursor fillDeviceInfo() {
+		return selectEntries(DATABASE_DEVICE_TABLE,
+				deviceTableColums);
+	}
+
+	public int getLastSWUpdate(){
+		int retVal = -1;
+		Cursor cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_ROWID},
+				KEY_TYPE+"='SWUPDATE'", KEY_ROWID, true, "1");
+
+		if (cursor == null)
+			return retVal;
+
+		try {
+			retVal = cursor.getInt(cursor.getColumnIndex(KEY_ROWID));
+		} catch (SQLException e) {}
+		return retVal;
+	}
+
+	public long getCurrentUptime() {
+		Cursor cursor;
+		long lResultUptime = -1;
+		int iLastSWUpdateID = getLastSWUpdate();
+		boolean bUptimePresent = false;
+
+		cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_NAME,KEY_UPTIME},
+				 KEY_ROWID + " > " + iLastSWUpdateID, KEY_ROWID, false);
+
+		if (cursor != null) {
+			long lUptimeReboot = 0;
+			long lUptimeOther = 0;
+			while (!cursor.isAfterLast()) {
+				String sUptime = "";
+				try {
+					sUptime = cursor.getString(cursor.getColumnIndex(KEY_UPTIME));
+				} catch (SQLException e) {}
+
+				int iCurUptime = com.intel.crashreport.common.Utils.convertUptime(
+						sUptime);
+				if (iCurUptime >= 0){
+					String sName = "";
+					try {
+						sName = cursor.getString(cursor.getColumnIndex(KEY_NAME));
+					} catch (SQLException e) {}
+					bUptimePresent = true;
+					if (sName.equals("REBOOT")) {
+						lUptimeReboot += iCurUptime;
+						lUptimeOther = 0;
+					} else if (iCurUptime > 0) {
+						lUptimeOther = iCurUptime;
+					}
+				}
+				cursor.moveToNext();
+			}
+			cursor.close();
+			lResultUptime = lUptimeReboot + lUptimeOther;
+		}
+
+		return lResultUptime;
+	}
+
+	public boolean updateEventUploadStateByRow(int row, int upload,
+			int upload_log, boolean update_log) {
+		ContentValues args = new ContentValues();
+		args.put(KEY_UPLOAD, upload);
+		if (update_log)
+			args.put(KEY_UPLOADLOG, upload_log);
+
+		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "='" + row + "'", null) > 0;
+	}
+
+	public boolean cleanCrashDirByID(int row){
+		ContentValues args = new ContentValues();
+		args.put(KEY_CRASHDIR, "");
+		return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "='" + row + "'", null) > 0;
+	}
+
+	public boolean cleanCrashDirByTime(String sTime){
+		int iTimeValue = Utils.convertDateForDB(sTime);
+		if (iTimeValue <= 0)
+			return false;
+
+		ContentValues args = new ContentValues();
+		args.put(KEY_CRASHDIR, "");
+		return mDb.update(DATABASE_TABLE, args, KEY_DATE + "<" + iTimeValue
+				+ " AND " + KEY_CRASHDIR + " is not null", null) > 0;
+	}
+
+
+	public  String[] getLogsDir(String where) {
+		Cursor cursor;
+		String[] sResultLogsDir = new String[0];
+
+		cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_CRASHDIR}, where);
+		if (cursor != null) {
+			int i = 0;
+			sResultLogsDir = new String[cursor.getCount()];
+			while (!cursor.isAfterLast()) {
+				String dr = "getLogsDir  SQLexception";
+				try {
+					dr = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
+				} catch (SQLException e) {}
+				sResultLogsDir[i++] = dr;
+				cursor.moveToNext();
+			}
+			cursor.close();
+		}
+		return sResultLogsDir;
+	}
+
+	public  String[] getAllLogsDir() {
+		return getLogsDir(null);
+	}
+
+	public String[] getLogsDirByTime(String sTime){
+		int iTimeValue = Utils.convertDateForDB(sTime);
+		if (iTimeValue <= 0)
+			return new String[0];
+
+		return getLogsDir(KEY_DATE + "<" + iTimeValue);
+	}
+
+	public String getLogDirByID(int iID){
+		String[] logs = getLogsDir(KEY_ROWID + "=" + iID);
+
+		if (logs != null && logs.length > 0)
+			return logs[0];
+
+		return "";
+	}
+
+	public static Map <String, String> cursorToHashMap(Cursor cursor, boolean formatDate) {
+		if (cursor == null)
+			return null;
+
+		Map <String, String> map = new LinkedHashMap <String, String>();
+		for (String name : cursor.getColumnNames())
+			if (formatDate && name.equals(KEY_DATE))
+				map.put(name, com.intel.crashreport.common.Utils.convertDate(
+					cursor.getLong(	cursor.getColumnIndex(KEY_DATE))));
+			else
+				map.put(name, cursor.getString(cursor.getColumnIndex(name)));
+		return map;
 	}
 }
