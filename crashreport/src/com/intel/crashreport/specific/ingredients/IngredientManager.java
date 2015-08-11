@@ -19,12 +19,15 @@
 
 package com.intel.crashreport.specific.ingredients;
 
+import com.intel.crashreport.Log;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 import android.os.SystemProperties;
+
+import org.json.JSONObject;
+import org.json.JSONException;
 
 public enum IngredientManager {
 	INSTANCE;
@@ -32,7 +35,7 @@ public enum IngredientManager {
 	private static final String ING_CONF_FILE_PATH = "/system/etc/ingredients.conf";
 
 	private boolean bNeedRefresh = true;
-	private Map<String, String> lastIngredients = null;
+	private JSONObject lastIngredients = null;
 	List<String> sUniqueKeyList = new ArrayList<String>();
 
 
@@ -54,10 +57,15 @@ public enum IngredientManager {
 		sUniqueKeyList.clear();
 		IngredientBuilder builder_unique = new FileIngredientBuilder(ING_CONF_FILE_PATH);
 		// Retrieve the ingredients
-		Map<String, String> ingredients_unique = builder_unique.getIngredients();
+		JSONObject ingredients_unique = builder_unique.getIngredients();
 		for(String key : ingredients_unique.keySet()) {
 			// Add each ingredient value to the JSON string
-			String value = ingredients_unique.get(key);
+			String value = null;
+			try {
+				value = ingredients_unique.getString(key);
+			} catch (JSONException e) {
+				Log.e("Could not retrieve value from ingredients");
+			}
 			if(value != null) {
 				if (value.equalsIgnoreCase("true")) {
 					sUniqueKeyList.add(key);
@@ -79,34 +87,42 @@ public enum IngredientManager {
 		return resultList;
 	}
 
-	public void storeLastIngredients(Map<String, String> aIng) {
+	public void storeLastIngredients(JSONObject aIng) {
 		lastIngredients = aIng;
 	}
 
-	public Map<String, String> getLastIngredients() {
+	public JSONObject getLastIngredients() {
 		return lastIngredients;
 	}
 
-	public Map<String, String> getDefaultIngredients() {
-		Map<String, String> ingredients = new HashMap<String, String>();
-		ingredients.put("ifwi", SystemProperties.get("sys.ifwi.version"));
-		ingredients.put("pmic", SystemProperties.get("sys.pmic.version"));
-		ingredients.put("punit", SystemProperties.get("sys.punit.version"));
-		ingredients.put("modem", SystemProperties.get("gsm.version.baseband"));
+	public JSONObject getDefaultIngredients() {
+		JSONObject ingredients = new JSONObject();
+		try {
+			ingredients.put("ifwi", SystemProperties.get("sys.ifwi.version"));
+			ingredients.put("pmic", SystemProperties.get("sys.pmic.version"));
+			ingredients.put("punit", SystemProperties.get("sys.punit.version"));
+			ingredients.put("modem", SystemProperties.get("gsm.version.baseband"));
+		} catch (JSONException e) {
+			Log.e("Could not set up default ingredients");
+		}
 		return ingredients;
 	}
 
 	public String getIngredient(String key) {
 		if (lastIngredients == null)
 			return null;
-		return lastIngredients.get(key);
+		try {
+			return lastIngredients.getString(key);
+		} catch (JSONException e) {
+			return null;
+		}
 	}
 
 	public void refreshIngredients() {
 		//need to update lastingredients
 		IngredientBuilder builder = new FileIngredientBuilder(com.intel.crashreport.specific.Build.INGREDIENTS_FILE_PATH);
 		// Retrieve the ingredients
-		Map<String, String> ingredients = builder.getIngredients();
+		JSONObject ingredients = builder.getIngredients();
 		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
 	}
 
