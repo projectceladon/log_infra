@@ -188,7 +188,7 @@ public class MainParser{
 				}
 
 				if (sTag.equals("MPANIC") || sTag.equals("MPANIC_FAKE")) {
-					if (!genericCrash(sOutput)){
+					if (!mpanic(sOutput)){
 						closeOutput();
 						return -1;
 					}
@@ -204,6 +204,13 @@ public class MainParser{
 
 				if (sTag.equals("APCOREDUMP")) {
 					if (!apcoredump(sOutput)){
+						closeOutput();
+						return -1;
+					}
+				}
+
+				if (sTag.equals("VMMTRAP")) {
+					if (!vmmtrap(sOutput)){
 						closeOutput();
 						return -1;
 					}
@@ -317,6 +324,74 @@ public class MainParser{
 
 				if (first != last) {
 					bResult &= appendToCrashfile("DATA0=" + sCoreDumpFile.substring(first+1, last));
+				}
+			}
+		}else{
+			//using default parsing method
+			return genericCrash(aFolder);
+		}
+		return bResult;
+	}
+
+	private boolean mpanic(String aFolder){
+		boolean bResult;
+
+		//reuse same coredump method but same function naming logic
+		bResult = checkCoredump(aFolder);
+		return bResult;
+	}
+
+	private boolean vmmtrap(String aFolder){
+		boolean bResult;
+
+		//reuse same coredump method but same function naming logic
+		bResult = checkCoredump(aFolder);
+		return bResult;
+	}
+
+
+	private boolean checkCoredump(String aFolder){
+		boolean bResult = true;
+		boolean bData0Found = false;
+		boolean bData1Found = false;
+		String sData0="";
+		String sData1="";
+
+		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
+		if (sCoreDumpFile != "") {
+			BufferedReaderClean bufCoreFile = null;
+			try{
+				Pattern patternData0 = java.util.regex.Pattern.compile("Filename:.*");
+				Pattern patternData1 = java.util.regex.Pattern.compile("Line number:.*");
+				bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
+				String sCurLine;
+				while ((sCurLine = bufCoreFile.readLine()) != null) {
+					String sTmp;
+					if (!bData0Found){
+						sTmp = simpleGrepAwk(patternData0, sCurLine, ":", 1, true);
+						if (sTmp != null){
+							sData0 = sTmp;
+							bData0Found = true;
+						}
+					}
+					if (!bData1Found){
+						sTmp = simpleGrepAwk(patternData1, sCurLine, ":", 1, true);
+						if (sTmp != null){
+							sData1 = sTmp;
+							bData1Found = true;
+						}
+					}
+				}
+				bResult &= appendToCrashfile("DATA0=" + sData0);
+				bResult &= appendToCrashfile("DATA1=" + sData1);
+			}
+			catch(Exception e) {
+				APLog.e( "checkCoredump : " + e);
+				e.printStackTrace();
+				return false;
+			} finally {
+				if (bufCoreFile != null) {
+					bufCoreFile.close();
 				}
 			}
 		}else{
@@ -649,6 +724,15 @@ public class MainParser{
 			}
 		}
 
+		if (!checkSignature(resultData)){
+			resultData = null;
+			//4th chance : use coredump.txt file
+			sIPanicFile = fileGrepSearch("coredump.*", aFolder);
+			if (sIPanicFile != ""){
+				bFoundOnce = true;
+				resultData = ipanicByFile(sIPanicFile);
+			}
+		}
 
 		if (resultData != null){
 			String sData0 = "";
