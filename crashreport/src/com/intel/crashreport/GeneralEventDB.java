@@ -644,14 +644,14 @@ public class GeneralEventDB {
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
-	protected int convertDateForDb(Date date) {
+	public static int convertDateForDb(Date date) {
 		if (date==null) {
 			return -1;
 		}
 		return (int)(date.getTime() / COEF_S_TO_MS);
 	}
 
-	protected Date convertDateForJava(int date) {
+	public static Date convertDateForJava(int date) {
 		long dateLong = date;
 		dateLong = dateLong * COEF_S_TO_MS;
 		return new Date(dateLong);

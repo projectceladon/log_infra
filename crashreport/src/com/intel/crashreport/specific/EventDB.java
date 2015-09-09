@@ -35,7 +35,7 @@ public class EventDB extends GeneralEventDB{
 
 	private static final int BEGIN_FIBONACCI = 13;
 	private static final int BEGIN_FIBONACCI_BEFORE = 8;
-	private static final int RAIN_DURATION_MAX = 3600;
+	public static final int RAIN_DURATION_MAX = 3600;
 	private static final int MAX_DELAY_RAIN = 600;
 	private static final int RAIN_CRASH_NUMBER = 10;
 
@@ -305,18 +305,20 @@ public class EventDB extends GeneralEventDB{
 
 	public boolean checkNewRain(Event event, int lastRain) {
 		Cursor mCursor;
-		int lastEvent;
+		int lastEventDate, defaultDate;
 		Date date = event.getDate();
 		RainSignature rainSignature = new RainSignature(event);
 
-		if(-1 != lastRain)
-			lastEvent = lastRain;
-		else {
-			lastEvent = convertDateForDb(date);
-			lastEvent -= RAIN_DURATION_MAX;
+		//robustness for all corner case around date
+		defaultDate =convertDateForDb(date);
+		if ((lastRain != -1) && (lastRain < defaultDate)) {
+			lastEventDate = lastRain;
+		} else {
+			lastEventDate = defaultDate;
+			lastEventDate -= RAIN_DURATION_MAX;
 		}
 		//Fetch from events database the events with matching signature and with a matching date value
-		String whereQuery = rainSignature.querySignature() + " AND " + KEY_DATE + " > " + lastEvent;
+		String whereQuery = rainSignature.querySignature() + " AND " + KEY_DATE + " > " + lastEventDate;
 
 		int count = -1;
 
@@ -327,7 +329,7 @@ public class EventDB extends GeneralEventDB{
 			if (mCursor != null) {
 				count = mCursor.getCount();
 				mCursor.close();
-				if (count == RAIN_CRASH_NUMBER) {
+				if (count >= RAIN_CRASH_NUMBER) {
 					if (-1 == lastRain)
 						addRainEvent(event);
 					else

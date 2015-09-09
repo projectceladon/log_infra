@@ -29,6 +29,7 @@ import com.intel.crashreport.Log;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
+import com.intel.crashreport.GeneralEventDB;
 
 public class BlackLister {
 	private static final String module = "BlackLister: ";
@@ -82,30 +83,47 @@ public class BlackLister {
 
 	public boolean blackListCrash(Event event) {
 		boolean result = false;
+		int lastCrashDate;
+
 		try{
 			RainSignature rainSignature = new RainSignature(event);
-			if(!rainSignature.isEmpty()) {
-				if(db.isRainEventExist(rainSignature)){
-					if(db.isInTheCurrentRain(event)){
-						db.updateRainEvent(rainSignature, event.getDate());
-						result = true;
+
+			if (rainSignature.isEmpty()) {
+				//exit condition
+				return false;
+			}
+			if (db.isRainEventExist(rainSignature)) {
+				if (db.isInTheCurrentRain(event)) {
+					db.updateRainEvent(rainSignature, event.getDate());
+					result = true;
+				}
+				else {
+					//need to check last crash date consistency for corner case
+					lastCrashDate = db.getLastCrashDate(rainSignature);
+					if (lastCrashDate > GeneralEventDB.convertDateForDb(event.getDate())) {
+						//wrong last date, need clean
+						Log.w("BlackLister: wrong date detected - "+ lastCrashDate);
+						cleanRain(GeneralEventDB.convertDateForJava(lastCrashDate +
+											 EventDB.RAIN_DURATION_MAX + 1 ));
+						lastCrashDate = -1;
 					}
-					else
-						result = db.checkNewRain(event, db.getLastCrashDate(rainSignature));
+
+					result = db.checkNewRain(event, lastCrashDate);
 				}
-				else
-					result = db.checkNewRain(event);
-				if(result) {
-					db.addBlackEvent(event, "RAIN");
-					Log.w("BlackLister: event "+event.getEventId()+" is RAIN");
-				}
+			}
+			else {
+				result = db.checkNewRain(event);
+			}
+			if (result) {
+				db.addBlackEvent(event, "RAIN");
+				Log.w("BlackLister: event "+event.getEventId()+" is RAIN");
 			}
 		}
 		catch(SQLException e){
 			Log.e("BlaskLister:blackListCrash" + e.getMessage());
 		}
-		if(result) {
-			//If the event is blacklisted its crashlog directorie shall be removed
+		if (result) {
+			//If the event is blacklisted its crashlog directories shall be removed
 			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
 		}
 		return result;
