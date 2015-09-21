@@ -101,8 +101,10 @@ public class FileIngredientBuilder implements IngredientBuilder {
 					continue;
 				}
 
-				if (bFiltered && sb.length() != 0) {
-					// first char in lower case
+				// first char in lower case
+				if (sb.length() == 0) {
+					sb.append(Character.toLowerCase(c));
+				} else if (bFiltered) {
 					sb.append(Character.toUpperCase(c));
 				} else {
 					sb.append(c);
