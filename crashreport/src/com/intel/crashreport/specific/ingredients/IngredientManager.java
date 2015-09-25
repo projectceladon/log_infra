@@ -32,7 +32,7 @@ import org.json.JSONException;
 public enum IngredientManager {
 	INSTANCE;
 
-	private static final String ING_CONF_FILE_PATH = "/system/etc/ingredients.conf";
+	private static final String ING_CONF_FILE_PATH = "/system/vendor/etc/ingredients.conf";
 
 	private boolean bNeedRefresh = true;
 	private JSONObject lastIngredients = null;
