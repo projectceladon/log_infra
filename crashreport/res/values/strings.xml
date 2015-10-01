@@ -25,7 +25,7 @@
 
     <!-- Server address -->
     <string name="settings_private_app_server_host_key">settings_private_app_server_host</string>
-    <string name="settings_private_app_server_host_value">crashtool.dtdns.net</string>
+    <string name="settings_private_app_server_host_value">clota.intel.com</string>
 
     <!-- Server port -->
     <string name="settings_private_app_server_port_key">settings_private_app_server_port</string>
