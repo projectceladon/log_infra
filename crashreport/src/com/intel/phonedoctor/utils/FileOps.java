@@ -64,6 +64,24 @@ public class FileOps {
 	}
 
 	/**
+	 * Creates a new file, given a path
+	 *
+	 * @param directory in which we want to create the file
+	 * @param name of the file we are supposed to create
+	 * @return true if file exists at the end of the operation, else false
+	 * note: it does not create the path to the file if it does not exist!
+	 */
+	public static boolean createNewFile(File directory, String name)
+			throws IOException, FileNotFoundException {
+		File file = new File(directory, name);
+
+		if (!file.exists())
+			return file.createNewFile();
+
+		return true;
+	}
+
+	/**
 	 * Copy file from source to destination
 	 *
 	 * @param src source file

@@ -21,6 +21,8 @@ package com.intel.crashreport.specific;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -68,6 +70,7 @@ public class PhoneInspector {
 	 */
 	public static final String LOW_MEM_MODE = "lowmemory";
 	public static final String NOMINAL_MODE = "nominal";
+	private static final String CLEAN_PATTERN = "Cleaned_By_";
 	public static final int RETRY_ALLOWED = 3;
 
 	/**
@@ -188,13 +191,31 @@ public class PhoneInspector {
 					if (!m.find())
 						continue;
 
-					//need to check if data is uploaded
-					if (db.checkPathStatus(c.getAbsolutePath()) != 0) {
-						db.setEventLogCleaned(c.getAbsolutePath());
-						FileOps.delete(c);
-						db.updateEventFolderPath(
-							c.getAbsolutePath(), "");
+					path = c.getAbsolutePath();
+					//need to check if data is uploaded, otherwise skip
+					if (db.checkPathStatus(path) == 0)
+						continue;
+
+					// need to check that we delete only unreferenced files
+					// older than a specified time, and newer than current time
+					if (db.checkPathStatus(path) < 0) {
+						Date fileModified = new Date(c.lastModified());
+						Date now = new Date();
+						// threshold set at 1 minute
+						Date lowThreashold =
+							new Date(now.getTime() - 60000);
+
+						if (fileModified.before(now)
+							&&  fileModified.after(lowThreashold))
+							continue;
+						Log.d("Removing unreferenced path: " + path);
 					}
+					else
+						Log.d("Removing uploaded path: " + path);
+
+					db.setEventLogCleaned(path);
+					FileOps.delete(c);
+					db.updateEventFolderPath(path, "");
 				}
 
 			db.close();
@@ -227,10 +248,33 @@ public class PhoneInspector {
 			}
 
 			if (logsDir.isDirectory()){
-				Log.i("Removing not uploaded event log path: " + path);
+				Log.d("Cleaning not uploaded path: " + path);
+				Boolean skipReasonFile = false;
 				db.setEventLogCleaned(path);
-				FileOps.delete(logsDir);
-				db.updateEventFolderPath(path, "");
+
+				File[] files = logsDir.listFiles();
+				for (File file : files) {
+					if (!file.isDirectory()
+						&& file.getName().startsWith(CLEAN_PATTERN)) {
+						skipReasonFile = true;
+						continue;
+					}
+
+					FileOps.delete(file);
+				}
+
+				if (skipReasonFile)
+					continue;
+
+				String date = new SimpleDateFormat("yyyy-MM-dd_HHmmss.SSS")
+						.format(new Date());
+				String filename = CLEAN_PATTERN + "PhoneInspector_"
+					+ date + ".txt";
+				try {
+					FileOps.createNewFile(logsDir, filename);
+				} catch (Exception e) {
+					Log.w("Could not create cleanup file: " + filename);
+				}
 			}
 		} while (getFreeSpacePercentage(logsPath) <= targetedFreeSpace);
 		cursor.close();
