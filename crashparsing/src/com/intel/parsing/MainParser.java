@@ -1587,12 +1587,16 @@ public class MainParser{
 		boolean bPIDFound = false;
 		boolean bTypeFound = false;
 		boolean bCPUFound = false;
+		boolean bCMDLineFound = false;
+		boolean bMainFound = false;
 		int iStackCount = 0;
 
 		Pattern patternPID = java.util.regex.Pattern.compile(".*Process:.*");
 		Pattern patternType = java.util.regex.Pattern.compile(".*Subject:.*");
 		Pattern patternStack = java.util.regex.Pattern.compile("^  at.*");
 		Pattern patternCPU = java.util.regex.Pattern.compile(".*TOTAL.*");
+		Pattern patternCMDLine = java.util.regex.Pattern.compile("^Cmd line:.*");
+		Pattern patternMain = java.util.regex.Pattern.compile("^\"main\" prio.*");
 		String sCurLine;
 		try {
 			while ((sCurLine = aReader.readLine()) != null) {
@@ -1619,7 +1623,20 @@ public class MainParser{
 					}
 				}
 
-				if (iStackCount<8){
+				//robustness on stack search, need to find appropriate CMDLINE
+				if (!bCMDLineFound){
+					sTmp = simpleGrepAwk(patternCMDLine, sCurLine, "", 0);
+					if (sTmp != null){
+						if (sTmp.contains(sPID)){
+							bCMDLineFound = true;
+						}
+					}
+				} else if(!bMainFound){
+					sTmp = simpleGrepAwk(patternMain, sCurLine, "", 0);
+					if (sTmp != null){
+						bMainFound = true;
+					}
+				} else if (iStackCount<8){
 					sTmp = simpleGrepAwk(patternStack, sCurLine, "at ", 1);
 					sTmp = simpleAwk(sTmp,"\\(", 0);
 					if (sTmp != null){
