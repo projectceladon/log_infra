@@ -41,7 +41,7 @@ public class ListBugzillaActivity extends Activity {
 		super.onResume();
 		CrashReport app = (CrashReport)getApplicationContext();
 		if(!app.isServiceStarted()) {
-			Intent crashReportStartServiceIntent = new Intent("com.intel.crashreport.CrashReportService");
+			Intent crashReportStartServiceIntent = new Intent(app.getApplicationContext(), CrashReportService.class);
 			crashReportStartServiceIntent.putExtra("fromActivity", false);
 			app.getApplicationContext().startService(crashReportStartServiceIntent);
 		}

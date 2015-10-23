@@ -312,7 +312,7 @@ public class StartServiceActivity extends Activity {
 	}
 
 	private void startService() {
-		Intent crashReportStartServiceIntent = new Intent("com.intel.crashreport.CrashReportService");
+		Intent crashReportStartServiceIntent = new Intent(this, CrashReportService.class);
 		crashReportStartServiceIntent.putExtra("fromActivity", true);
 		app.getApplicationContext().startService(crashReportStartServiceIntent);
 	}

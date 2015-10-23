@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportRequest;
+import com.intel.crashreport.CrashReportService;
 import com.intel.crashreport.GeneralNotificationReceiver;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.specific.GcmUtils;
@@ -38,11 +39,6 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 	private static final String EVENT_ID_EXTRA 					= "com.intel.crashreport.extra.EVENT_ID";
 	private static final String RELAUNCH_CHECK_EVENTS_SERVICE 	= "com.intel.crashreport.intent.RELAUNCH_SERVICE";
 	private static final String START_CRASHREPORT_SERVICE 		= "com.intel.crashreport.intent.START_CRASHREPORT";
-
-	private static final Intent CHECK_EVENTS_SERVICE_INTENT 	= new Intent("com.intel.crashreport.specific.CheckEventsService");
-
-	private static final Intent PHONE_INSPECTOR_START_SERVICE_INTENT 	= new Intent("com.intel.crashreport.specific.PhoneInspectorService");
-	private static final Intent CRASH_REPORT_START_SERVICE_INTENT 		= new Intent("com.intel.crashreport.CrashReportService");
 
 	//PhoneInspectorService intent type
 	public static final String EXTRA_TYPE			 	= "type";
@@ -61,14 +57,14 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 				CrashReport app = (CrashReport)context.getApplicationContext();
 				app.addRequest(new CrashReportRequest());
 				if(!app.isCheckEventsServiceStarted())
-					context.startService(CHECK_EVENTS_SERVICE_INTENT);
+					context.startService(new Intent(context, CheckEventsService.class));
 			}
 
 			@Override
 			public void startUpload(Context context) {
 				CrashReport app = (CrashReport)context.getApplicationContext();
 				if(!app.isServiceStarted())
-					context.startService(CRASH_REPORT_START_SERVICE_INTENT);
+					context.startService(new Intent(context, CrashReportService.class));
 			}
 
 		};
@@ -84,8 +80,9 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			}
 			super.onReceive(context, intent);
 			//Add type to intent and send it
-				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
-				context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
+				Intent aIntent = new Intent(context, PhoneInspectorService.class);
+				aIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
+				context.startService(aIntent);
 		} else if (intent.getAction().equals(START_CRASHREPORT_SERVICE)) {
 			Log.d("NotificationReceiver: startCrashReportService");
 			iStartCrashReport.startUpload(context);
@@ -94,7 +91,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			Log.d("NotificationReceiver: relaunchCheckEventsService");
 			app.setServiceRelaunched(false);
 			if(!app.isCheckEventsServiceStarted())
-				context.startService(CHECK_EVENTS_SERVICE_INTENT);
+				context.startService(new Intent(context, CheckEventsService.class));
 		} else if (intent.getAction().equals(CRASHLOGS_COPY_FINISHED_INTENT)){
 			CrashReport app = (CrashReport)context.getApplicationContext();
 			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
@@ -118,23 +115,25 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 					db.close();
 					if(isPresent) {
 						if(!app.isServiceStarted())
-							context.startService(CRASH_REPORT_START_SERVICE_INTENT);
+							context.startService(new Intent(context, CrashReportService.class));
 						else
 							app.setNeedToUpload(true);
 					}
-					PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
-					context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
+					Intent aIntent = new Intent(context, PhoneInspectorService.class);
+					aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
+					context.startService(aIntent);
 				}
 			}
 		} else if (intent.getAction().equals(DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED)) {
 			Log.d("NotificationReceiver: dropBoxEntryAddedIntent");
 
 			//Add data to intent
-				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, DROPBOX_ENTRY_ADDED);
-				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(DropBoxManager.EXTRA_TAG, intent.getStringExtra(DropBoxManager.EXTRA_TAG));
-				PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
+			Intent aIntent = new Intent(context, PhoneInspectorService.class);
+			aIntent.putExtra(EXTRA_TYPE, DROPBOX_ENTRY_ADDED);
+			aIntent.putExtra(DropBoxManager.EXTRA_TAG, intent.getStringExtra(DropBoxManager.EXTRA_TAG));
+			aIntent.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
 
-				context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
+			context.startService(aIntent);
 		}else if (intent.getAction().equals(GeneralNotificationReceiver.GCM_MARK_AS_READ)) {
 			int rowId = -1;
 			// Check whether a row id has been supplied
@@ -157,8 +156,9 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			// Cancel the notification
 			GCMNotificationMgr.clearGcmNotification(this.context);
 		} else if (intent.getAction().equals(Intent.ACTION_DEVICE_STORAGE_LOW)) {
-			PHONE_INSPECTOR_START_SERVICE_INTENT.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
-			context.startService(PHONE_INSPECTOR_START_SERVICE_INTENT);
+			Intent aIntent = new Intent(context, PhoneInspectorService.class);
+			aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
+			context.startService(aIntent);
 		} else {
 			super.onReceive(context, intent);
 		}

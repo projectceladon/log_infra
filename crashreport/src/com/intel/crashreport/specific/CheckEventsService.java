@@ -34,6 +34,7 @@ import android.os.Message;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
+import com.intel.crashreport.CrashReportService;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.Logger;
 import com.intel.crashreport.NotificationMgr;
@@ -49,7 +50,6 @@ public class CheckEventsService extends Service {
 	private CheckEventsServiceHandler serviceHandler;
 	private CheckEventsServiceState serviceState;
 	private final IBinder mBinder = new CheckEventsLocalBinder();
-	private static final Intent crashReportStartServiceIntent = new Intent("com.intel.crashreport.CrashReportService");
 	private Logger logger = new Logger();
 	private static final String MODULE = "CheckEventsService";
 
@@ -288,7 +288,7 @@ public class CheckEventsService extends Service {
 			}
 			if (db.isThereEventToUpload()){
 				if(!app.isServiceStarted())
-					context.startService(crashReportStartServiceIntent);
+					context.startService(new Intent(context, CrashReportService.class));
 			}
 			histFile.close();
 			db.close();
