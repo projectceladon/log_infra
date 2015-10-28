@@ -103,7 +103,7 @@ public class JsonBuilder implements ParserBuilder {
 					fillProperty(curReader,parserToFill);
 				}else if (curReader.peek() == JsonToken.STRING) {
 					//unexpected token => skip
-					APLog.i("STRING SKIPPED");
+					APLog.v("STRING SKIPPED");
 					curReader.skipValue();
 				}else if (curReader.peek() == JsonToken.BEGIN_ARRAY) {
 					readRulesArray(curReader,parserToFill);
@@ -138,7 +138,7 @@ public class JsonBuilder implements ParserBuilder {
 					fillProperty(curReader,parserToFill);
 				}else if (curReader.peek() == JsonToken.STRING) {
 					//unexpected token => skip
-					APLog.i("STRING SKIPPED");
+					APLog.v("STRING SKIPPED");
 					curReader.skipValue();
 				}else if (curReader.peek() == JsonToken.BEGIN_ARRAY) {
 					curReader.beginArray();
@@ -171,7 +171,7 @@ public class JsonBuilder implements ParserBuilder {
 				fillPropertyForRule(curReader,ruleToFill);
 			}else if (curReader.peek() == JsonToken.STRING) {
 				//unexpected token => skip
-				APLog.i("STRING SKIPPED");
+				APLog.v("STRING SKIPPED");
 				curReader.skipValue();
 			}else if (curReader.peek() == JsonToken.BEGIN_ARRAY) {
 				//unexpected token => skip
@@ -218,10 +218,10 @@ public class JsonBuilder implements ParserBuilder {
 			} else if (sName.equals("description")){
 				//Ok but not stored inside parser object
 				curReader.skipValue();
-				APLog.i(sName + " skipped");
+				APLog.v(sName + " skipped");
 			} else if (sName.equals("rules")){
 				//Ok but not a property
-				APLog.i(sName + " found");
+				APLog.v(sName + " found");
 			}
 			else {
 				APLog.w("unmanaged property : " + sName);
@@ -236,7 +236,7 @@ public class JsonBuilder implements ParserBuilder {
 			String sValue = curReader.nextString();
 			parserToFill.setEventName(sValue);
 		} else {
-			APLog.i("empty");
+			APLog.v("empty");
 		}
 	}
 
@@ -245,7 +245,7 @@ public class JsonBuilder implements ParserBuilder {
 			String sValue = curReader.nextString();
 			parserToFill.setEventType(sValue);
 		} else {
-			APLog.i("empty");
+			APLog.v("empty");
 		}
 	}
 
