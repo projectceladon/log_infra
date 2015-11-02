@@ -78,7 +78,7 @@ public enum GeneralEventGenerator {
 				Build myBuild = new Build(mContext);
 				myBuild.fillBuildWithSystem();
 
-				event.setBuildId(myBuild.getBuildId());
+				event.setBuildId(myBuild.toString());
 				event.readDeviceId();
 				event.setImei(event.readImeiFromSystem());
 
