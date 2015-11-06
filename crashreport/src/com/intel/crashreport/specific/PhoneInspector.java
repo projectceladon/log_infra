@@ -64,6 +64,7 @@ public class PhoneInspector {
 	 * allowing to modify its behavior
 	 */
 	private static final String FULL_DROPBOX_PROP = "persist.sys.crashlogd.mode";
+	private static final String DATA_QUOTA_PROP = "persist.crashlogd.data_quota";
 
 	/**
 	 * Values that can be taken by Crashlog daemon FULL_DROPBOX_PROP property
@@ -276,7 +277,7 @@ public class PhoneInspector {
 					Log.w("Could not create cleanup file: " + filename);
 				}
 			}
-		} while (getFreeSpacePercentage(logsPath) <= targetedFreeSpace);
+		} while (!isFreeSpaceAvailable(logsPath, targetedFreeSpace));
 		cursor.close();
 		db.close();
 	}
@@ -287,28 +288,51 @@ public class PhoneInspector {
 	 * @return boolean indicating whether or not cleanup was required.
 	 */
 	public boolean manageFreeSpace(String logsPath) {
-		int freeSpace = getFreeSpacePercentage(logsPath);
-		if (freeSpace > Constants.LOGS_CRITICAL_SIZE_STAGE1) return false;
+		if (isFreeSpaceAvailable(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE1))
+			return false;
 
 		cleanUploadedLogs(logsPath);
 
-		freeSpace = getFreeSpacePercentage(logsPath);
-		if (freeSpace <= Constants.LOGS_CRITICAL_SIZE_STAGE2)
+		if (!isFreeSpaceAvailable(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE2))
 			cleanOldLogs(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE2);
 
                 return true;
 	}
 
-	private int getFreeSpacePercentage(String absolutePath) {
+	private static Boolean isFreeSpaceAvailable(String absolutePath, int trigger) {
 		StatFs path;
+                long availablePortion;
 		try {
 			path = new StatFs(absolutePath);
-
-			return (int)((path.getAvailableBlocksLong()*100)
-					/ path.getBlockCountLong());
 		} catch (IllegalArgumentException e) {
 			Log.e("Exception occured while calculating free space");
-			return 100;
+			return true;
 		}
+
+		try {
+			String prop = SystemProperties.get(DATA_QUOTA_PROP, "100");
+                        availablePortion = Integer.parseInt(prop);
+		} catch (IllegalArgumentException e) {
+                        availablePortion = 100;
+		}
+
+		if (0 == availablePortion) {
+			Log.w("No space reserved for crash logging");
+			return false;
+		}
+
+		availablePortion = (availablePortion > 100 || availablePortion < 0)
+			? 100 : availablePortion;
+
+		long fullSpace = path.getBlockCountLong() * path.getBlockSize();
+		long usedSpace = FileOps.getPathSize(absolutePath);
+                long threshold = 100 - trigger;
+
+		long stopSpace = fullSpace * availablePortion * threshold / 10000;
+
+		if (usedSpace < stopSpace)
+			return true;
+
+		return false;
 	}
 }

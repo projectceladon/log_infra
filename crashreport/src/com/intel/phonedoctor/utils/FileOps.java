@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.GZIPOutputStream;
@@ -79,6 +81,46 @@ public class FileOps {
 			return file.createNewFile();
 
 		return true;
+	}
+
+	/**
+	 * Calculates the size in bytes for a given path
+	 *
+	 * @param path to a file or directory
+	 * @return value representing the size in bytes for the given path
+	 */
+	public static long getPathSize(String path) {
+		File file = new File(path);
+		long result = 0;
+
+		if (file == null || !file.exists())
+			return 0;
+
+		if (!file.isDirectory())
+			return file.length();
+
+		List<File> list = new LinkedList<File>();
+		list.add(file);
+
+		while (!list.isEmpty()) {
+			File entry = list.remove(0);
+
+			if (!entry.exists())
+				continue;
+
+			File[] files = entry.listFiles();
+			if (files == null)
+				continue;
+
+			for (File f : files) {
+				if (f.isDirectory())
+					list.add(f);
+				else
+					result += f.length();
+			}
+		}
+
+		return result;
 	}
 
 	/**
