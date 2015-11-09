@@ -1265,9 +1265,11 @@ public class MainParser{
 			String sFaultAddress = "";
 			String sFaultAddrSeparator = "fault addr ";
 			String sHexCharactersPattern = "(0x)?[0-9A-Fa-f]+";
+			String sSubMessage = "";
 			boolean bProcessFound = false;
 			boolean bSignalFound = false;
 			boolean bSubSignalFound = false;
+			boolean bSubMessageFound = false;
 			boolean bDisplaySymbols = false;
 			int iSubSignalCount = 0;
 			int iStackCount = 0;
@@ -1279,6 +1281,7 @@ public class MainParser{
 			Pattern patternSignalStack = java.util.regex.Pattern.compile(".*Build fingerprint.*");
 			Pattern patternSubSignal = java.util.regex.Pattern.compile(".*signal.*");
 			Pattern patternSubStack = java.util.regex.Pattern.compile(".*#0[0-7].*");
+			Pattern patternSubMessage = java.util.regex.Pattern.compile("^Abort message:.*");
 			String sCurLine;
 			BufferedReaderClean bufTombstoneFile = null;
 			try {
@@ -1377,14 +1380,22 @@ public class MainParser{
 							}
 						}
 					}
+					if (!bSubMessageFound && bSubStackFound){
+						sTmp = simpleGrepAwk(patternSubMessage, sCurLine, ":", 1);
+						if (sTmp != null){
+							sSubMessage = sTmp + " - ";
+							bSubMessageFound = true;
+						}
+					}
 				}
 
 				bResult &= appendToCrashfile("DATA0=" + sProcess);
 				bResult &= appendToCrashfile("DATA1=" + sSignal);
+
 				if (bDisplaySymbols){
-					bResult &= appendToCrashfile("DATA2=" + sStackSymbol);
+					bResult &= appendToCrashfile("DATA2=" + sSubMessage + sStackSymbol);
 				}else{
-					bResult &= appendToCrashfile("DATA2=" + sStackLibs);
+					bResult &= appendToCrashfile("DATA2=" + sSubMessage + sStackLibs);
 				}
 				bResult &= appendToCrashfile("DATA3=" + sFaultAddress);
 
@@ -1742,14 +1753,16 @@ public class MainParser{
 	private boolean extractJavaCrashData(BufferedReader aReader, boolean nativ){
 		boolean bResult = true;
 		String sPID= "";
-		String sException= "";
+		String sCausedBy= "";
 		String sStack = "";
+		String sPreviousLine = "";
+		String sBeforeAt = "";
+		String sData1;
 		boolean bPIDFound = false;
-		boolean bExceptionFound = false;
 		int iStackCount = 0;
 
 		Pattern patternPID = java.util.regex.Pattern.compile(".*Process:.*");
-		Pattern patternJavaLang = java.util.regex.Pattern.compile("java\\.lang.*");
+		Pattern patternCausedBy = java.util.regex.Pattern.compile("^Caused by:.*");
 		Pattern patternStack = java.util.regex.Pattern.compile(".*at .*");
 		String sCurLine;
 		try {
@@ -1762,12 +1775,10 @@ public class MainParser{
 						bPIDFound = true;
 					}
 				}
-				if (!bExceptionFound){
-					sTmp = simpleGrepAwk(patternJavaLang, sCurLine, "", 0);
-					if (sTmp != null){
-						sException = sTmp;
-						bExceptionFound = true;
-					}
+				//last caused by block should be used, so never stop watching at pattern
+				sTmp = simpleGrepAwk(patternCausedBy, sCurLine, ":", 1, true);
+				if (sTmp != null){
+					sCausedBy = sTmp;
 				}
 				if (iStackCount<4){
 					sTmp = simpleGrepAwk(patternStack, sCurLine, "at ", 1);
@@ -1775,6 +1786,7 @@ public class MainParser{
 					if (sTmp != null){
 						if (iStackCount == 0){
 							sStack = sTmp;
+							sBeforeAt = sPreviousLine;
 						}
 						else{
 							sStack += " " +  sTmp;
@@ -1782,10 +1794,16 @@ public class MainParser{
 						iStackCount++;
 					}
 				}
+				sPreviousLine = sCurLine;
 			}
 
 			bResult &= appendToCrashfile("DATA0=" + filterAdressesPattern(sPID));
-			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sException));
+			if (!sCausedBy.isEmpty()) {
+				sData1 = sCausedBy;
+			} else {
+				sData1 = sBeforeAt;
+			}
+			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sData1));
 			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack));
 		}catch (Exception e) {
 			APLog.e( "extractJavaCrashData : " + e);
