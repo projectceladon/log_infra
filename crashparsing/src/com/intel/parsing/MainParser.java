@@ -336,15 +336,15 @@ public class MainParser{
 	private boolean mpanic(String aFolder){
 		boolean bResult;
 
-		//reuse same coredump method but same function naming logic
-		bResult = checkCoredump(aFolder);
+		//a specific parsing is expected for MPANIC case
+		bResult = checkCoredumpMpanic(aFolder);
 		return bResult;
 	}
 
 	private boolean vmmtrap(String aFolder){
 		boolean bResult;
 
-		//reuse same coredump method but same function naming logic
+		//use basic coredump parsing method for vmmtrap
 		bResult = checkCoredump(aFolder);
 		return bResult;
 	}
@@ -387,6 +387,70 @@ public class MainParser{
 			}
 			catch(Exception e) {
 				APLog.e( "checkCoredump : " + e);
+				e.printStackTrace();
+				return false;
+			} finally {
+				if (bufCoreFile != null) {
+					bufCoreFile.close();
+				}
+			}
+		}else{
+			//using default parsing method
+			return genericCrash(aFolder);
+		}
+		return bResult;
+	}
+
+	private boolean checkCoredumpMpanic(String aFolder){
+		boolean bResult = true;
+		boolean bFileNameFound = false;
+		boolean bLineFound = false;
+		boolean bVectorFound = false;
+		String sFileName="";
+		String sLine="";
+		String sVector="";
+
+		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
+		if (sCoreDumpFile != "") {
+			BufferedReaderClean bufCoreFile = null;
+			try{
+				Pattern patternFileName = java.util.regex.Pattern.compile("Filename:.*");
+				Pattern patternLine = java.util.regex.Pattern.compile("Line number:.*");
+				Pattern patternVector = java.util.regex.Pattern.compile("Vector:.*");
+				bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
+				String sCurLine;
+				while ((sCurLine = bufCoreFile.readLine()) != null) {
+					String sTmp;
+					if (!bFileNameFound){
+						sTmp = simpleGrepAwk(patternFileName, sCurLine, ":", 1, true);
+						if (sTmp != null){
+							sFileName = sTmp;
+							bFileNameFound = true;
+						}
+					}
+					if (!bLineFound){
+						sTmp = simpleGrepAwk(patternLine, sCurLine, ":", 1, true);
+						if (sTmp != null){
+							sLine = sTmp;
+							bLineFound = true;
+						}
+					}
+					if (!bVectorFound){
+						sTmp = simpleGrepAwk(patternVector, sCurLine, ":", 1, true);
+						if (sTmp != null){
+							sVector = sTmp;
+							bVectorFound = true;
+						}
+					}
+				}
+				//need to trim space per crashtool request
+				bResult &= appendToCrashfile("DATA0=" + "id: l:" + sLine.trim() + " c:" + sFileName.trim());
+				bResult &= appendToCrashfile("DATA1=" + sVector);
+				//hardcoded data for crashtool identification
+				bResult &= appendToCrashfile("DATA3=CD_INFO");
+			}
+			catch(Exception e) {
+				APLog.e( "checkCoredumpMpanic : " + e);
 				e.printStackTrace();
 				return false;
 			} finally {
