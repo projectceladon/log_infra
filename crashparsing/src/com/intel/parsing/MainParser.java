@@ -354,8 +354,10 @@ public class MainParser{
 		boolean bResult = true;
 		boolean bData0Found = false;
 		boolean bData1Found = false;
+		boolean bData2Found = false;
 		String sData0="";
 		String sData1="";
+		String sData2="";
 
 		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
 		if (sCoreDumpFile != "") {
@@ -363,6 +365,7 @@ public class MainParser{
 			try{
 				Pattern patternData0 = java.util.regex.Pattern.compile("Filename:.*");
 				Pattern patternData1 = java.util.regex.Pattern.compile("Line number:.*");
+				Pattern patternData2 = java.util.regex.Pattern.compile("Log data:.*");
 				bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
 				String sCurLine;
 				while ((sCurLine = bufCoreFile.readLine()) != null) {
@@ -381,9 +384,17 @@ public class MainParser{
 							bData1Found = true;
 						}
 					}
+					if (!bData2Found){
+						sTmp = simpleGrepAwk(patternData2, sCurLine, ":", 1, true);
+						if (sTmp != null){
+							sData2 = sTmp;
+							bData2Found = true;
+						}
+					}
 				}
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sData1);
+				bResult &= appendToCrashfile("DATA2=" + sData2);
 			}
 			catch(Exception e) {
 				APLog.e( "checkCoredump : " + e);
