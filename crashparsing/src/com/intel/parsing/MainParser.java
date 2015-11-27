@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
+import com.intel.crashreport.core.ParsableEvent;
 
 import android.os.SystemProperties;
 

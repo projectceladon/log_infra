@@ -27,4 +27,5 @@ LOCAL_MODULE := crashparsing
 LOCAL_MODULE_OWNER := intel
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
+LOCAL_STATIC_JAVA_LIBRARIES := libpd-core
 include $(BUILD_STATIC_JAVA_LIBRARY)

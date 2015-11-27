@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.TimeZone;
 
-import com.intel.parsing.ParsableEvent;
 import com.intel.crashreport.common.Constants;
 import com.intel.crashreport.common.Utils;
 
@@ -479,7 +478,7 @@ public class GeneralEvent {
 		return retEvent;
 	}
 
-	public com.intel.parsing.ParsableEvent getParsableEvent(){
+	public ParsableEvent getParsableEvent(){
 		return mParsableEvent;
 	}
 }

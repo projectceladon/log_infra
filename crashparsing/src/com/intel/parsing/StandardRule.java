@@ -23,6 +23,7 @@
 
 package com.intel.parsing;
 
+import com.intel.crashreport.core.ParsableEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -129,7 +130,7 @@ public class StandardRule {
 	public void analyzeEvent(ParsableEvent aEvent){
 		//step1 : open the input for parsing
 		if (getInputType().equals(TAG_INPUT_FILE)){
-			if (!openInputForfileGrep(getInputValue(),aEvent.crashDir)){
+			if (!openInputForfileGrep(getInputValue(),aEvent.getCrashDir())){
 				APLog.e("can't open Input : " + getInputValue());
 				return;
 			}

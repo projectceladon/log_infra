@@ -23,9 +23,10 @@
 
 package com.intel.parsing;
 
+import java.util.List;
+
 public interface ParserBuilder {
 
-	public EventParser getNextParser();
-	public boolean hasNextParser();
+	public List<EventParser> getParsers();
 
 }

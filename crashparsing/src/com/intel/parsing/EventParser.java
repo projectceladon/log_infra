@@ -23,6 +23,8 @@
 
 package com.intel.parsing;
 
+import com.intel.crashreport.core.ParsableEvent;
+
 public interface EventParser {
 
 	public boolean parseEvent(ParsableEvent aEvent);

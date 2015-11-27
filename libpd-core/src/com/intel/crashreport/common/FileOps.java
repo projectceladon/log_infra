@@ -35,11 +35,14 @@ import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipOutputStream;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
@@ -389,6 +392,51 @@ public class FileOps {
 		finally {
 			if (f != null)
 				f.close();
+		}
+	}
+
+	public static void compressFolderAndMove(String pathToCompress, String dest) throws IOException {
+		File folder = null;
+		File[] files = null;
+		int length;
+		byte[] buffer = new byte[1024];
+		FileInputStream in = null;
+		OutputStream os;
+
+		if (pathToCompress == null || pathToCompress.isEmpty())
+			return;
+
+		folder = new File(pathToCompress);
+		if (!folder.exists() || !folder.isDirectory())
+			return;
+
+		files = folder.listFiles();
+
+		if (files == null)
+			return;
+
+		try {
+			os = new FileOutputStream(dest);
+		} catch (FileNotFoundException e) {
+			log.e("Error on output stream path: " + e.getMessage());
+			return;
+		}
+		ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(os));
+		try {
+			for (File f: files) {
+				if (!f.isFile() || !f.canRead())
+					continue;
+				ZipEntry entry = new ZipEntry(f.getName());
+				zos.putNextEntry(entry);
+				in = new FileInputStream(f);
+				while ((length = in.read(buffer)) > 0)
+					zos.write(buffer, 0, length);
+				in.close();
+				zos.closeEntry();
+				log.e("File compressed: " + f.getName());
+			}
+		} finally {
+			zos.close();
 		}
 	}
 }

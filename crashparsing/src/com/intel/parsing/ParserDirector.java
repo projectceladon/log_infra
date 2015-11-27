@@ -25,13 +25,16 @@ package com.intel.parsing;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.intel.crashreport.core.ParsableEvent;
 
 import android.content.res.AssetManager;
 
 public class ParserDirector {
 
 	private final List<ParserBuilder> builders = new ArrayList<ParserBuilder>();
+	private final List<ParserBuilder> postBuilders = new ArrayList<ParserBuilder>();
 	private final List<EventParser> parsers = new ArrayList<EventParser>();
+	private final List<EventParser> postParsers = new ArrayList<EventParser>();
 
 	public ParserDirector() {
 	}
@@ -47,35 +50,58 @@ public class ParserDirector {
 		builders.add(myBuilder);
 		//legacy builder should added at the end
 		builders.add(new LegacyBuilder());
+		PostProcessBuilder myPostBuilder = new PostProcessBuilder(aManager);
+		postBuilders.add(myPostBuilder);
 	}
 
 	public int getParserCount(){
-		return parsers.size();
+		return parsers.size() + postParsers.size();
 	}
 
 	public void generateParsers() {
 		for (ParserBuilder curBuilder : builders) {
-			while (curBuilder.hasNextParser()) {
-				EventParser genParser = curBuilder.getNextParser();
+			for (EventParser genParser : curBuilder.getParsers()) {
 				if (genParser != null) {
 					parsers.add(genParser);
+				}
+			}
+
+		}
+		for (ParserBuilder curBuilder : postBuilders) {
+			for (EventParser genParser : curBuilder.getParsers()) {
+				if (genParser != null) {
+					postParsers.add(genParser);
 				}
 			}
 		}
 	}
 
 	public boolean parseEvent(ParsableEvent aEvent) {
+		boolean result = false;
+
 		for (EventParser curParser : parsers) {
 			if (curParser == null)
 				continue;
 			if (curParser.isEventEligible(aEvent)) {
 				if (curParser.parseEvent(aEvent)) {
 					//only one successful parsing is allowed
-					return true;
+					result = true;
+					break;
 				}
 			}
 		}
-		//no parser found the event eligible or parse it successfully => false
-		return false;
+		//exec post processing on event
+		for (EventParser curParser : postParsers) {
+			if (curParser == null)
+				continue;
+			if (curParser.isEventEligible(aEvent)) {
+				if (curParser.parseEvent(aEvent)) {
+					//any number of post-processing is allowed
+					result = true;
+					continue;
+				}
+			}
+		}
+		return result;
 	}
 }

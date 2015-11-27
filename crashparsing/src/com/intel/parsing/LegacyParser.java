@@ -23,6 +23,7 @@
 
 package com.intel.parsing;
 
+import com.intel.crashreport.core.ParsableEvent;
 import java.io.FileNotFoundException;
 
 public class LegacyParser implements EventParser {

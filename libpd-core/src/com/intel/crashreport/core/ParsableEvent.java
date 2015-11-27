@@ -21,7 +21,7 @@
  * Intel in writing.
  */
 
-package com.intel.parsing;
+package com.intel.crashreport.core;
 
 public class ParsableEvent {
 

@@ -23,21 +23,16 @@
 
 package com.intel.parsing;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class LegacyBuilder implements ParserBuilder{
 
-	private boolean isFirstCall = true;
+	public List<EventParser> getParsers() {
+		List<EventParser> resultList = new ArrayList<EventParser>();
 
-	public EventParser getNextParser() {
-		if (isFirstCall) {
-			isFirstCall = false;
-			return new LegacyParser();
-		} else {
-			return null;
-		}
-	}
-
-	public boolean hasNextParser() {
-		return isFirstCall;
+		resultList.add(new LegacyParser());
+		return resultList;
 	}
 
 }

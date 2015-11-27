@@ -35,17 +35,17 @@ import android.content.res.AssetManager;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
-public class JsonBuilder implements ParserBuilder {
+public class PostProcessBuilder implements ParserBuilder {
 
-	private static final String M_PARSER_DIR = "parserconfig";
+	private static final String M_POST_PARSER_DIR = "postparserconfig";
 
 	AssetManager mAssetManager;
 	List<String> mParserFileList = new ArrayList<String>();
 
-	public JsonBuilder(AssetManager aAssetManager) {
+	public PostProcessBuilder(AssetManager aAssetManager) {
 		mAssetManager = aAssetManager;
 		try {
-			String mList[] = mAssetManager.list(M_PARSER_DIR);
+			String mList[] = mAssetManager.list(M_POST_PARSER_DIR);
 			if (mList != null)
 				for (String config : mList)
 					mParserFileList.add(config);
@@ -55,15 +55,16 @@ public class JsonBuilder implements ParserBuilder {
 	}
 
 	public List<EventParser> getParsers() {
+		EventParser result = null;
 		InputStreamReader is = null;
 		List<EventParser> resultList = new ArrayList<EventParser>();
 
 		for (int i = 0; i < mParserFileList.size(); i++) {
 			try {
-				is = new InputStreamReader(mAssetManager.open(M_PARSER_DIR
+				is = new InputStreamReader(mAssetManager.open(M_POST_PARSER_DIR
 						+ File.separator + mParserFileList.get(i)));
-				APLog.i("reading : " + mParserFileList.get(i));
-				resultList.add(readOneStream(is));
+				APLog.i("reading post : " + mParserFileList.get(i));
+				readOneStream(is, resultList);
 			} catch (IOException e) {
 				APLog.w("IOException " + e.getMessage());
 			} finally {
@@ -79,20 +80,48 @@ public class JsonBuilder implements ParserBuilder {
 		return resultList;
 	}
 
-	private StandardParser readOneStream(InputStreamReader is) {
+	private void readOneStream(InputStreamReader is,
+			List<EventParser> listToFill) {
 		JsonReader reader = new JsonReader(is);
 		try {
-			StandardParser parserToFill = new StandardParser();
-			readJsonObject(reader, parserToFill);
+			readJsonObjectList(reader, listToFill);
 			reader.close();
-			return parserToFill;
 		} catch (IOException e) {
-			return null;
+			return;
+		}
+	}
+
+	private void readJsonObjectList(JsonReader curReader,
+			List<EventParser> listToFill) {
+
+		APLog.d("readJsonObject- starting");
+		try {
+			if (curReader.peek() == JsonToken.BEGIN_ARRAY)
+				curReader.beginArray();
+			if (curReader.peek() == JsonToken.BEGIN_OBJECT) {
+				PostProcessParser parserToFill = new PostProcessParser();
+				readJsonObject(curReader, parserToFill);
+				listToFill.add(parserToFill);
+				// recursion
+				readJsonObjectList(curReader, listToFill);
+			}
+			if (curReader.peek() == JsonToken.END_ARRAY) {
+				curReader.endArray();
+				return;
+			}
+			if (curReader.peek() == JsonToken.END_DOCUMENT) {
+				return;
+			}
+			// should not reach that point
+			APLog.e("Error : unexpected token : " + curReader.peek().toString());
+
+		} catch (IOException e) {
+			APLog.e("IOException " + e.getMessage());
 		}
 	}
 
 	private void readJsonObject(JsonReader curReader,
-			StandardParser parserToFill) {
+			PostProcessParser parserToFill) {
 		APLog.d("readJsonObject- starting");
 		try {
 			if (curReader.peek() != JsonToken.BEGIN_OBJECT) {
@@ -126,7 +155,7 @@ public class JsonBuilder implements ParserBuilder {
 	}
 
 	private void readRulesArray(JsonReader curReader,
-			StandardParser parserToFill) {
+			PostProcessParser parserToFill) {
 		APLog.d("readRulesArray- starting");
 		try {
 			if (curReader.peek() != JsonToken.BEGIN_ARRAY) {
@@ -145,9 +174,9 @@ public class JsonBuilder implements ParserBuilder {
 				} else if (curReader.peek() == JsonToken.BEGIN_ARRAY) {
 					curReader.beginArray();
 				} else if (curReader.peek() == JsonToken.BEGIN_OBJECT) {
-					StandardRule aRule = new StandardRule();
+					PostProcessRule aRule = new PostProcessRule();
 					readRuleObject(curReader, aRule);
-					parserToFill.addRulle(aRule);
+					parserToFill.addRule(aRule);
 				} else {
 					curReader.skipValue();
 				}
@@ -158,7 +187,7 @@ public class JsonBuilder implements ParserBuilder {
 		}
 	}
 
-	private void readRuleObject(JsonReader curReader, StandardRule ruleToFill)
+	private void readRuleObject(JsonReader curReader, PostProcessRule ruleToFill)
 			throws IOException {
 		APLog.d("readRuleObject- starting");
 
@@ -189,13 +218,13 @@ public class JsonBuilder implements ParserBuilder {
 	}
 
 	private void fillPropertyForRule(JsonReader curReader,
-			StandardRule ruleToFill) throws IOException {
+			PostProcessRule ruleToFill) throws IOException {
 		if (curReader.peek() == JsonToken.NAME) {
 			String sName = curReader.nextName();
 			if (curReader.peek() == JsonToken.STRING) {
 				try {
 					fillRuleByMethod(curReader, ruleToFill,
-							StandardRule.class.getMethod("set" + sName,
+							PostProcessRule.class.getMethod("set" + sName,
 									String.class));
 				} catch (NoSuchMethodException e) {
 					APLog.e("NoSuchMethodException for : " + sName);
@@ -212,51 +241,27 @@ public class JsonBuilder implements ParserBuilder {
 		}
 	}
 
-	private void fillProperty(JsonReader curReader, StandardParser parserToFill)
-			throws IOException {
+	private void fillProperty(JsonReader curReader,
+			PostProcessParser parserToFill) throws IOException {
 		if (curReader.peek() == JsonToken.NAME) {
 			String sName = curReader.nextName();
-			if (sName.equals("event_name")) {
-				fillEventName(curReader, parserToFill);
-			} else if (sName.equals("event_type")) {
-				fillEventType(curReader, parserToFill);
-			} else if (sName.equals("description")) {
-				// Ok but not stored inside parser object
-				curReader.skipValue();
-				APLog.v(sName + " skipped");
-			} else if (sName.equals("rules")) {
-				// Ok but not a property
-				APLog.v(sName + " found");
-			} else {
-				APLog.w("unmanaged property : " + sName);
+			if (curReader.peek() == JsonToken.STRING) {
+				try {
+					fillParserByMethod(curReader, parserToFill,
+							PostProcessParser.class.getMethod("set" + sName,
+									String.class));
+				} catch (NoSuchMethodException e) {
+					APLog.e("NoSuchMethodException for : " + sName);
+				}
 			}
 		} else {
 			APLog.e("BAD TOKEN");
 		}
 	}
 
-	private void fillEventName(JsonReader curReader, StandardParser parserToFill)
-			throws IOException {
-		if (curReader.peek() == JsonToken.STRING) {
-			String sValue = curReader.nextString();
-			parserToFill.setEventName(sValue);
-		} else {
-			APLog.v("empty");
-		}
-	}
-
-	private void fillEventType(JsonReader curReader, StandardParser parserToFill)
-			throws IOException {
-		if (curReader.peek() == JsonToken.STRING) {
-			String sValue = curReader.nextString();
-			parserToFill.setEventType(sValue);
-		} else {
-			APLog.v("empty");
-		}
-	}
-
 	private void fillRuleByMethod(JsonReader curReader,
-			StandardRule ruleToFill, Method aSetterMethod) throws IOException {
+			PostProcessRule ruleToFill, Method aSetterMethod)
+			throws IOException {
 		if (curReader.peek() == JsonToken.STRING) {
 			String sValue = curReader.nextString();
 			try {
@@ -271,8 +276,25 @@ public class JsonBuilder implements ParserBuilder {
 		}
 	}
 
+	private void fillParserByMethod(JsonReader curReader,
+			PostProcessParser parserToFill, Method aSetterMethod)
+			throws IOException {
+		if (curReader.peek() == JsonToken.STRING) {
+			String sValue = curReader.nextString();
+			try {
+				aSetterMethod.invoke(parserToFill, sValue);
+			} catch (IllegalAccessException e) {
+				APLog.e("IllegalAccessException");
+			} catch (IllegalArgumentException e) {
+				APLog.e("IllegalArgumentException");
+			} catch (InvocationTargetException e) {
+				APLog.e("InvocationTargetException");
+			}
+		}
+	}
+
 	private void fillArrayRuleByMethod(JsonReader curReader,
-			StandardRule ruleToFill, Method aArrayMethod) throws IOException {
+			PostProcessRule ruleToFill, Method aArrayMethod) throws IOException {
 		try {
 			if (curReader.peek() != JsonToken.BEGIN_ARRAY) {
 				curReader.skipValue();

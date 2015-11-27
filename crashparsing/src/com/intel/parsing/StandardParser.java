@@ -24,6 +24,7 @@
 package com.intel.parsing;
 
 import java.util.ArrayList;
+import com.intel.crashreport.core.ParsableEvent;
 
 public class StandardParser implements EventParser {
 

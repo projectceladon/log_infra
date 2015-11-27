@@ -1,0 +1,25 @@
+[
+ {
+    "description": "Parser for GNSS event",
+    "data0": "gnssCG2000",
+    "rules": [{
+        "input_type": "folder",
+        "input_value": "/data/gps/",
+        "output_size_limit_MB": "1",
+        "output_value": "gps.zip"
+    }]
+ },
+ {
+    "description":"Parser for GNSS event_2",
+    "data0" : "system_server",
+    "data2" : "GpsLocationProvider",
+    "rules": [
+        {
+            "input_type":"folder",
+            "input_value":"/data/gps/",
+            "output_size_limit_MB":"1",
+            "output_value":"gps.zip"
+        }
+    ]
+ }
+]
