@@ -47,7 +47,6 @@ import android.os.SystemProperties;
 
 public class Build extends GeneralBuild{
 
-	private static final String PATH_MODEMID = Constants.LOGS_DIR + "/modemid.txt";
 	public static final String INGREDIENTS_FILE_PATH = Constants.LOGS_DIR + "/ingredients.txt";
 	private static BuildAllowedValues ALLOWED_VALUES = null;
 	private Context ctx;
