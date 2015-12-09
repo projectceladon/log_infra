@@ -342,7 +342,18 @@ public class DBManager extends EventDB {
 		}
 	}
 
+	private static String convertDate(String date) {
+		long lDate;
+		try {
+			lDate = Long.parseLong(date);
+		} catch (NumberFormatException e) {
+			lDate = 0;
+		}
+		return com.intel.crashreport.common.Utils.convertDate(lDate);
+	}
+
 	private void printFromCursor(Cursor cursor, String[] listColumns, String tagHeader) {
+		int dateColumn = -1;
 		int [] indexListColumns = new int[listColumns.length];
 		String sHeader="";
 		for (int i = 0; i < indexListColumns.length; i++) {
@@ -352,6 +363,9 @@ public class DBManager extends EventDB {
 			}else{
 				sHeader += " | " + listColumns[i];
 			}
+
+                        if (listColumns[i].equals(KEY_DATE))
+                            dateColumn = i;
 		}
 		System.out.println(sHeader);
 
@@ -363,6 +377,8 @@ public class DBManager extends EventDB {
 				sColValue = cursor.getString(indexListColumns[i]);
 				if (i==0){
 					sLine = tagHeader + sColValue;
+				}else if (i == dateColumn){
+					sLine += " | " + convertDate(sColValue);
 				}else{
 					sLine += " | " + sColValue;
 				}
