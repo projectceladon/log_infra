@@ -173,7 +173,7 @@ public class EventDB extends GeneralEventDB{
 		Cursor cursor = getRainEventInfo(signature);
 		int occurances = 0;
 		if (cursor != null) {
-			occurances = getRainOccurances(getRainEventInfo(signature));
+			occurances = getRainOccurances(cursor);
 			cursor.close();
 		}
 		return occurances;
@@ -401,7 +401,10 @@ public class EventDB extends GeneralEventDB{
 
 		try {
 			retVal = cursor.getInt(cursor.getColumnIndex(KEY_ROWID));
-		} catch (SQLException e) {}
+		} catch (SQLException e) {
+		} finally {
+			cursor.close();
+		}
 		return retVal;
 	}
 

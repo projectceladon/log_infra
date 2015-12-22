@@ -1143,11 +1143,17 @@ public class GeneralEventDB extends General {
 		return updateEventsOnLogPaths(orginal, KEY_CRASHDIR, target);
 	}
 
-	public boolean isEventLogCleaned( String eventID ) {
+	public boolean isEventLogCleaned(String eventID) {
 		Cursor cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_EVENT_CLEANED},
 				KEY_ID + "='" + eventID + "'");
-		return ((cursor.getInt(cursor.getColumnIndex(KEY_EVENT_CLEANED)) == 0)
-			? false : true);
+		boolean status = false;
+
+		if (cursor == null)
+			return status;
+
+		status = (cursor.getInt(cursor.getColumnIndex(KEY_EVENT_CLEANED)) != 0);
+		cursor.close();
+		return status;
 	}
 
 	public boolean setEventLogCleaned( String eventPath ) {

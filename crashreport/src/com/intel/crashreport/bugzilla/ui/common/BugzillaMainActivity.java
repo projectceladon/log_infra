@@ -355,9 +355,7 @@ public class BugzillaMainActivity extends Activity {
 								fileName = imageUri.getLastPathSegment().toString();
 							}
 						}
-						if(!cursor.isClosed()) {
-							cursor.close();
-						}
+						cursor.close();
 					}
 
 				}

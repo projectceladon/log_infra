@@ -23,6 +23,7 @@
 
 package com.intel.crashreport;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -132,20 +133,24 @@ public class ApplicationPreferences {
 	}
 
 	public void resetCrashLogsUploadTypes() {
-		List<String> savedValues = Arrays.asList(getCrashLogsUploadTypes());
+		String[] savedValues = getCrashLogsUploadTypes();
+		final List<String> newValues = new ArrayList<String>();
+		if (savedValues != null)
+			for (String str:savedValues)
+				newValues.add(str);
 
 		String defaultValues[] = CrashLogsListPrefs.parseStoredValue(
 				mCtx.getString(R.string.settings_event_data_types_value_default));
 
 		if(defaultValues != null) {
 			for(String value:defaultValues)
-				if(!savedValues.contains(value))
-					savedValues.add(value);
+				if(!newValues.contains(value))
+					newValues.add(value);
 		}
 
 		sharedPrefsEditor.putString(
 				mCtx.getString(R.string.settings_event_data_types_key),
-				CrashLogsListPrefs.prepareToStoreStrings(savedValues));
+				CrashLogsListPrefs.prepareToStoreStrings(newValues));
 		sharedPrefsEditor.commit();
 	}
 

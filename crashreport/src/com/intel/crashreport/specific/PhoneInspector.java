@@ -260,6 +260,10 @@ public class PhoneInspector {
 				db.setEventLogCleaned(path);
 
 				File[] files = logsDir.listFiles();
+				//files would be null if logsDir would stop being a directory
+				if (files == null)
+					continue;
+
 				for (File file : files) {
 					if (!file.isDirectory()
 						&& file.getName().startsWith(CLEAN_PATTERN)) {
