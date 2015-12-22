@@ -164,12 +164,15 @@ public enum GeneralEventGenerator {
 
 	public String getImei() {
 		String deviceId;
-		try {
-			TelephonyManager tm = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
-			deviceId = tm.getDeviceId();
-		}catch(NullPointerException e){
+
+		if (mContext == null)
 			return "";
-		}
+
+		TelephonyManager tm = (TelephonyManager)mContext.getSystemService(Context.TELEPHONY_SERVICE);
+		if (tm == null)
+			return "";
+
+		deviceId = tm.getDeviceId();
 		if(deviceId == null)
 			deviceId = "";
 		return deviceId;

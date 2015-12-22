@@ -72,38 +72,34 @@ public class BZFile extends BZ {
 			String name;
 			String value;
 
-			if (field.length() != 0) {
-				try {
-					String splitField[] = field.split("\\=", MAX_FIELDS);
-					if (splitField.length == MAX_FIELDS) {
-						name = splitField[0];
-						value = splitField[1];
+			if (!field.isEmpty()) {
+				String splitField[] = field.split("\\=", MAX_FIELDS);
+				if (splitField.length == MAX_FIELDS) {
+					name = splitField[0];
+					value = splitField[1];
 
-						if (name.equals("SUMMARY"))
-							summary = value;
-						else if (name.equals("DESCRIPTION"))
-							description = value;
-						else if (name.equals("TYPE"))
-							type = value;
-						else if (name.equals("COMPONENT"))
-							component = value;
-						else if (name.equals("SEVERITY"))
-							severity = value;
-						else if (name.equals("SCREENSHOT")) {
-							screenshots.add(value);
-							hasScreenshot = true;
-						}
-						else if (name.equals("APLOG")) {
-							//nothing to do
-						}
-						else if (name.equals("BPLOG")) {
-							//nothing to do
-						}
-						else
-							Log.w("BzFile: field name\"" + name + "\" not recognised");
+					if (name.equals("SUMMARY"))
+						summary = value;
+					else if (name.equals("DESCRIPTION"))
+						description = value;
+					else if (name.equals("TYPE"))
+						type = value;
+					else if (name.equals("COMPONENT"))
+						component = value;
+					else if (name.equals("SEVERITY"))
+						severity = value;
+					else if (name.equals("SCREENSHOT")) {
+						screenshots.add(value);
+						hasScreenshot = true;
 					}
-				} catch (NullPointerException e) {
-					Log.w("BzFile: field format not recognised : " + field);
+					else if (name.equals("APLOG")) {
+						//nothing to do
+					}
+					else if (name.equals("BPLOG")) {
+						//nothing to do
+					}
+					else
+						Log.w("BzFile: field name\"" + name + "\" not recognised");
 				}
 			}
 		}

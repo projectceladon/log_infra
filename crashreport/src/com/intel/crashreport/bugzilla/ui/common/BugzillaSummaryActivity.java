@@ -113,7 +113,7 @@ public class BugzillaSummaryActivity extends Activity {
 		text += "Component : "+bugzillaStorage.getComponent()+ "\n";
 		text += "Severity : "+bugzillaStorage.getSeverity()+ "\n";
 		text += "Description : "+bugzillaStorage.getDescription()+ "\n";
-		if(!bugzillaStorage.getTime().equals(""))
+		if(!bugzillaStorage.getTime().isEmpty())
 			text += "Issue occured in last " +  bugzillaStorage.getTime()+ ".\n \n";
 		text += "With"+ (bugzillaStorage.getBugHasScreenshot()?" ":"out ")+"screenshot(s)\n";
 		text += (bugzillaStorage.getLogLevel() == 0)?"Without":"With";
@@ -121,8 +121,8 @@ public class BugzillaSummaryActivity extends Activity {
 		if(infos != null) {
 			infos.setText(text);
 		}
-		if(bugzillaStorage.getSummary().equals("") || bugzillaStorage.getBugType().equals("") || bugzillaStorage.getComponent().equals("")
-				|| bugzillaStorage.getSeverity().equals("") || bugzillaStorage.getDescription().equals("")){
+		if(bugzillaStorage.getSummary().isEmpty() || bugzillaStorage.getBugType().isEmpty() || bugzillaStorage.getComponent().isEmpty()
+				|| bugzillaStorage.getSeverity().isEmpty()|| bugzillaStorage.getDescription().isEmpty()){
 			comeBack();
 		}
 	}
@@ -143,8 +143,8 @@ public class BugzillaSummaryActivity extends Activity {
 
 			CrashReport app = (CrashReport)getApplicationContext();
 			BugStorage bugzillaStorage = app.getBugzillaStorage();
-			if(!bugzillaStorage.getSummary().equals("") && !bugzillaStorage.getDescription().equals("")){
-				String line = "";
+			if(!bugzillaStorage.getSummary().isEmpty() && !bugzillaStorage.getDescription().isEmpty()){
+				String line;
 				if (bugzillaStorage.getLogLevel()>=0){
 					line = "APLOG="+bugzillaStorage.getLogLevel()+"\n";
 					sArguments.add(line);
@@ -192,7 +192,7 @@ public class BugzillaSummaryActivity extends Activity {
 				if (strDescription.length() > 255) {
 					strDescription = strDescription.substring(0, 255);
 				}
-				if(!bugzillaStorage.getTime().equals("")) {
+				if(!bugzillaStorage.getTime().isEmpty()) {
 					String occurrence = "Issue occured in last " + bugzillaStorage.getTime();
 					if (strDescription.length() + occurrence.length() <= 255)
 						strDescription += occurrence;

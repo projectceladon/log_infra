@@ -128,8 +128,7 @@ public class EventReceiverService extends IntentService {
         }
 
         // Generate event
-        if (mEvent != null)
-            GeneralEventGenerator.INSTANCE.generateEvent(mEvent);
+        GeneralEventGenerator.INSTANCE.generateEvent(mEvent);
     }
 
     /**

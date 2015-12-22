@@ -153,6 +153,30 @@ public class Connector {
 				mSocket = null;
 			}
 		}
+		if (mInputStream != null) {
+			try {
+				mInputStream.close();
+			}
+			finally {
+				mInputStream = null;
+			}
+		}
+		if (mOutputStream != null) {
+			try {
+				mOutputStream.close();
+			}
+			finally {
+				mOutputStream = null;
+			}
+		}
+		if (mObjectOutputStream != null) {
+			try {
+				mObjectOutputStream.close();
+			}
+			finally {
+				mObjectOutputStream = null;
+			}
+		}
 		Log.d("Connector: Disconnected from server");
 	}
 
@@ -190,7 +214,7 @@ public class Connector {
 		Boolean connected = false;
 		wm = (WifiManager)mCtx.getSystemService(Context.WIFI_SERVICE);
 		String wifiSsid = getInternalWifiSsid();
-		String wmSsid = "";
+		String wmSsid;
 		if ((wm != null) && wm.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
 			WifiInfo wInfo = wm.getConnectionInfo();
 			if (wInfo != null) {
@@ -258,7 +282,7 @@ public class Connector {
 	public void disconnect() {
 		wm = (WifiManager)mCtx.getSystemService(Context.WIFI_SERVICE);
 		String wifiSsid = getInternalWifiSsid();
-		String wmSsid = "";
+		String wmSsid;
 		if ((wm != null) && wm.getWifiState() == WifiManager.WIFI_STATE_ENABLED) {
 			WifiInfo wInfo = wm.getConnectionInfo();
 			if (wInfo != null) {
@@ -304,7 +328,7 @@ public class Connector {
 	private BroadcastReceiver wifiStateReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction().equals(WifiManager.WIFI_STATE_CHANGED_ACTION)) {
+			if (WifiManager.WIFI_STATE_CHANGED_ACTION.equals(intent.getAction())) {
 				Log.d("Connector: Wifi state change");
 				if (isTryingToConnect()) {
 					serviceHandler.removeCallbacks(checkWifiStateToConnect);
@@ -312,7 +336,7 @@ public class Connector {
 				} else {
 					serviceHandler.post(checkWifiStateToAvailable);
 				}
-			} else if (intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
+			} else if (WifiManager.SCAN_RESULTS_AVAILABLE_ACTION.equals(intent.getAction())) {
 				if (scanInProgress) {
 					Log.d("Connector: Scan results available");
 					mScanResults = wm.getScanResults();
@@ -325,7 +349,7 @@ public class Connector {
 					}
 					scanInProgress = false;
 				}
-			} else if (intent.getAction().equals(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION)) {
+			} else if (WifiManager.SUPPLICANT_STATE_CHANGED_ACTION.equals(intent.getAction())) {
 				if (wifiWaitForConnect) {
 					Log.d("Connector: Supplicant state Changed");
 					SupplicantState supState =  intent.getParcelableExtra(WifiManager.EXTRA_NEW_STATE);
@@ -343,14 +367,14 @@ public class Connector {
 					}
 				}
 			}
-			if (intent.getAction().equals(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION)) {
+			if (WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION.equals(intent.getAction())) {
 				Log.d("Connector: BD INT : SUPPLICANT_CONNECTION_CHANGE_ACTION : EXTRA_SUPPLICANT_CONNECTED:" +
 						intent.getBooleanExtra(WifiManager.EXTRA_SUPPLICANT_CONNECTED, false));
 			}
-			if (intent.getAction().equals(WifiManager.NETWORK_IDS_CHANGED_ACTION)) {
+			if (WifiManager.NETWORK_IDS_CHANGED_ACTION.equals(intent.getAction())) {
 				Log.d("Connector: BD INT : NETWORK_IDS_CHANGED_ACTION");
 			}
-			if (intent.getAction().equals(WifiManager.RSSI_CHANGED_ACTION)) {
+			if (WifiManager.RSSI_CHANGED_ACTION.equals(intent.getAction())) {
 				Log.d("Connector: BD INT : RSSI_CHANGED_ACTION : " + intent.getIntExtra(WifiManager.EXTRA_NEW_RSSI, 0));
 			}
 		}
@@ -594,11 +618,9 @@ public class Connector {
 
 	private Runnable connectToNetwork = new Runnable() {
 		public void run() {
-			WifiConfiguration validConf = null;
-
 			Log.d("Connector:connectToNetwork");
 			String wifiSsid = getInternalWifiSsid();
-			validConf = getWifiConfigFromConfiguredNetworks(wifiSsid);
+			WifiConfiguration validConf = getWifiConfigFromConfiguredNetworks(wifiSsid);
 			if (validConf != null) {
 				Log.d("Connector:connectToNetwork : Wifi already configured");
 				if (wm.enableNetwork(validConf.networkId, true)) {
@@ -625,24 +647,30 @@ public class Connector {
 
 	private Boolean sendEventSocket(Event event) {
 		String serverMsg;
-		try {
-			mObjectOutputStream.writeObject(event);
-			serverMsg = mInputStream.readLine();
-			if (checkAck(serverMsg))
-				return true;
-		} catch (IOException e) {
-			return false;
-		} catch (NullPointerException e) {
-			Log.w(Log.getStackTraceString(e));
+
+		if (mObjectOutputStream == null || mInputStream == null) {
+			Log.w("sendEventSocket: invalid context!");
 			return false;
 		}
 
-		return false;
+		try {
+			mObjectOutputStream.writeObject(event);
+			serverMsg = mInputStream.readLine();
+		} catch (IOException e) {
+			return false;
+		}
+
+		return checkAck(serverMsg);
 	}
 
 	public Boolean sendLogsFile(FileInfo fileInfo, Thread t) throws InterruptedException {
 		String serverMsg;
 		BufferedInputStream bis = null;
+		if (mObjectOutputStream == null || mSocket == null || fileInfo == null) {
+			Log.w("sendLogsFile: invalid context!");
+			return false;
+		}
+
 		try {
 			mObjectOutputStream.writeObject(fileInfo);
 
@@ -650,7 +678,7 @@ public class Connector {
 
 			byte data[] = new byte[1024];
 			int count;
-			long fileSize = 0;
+			long fileSize;
 			long readBytes = 0;
 
 			fileSize = fileInfo.getSize();
@@ -664,7 +692,7 @@ public class Connector {
 					intent.putExtra("progressValue", (int) ((readBytes*100)/fileSize));
 					mCtx.sendBroadcast(intent);
 				}
-				if (t.isInterrupted()) {
+				if (t == null || t.isInterrupted()) {
 					throw new InterruptedException();
 				}
 			}
@@ -676,9 +704,6 @@ public class Connector {
 					return true;
 			}
 		} catch (IOException e) {
-			Log.w(Log.getStackTraceString(e));
-			return false;
-		} catch (NullPointerException e) {
 			Log.w(Log.getStackTraceString(e));
 			return false;
 		} finally {

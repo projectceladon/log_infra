@@ -81,10 +81,6 @@ public class PhoneInspectorService extends IntentService {
                 phoneInspector.manageFreeSpace(Constants.LOGS_DIR);
             }
 
-            else if( extraType.equals(NotificationReceiver.BOOT_COMPLETED)) {
-
-            }
-
         }
     }
 

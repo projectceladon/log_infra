@@ -126,7 +126,7 @@ public class ScreenshotAdapter extends BaseAdapter{
 					});
 				screenshots = new String[files.length];
 				for (int i = 0; i < files.length; i++){
-					screenshots[i] = files[i].getName().toString();
+					screenshots[i] = files[i].getName();
 				}
 			}
 		}
@@ -144,7 +144,7 @@ public class ScreenshotAdapter extends BaseAdapter{
 
 	public Object getItem(int position) {
 		ArrayList<String> listFileName = new ArrayList<String>(screenshotsSelected.keySet());
-		if(listFileName != null && listFileName.size() > position) {
+		if(listFileName.size() > position) {
 			return listFileName.get(position);
 		}
 		return "";
@@ -178,8 +178,13 @@ public class ScreenshotAdapter extends BaseAdapter{
 		String filename = (String)getItem(position);
 		if(holder != null && holder.screenshot != null) {
 			ViewGroup.LayoutParams viewParams = convertView.findViewById(R.id.screenshot_view).getLayoutParams();
-			Bitmap b = FileOps.loadScaledImageFromFile("/mnt/sdcard/Pictures/Screenshots/"+filename,
+			Bitmap b;
+			if (viewParams != null)
+				b = FileOps.loadScaledImageFromFile("/mnt/sdcard/Pictures/Screenshots/"+filename,
 							viewParams.width, viewParams.height);
+			else
+				b = null;
+
 			if (b == null)
 				b = Bitmap.createBitmap(1, 1, Config.ARGB_8888);
 

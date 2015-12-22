@@ -81,7 +81,7 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
 				Object newValue) {
 			if((Boolean)newValue){
 				Log.i("GeneralCrashReportActivity:GCM set to ON");
-				GcmEvent.INSTANCE.checkTokenGCM();
+				GcmEvent.INSTANCE.checkTokenGCM(getApplicationContext());
 			}
 			else
 				Log.i("GeneralCrashReportActivity:GCM set to OFF");
@@ -132,7 +132,7 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
 		if(null != checkGcm && gcmEnabled != checkGcm.isChecked()) {
 			if(checkGcm.isChecked()){
 				GcmEvent.INSTANCE.enableGcm();
-				GcmEvent.INSTANCE.checkTokenGCM();
+				GcmEvent.INSTANCE.checkTokenGCM(getApplicationContext());
 			}
 			else {
 				GcmEvent.INSTANCE.disableGcm();

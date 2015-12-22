@@ -120,7 +120,6 @@ public class Event extends GeneralEvent{
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild, boolean isUserBuild) {
-		boolean bResult = false;
 
 		setCrashDir(histevent.getOption());
 		try {
@@ -133,13 +132,12 @@ public class Event extends GeneralEvent{
 			date = convertDate(histevent.getDate());
 			setBuildId(myBuild);
 			setDeviceId(crashFile.getSn());
-			if(!crashFile.getImei().equals(""))
+			if(!crashFile.getImei().isEmpty())
 				setImei(crashFile.getImei());
 			else setImei(readImeiFromSystem());
 			setUptime(crashFile.getUptime());
-			bResult = ParserContainer.INSTANCE.parseEvent(this);
 			//DATA0-5 expected to be set by parserContainer
-			if (!bResult){
+			if (!ParserContainer.INSTANCE.parseEvent(this)){
 				Log.w("parser error, could not get a valid parsing");
 				throw new FileNotFoundException("invalid parsing");
 			}else{
@@ -176,7 +174,7 @@ public class Event extends GeneralEvent{
 			setType(histevent.getType());
 			date = convertDate(histevent.getDate());
 			ParserContainer.INSTANCE.parseEvent(this);
-			setBuildId(myBuild.toString());
+			setBuildId(myBuild);
 			readDeviceIdFromFile();
 			setImei(readImeiFromSystem());
 			Log.w(toString() + ", Crashfile not found, path: " + getCrashDir());
@@ -300,7 +298,7 @@ public class Event extends GeneralEvent{
 
 	public com.intel.crashtoolserver.bean.Event getEventForServer(com.intel.crashreport.specific.Build build, String sToken) {
 		String sSSN = getSSN();
-		sSSN = (sSSN.equals("")) ? null : sSSN;
+		sSSN = (sSSN.isEmpty()) ? null : sSSN;
 		com.intel.crashtoolserver.bean.Device aDevice = new Device(getDeviceId(),
 			getImei(), sSSN, sToken, getSPIDFromFile());
 
@@ -309,12 +307,13 @@ public class Event extends GeneralEvent{
 
 	@Override
 	public String readImeiFromSystem() {
-		String imeiRead = "";
+		String imeiRead;
 		try {
 			imeiRead = super.readImeiFromSystem();
 		}
 		catch (IllegalArgumentException e) {
 			Log.d("CrashReportService: IMEI not available");
+			imeiRead = "";
 		}
 		return imeiRead;
 	}

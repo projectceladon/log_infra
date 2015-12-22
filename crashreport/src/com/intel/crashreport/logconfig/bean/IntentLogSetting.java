@@ -61,7 +61,7 @@ public class IntentLogSetting implements LogSetting {
 
     @Override
     public String toString() {
-        return new String("Intent => Action: " + action);
+        return "Intent => Action: " + action;
     }
 
     public String getAction() {
@@ -184,22 +184,22 @@ public class IntentLogSetting implements LogSetting {
         private String getNameFromClass(Object c) {
             String fullName = c.getClass().getName();
             if (fullName.endsWith("String"))
-                return new String("string");
+                return "string";
             else if (fullName.endsWith("Integer"))
-                return new String("int");
+                return "int";
             else if (fullName.endsWith("Boolean"))
-                return new String("bool");
+                return "bool";
             else
                 throw new JsonParseException("Class type not supported : " + fullName);
         }
 
         private String getClassFromName(String name) {
             if (name.contentEquals("string"))
-                return new String("java.lang.String");
+                return "java.lang.String";
             else if (name.contentEquals("int"))
-                return new String("java.lang.Integer");
+                return "java.lang.Integer";
             else if (name.contentEquals("bool"))
-                return new String("java.lang.Boolean");
+                return "java.lang.Boolean";
             else
                 throw new JsonParseException("Class name not supported : " + name);
         }

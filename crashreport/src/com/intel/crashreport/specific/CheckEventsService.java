@@ -54,7 +54,6 @@ public class CheckEventsService extends Service {
 	private HandlerThread handlerThread;
 	private CheckEventsServiceHandler serviceHandler;
 	private CheckEventsServiceState serviceState;
-	private final IBinder mBinder = new CheckEventsLocalBinder();
 	private Logger logger = new Logger();
 	private static final String MODULE = "CheckEventsService";
 
@@ -63,12 +62,11 @@ public class CheckEventsService extends Service {
 		super.onCreate();
 		app = (CrashReport)getApplicationContext();
 		Log.d(MODULE+": created");
-		GcmEvent.INSTANCE.setContext(getApplicationContext());
 		ParserContainer.INSTANCE.initDirector(getApplicationContext());
 		//first try to register GCM TOKEN
 		ApplicationPreferences privatePrefs = new ApplicationPreferences(getApplicationContext());
 		if(privatePrefs.isGcmEnable())
-			GcmEvent.INSTANCE.checkTokenGCM();
+			GcmEvent.INSTANCE.checkTokenGCM(getApplicationContext());
 		Log.d(MODULE+": GCM init done");
 	}
 
@@ -102,7 +100,7 @@ public class CheckEventsService extends Service {
 	@Override
 	public IBinder onBind(Intent arg0) {
 		Log.d(MODULE+": onBind");
-		return mBinder;
+		return null;
 	}
 
 	@Override
@@ -210,11 +208,11 @@ public class CheckEventsService extends Service {
 			histFile.open();
 			while (histFile.hasNext()) {
 				histEventLine = histFile.getNextEvent();
-				if (histEventLine.length() != 0) {
+				if (!histEventLine.isEmpty()) {
 					HistoryEvent histEvent = new HistoryEvent(histEventLine);
 					historyEventCorrupted |= histEvent.isCorrupted();
 					PDStatus.INSTANCE.setHistoryEventCorrupted(historyEventCorrupted);
-					if ((histEvent.getEventId().replaceAll("0", "").length() != 0) && !histEvent.getEventName().contentEquals("DELETE")){
+					if (!histEvent.getEventId().replaceAll("0", "").isEmpty() && !histEvent.getEventName().contentEquals("DELETE")){
 						try {
 							if(app.isUserBuild())
 								result = !db.isEventInDb(histEvent.getEventId());
@@ -365,26 +363,6 @@ public class CheckEventsService extends Service {
 			stopService();
 		}
 
-	}
-
-	public class CheckEventsLocalBinder extends Binder {
-		//Waiting time before stop the StartServiceActivity if the binder makes too much time to create CrashReportService
-		//67 is for 2seconds fo waiting with a sleep of 30ms.(2000ms/30)
-		private static final int waiting_time = 67;
-
-		CheckEventsService getService() {
-			int counter = 0;
-			while( CheckEventsService.this == null && counter < waiting_time){
-				try{
-					Thread.sleep(30);
-					counter++;
-				}
-				catch(InterruptedException e){
-					Log.d("CheckEventsLocalBinder: getService: Interrupted Exception");
-				}
-			}
-			return CheckEventsService.this;
-		}
 	}
 
 	public class NotifyCrashTask extends Thread{

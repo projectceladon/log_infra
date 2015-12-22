@@ -83,7 +83,7 @@ public class UserInformationsActivity extends Activity {
 				}
 
 			});
-			if(!app.getUserEmail().equals(""))
+			if(!app.getUserEmail().isEmpty())
 				email.setText(app.getUserEmail());
 		}
 	}
@@ -117,7 +117,7 @@ public class UserInformationsActivity extends Activity {
 			strEmail = strEmail.trim();
 		}
 
-		if(!strLastName.equals("") && !strFirstName.equals("") && !strEmail.equals("")) {
+		if(!strLastName.isEmpty() && !strFirstName.isEmpty() && !strEmail.isEmpty()) {
 			if(strEmail.endsWith("@intel.com") && (strEmail.indexOf("@") == strEmail.lastIndexOf("@")) && (strEmail.indexOf("@")!=0)) {
 				CrashReport app = (CrashReport) getApplicationContext();
 				app.setUserEmail(strEmail);

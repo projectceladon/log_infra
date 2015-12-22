@@ -43,30 +43,25 @@ public class HistoryEvent {
 	}
 
 	public void fillEvent(String event) {
-		if (event.length() != 0) {
-			try {
-				String eventList[] = event.split("\\s+");
-				if (eventList.length < MIN_EVENT)
-				{
-					Log.w("HistoryEvent: not enough columns : " + event);
-					eventCorrupted = true;
-				}else if (eventList.length == MIN_EVENT) {
-					eventName = eventList[0];
-					eventId = eventList[1];
-					date = eventList[2];
-					type = eventList[3];
-				}else if (eventList.length == HAS_OPTION) {
-					eventName = eventList[0];
-					eventId = eventList[1];
-					date = eventList[2];
-					type = eventList[3];
-					option = eventList[4];
-				} else {
-					Log.w("HistoryEvent: too many columns : " + event);
-					eventCorrupted = true;
-				}
-			} catch (NullPointerException e) {
-				Log.w("HistoryEvent: event format not recognised : " + event);
+		if (event != null && !event.isEmpty()) {
+			String eventList[] = event.split("\\s+");
+			if (eventList.length < MIN_EVENT)
+			{
+				Log.w("HistoryEvent: not enough columns : " + event);
+				eventCorrupted = true;
+			}else if (eventList.length == MIN_EVENT) {
+				eventName = eventList[0];
+				eventId = eventList[1];
+				date = eventList[2];
+				type = eventList[3];
+			}else if (eventList.length == HAS_OPTION) {
+				eventName = eventList[0];
+				eventId = eventList[1];
+				date = eventList[2];
+				type = eventList[3];
+				option = eventList[4];
+			} else {
+				Log.w("HistoryEvent: too many columns : " + event);
 				eventCorrupted = true;
 			}
 		}

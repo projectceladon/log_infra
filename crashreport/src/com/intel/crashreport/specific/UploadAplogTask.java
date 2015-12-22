@@ -60,7 +60,7 @@ public class UploadAplogTask extends AsyncTask<Void, Void, Void> {
 		if (m_iLog > 0)
 			sArgument="APLOG=" + m_iLog + "\n";
 		sArgument += "DATA0=" + mMessage + "\n";
-		CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.APLOG, sArgument, context);
+		CrashlogDaemonCmdFile.createCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.APLOG, sArgument, context);
 
 		return null;
 	}

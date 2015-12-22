@@ -149,7 +149,7 @@ public class BugStorage {
 		String component = getComponent();
 		mPrivatePrefsEditor.clear();
 		mPrivatePrefsEditor.commit();
-		if (!component.equals(""))
+		if (!component.isEmpty())
 			setComponent(component);
 	}
 

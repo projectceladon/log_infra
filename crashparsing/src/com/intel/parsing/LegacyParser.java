@@ -28,10 +28,10 @@ import java.io.FileNotFoundException;
 public class LegacyParser implements EventParser {
 
 	public boolean parseEvent(ParsableEvent aEvent) {
-		KeyValueFile aCrashfile = null;
-		String sDate = "";
-		String sBoard = "";
-		String sOperator = "";
+		KeyValueFile aCrashfile;
+		String sDate;
+		String sBoard;
+		String sOperator;
 
 		try {
 			aCrashfile = new KeyValueFile(aEvent.getCrashDir() + "/crashfile");

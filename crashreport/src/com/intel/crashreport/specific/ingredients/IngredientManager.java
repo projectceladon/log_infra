@@ -46,12 +46,12 @@ public enum IngredientManager {
 
 	public List<String> getUniqueKeyList() {
 		if (bNeedRefresh){
-			RefreshUniqueKey();
+			refreshUniqueKey();
 		}
 		return sUniqueKeyList;
 	}
 
-	private void RefreshUniqueKey(){
+	private void refreshUniqueKey(){
 		// test conf file exits
 		File confFile = new File(ING_CONF_FILE_PATH);
 		if (!confFile.exists()){
@@ -131,7 +131,7 @@ public enum IngredientManager {
 		IngredientManager.INSTANCE.storeLastIngredients(ingredients);
 	}
 
-        public boolean IsIngredientEnabled() {
+        public boolean isIngredientEnabled() {
                 // test conf file exits
                 File confFile = new File(ING_CONF_FILE_PATH);
                 if (confFile.exists()){

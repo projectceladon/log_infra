@@ -129,7 +129,7 @@ public class StandardRule {
 	public void analyzeEvent(ParsableEvent aEvent){
 		//step1 : open the input for parsing
 		if (getInputType().equals(TAG_INPUT_FILE)){
-			if (!OpenInputForfileGrep(getInputValue(),aEvent.crashDir)){
+			if (!openInputForfileGrep(getInputValue(),aEvent.crashDir)){
 				APLog.e("can't open Input : " + getInputValue());
 				return;
 			}
@@ -140,13 +140,13 @@ public class StandardRule {
 		}
 
 		//Step2 : do the parsing depending on the rule configuration
-		String sExtractData = ParseReader();
+		String sExtractData = parseReader();
 		//step3 :  fill output data in appropriate field
-		FillEventData(sExtractData, aEvent);
+		fillEventData(sExtractData, aEvent);
 		closeGenericReader();
 	}
 
-	private void FillEventData(String sDataToUse, ParsableEvent eEventToFill) {
+	private void fillEventData(String sDataToUse, ParsableEvent eEventToFill) {
 		if (getOutputType().equals("DATA0")) {
 			eEventToFill.setData0(sDataToUse);
 		} else if (getOutputType().equals("DATA1")) {
@@ -164,7 +164,7 @@ public class StandardRule {
 		}
 	}
 
-	private String ParseReader() {
+	private String parseReader() {
 		if (mReader == null){
 			APLog.e("Reader null, can't parse");
 			return "";
@@ -185,7 +185,7 @@ public class StandardRule {
 			while ((sCurLine = mReader.readLine()) != null) {
 				String sTmp;
 				sTmp = searchLineByPattern(sCurLine, aPattern);
-				if (sTmp != ""){
+				if (!sTmp.isEmpty()){
 					return sTmp;
 				}
 			}
@@ -206,10 +206,9 @@ public class StandardRule {
 			}else {
 				String sSeparator = getSeparatorForSearch();
 				// TO DO in future add options management for left and iReturnIndex
-				boolean key_value = true;
 				int iReturnIndex = 1;
 				if (sGroup != null){
-					String[] splitString = key_value?sGroup.split(sSeparator, 2):sGroup.split(sSeparator);
+					String[] splitString = sGroup.split(sSeparator, 2);
 					if (splitString.length > iReturnIndex ){
 						sResult = splitString[iReturnIndex];
 					}
@@ -244,7 +243,7 @@ public class StandardRule {
 		}
 	}
 
-	private boolean OpenInputForfileGrep(String aPattern, String aFolder){
+	private boolean openInputForfileGrep(String aPattern, String aFolder){
 		//possible improvement : use a Input Interface with dedicated class
 		//depending on type of input
 		Pattern patternFile = java.util.regex.Pattern.compile(aPattern);
@@ -261,7 +260,7 @@ public class StandardRule {
 				}
 			}
 		}
-		if (sFileInput != ""){
+		if (!sFileInput.isEmpty()){
 			try {
 				mReader = new BufferedReader(new FileReader(sFileInput));
 			} catch (FileNotFoundException e) {

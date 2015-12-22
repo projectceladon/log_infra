@@ -34,11 +34,11 @@ public class PropertyLogSetting implements LogSetting {
     }
 
     public String toString() {
-        return new String("Property => " + name + ":" + value);
+        return "Property => " + name + ":" + value;
     }
 
     public String getType() {
-        return new String("Property");
+        return "Property";
     }
 
     public String getName() {

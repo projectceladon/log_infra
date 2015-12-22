@@ -50,7 +50,7 @@ public class KratosSessionInfoReceiver extends BroadcastReceiver {
     }
 
     private void processIntent(Context context, Intent intent) {
-        if (intent.getAction().contentEquals(ACTION_SESSION_INFO)) {
+        if (ACTION_SESSION_INFO.contentEquals(intent.getAction())) {
             String sessionARTLink = intent.getStringExtra(EXTRA_ART_SERVER_LINK);
             if (sessionARTLink == null) {
                 Log.w(TAG, EVENT_ERROR_NO_LINK);

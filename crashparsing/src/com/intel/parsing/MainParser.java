@@ -316,9 +316,8 @@ public class MainParser{
 	private boolean apcoredump(String aFolder){
 		boolean bResult = true;
 
-		String sData0="";
 		String sCoreDumpFile = fileGrepSearch(".*.core", aFolder);
-		if (sCoreDumpFile != ""){
+		if (!sCoreDumpFile.isEmpty()){
 			int first, last, temp;
 			first = last = sCoreDumpFile.indexOf("_");
 
@@ -364,7 +363,7 @@ public class MainParser{
 		String sData2="";
 
 		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
-		if (sCoreDumpFile != "") {
+		if (!sCoreDumpFile.isEmpty()) {
 			BufferedReaderClean bufCoreFile = null;
 			try{
 				Pattern patternData0 = java.util.regex.Pattern.compile("Filename:.*");
@@ -426,7 +425,7 @@ public class MainParser{
 		String sVector="";
 
 		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
-		if (sCoreDumpFile != "") {
+		if (!sCoreDumpFile.isEmpty()) {
 			BufferedReaderClean bufCoreFile = null;
 			try{
 				Pattern patternFileName = java.util.regex.Pattern.compile("Filename:.*");
@@ -498,7 +497,7 @@ public class MainParser{
 		String sData5="";
 		String sModemversionUsed="";
 		String sGenFile = fileGrepSearch(".*_crashdata", aFolder);
-		if (sGenFile != ""){
+		if (!sGenFile.isEmpty()){
 			BufferedReaderClean bufGenFile = null;
 			try{
 				Pattern patternData0 = java.util.regex.Pattern.compile("DATA0=.*");
@@ -588,11 +587,11 @@ public class MainParser{
 
 	private Map<String,String> ipanicByFile(String aFile){
 
-		String sData0 = "";
+		String sData0;
 		Map<String,String> computedData = new HashMap<String,String>();
 
 		String sDataDefault="";
-		String sDataLockUp="";
+		StringBuffer sDataLockUp = new StringBuffer();
 		String sComm = "";
 		String sPanic= "";
 		boolean bDataFound = false;
@@ -680,8 +679,8 @@ public class MainParser{
 					} else if (iCallTraceCount < 4){
 						//get line value with a stack trace filter
 						String sCallLine = formatStackTrace(sCurLine);
-						if (!sCallLine.equals("")){
-							sDataLockUp += sCallLine;
+						if (!sCallLine.isEmpty()){
+							sDataLockUp.append(sCallLine);
 							iCallTraceCount++;
 						}
 					}
@@ -710,7 +709,7 @@ public class MainParser{
 
 
 			if (bLockUpCase){
-				sData0 = sDataLockUp;
+				sData0 = sDataLockUp.toString();
 			} else {
 				sData0 = getStackForPanic(sPanic,aFile);
 			}
@@ -779,7 +778,7 @@ public class MainParser{
 		Map<String,String> resultData = null;
 
 		String sIPanicFile = fileGrepSearch(".*panic_console.*", aFolder);
-		if (sIPanicFile != ""){
+		if (!sIPanicFile.isEmpty()){
 			bFoundOnce = true;
 			resultData = ipanicByFile(sIPanicFile);
 		}
@@ -788,7 +787,7 @@ public class MainParser{
 			resultData = null;
 			//2nd chance : use last_kmsg pattern
 			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
-			if (sIPanicFile != ""){
+			if (!sIPanicFile.isEmpty()){
 				bFoundOnce = true;
 				resultData = ipanicByFile(sIPanicFile);
 			}
@@ -797,7 +796,7 @@ public class MainParser{
 			resultData = null;
 			//3rd chance : use console-ramoops pattern
 			sIPanicFile = fileGrepSearch(".*console-ramoops.*", aFolder);
-			if (sIPanicFile != ""){
+			if (!sIPanicFile.isEmpty()){
 				bFoundOnce = true;
 				resultData = ipanicByFile(sIPanicFile);
 			}
@@ -807,7 +806,7 @@ public class MainParser{
 			resultData = null;
 			//4th chance : use coredump.txt file
 			sIPanicFile = fileGrepSearch("coredump.*", aFolder);
-			if (sIPanicFile != ""){
+			if (!sIPanicFile.isEmpty()){
 				bFoundOnce = true;
 				resultData = ipanicByFile(sIPanicFile);
 			}
@@ -847,7 +846,7 @@ public class MainParser{
 		if (!bFoundOnce){
 			//4th chance, try header
 			String sHeaderFile = fileGrepSearch(".*ipanic_header.*", aFolder);
-			if (sHeaderFile != ""){
+			if (!sHeaderFile.isEmpty()){
 				bResult &= appendToCrashfile("DATA3=emmc_hdr");
 			}
 		}
@@ -869,7 +868,7 @@ public class MainParser{
 	}
 
 	private String extractStackTrace(String sBugProcess, String sPathToParse){
-		String sResult = "";
+		StringBuffer sResult = new StringBuffer();
 		boolean bBugFound = false;
 		boolean bDataFound = false;
 		boolean bCallTraceFound = false;
@@ -899,7 +898,7 @@ public class MainParser{
 							sTmp = simpleGrepAwk(patternData_64, sCurLine, ">]", 2);
 						}
 						if (sTmp != null) {
-							sResult += sTmp + " - ";
+							sResult.append(sTmp + " - ");
 							bDataFound = true;
 						}
 					}
@@ -909,7 +908,7 @@ public class MainParser{
 					}
 
 					if (bCallTraceFound) {
-						sResult += " " + formatStackTrace(sCurLine);
+						sResult.append(" " + formatStackTrace(sCurLine));
 						bCallTraceCount++;
 					}
 					if (bCallTraceCount >= 8){
@@ -928,7 +927,7 @@ public class MainParser{
 				aBuf.close();
 			}
 		}
-		return sResult;
+		return sResult.toString();
 	}
 
 	private String formatStackTrace(String sLine){
@@ -950,10 +949,10 @@ public class MainParser{
 		boolean bResult = true;
 
 		String sFabricFile = fileGrepSearch(".*ipanic_fabric_err.*", aFolder);
-		if (sFabricFile != ""){
+		if (!sFabricFile.isEmpty()){
 			String sData0 = "";
 			String sData1 = "";
-			String sData2 = "";
+			StringBuffer sData2 = new StringBuffer();
 			boolean bData0Found = false;
 			boolean bData1Found = false;
 			boolean bData2Found = false;
@@ -1008,7 +1007,7 @@ public class MainParser{
 						if (!bData2Found){
 							sTmp = simpleGrepAwk(patternData2, sCurLine, "", 0);
 							if (sTmp != null){
-								sData2 = sTmp;
+								sData2.append(sTmp);
 								bData2Found = true;
 							}
 						}
@@ -1038,15 +1037,16 @@ public class MainParser{
 					int iendData2 = java.lang.Math.min(ldata1_2.size(),iDebData2+4);
 					for (int i = iDebData2; i < iendData2; i++) {
 						if (i == iDebData2){
-							sData2 = ldata1_2.get(i);
+							sData2.delete(0, sData2.length());
+							sData2.append(ldata1_2.get(i));
 						}else {
-							sData2 += " " + ldata1_2.get(i);
+							sData2.append(" " + ldata1_2.get(i));
 						}
 					}
 				}
 				bResult &= appendToCrashfile("DATA0=" + sData0);
 				bResult &= appendToCrashfile("DATA1=" + sData1);
-				bResult &= appendToCrashfile("DATA2=" + sData2);
+				bResult &= appendToCrashfile("DATA2=" + sData2.toString());
 			}
 			catch(Exception e) {
 				APLog.e( "fabricerr : " + e);
@@ -1071,7 +1071,7 @@ public class MainParser{
 			return false;
 		}
 		//ignore blank line
-		if (sTestString.trim().length() == 0){
+		if (sTestString.trim().isEmpty()){
 			return false;
 		}
 		return true;
@@ -1081,11 +1081,11 @@ public class MainParser{
 		boolean bResult = true;
 
 		String sFabricFile = fileGrepSearch(".*ipanic_fabric_err.*", aFolder);
-		if (sFabricFile != ""){
-			String sData0 = "";
-			String sData1 = "";
-			String sData2 = "";
-			String sDataHole = "";
+		if (!sFabricFile.isEmpty()){
+			StringBuffer sData0 = new StringBuffer();
+			StringBuffer sData1 = new StringBuffer();
+			StringBuffer sData2 = new StringBuffer();
+			StringBuffer sDataHole = new StringBuffer();
 			String sData4 = "";
 			boolean bData0_1Found = false;
 			boolean bPatternStart0_1Found = false;
@@ -1099,7 +1099,7 @@ public class MainParser{
 			int iSubDataHoleCount=0;
 			boolean bData4Found = false;
 			boolean bSCUWDT = false;
-			String sDataSCUWDT = "";
+			StringBuffer sDataSCUWDT = new StringBuffer();
 
 			//specific code for SCUWDT to be reworked inside a crashtool parser
 			if (aTag.equals("SCUWDT")){
@@ -1128,16 +1128,16 @@ public class MainParser{
 								if (isDataLine(sCurLine)){
 									//just concat the 2 following lines
 									if (iSubData0Count < 2){
-										if (!sData0.equals("")){
-											sData0 += " / ";
+										if (sData0.length() != 0){
+											sData0.append(" / ");
 										}
-										sData0 += sCurLine;
+										sData0.append(sCurLine);
 										iSubData0Count++;
 									}else if (iSubData1Count < 2){
-										if (!sData1.equals("")){
-											sData1 += " / ";
+										if (sData1.length() != 0){
+											sData1.append(" / ");
 										}
-										sData1 += sCurLine;
+										sData1.append(sCurLine);
 										iSubData1Count++;
 									}
 									if (iSubData1Count >= 2){
@@ -1152,8 +1152,8 @@ public class MainParser{
 								iSubData0Count = 0;
 								iSubData1Count = 0;
 								bPatternStart0_1Found = true;
-								sData0 = "";
-								sData1 = "";
+								sData0.delete(0, sData0.length());
+								sData1.delete(0, sData1.length());
 							}
 						}
 					}
@@ -1164,12 +1164,12 @@ public class MainParser{
 							if (isDataLine(sCurLine)){
 								//just concat 4 following lines
 								if (iSubDataHoleCount < 4){
-									if (!sDataHole.equals("")){
-										sDataHole += " / ";
+									if (sDataHole.length() != 0){
+										sDataHole.append(" / ");
 									}else{
-										sDataHole = "Address hole : ";
+										sDataHole.append("Address hole : ");
 									}
-									sDataHole += sCurLine;
+									sDataHole.append(sCurLine);
 									iSubDataHoleCount++;
 								}else{
 									bDataHoleFound = true;
@@ -1181,7 +1181,7 @@ public class MainParser{
 							if (sTmpDataHole != null){
 								iSubDataHoleCount = 0;
 								bSubDataHoleFound = true;
-								sDataHole = "";
+								sDataHole.delete(0, sDataHole.length());
 							}
 						}
 					}
@@ -1192,10 +1192,10 @@ public class MainParser{
 							if (isDataLine(sCurLine)){
 								//just concat 4 following lines
 								if (iSubData2Count < 4){
-									if (!sData2.equals("")){
-										sData2 += " / ";
+									if (sData2.length() != 0){
+										sData2.append(" / ");
 									}
-									sData2 += sCurLine;
+									sData2.append(sCurLine);
 									iSubData2Count++;
 								}else{
 									bData2Found = true;
@@ -1207,14 +1207,14 @@ public class MainParser{
 							if (sTmpData2 != null){
 								iSubData2Count = 0;
 								bSubData2Found = true;
-								sData2 = "";
+								sData2.delete(0, sData2.length());
 							}
 						}
 					}
 					//scuwdt specificpart
 					if (bSCUWDT){
 						if (sCurLine.startsWith("DW4:") || sCurLine.startsWith("DW19:")){
-							sDataSCUWDT += sCurLine + " / ";
+							sDataSCUWDT.append(sCurLine + " / ");
 						}
 					}
 					//data4
@@ -1258,14 +1258,14 @@ public class MainParser{
 		boolean bResult = true;
 		String sTombstoneFile = fileGrepSearch("tombstone_.*", aFolder);
 		//second chance : try native_crash pattern
-		if (sTombstoneFile == "") {
+		if (sTombstoneFile.isEmpty()) {
 			sTombstoneFile = fileGrepSearch(".*native_crash.*", aFolder);
 		}
-		if (sTombstoneFile != ""){
+		if (!sTombstoneFile.isEmpty()){
 			String sProcess= "";
 			String sSignal= "";
-			String sStackSymbol = "";
-			String sStackLibs = "";
+			StringBuffer sStackSymbol = new StringBuffer();
+			StringBuffer sStackLibs = new StringBuffer();
 			String sFaultAddress = "";
 			String sFaultAddrSeparator = "fault addr ";
 			String sHexCharactersPattern = "(0x)?[0-9A-Fa-f]+";
@@ -1349,31 +1349,27 @@ public class MainParser{
 								if (sTmp != null){
 									bDisplaySymbols = true;
 									if (iStackCount == 0){
-										sStackSymbol = sTmp;
+										sStackSymbol.append(sTmp);
 									} else{
-										sStackSymbol += " " +  sTmp;
+										sStackSymbol.append(" " +  sTmp);
 									}
 									iStackCount++;
 								}else if (sTmpSubStack != null){
 									// required to reproduce exactly number of white space
-									if (iStackCount == 0){
-										sStackSymbol = "";
-									}else{
-										sStackSymbol += " " ;
+									if (iStackCount != 0){
+										sStackSymbol.append(" ");
 									}
 									sTmp = advancedAwk(sTmpSubStack," ", 3);
 									if (sTmp != null){ //case without symbols
 										if (iStackCount == 0){
-											sStackLibs = sTmp;
+											sStackLibs.append(sTmp);
 										}else{
-											sStackLibs += " " +  sTmp;
+											sStackLibs.append(" " +  sTmp);
 										}
 									}else{
 										//in order to also reproduce white space mechanism
-										if (iStackCount == 0){
-											sStackLibs = "";
-										}else{
-											sStackLibs += " ";
+										if (iStackCount != 0){
+											sStackLibs.append(" ");
 										}
 									}
 									iStackCount++;
@@ -1424,14 +1420,14 @@ public class MainParser{
 		BufferedReaderClean uiwdtReader = null;
 		FileInputStream f = null;
 		try {
-			if (sUIWDTFileGZ != ""){
+			if (!sUIWDTFileGZ.isEmpty()){
 				f = new FileInputStream(sUIWDTFileGZ);
 				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
 				uiwdtReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractUIWDTData(uiwdtReader);
 			}else{
 				String sUIWDTFile = fileGrepSearch("system_server_watchdog.*txt" , aFolder);
-				if (sUIWDTFile != ""){
+				if (!sUIWDTFile.isEmpty()){
 					uiwdtReader = new BufferedReaderClean(new FileReader(sUIWDTFile));
 					bResult = extractUIWDTData(uiwdtReader);
 				}
@@ -1466,14 +1462,14 @@ public class MainParser{
 		BufferedReaderClean wtfReader = null;
 		FileInputStream f = null;
 		try {
-			if (sWTFFileGZ != ""){
+			if (!sWTFFileGZ.isEmpty()){
 				f = new FileInputStream(sWTFFileGZ);
 				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
 				wtfReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractWTFData(wtfReader);
 			}else{
 				String sWTFFile = fileGrepSearch("wtf.*.txt" , aFolder);
-				if (sWTFFile != ""){
+				if (!sWTFFile.isEmpty()){
 					wtfReader = new BufferedReaderClean(new FileReader(sWTFFile));
 					bResult = extractWTFData(wtfReader);
 				}
@@ -1498,14 +1494,14 @@ public class MainParser{
 		BufferedReaderClean sysANRReader = null;
 		FileInputStream f = null;
 		try {
-			if (sSysANRGZ != ""){
+			if (!sSysANRGZ.isEmpty()){
 				f = new FileInputStream(sSysANRGZ);
 				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
 				sysANRReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractAnrData(sysANRReader);
 			}else{
 				String sSysANR = fileGrepSearch(".*_(app|server)_anr.*txt" , aFolder);
-				if (sSysANR != ""){
+				if (!sSysANR.isEmpty()){
 					sysANRReader = new BufferedReaderClean(new FileReader(sSysANR));
 					bResult = extractAnrData(sysANRReader);
 				}
@@ -1542,14 +1538,14 @@ public class MainParser{
 		BufferedReaderClean sysAppReader = null;
 		FileInputStream f = null;
 		try {
-			if (sSysAppGZ != ""){
+			if (!sSysAppGZ.isEmpty()){
 				f = new FileInputStream(sSysAppGZ);
 				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
 				sysAppReader = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
 				bResult = extractJavaCrashData(sysAppReader, nativ);
 			}else{
 				String sSysApp = fileGrepSearch(aFileNormal, aFolder);
-				if (sSysApp != ""){
+				if (!sSysApp.isEmpty()){
 					sysAppReader = new BufferedReaderClean(new FileReader(sSysApp));
 					bResult = extractJavaCrashData(sysAppReader, nativ);
 				}
@@ -1572,7 +1568,7 @@ public class MainParser{
 
 		String sPID= "";
 		String sType= "";
-		String sStack = "";
+		StringBuffer sStack = new StringBuffer();
 		boolean bPIDFound = false;
 		boolean bTypeFound = false;
 		int iStackCount = 0;
@@ -1605,10 +1601,10 @@ public class MainParser{
 					sTmp = simpleAwk(sTmp,"\\(", 0);
 					if (sTmp != null){
 						if (iStackCount == 0){
-							sStack = sTmp;
+							sStack.append(sTmp);
 						}
 						else{
-							sStack += " " +  sTmp;
+							sStack.append(" " +  sTmp);
 						}
 						iStackCount++;
 					}
@@ -1672,7 +1668,7 @@ public class MainParser{
 
 		String sPID= "";
 		String sType= "";
-		String sStack = "";
+		StringBuffer sStack = new StringBuffer();
 		String sCPU = "";
 		boolean bPIDFound = false;
 		boolean bTypeFound = false;
@@ -1731,10 +1727,10 @@ public class MainParser{
 					sTmp = simpleAwk(sTmp,"\\(", 0);
 					if (sTmp != null){
 						if (iStackCount == 0){
-							sStack = sTmp;
+							sStack.append(sTmp);
 						}
 						else{
-							sStack += " " +  sTmp;
+							sStack.append(" " +  sTmp);
 						}
 						iStackCount++;
 					}
@@ -1758,7 +1754,7 @@ public class MainParser{
 		boolean bResult = true;
 		String sPID= "";
 		String sCausedBy= "";
-		String sStack = "";
+		StringBuffer sStack = new StringBuffer();
 		String sPreviousLine = "";
 		String sBeforeAt = "";
 		String sData1;
@@ -1789,11 +1785,11 @@ public class MainParser{
 					sTmp = simpleAwk(sTmp,"\\(", 0);
 					if (sTmp != null){
 						if (iStackCount == 0){
-							sStack = sTmp;
+							sStack.append(sTmp);
 							sBeforeAt = sPreviousLine;
 						}
 						else{
-							sStack += " " +  sTmp;
+							sStack.append(" " +  sTmp);
 						}
 						iStackCount++;
 					}
@@ -1808,7 +1804,7 @@ public class MainParser{
 				sData1 = sBeforeAt;
 			}
 			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sData1));
-			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack));
+			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack.toString()));
 		}catch (Exception e) {
 			APLog.e( "extractJavaCrashData : " + e);
 			e.printStackTrace();
@@ -1865,7 +1861,7 @@ public class MainParser{
 		if (aString != null){
 			String[] splitString = aString.split("(" + sSeparator + ")+" );
 			//to manage beginning separator
-			if (splitString[0].equals("")){
+			if (splitString[0].isEmpty()){
 				iReturnIndex++;
 			}
 			if (splitString.length > iReturnIndex ){
@@ -1898,7 +1894,7 @@ public class MainParser{
 		String sResult = null;
 		if (simpleMatcher.find()){
 			String sGroup = simpleMatcher.group();
-			if (sSeparator.equals("")){
+			if (sSeparator.isEmpty()){
 				sResult = sGroup;
 			}else {
 				sResult = simpleAwk(sGroup,sSeparator,iReturnIndex, left);

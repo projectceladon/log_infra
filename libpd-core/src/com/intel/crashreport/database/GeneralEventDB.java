@@ -285,7 +285,7 @@ public class GeneralEventDB extends General {
 			String modemVersionUsed) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = Utils.convertDateForDb(date);
-		if (eventName.equals("")) return -2;
+		if (eventName.isEmpty()) return -2;
 		else if (eventDate == -1) return -3;
 
 		initialValues.put(KEY_ID, eventId);
@@ -380,7 +380,7 @@ public class GeneralEventDB extends General {
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
-			if (sExcludedType != "") {
+			if (!sExcludedType.isEmpty()) {
 				bQuery.append(" and " + KEY_TYPE
 						+ " not in (" + sExcludedType + ")");
 			}
@@ -450,14 +450,14 @@ public class GeneralEventDB extends General {
 
 	private String getExcludeTypeInLine(String crashTypes[])
 	{
-		String sExcludedType = "";
+		StringBuffer sExcludedType = new StringBuffer();
 		for (int i=0; i<crashTypes.length; i++){
 			if (i > 0){
-				sExcludedType+= ",";
+				sExcludedType.append(",");
 			}
-			sExcludedType+= "'" + crashTypes[i] +"'";
+			sExcludedType.append("'" + crashTypes[i] +"'");
 		}
-		return sExcludedType;
+		return sExcludedType.toString();
 	}
 
 	public Boolean isThereEventToUpload() throws SQLException {
@@ -482,7 +482,7 @@ public class GeneralEventDB extends General {
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
-			if (sExcludedType != "") {
+			if (!sExcludedType.isEmpty()) {
 				aQuery.append(" and " + KEY_TYPE
 						+ " not in(" + sExcludedType + ")");
 			}
@@ -765,7 +765,7 @@ public class GeneralEventDB extends General {
 		if (crashTypes != null) {
 			String sExcludedType = getExcludeTypeInLine(crashTypes);
 
-			if (sExcludedType != "") {
+			if (!sExcludedType.isEmpty()) {
 				bQuery.append(" and " + KEY_TYPE
 						+ " not in (" + sExcludedType + ")");
 			}
@@ -801,7 +801,7 @@ public class GeneralEventDB extends General {
 		initialValues.put(KEY_SEVERITY, severity);
 		initialValues.put(KEY_BZ_TYPE, type);
 		initialValues.put(KEY_BZ_COMPONENT, component);
-		if (screenshotPath.equals("")) {
+		if (screenshotPath.isEmpty()) {
 			initialValues.put(KEY_SCREENSHOT, 0);
 		}
 		else {
@@ -1051,17 +1051,18 @@ public class GeneralEventDB extends General {
 	 * or -1 on error.
 	 */
 	public int getLastGCMRowId() {
-		int rowId = -1;
-		Cursor cursor = null;
-		cursor = selectEntries(DATABASE_GCM_MESSAGES_TABLE,
+		int rowId;
+		Cursor cursor = selectEntries(DATABASE_GCM_MESSAGES_TABLE,
 			new String[] {KEY_ROWID}, KEY_NOTIFIED + "='0'", KEY_ROWID, true, "1");
 
 		if (cursor == null)
-			return rowId;
+			return -1;
 
 		try {
 			rowId = cursor.getInt(cursor.getColumnIndex(KEY_ROWID));
-		} catch (SQLException e) {}
+		} catch (SQLException e) {
+			rowId = -1;
+		}
 
 		cursor.close();
 		return rowId;

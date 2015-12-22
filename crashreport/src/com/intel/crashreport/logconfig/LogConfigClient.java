@@ -49,23 +49,26 @@ public class LogConfigClient {
     private static final String TAG = "LogConfig";
 
     private static LogConfigClient M_INSTANCE = null;
+    private static final Object lock = new Object();
     private static LocalSocket mSocket = null;
-    private static BufferedReader mInputStream = null;
-    private static DataOutputStream mOutputStream = null;
-    private static Context mContext = null;
-    private static boolean isLowLevelStarted = false;
+    private BufferedReader mInputStream = null;
+    private DataOutputStream mOutputStream = null;
+    private Context mContext = null;
+    private boolean isLowLevelStarted = false;
 
     private LogConfigClient(Context context) {
         mContext = context;
     }
 
-    public static synchronized LogConfigClient getInstance(Context context) {
-        if (M_INSTANCE == null)
-            M_INSTANCE = new LogConfigClient(context);
-        return M_INSTANCE;
+    public static LogConfigClient getInstance(Context context) {
+        synchronized (lock) {
+            if (M_INSTANCE == null)
+                M_INSTANCE = new LogConfigClient(context);
+            return M_INSTANCE;
+        }
     }
 
-    private static void init() throws IllegalStateException {
+    private void init() throws IllegalStateException {
         if (isLowLevelStarted && mInputStream != null && mOutputStream != null)
             return;
 
@@ -110,6 +113,9 @@ public class LogConfigClient {
     }
 
     public void close() {
+        synchronized (lock) {
+            M_INSTANCE = null;
+        }
         try {
             if (mOutputStream != null) {
                 mOutputStream.flush();
@@ -121,7 +127,6 @@ public class LogConfigClient {
             Log.e(TAG, Log.getStackTraceString(e));
         } finally {
             isLowLevelStarted = false;
-            M_INSTANCE = null;
         }
     }
 

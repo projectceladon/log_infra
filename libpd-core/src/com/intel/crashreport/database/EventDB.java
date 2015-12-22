@@ -157,15 +157,15 @@ public class EventDB extends GeneralEventDB{
 		return fetchRainOfCrashesFromQuery(signature);
 	}
 
-	public static int getRainLastFibo(Cursor cursor) {
+	public int getRainLastFibo(Cursor cursor) {
 		return cursor.getInt(cursor.getColumnIndex(KEY_LAST_FIBONACCI));
 	}
 
-	public static int getRainNextFibo(Cursor cursor) {
+	public int getRainNextFibo(Cursor cursor) {
 		return cursor.getInt(cursor.getColumnIndex(KEY_NEXT_FIBONACCI));
 	}
 
-	public static int getRainOccurances(Cursor cursor) {
+	public int getRainOccurances(Cursor cursor) {
 		return cursor.getInt(cursor.getColumnIndex(KEY_OCCURRENCES));
 	}
 
@@ -280,7 +280,7 @@ public class EventDB extends GeneralEventDB{
 
 
 	public int checkPathStatus(String sPath) throws SQLException {
-		int ret = -1;
+		int ret;
 		Cursor cursor = selectEntries(DATABASE_TABLE,
 				new String[] {KEY_UPLOADLOG},
 				KEY_CRASHDIR + " = '" + sPath + "'");
@@ -367,7 +367,7 @@ public class EventDB extends GeneralEventDB{
 		String sSPID = cursor.getString(cursor.getColumnIndex(KEY_DEVICE_SPID));
 		String sTokenGCM = cursor.getString(cursor.getColumnIndex(KEY_DEVICE_TOKEN));
 
-		if (sSSN.equals("")) sSSN = null;
+		if (sSSN.isEmpty()) sSSN = null;
 		return new Device(deviceId, imei, sSSN, sTokenGCM, sSPID);
 	}
 
@@ -392,16 +392,17 @@ public class EventDB extends GeneralEventDB{
 	}
 
 	public int getLastSWUpdate(){
-		int retVal = -1;
+		int retVal;
 		Cursor cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_ROWID},
 				KEY_TYPE+"='SWUPDATE'", KEY_ROWID, true, "1");
 
 		if (cursor == null)
-			return retVal;
+			return -1;
 
 		try {
 			retVal = cursor.getInt(cursor.getColumnIndex(KEY_ROWID));
 		} catch (SQLException e) {
+			retVal = -1;
 		} finally {
 			cursor.close();
 		}
@@ -412,7 +413,6 @@ public class EventDB extends GeneralEventDB{
 		Cursor cursor;
 		long lResultUptime = -1;
 		int iLastSWUpdateID = getLastSWUpdate();
-		boolean bUptimePresent = false;
 
 		cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_NAME,KEY_UPTIME},
 				 KEY_ROWID + " > " + iLastSWUpdateID, KEY_ROWID, false);
@@ -421,19 +421,22 @@ public class EventDB extends GeneralEventDB{
 			long lUptimeReboot = 0;
 			long lUptimeOther = 0;
 			while (!cursor.isAfterLast()) {
-				String sUptime = "";
+				String sUptime;
 				try {
 					sUptime = cursor.getString(cursor.getColumnIndex(KEY_UPTIME));
-				} catch (SQLException e) {}
+				} catch (SQLException e) {
+					sUptime = "";
+				}
 
 				int iCurUptime = com.intel.crashreport.common.Utils.convertUptime(
 						sUptime);
 				if (iCurUptime >= 0){
-					String sName = "";
+					String sName;
 					try {
 						sName = cursor.getString(cursor.getColumnIndex(KEY_NAME));
-					} catch (SQLException e) {}
-					bUptimePresent = true;
+					} catch (SQLException e) {
+						sName = "";
+					}
 					if (sName.equals("REBOOT")) {
 						lUptimeReboot += iCurUptime;
 						lUptimeOther = 0;
@@ -487,10 +490,12 @@ public class EventDB extends GeneralEventDB{
 			int i = 0;
 			sResultLogsDir = new String[cursor.getCount()];
 			while (!cursor.isAfterLast()) {
-				String dr = "getLogsDir  SQLexception";
+				String dr;
 				try {
 					dr = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
-				} catch (SQLException e) {}
+				} catch (SQLException e) {
+					dr = "getLogsDir  SQLexception";
+				}
 				sResultLogsDir[i++] = dr;
 				cursor.moveToNext();
 			}

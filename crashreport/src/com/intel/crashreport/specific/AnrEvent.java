@@ -71,11 +71,9 @@ public class AnrEvent {
 
 			String field;
 			while((field = scanner.readLine()) != null) {
-				if (field != null){
-					findTraceFileId(field);
-					if(fileIdPresent)
-						break;
-				}
+				findTraceFileId(field);
+				if(fileIdPresent)
+					break;
 			}
 			scanner.close();
 		}
@@ -89,20 +87,16 @@ public class AnrEvent {
 		String name;
 		String value;
 
-		if ((field.length() != 0)) {
-			try {
-				String splitField[] = field.split("\\:", MAX_FIELDS);
-				if (splitField.length == MAX_FIELDS) {
-					name = splitField[0];
-					value = splitField[1];
+		if (!field.isEmpty()) {
+			String splitField[] = field.split("\\:", MAX_FIELDS);
+			if (splitField.length == MAX_FIELDS) {
+				name = splitField[0];
+				value = splitField[1];
 
-					if (name.equals("Trace file")) {
-						traceFileId = value;
-						fileIdPresent = true;
-					}
+				if (name.equals("Trace file")) {
+					traceFileId = value;
+					fileIdPresent = true;
 				}
-			} catch (NullPointerException e) {
-				Log.w("anrFile: field format not recognised : " + field);
 			}
 		}
 	}

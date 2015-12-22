@@ -44,7 +44,6 @@ import com.intel.crashreport.core.GcmMessage.GCM_ACTION;
 public enum GcmEvent {
 
 	INSTANCE;
-	private Context context;
 
 	public void registerGcm(String registrationId) {
 		CustomizableEventData mEvent = generateGcmRegisterEvent();
@@ -85,59 +84,58 @@ public enum GcmEvent {
 		return mEvent;
 	}
 
-	public void setContext(Context ctx) {
-		context = ctx;
-	}
+	public synchronized void checkTokenGCM(Context context){
+		if (context == null) {
+			Log.d("checkTokenGCM: invalid context");
+			return;
+		}
 
-	public synchronized void checkTokenGCM(){
-		final String regId;
 		ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		boolean isConnected = false;
 		if(cm != null){
 			NetworkInfo ni = cm.getActiveNetworkInfo();
 			if((ni != null) && ni.isConnected()) {
 				Log.d("Active network info: " + ni.toString());
-				isConnected = true;
 			} else {
 				Log.d("No network info available.");
-			}
-		}
-		if(isConnected) {
-			Log.d("GCMRegistrar");
-			try{
-				GCMRegistrar.checkDevice(context);
-				regId = GCMRegistrar.getRegistrationId(context);
-				if (regId.equals("")) {
-					// Automatically registers application on startup.
-					Log.d("not registered, trying...");
-					GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
-				} else {
-					// Device is already registered on GCM, check server.
-					if (GCMRegistrar.isRegisteredOnServer(context)) {
-						// Skips registration.
-						Log.d( "Already registered");
-						Log.d("GCM TOKEN GCMRegistrar = " + regId);
-						ApplicationPreferences privatePrefs = new ApplicationPreferences(context);
-						if(!regId.equals(privatePrefs.getGcmToken())) {
-							privatePrefs.setGcmToken(regId);
-							GcmEvent.INSTANCE.registerGcm(regId);
-						}
-					}else{
-						//there is a problem, need to unregister/register
-						GCMRegistrar.unregister(context);
-						GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
-						Log.d("not registered on server...");
-					}
-				}
-			}
-			catch(IllegalStateException e){
-				Log.w("GCMRegistrar: GCM not fully installed");
-			}
-			catch(UnsupportedOperationException e){
-				Log.w("GCMRegistrar: GCM not supported");
+				return;
 			}
 		} else {
 			Log.d("No network connection for GCM registration.");
+			return;
+		}
+
+		Log.d("GCMRegistrar");
+		try{
+			GCMRegistrar.checkDevice(context);
+			final String regId = GCMRegistrar.getRegistrationId(context);
+			if (regId.isEmpty()) {
+				// Automatically registers application on startup.
+				Log.d("not registered, trying...");
+				GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
+			} else {
+				// Device is already registered on GCM, check server.
+				if (GCMRegistrar.isRegisteredOnServer(context)) {
+					// Skips registration.
+					Log.d( "Already registered");
+					Log.d("GCM TOKEN GCMRegistrar = " + regId);
+					ApplicationPreferences privatePrefs = new ApplicationPreferences(context);
+					if(!regId.equals(privatePrefs.getGcmToken())) {
+						privatePrefs.setGcmToken(regId);
+						GcmEvent.INSTANCE.registerGcm(regId);
+					}
+				}else{
+					//there is a problem, need to unregister/register
+					GCMRegistrar.unregister(context);
+					GCMRegistrar.register(context, GCMIntentService.SENDER_ID);
+					Log.d("not registered on server...");
+				}
+			}
+		}
+		catch(IllegalStateException e){
+			Log.w("GCMRegistrar: GCM not fully installed");
+		}
+		catch(UnsupportedOperationException e){
+			Log.w("GCMRegistrar: GCM not supported");
 		}
 	}
 
@@ -158,8 +156,13 @@ public enum GcmEvent {
 	 * <li><code>false</code> otherwise</li>
 	 * </ul>
 	 */
-	public boolean takeGcmAction(int rowId, GCM_ACTION type, String data) {
+	public boolean takeGcmAction(Context context, int rowId, GCM_ACTION type, String data) {
 		boolean result = false;
+		if (context == null) {
+			Log.w("CrashReport:takeGcmAction: no valid context. data: " + data);
+			return result;
+		}
+
 		EventDB db = new EventDB(context);
 		try {
 			db.open();
@@ -178,11 +181,8 @@ public enum GcmEvent {
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				context.startActivity(intent);
 			}
-			catch (NullPointerException e) {
-				Log.w("CrashReport:takeGcmAction: no url:"+data);
-			}
 			catch (ActivityNotFoundException e) {
-				Log.w("CrashReport:takeGcmAction: bad url format:"+data);
+				Log.w("CrashReport:takeGcmAction: bad url format:" + data);
 			}
 			break;
 		}
@@ -201,15 +201,12 @@ public enum GcmEvent {
 					// or let them choose an app?
 					intent = new Intent(Intent.ACTION_VIEW);
 					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					intent.setData(Uri.parse("market://details?id="+data));
+					intent.setData(Uri.parse("market://details?id=" + data));
 					context.startActivity(intent);
 				}
 			}
-			catch (NullPointerException e) {
-				Log.w("CrashReport:takeGcmAction: no application:"+data);
-			}
 			catch (ActivityNotFoundException e) {
-				Log.w("CrashReport:takeGcmAction: can't open application:"+data);
+				Log.w("CrashReport:takeGcmAction: can't open application:" + data);
 			}
 			break;
 		}

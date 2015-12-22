@@ -28,7 +28,7 @@ public class Logger {
 	private String log;
 
 	public Logger() {
-		log = new String("");
+		log = "";
 	}
 
 	public void addMsg(String msg) {

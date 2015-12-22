@@ -69,10 +69,10 @@ public class CrashlogDaemonCmdFile {
 	 * @param Argument is a line written in the file
 	 * @param aContext is the caller context
 	 */
-	public static boolean CreateCrashlogdCmdFile(Command CmdType, String Argument, Context aContext) {
+	public static boolean createCrashlogdCmdFile(Command CmdType, String Argument, Context aContext) {
 		ArrayList<String> sArguments = new ArrayList<String>();
 		sArguments.add(Argument);
-		return CreateCrashlogdCmdFile( CmdType, sArguments, aContext);
+		return createCrashlogdCmdFile( CmdType, sArguments, aContext);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class CrashlogDaemonCmdFile {
 	 * @param Arguments shall contains line(s) written in the file
 	 * @param aContext is the caller context
 	 */
-	public static synchronized boolean CreateCrashlogdCmdFile(Command CmdType, ArrayList<String> Arguments, Context aContext) {
+	public static boolean createCrashlogdCmdFile(Command CmdType, ArrayList<String> Arguments, Context aContext) {
 
 		String sfilePath ="";
 		switch (CmdType) {
@@ -123,7 +123,7 @@ public class CrashlogDaemonCmdFile {
 				}
 			}
 			catch(InterruptedException e){
-				Log.d("CreateCrashlogdCmdFile : Interrupted Exception");
+				Log.d("createCrashlogdCmdFile : Interrupted Exception");
 			}
 			if (mCommandFile.exists()) {
 				//warning : sleep time should be coherent with crashlogd processing time

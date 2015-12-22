@@ -39,12 +39,12 @@ public class FSLogSetting implements LogSetting {
     }
 
     public String toString() {
-        return new String("File => Path: " + path + " Value: " +
-                value + " Append: " + append);
+        return "File => Path: " + path + " Value: " +
+                value + " Append: " + append;
     }
 
     public String getType() {
-        return new String("FS");
+        return "FS";
     }
 
     public String getPath() {

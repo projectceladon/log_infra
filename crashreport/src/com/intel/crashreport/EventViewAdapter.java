@@ -110,7 +110,7 @@ public class EventViewAdapter extends BaseAdapter {
 				}
 				else if (aEvent.isDataReady()){
 					if (aEvent.isUploaded()){
-						if (aEvent.isLogUploaded() || aEvent.getCrashDir().equals("")){
+						if (aEvent.isLogUploaded() || aEvent.getCrashDir().isEmpty()){
 							holder.state.setText("OK - uploaded") ;
 							holder.state.setTextColor(mContext.getResources().getColor(R.color.green));
 						}else{

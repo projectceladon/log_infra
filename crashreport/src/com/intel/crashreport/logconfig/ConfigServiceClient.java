@@ -88,7 +88,10 @@ public class ConfigServiceClient {
                         msg2.obj = mConfigs.get(mConfigIndex);
                         msg2.replyTo = mMessenger;
                         try {
-                            mService.send(msg2);
+                            if (mService != null)
+                                mService.send(msg2);
+                            else
+                                Log.w("LogConfig", "Messenger service not set up.");
                         } catch (RemoteException e) {
                             // TODO Auto-generated catch block
                             e.printStackTrace();
@@ -138,7 +141,7 @@ public class ConfigServiceClient {
 
                     mHandler.sendEmptyMessage(MSG_APPLY_NEXT_CONFIG);
                 } catch (RemoteException e) {
-                    // TODO see what you see !!!
+                    e.printStackTrace();
                 }
             } else {
                 Log.w("LogConfig", "Cannot create messenger with <null> service.");
@@ -167,6 +170,7 @@ public class ConfigServiceClient {
                     mService.send(msg);
                 } catch (RemoteException e) {
                     // already disconnected
+                    e.printStackTrace();
                 }
             }
             mContext.unbindService(mConnection);

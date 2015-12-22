@@ -58,12 +58,11 @@ public class FileOps {
 	 * @return true delete is successful, else false
 	 */
 	public static boolean delete(File f){
-		File[] files = null;
 		if(f == null) {
 			return false;
 		}
 		if (f.isDirectory()) {
-			files = f.listFiles();
+			File[] files = f.listFiles();
 			if(files != null) {
 				for (File c : files)
 					delete(c);
@@ -165,9 +164,8 @@ public class FileOps {
 	 * @throws IOException when zip integrity check fails.
 	 */
 	public static boolean isValidZipFile(final File file) throws IOException {
-		ZipFile zipFile = null;
 		try {
-			zipFile = new ZipFile(file);
+			ZipFile zipFile = new ZipFile(file);
 			zipFile.close();
 			return true;
 		} catch (ZipException e) {
@@ -220,28 +218,24 @@ public class FileOps {
 	 *	 	or null on error
 	 */
 	public static Bitmap loadScaledImageFromFile(String path, int maxWidth, int maxHeight){
-		int scale = 1;
-		Bitmap b = null;
-		BitmapFactory.Options bfo = null;
-		File f = null;
-		FileInputStream stream = null;
-
 		if (path == null || path.isEmpty() || maxWidth <=0 || maxHeight <= 0)
 			return null;
 
-		bfo = new BitmapFactory.Options();
+		BitmapFactory.Options bfo = new BitmapFactory.Options();
 		bfo.inJustDecodeBounds = true;
 
-		f = new File(path);
+		File f = new File(path);
 		if (!f.exists() || !f.isFile())
 			return null;
 
+		FileInputStream stream;
 		try { stream = new FileInputStream(f); }
 		catch (FileNotFoundException e) { return null; }
 
 		BitmapFactory.decodeStream(stream, null, bfo);
 		try { stream.close(); } catch (IOException e) { return null; }
 
+		int scale = 1;
 		while ( bfo.outWidth/(2*scale) >= maxWidth &&
 			bfo.outHeight/(2*scale) >= maxHeight ) {
 			scale *= 2;
@@ -253,8 +247,8 @@ public class FileOps {
 		try { stream = new FileInputStream(f); }
 		catch (FileNotFoundException e) { return null; }
 
-		b = BitmapFactory.decodeStream(stream, null, bfo);
-		try { stream.close(); } catch (IOException e) {}
+		Bitmap b = BitmapFactory.decodeStream(stream, null, bfo);
+		try { stream.close(); } catch (IOException e) { return b; }
 
 		return b;
 	}
@@ -266,17 +260,14 @@ public class FileOps {
 	 * path with the extension gz. and original files will be removed.
 	 */
 	public static void compressFolderContent(String path) {
-		File folder = null;
-		File[] files = null;
-
 		if (path == null || path.isEmpty())
 			return;
 
-		folder = new File(path);
+		File folder = new File(path);
 		if (!folder.exists() || !folder.isDirectory())
 			return;
 
-		files = folder.listFiles();
+		File[] files = folder.listFiles();
 
 		if(files == null)
 			return;
@@ -342,7 +333,7 @@ public class FileOps {
 	 * passed file was compressed ok.
 	 */
 	public static boolean compressFile(String source, String destination) {
-		int length;
+		int length, errorCount = 0;
 		byte[] buffer = new byte[1024];
 		FileInputStream in = null;
 		GZIPOutputStream out = null;
@@ -361,13 +352,13 @@ public class FileOps {
 			out.finish();
 			out.close();
 		} catch (IOException ex) {
-			try { if (in != null) in.close(); } catch (IOException e) {}
-			try { if (out != null) out.close(); } catch (IOException e) {}
+			try { if (in != null) in.close(); } catch (IOException e) { errorCount++; }
+			try { if (out != null) out.close(); } catch (IOException e) { errorCount++; }
 
-			return false;
+			errorCount++;
 		}
 
-		return true;
+		return (errorCount == 0);
 	}
 
 	/**

@@ -28,11 +28,11 @@ public class EventTagLogSetting implements LogSetting {
     private String tag;
 
     public String toString() {
-        return new String("EventTag => " + tag);
+        return "EventTag => " + tag;
     }
 
     public String getType() {
-        return new String("EventTag");
+        return "EventTag";
     }
 
     public String getTag() {

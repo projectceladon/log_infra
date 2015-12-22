@@ -123,11 +123,8 @@ public class FileIngredientBuilder implements IngredientBuilder {
 
 	private class BulkCrashToolNameFilter extends CrashToolNameFilter {
 		public void addEntry(IniFileParser.KVPair entry) {
-			JSONObject value = null;
 			try {
-				value = getValue(entry);
-			} catch (JSONException e) { }
-			try {
+				JSONObject value = getValue(entry);
 				if (value != null)
 					ingredients.put(getKey(entry), value);
 				else if (entry != null)
@@ -176,7 +173,6 @@ public class FileIngredientBuilder implements IngredientBuilder {
 			if (mEntry == null)
 				return null;
 
-			String sResult= "";
 			String sTmp = mEntry.getKey();
 
 			//first we remove "version" suffix

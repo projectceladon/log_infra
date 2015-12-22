@@ -85,7 +85,7 @@ public class GeneralCrashReportHome extends Activity {
 				TextView textViewItem = ((TextView) view.findViewById(R.id.textViewEntry));
 
 				int cv = (Integer) textViewItem.getTag();
-				OnClickhandleMenuAction(cv);
+				onClickhandleMenuAction(cv);
 			}
 		});
 
@@ -98,7 +98,7 @@ public class GeneralCrashReportHome extends Activity {
 				TextView textViewItem = ((TextView) view.findViewById(R.id.textViewEntry));
 
 				int cv = (Integer) textViewItem.getTag();
-				OnClickhandleMenuAction(cv);
+				onClickhandleMenuAction(cv);
 			}
 		});
 
@@ -112,7 +112,7 @@ public class GeneralCrashReportHome extends Activity {
 		vf.setDisplayedChild(activeMenu);
 	}
 
-	protected void OnClickhandleMenuAction(int action) {
+	protected void onClickhandleMenuAction(int action) {
 		        handleMenuAction(action);
 	}
 
@@ -136,7 +136,7 @@ public class GeneralCrashReportHome extends Activity {
 					}
 
 					CrashReport app = (CrashReport)getApplicationContext();
-					if(!app.getUserEmail().equals("") && !app.getUserFirstName().equals("") && !app.getUserLastName().equals("")) {
+					if(!app.getUserEmail().isEmpty() && !app.getUserFirstName().isEmpty() && !app.getUserLastName().isEmpty()) {
 						intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
 						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
 						startActivity(intent);

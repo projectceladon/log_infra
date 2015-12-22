@@ -53,7 +53,7 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 		EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
 
 		if(null != editMail) {
-			if(!app.getUserEmail().equals(""))
+			if(!app.getUserEmail().isEmpty())
 				editMail.setText(app.getUserEmail());
 			else editMail.setText(getString(R.string.settings_bugzilla_user_email_value_default));
 			editMail.setOnPreferenceChangeListener(listener);
@@ -72,7 +72,6 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 				Object newValue) {
 			String sValue = (String)newValue;
 			sValue = sValue.trim();
-			newValue = sValue;
 
 			if(preference.getKey().equals(getString(R.string.settings_bugzilla_user_email_key))) {
 				if(sValue.endsWith("@intel.com") && (sValue.indexOf("@") == sValue.lastIndexOf("@")) && (sValue.indexOf("@")!=0))

@@ -33,6 +33,7 @@ public class AskDialog extends DialogFragment {
 
 	private static final int DIALOG_ASK_UPLOAD_ID = 0;
 	private static final int DIALOG_ASK_UPLOAD_SAVE_ID = 1;
+	private static final int DIALOG_ASK_INVALID = -1;
 
     public static AskDialog newInstance(int num) {
         AskDialog frag = new AskDialog();
@@ -44,7 +45,8 @@ public class AskDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        int mNum = getArguments().getInt("num");
+	Bundle args = getArguments();
+        int mNum = (args != null) ? args.getInt("num") : DIALOG_ASK_INVALID;
         Dialog dialog;
         switch(mNum){
         case DIALOG_ASK_UPLOAD_ID:
@@ -62,7 +64,9 @@ public class AskDialog extends DialogFragment {
 
     @Override
     public void onCancel(DialogInterface dialog) {
-        ((StartServiceActivity)getActivity()).cancel(getArguments().getInt("num"));
+	Bundle args = getArguments();
+        if (args != null)
+	        ((StartServiceActivity)getActivity()).cancel(args.getInt("num"));
         super.onCancel(dialog);
     }
 }

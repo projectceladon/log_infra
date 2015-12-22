@@ -32,7 +32,7 @@ import android.content.Intent;
 public class BootConfigServiceReceiver extends BroadcastReceiver {
 
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().contentEquals(Intent.ACTION_BOOT_COMPLETED)) {
+        if (Intent.ACTION_BOOT_COMPLETED.contentEquals(intent.getAction())) {
             CrashReport app = (CrashReport)(context.getApplicationContext());
             if(!app.isUserBuild())
                 context.startService(new Intent(context, BootConfigService.class));

@@ -70,7 +70,7 @@ public class GcmUtils {
 		EventDB db = new EventDB(this.getContext());
 		try {
 			db.open();
-			Cursor cursor = null;
+			Cursor cursor;
 			if(unreadOnly) {
 				cursor = db.fetchNewGcmMessages();
 			} else {

@@ -148,8 +148,8 @@ public class RainSignature {
 	 */
 	public boolean isEmpty() {
 		if (this.type.equals("TOMBSTONE"))
-			return (data0.equals("") || data1.equals("") || (data2.equals("") && data3.equals("")));
+			return (data0.isEmpty() || data1.isEmpty() || (data2.isEmpty() && data3.isEmpty()));
 		else
-			return (data0.equals("") || data1.equals("") || data2.equals(""));
+			return (data0.isEmpty() || data1.isEmpty() || data2.isEmpty());
 	}
 }

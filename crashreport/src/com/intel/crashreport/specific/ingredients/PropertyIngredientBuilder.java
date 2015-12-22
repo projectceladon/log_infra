@@ -24,7 +24,6 @@
 package com.intel.crashreport.specific.ingredients;
 
 import android.os.SystemProperties;
-import android.util.Log;
 
 import java.io.BufferedReader;
 import java.util.ArrayList;
@@ -32,6 +31,8 @@ import java.util.List;
 
 import org.json.JSONObject;
 import org.json.JSONException;
+
+import com.intel.crashreport.Log;
 
 public class PropertyIngredientBuilder implements IngredientBuilder {
 
@@ -54,7 +55,9 @@ public class PropertyIngredientBuilder implements IngredientBuilder {
 				String value = SystemProperties.get(propertyName, "");
 				try {
 					this.ingredients.put(propertyName, value);
-				} catch (JSONException e) { }
+				} catch (JSONException e) {
+					Log.d("Could not add ingredient " + propertyName + " " + value);
+				}
 			}
 		}
 		return this.ingredients;

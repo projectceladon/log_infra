@@ -80,15 +80,15 @@ public class BZ {
 	}
 
 	public String getScreenshotsToString() {
-		String path = "";
+		StringBuffer path = new StringBuffer();
 		for(String screen:screenshots) {
-			if(path.equals(""))
-				path = screen;
+			if (path.length() == 0)
+				path.append(screen);
 			else
-				path += "," + screen;
+				path.append("," + screen);
 
 		}
-		return path;
+		return path.toString();
 	}
 
 	public void setScreenshots(String screen) {

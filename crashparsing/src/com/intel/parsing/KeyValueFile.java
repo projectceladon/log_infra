@@ -67,7 +67,7 @@ public class KeyValueFile {
 		String name;
 		String value;
 
-		if (field.length() == 0)  {
+		if (field.isEmpty())  {
 			return false;
 		}
 
@@ -75,7 +75,7 @@ public class KeyValueFile {
 		if (splitField == null){
 			return false;
 		}
-		
+
 		if (splitField.length == MAX_FIELDS) {
 			name = splitField[0];
 			value = splitField[1];

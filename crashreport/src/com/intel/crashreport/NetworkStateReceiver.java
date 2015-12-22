@@ -36,7 +36,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)) {
+		if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
 			Log.d("NetworkStateReceiver: Async process creation");
 			LongNetworkCheck aCheck = new LongNetworkCheck();
 			aCheck.contextASync = context;

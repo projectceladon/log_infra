@@ -136,7 +136,7 @@ public class ListGcmMessagesActivity extends Activity {
 		// we may consider if as read.
 		if(GCM_ACTION.GCM_NONE == action) {
 			EventDB db = new EventDB(getApplicationContext());
-			boolean resultDelete = false;
+			boolean resultDelete;
 			try {
 				db.open();
 				resultDelete = db.updateGcmMessageToCancelled(theMessage.getRowId());
@@ -199,6 +199,7 @@ public class ListGcmMessagesActivity extends Activity {
 				@Override
 				public void onClick(DialogInterface dialog, int id) {
 					if(GcmEvent.INSTANCE.takeGcmAction(
+							getApplicationContext(),
 							aMessage.getRowId(),
 							aMessage.getType(),
 							aMessage.getData())) {
@@ -334,11 +335,14 @@ public class ListGcmMessagesActivity extends Activity {
 	}
 
 	private void buildActionBar() {
-		SpinnerAdapter gcmFilterSpinner = ArrayAdapter.createFromResource(
-				getActionBar().getThemedContext(),
-				R.array.gcmFilter,
-	            R.layout.spinner_dropdown_item);
 		ActionBar actionBar = getActionBar();
+		if (actionBar == null)
+			return;
+
+		SpinnerAdapter gcmFilterSpinner = ArrayAdapter.createFromResource(
+				actionBar.getThemedContext(),
+				R.array.gcmFilter,
+	            		R.layout.spinner_dropdown_item);
 		actionBar.setTitle("GCM");
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
 		actionBar.setDisplayShowTitleEnabled(false);

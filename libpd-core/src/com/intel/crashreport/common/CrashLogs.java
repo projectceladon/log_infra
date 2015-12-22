@@ -68,7 +68,6 @@ public class CrashLogs {
 		}
 		String crashLogsFileName = "EVENT"+eventId+".zip";
 		File crashLogsFile = new File(cacheDir, crashLogsFileName);
-		boolean unvailableDirectory = false;
 		crashLogsFile.deleteOnExit();
 		if (crashLogsFile.exists()) {
 			//A crashlog zipped file already exists in cache directory
@@ -92,22 +91,18 @@ public class CrashLogs {
 		try {
 			return createCrashLogsZip(crashDir, crashLogsFileName, cacheDir);
 		} catch (IllegalArgumentException e) {
-			unvailableDirectory = true;
+			log.d("CrashLogs: exception while compressing crash directory: " + e);
 		} catch (UnsupportedOperationException e) {
-			unvailableDirectory = true;
+			log.d("CrashLogs: exception while compressing crash directory: " + e);
 		}
-		if(unvailableDirectory){
-			/* Event crashdir is empty so remove it in Event DB to avoid processing it again*/
-			EventDB db = new EventDB(context);
-			if (db != null)
-			{
-				db.open();
-				db.updateEventCrashdir(eventId, "");
-				db.close();
-				log.i("CrashLogs: event " + eventId
-					+ " \'crashdir\' key reset in Event database");
-			}
-		}
+
+		/* Event crashdir is empty so remove it in Event DB to avoid processing it again*/
+		EventDB db = new EventDB(context);
+		db.open();
+		db.updateEventCrashdir(eventId, "");
+		db.close();
+		log.i("CrashLogs: event " + eventId
+			+ " \'crashdir\' key reset in Event database");
 		return null;
 	}
 

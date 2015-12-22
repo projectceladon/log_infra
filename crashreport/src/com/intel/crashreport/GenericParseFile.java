@@ -83,16 +83,12 @@ public class GenericParseFile {
 		String name;
 		String value;
 
-		if (field.length() != 0)  {
-			try {
-				String splitField[] = field.split("\\=", MAX_FIELDS);
-				if (splitField.length == MAX_FIELDS) {
-					name = splitField[0];
-					value = splitField[1];
-					parsedValue.put(name, value);
-				}
-			} catch (NullPointerException e) {
-				Log.w("GenFile: field format not recognised : " + field);
+		if (!field.isEmpty())  {
+			String splitField[] = field.split("\\=", MAX_FIELDS);
+			if (splitField.length == MAX_FIELDS) {
+				name = splitField[0];
+				value = splitField[1];
+				parsedValue.put(name, value);
 			}
 		}
 	}

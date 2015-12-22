@@ -89,7 +89,7 @@ public class Build extends GeneralBuild{
 			String suffix = getProperty(SWCONF_PROPERTY_NAME);
 			StringBuffer sBuffer = new StringBuffer(
 					getProperty(VARIANT_PROPERTY_NAME));
-			if(!"".equals(suffix)) {
+			if(!suffix.isEmpty()) {
 				sBuffer.append("-");
 				sBuffer.append(suffix);
 			}
@@ -104,7 +104,7 @@ public class Build extends GeneralBuild{
 	 * @return the ingredients as string.
 	 */
 	public static final String getIngredients() {
-		JSONObject ingredients = null;
+		JSONObject ingredients;
 		//First check existence of file
 		File ingFile = new File(INGREDIENTS_FILE_PATH);
 		if (!ingFile.exists()) {
@@ -170,11 +170,4 @@ public class Build extends GeneralBuild{
 			}
 		}
 	}
-
-
-	private boolean isWrongValue(BuildProperty property) {
-		return property.isWrongValue();
-	}
-
-
 }

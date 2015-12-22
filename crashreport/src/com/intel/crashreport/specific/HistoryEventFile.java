@@ -67,7 +67,7 @@ public class HistoryEventFile {
 	}
 
 	public void open() throws FileNotFoundException {
-		String path = new String(HISTORY_EVENT_FILE_PATH);
+		String path = HISTORY_EVENT_FILE_PATH;
 		File histFile = new File(path);
 		if (!histFile.canRead())
 			Log.w("HistoryEventFile: can't read file : " + path);

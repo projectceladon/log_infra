@@ -54,26 +54,26 @@ class JsonLogSettingAdapter implements JsonDeserializer, JsonSerializer {
 
     private static String getClassFromId(String name) {
         if (name.contentEquals("file"))
-            return new String("com.intel.crashreport.logconfig.bean.FSLogSetting");
+            return "com.intel.crashreport.logconfig.bean.FSLogSetting";
         else if (name.contentEquals("prop"))
-            return new String("com.intel.crashreport.logconfig.bean.PropertyLogSetting");
+            return "com.intel.crashreport.logconfig.bean.PropertyLogSetting";
         else if (name.contentEquals("event"))
-            return new String("com.intel.crashreport.logconfig.bean.EventTagLogSetting");
+            return "com.intel.crashreport.logconfig.bean.EventTagLogSetting";
         else if (name.contentEquals("intent"))
-            return new String("com.intel.crashreport.logconfig.bean.IntentLogSetting");
+            return "com.intel.crashreport.logconfig.bean.IntentLogSetting";
         return null;
     }
 
     private static String getIdFromClass(LogSetting c) {
         String fullName = c.getClass().getName();
         if (fullName.endsWith("FSLogSetting"))
-            return new String("file");
+            return "file";
         else if (fullName.endsWith("PropertyLogSetting"))
-            return new String("prop");
+            return "prop";
         else if (fullName.endsWith("EventTagLogSetting"))
-            return new String("event");
+            return "event";
         else if (fullName.endsWith("IntentLogSetting"))
-            return new String("intent");
+            return "intent";
         return null;
     }
 

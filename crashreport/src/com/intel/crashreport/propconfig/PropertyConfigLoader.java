@@ -77,29 +77,19 @@ public class PropertyConfigLoader {
 	 */
 	public BuildAllowedValues getPropertiesConfiguration() {
 		BuildAllowedValues config = BuildAllowedValues.empty();
-		InputStreamReader reader = null;
-		try {
-			reader = FileOps.getInputStreamReader(PROP_CONFIG_FILE_LOCATION);
-			if(reader != null) {
-				Gson gson = new GsonBuilder().create();
-				config = gson.fromJson(
-					reader,
-					BuildAllowedValues.class);
+		InputStreamReader reader = FileOps.getInputStreamReader(PROP_CONFIG_FILE_LOCATION);
+		if(reader != null) {
+			Gson gson = new GsonBuilder().create();
+			config = gson.fromJson(
+				reader,
+				BuildAllowedValues.class);
+			try {
 				reader.close();
-			} else {
-				Log.w("PhoneDoctor", "Got null InputStreamReader when opening " + PROP_CONFIG_FILE_LOCATION + ".");
+			} catch (IOException e) {
+				Log.w("PhoneDoctor", "IOException : " + e.getMessage());
 			}
-		} catch (IOException e) {
-			Log.e("PhoneDoctor", "An exception occurred while reading " + PROP_CONFIG_FILE_LOCATION + ".");
-			e.printStackTrace();
-		} finally {
-			if (reader != null) {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					Log.w("PhoneDoctor", "IOException : " + e.getMessage());
-				}
-			}
+		} else {
+			Log.w("PhoneDoctor", "Got null InputStreamReader when opening " + PROP_CONFIG_FILE_LOCATION + ".");
 		}
 		if(config != null) {
 				Log.d("PhoneDoctor", "Returning configuration: " + config.toString());

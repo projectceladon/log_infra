@@ -28,20 +28,25 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
+import com.intel.crashreport.common.IEventLog;
+import com.intel.crashreport.core.Logger;
+
 public class Utils {
 	private static final int COEF_S_TO_MS = 1000;
 	public static final String[] INVALID_EVENTS = new String [] { "KDUMP" };
+	private static final IEventLog log = Logger.getLog();
 
 	public static int convertDateForDB(String sDate) {
 		int iResult = -1;
-		Date cDate = null;
 		if (sDate != null) {
 			try {
 				com.intel.crashreport.common.Utils.PARSE_DF.setTimeZone(
 					TimeZone.getTimeZone("GMT"));
 				iResult = convertDateForDb(
 					com.intel.crashreport.common.Utils.PARSE_DF.parse(sDate));
-			} catch (ParseException e) { }
+			} catch (ParseException e) {
+				log.d("convertDateForDB: " + e);
+			}
 		}
 		return iResult;
 	}

@@ -197,7 +197,7 @@ public class BlackLister {
 		}
 		if (result) {
 			//If the event is blacklisted its crashlog directories shall be removed
-			CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
+			CrashlogDaemonCmdFile.createCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
 		}
 		return result;
 	}
@@ -279,7 +279,7 @@ public class BlackLister {
 
 		boolean isEventDuplicate = false;
 
-		if (event.isDropboxEvent() && !event.getOrigin().equals("")) {
+		if (event.isDropboxEvent() && !event.getOrigin().isEmpty()) {
 			/* 1st case : a same dropbox event detected twice (with origin file name identical)*/
 			if (db.isOriginExist(event.getOrigin())) {
 				isEventDuplicate = true;
@@ -297,7 +297,7 @@ public class BlackLister {
 				db.addBlackEvent(event, "DUPLICATE", (new RainSignature(event)).querySignature() );
 				Log.i(module +"event "+event.getEventId()+" is DUPLICATE");
 				//the event is blacklisted so its crashlog directory shall be removed
-				CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
+				CrashlogDaemonCmdFile.createCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.DELETE, "ARGS="+event.getEventId()+";\n", mCtxt);
 			}
 		}
 		return isEventDuplicate;

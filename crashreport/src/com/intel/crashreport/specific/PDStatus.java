@@ -113,6 +113,31 @@ public enum PDStatus {
 			 *          x: else.
 			 **/
 
+			private String checkFile(Event event, final String pattern) {
+				return checkFile(event, pattern, null);
+			}
+
+			private String checkFile(Event event, final String patternStart, final String patternEnd) {
+				File crashDir = new File(event.getCrashDir());
+				if(crashDir == null || !crashDir.exists() || !crashDir.isDirectory())
+					return "M";
+
+				String list[] = crashDir.list(new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String filename) {
+						if (patternStart != null && !filename.startsWith(patternStart))
+							return false;
+						if (patternEnd != null && !filename.endsWith(patternEnd))
+							return false;
+
+						return true;
+					}});
+				if (list == null || list.length == 0)
+					return "M";
+
+				return "1";
+			}
+
 			@Override
 			public String computeValue() {
 				String result = "x";
@@ -120,7 +145,7 @@ public enum PDStatus {
 				if((event.getEventName().equals("CRASH")
 						|| event.getEventName().equals("INFO")) && event.getCrashDir() != null) {
 					if(event.getType().equals("MPANIC"))
-						result = checkMPanicFile(event);
+						result = checkFile(event, "cd", ".tar.gz");
 
 					if(event.getType().startsWith("IPANIC")) {
 						result = checkFile(event, IPANIC_FILE_PATTERN);
@@ -505,7 +530,7 @@ public enum PDStatus {
 			public String computeValue() {
 				String result = "1";
 				//for disabled ingredients, need to return K also
-				if (!IngredientManager.INSTANCE.IsIngredientEnabled()) {
+				if (!IngredientManager.INSTANCE.isIngredientEnabled()) {
 					return "K";
 				}
 
@@ -738,57 +763,5 @@ public enum PDStatus {
 		for(int i=0; i<length; i++)
 			result = result.concat("x");
 		return result;
-	}
-
-	private static boolean crashDirFilenameFilter(String crashDirName, FilenameFilter filter) {
-
-		File crashDir = new File(crashDirName);
-		if(crashDir == null || !crashDir.exists() || !crashDir.isDirectory())
-			return false;
-
-		String list[] = crashDir.list(filter);
-		if (list == null) //escape case
-			return false;
-		if (list.length > 0)
-			return true;
-		return false;
-	}
-
-	private static String checkMPanicFile(Event event) {
-		boolean has_panic_file = crashDirFilenameFilter(event.getCrashDir(),
-				new FilenameFilter() {
-
-				@Override
-				public boolean accept(File dir, String filename) {
-					if (filename.startsWith("cd") && filename.endsWith(".tar.gz")) {
-						return true;
-					}
-					return false;
-				}
-
-			});
-
-		if (has_panic_file)
-			return "1";
-		else
-			return "M";
-	}
-
-	private static String checkFile(Event event, final String pattern) {
-		boolean has_panic_file = crashDirFilenameFilter(event.getCrashDir(),
-				new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String filename) {
-				if (filename.startsWith(pattern)) {
-					return true;
-				}
-				return false;
-			}
-		});
-
-		if (has_panic_file)
-			return "1";
-		else
-			return "M";
 	}
 }

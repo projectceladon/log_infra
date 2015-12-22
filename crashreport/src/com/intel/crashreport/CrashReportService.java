@@ -448,15 +448,6 @@ public class CrashReportService extends Service {
 		NotificationMgr nMgr;
 		EventDB db;
 		Cursor cursor;
-		Connector con;
-		Event event;
-		FileInfo fileInfo;
-		File crashLogs;
-		String dayDate;
-		Build myBuild;
-		boolean toContinue = false;
-		boolean newLogsToUpload = false;
-		CrashReport app;
 		CrashReportService crService;
 
 		public crRunnable(CrashReportService aCrObject){
@@ -471,11 +462,8 @@ public class CrashReportService extends Service {
 			}
 
 			context = getApplicationContext();
-			app = (CrashReport)context;
-			myBuild = ((CrashReport) context).getMyBuild();
 			prefs = new ApplicationPreferences(context);
 			db = new EventDB(context);
-			con = new Connector(context, serviceHandler);
 			pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 			wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "CrashReport");
 			wakeLock.acquire();
@@ -507,10 +495,6 @@ public class CrashReportService extends Service {
 			if (cursor != null) {
 				cursor.close();
 			}
-			if(!this.closeConnection(con)) {
-				Log.w(MODULE +
-						": an error occurred while closing the connection.");
-			}
 			if (db != null)
 				db.close();
 			if (wakeLock != null) {
@@ -518,30 +502,6 @@ public class CrashReportService extends Service {
 				wakeLock = null;
 			}
 			uploadProgressStop();
-		}
-
-		private boolean closeConnection(Connector connector) {
-			try {
-				connector.closeServerConnection();
-				return true;
-			} catch (IOException e) {
-				Log.e(MODULE+": close connection exception", e);
-			} catch (NullPointerException e) {
-				Log.e(MODULE+": close connection exception", e);
-			}
-			return false;
-		}
-
-		private boolean setUpConnection(Connector connector) {
-			try {
-				connector.setupServerConnection();
-				return true;
-			} catch(UnknownHostException e) {
-				Log.e(MODULE + ":uploadEvent:UnknownHostException", e);
-			} catch(IOException e) {
-				Log.e(MODULE + ":uploadEvent:IOException", e);
-			}
-			return false;
 		}
 	};
 
@@ -969,21 +929,7 @@ public class CrashReportService extends Service {
 	}
 
 	public class LocalBinder extends Binder {
-		//Waiting time before stop the StartServiceActivity if the binder makes too much time to create CrashReportService
-		//67 is for 2seconds fo waiting with a sleep of 30ms.(2000ms/30)
-		private static final int waiting_time = 67;
-
 		CrashReportService getService() {
-			int counter = 0;
-			while( CrashReportService.this == null && counter < waiting_time){
-				try{
-					Thread.sleep(30);
-					counter++;
-				}
-				catch(InterruptedException e){
-					Log.d("LocalBinder: getService: Interrupted Exception");
-				}
-			}
 			return CrashReportService.this;
 		}
 	}

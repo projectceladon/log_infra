@@ -34,6 +34,6 @@ public enum BZCreator {
 	INSTANCE;
 
 	public boolean createBZ(ArrayList<String> sArguments, Context context) {
-		return CrashlogDaemonCmdFile.CreateCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
+		return CrashlogDaemonCmdFile.createCrashlogdCmdFile(CrashlogDaemonCmdFile.Command.BZ, sArguments, context);
 	}
 }

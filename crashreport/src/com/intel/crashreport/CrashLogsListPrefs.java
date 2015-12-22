@@ -108,7 +108,7 @@ public class CrashLogsListPrefs extends ListPreference {
 	}
 
 	public static String[] parseStoredValue(CharSequence val) {
-		if ("".equals(val))
+		if (val == null || val.length() == 0)
 			return null;
 		else
 			return ((String)val).split(DEFAULT_SEPARATOR);

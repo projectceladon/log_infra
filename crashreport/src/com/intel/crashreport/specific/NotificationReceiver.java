@@ -75,62 +75,59 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 
 		};
 
-		if (intent.getAction().equals(BOOT_COMPLETED_INTENT)) {
+		if (BOOT_COMPLETED_INTENT.equals(intent.getAction())) {
 			Log.d("NotificationReceiver: bootCompletedIntent");
 			//first, we need to check GCM token
 			CrashReport app = (CrashReport)context.getApplicationContext();
 			if(app.isGcmEnabled()){
 				//Set context for case when intent is called before service
-				GcmEvent.INSTANCE.setContext(app);
-				GcmEvent.INSTANCE.checkTokenGCM();
+				GcmEvent.INSTANCE.checkTokenGCM(app);
 			}
 			super.onReceive(context, intent);
 			//Add type to intent and send it
 				Intent aIntent = new Intent(context, PhoneInspectorService.class);
 				aIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
 				context.startService(aIntent);
-		} else if (intent.getAction().equals(START_CRASHREPORT_SERVICE)) {
+		} else if (START_CRASHREPORT_SERVICE.equals(intent.getAction())) {
 			Log.d("NotificationReceiver: startCrashReportService");
 			iStartCrashReport.startUpload(context);
-		} else if (intent.getAction().equals(RELAUNCH_CHECK_EVENTS_SERVICE)) {
+		} else if (RELAUNCH_CHECK_EVENTS_SERVICE.equals(intent.getAction())) {
 			CrashReport app = (CrashReport)context.getApplicationContext();
 			Log.d("NotificationReceiver: relaunchCheckEventsService");
 			app.setServiceRelaunched(false);
 			if(!app.isCheckEventsServiceStarted())
 				context.startService(new Intent(context, CheckEventsService.class));
-		} else if (intent.getAction().equals(CRASHLOGS_COPY_FINISHED_INTENT)){
+		} else if (CRASHLOGS_COPY_FINISHED_INTENT.equals(intent.getAction())){
 			CrashReport app = (CrashReport)context.getApplicationContext();
 			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
 			if (intent.hasExtra(EVENT_ID_EXTRA)) {
 				String eventId = intent.getStringExtra(EVENT_ID_EXTRA);
 				EventDB db = new EventDB(context);
 				boolean isPresent = false;
-				if (db!=null){
-					try {
-						db.open();
-						if (db.isEventInDb(eventId)) {
+				try {
+					db.open();
+					if (db.isEventInDb(eventId)) {
 
-							if (!db.eventDataAreReady(eventId)) {
-								isPresent = true;
-								db.updateEventDataReady(eventId);
-							}
+						if (!db.eventDataAreReady(eventId)) {
+							isPresent = true;
+							db.updateEventDataReady(eventId);
 						}
-					} catch (SQLException e) {
-						Log.w("NotificationReceiver: Fail to access DB", e);
 					}
-					db.close();
-					if(isPresent) {
-						if(!app.isServiceStarted())
-							context.startService(new Intent(context, CrashReportService.class));
-						else
-							app.setNeedToUpload(true);
-					}
-					Intent aIntent = new Intent(context, PhoneInspectorService.class);
-					aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
-					context.startService(aIntent);
+				} catch (SQLException e) {
+					Log.w("NotificationReceiver: Fail to access DB", e);
 				}
+				db.close();
+				if(isPresent) {
+					if(!app.isServiceStarted())
+						context.startService(new Intent(context, CrashReportService.class));
+					else
+						app.setNeedToUpload(true);
+				}
+				Intent aIntent = new Intent(context, PhoneInspectorService.class);
+				aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
+				context.startService(aIntent);
 			}
-		} else if (intent.getAction().equals(DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED)) {
+		} else if (DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED.equals(intent.getAction())) {
 			Log.d("NotificationReceiver: dropBoxEntryAddedIntent");
 
 			//Add data to intent
@@ -140,7 +137,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			aIntent.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
 
 			context.startService(aIntent);
-		}else if (intent.getAction().equals(GeneralNotificationReceiver.GCM_MARK_AS_READ)) {
+		}else if (GeneralNotificationReceiver.GCM_MARK_AS_READ.equals(intent.getAction())) {
 			int rowId = -1;
 			// Check whether a row id has been supplied
 			if(intent.hasExtra(GcmMessage.GCM_ROW_ID)) {
@@ -161,7 +158,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			}
 			// Cancel the notification
 			GCMNotificationMgr.clearGcmNotification(this.context);
-		} else if (intent.getAction().equals(Intent.ACTION_DEVICE_STORAGE_LOW)) {
+		} else if (Intent.ACTION_DEVICE_STORAGE_LOW.equals(intent.getAction())) {
 			Intent aIntent = new Intent(context, PhoneInspectorService.class);
 			aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
 			context.startService(aIntent);

@@ -79,7 +79,7 @@ public class CrashFile {
 		fillCrashFile(crashFile);
 		if(toParse) {
 			//if data are not present, we try to generate it
-			if(type.equals("")) {
+			if(type.isEmpty()) {
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
@@ -92,7 +92,7 @@ public class CrashFile {
 			{
 
 				Log.i(type + ": Missing Data, try to regenerate crashfile in " + path);
-				if (!type.equals("")){
+				if (!type.isEmpty()){
 					MainParser aParser = new MainParser(path, type, eventId, uptime,buildId, board, date, imei,dataReady,operator);
 					if (aParser.execParsing() == 0){
 						crashFile = openCrashFile(path);
@@ -173,69 +173,65 @@ public class CrashFile {
 		String name;
 		String value;
 
-		if ((field.length() != 0) && !field.equals("_END")) {
-			try {
-				String splitField[] = field.split("\\=", MAX_FIELDS);
-				if (splitField.length == MAX_FIELDS) {
-					name = splitField[0];
-					value = splitField[1];
+		if (!field.isEmpty() && !field.equals("_END")) {
+			String splitField[] = field.split("\\=", MAX_FIELDS);
+			if (splitField.length == MAX_FIELDS) {
+				name = splitField[0];
+				value = splitField[1];
 
-					if (name.equals("EVENT"))
-						eventName = value;
-					else if (name.equals("ID"))
-						eventId = value;
-					else if (name.equals("SN"))
-						sn = value;
-					else if (name.equals("IMEI"))
-						imei = value;
-					else if (name.equals("DATE"))
-						date = value;
-					else if (name.equals("UPTIME"))
-						uptime = value;
-					else if (name.equals("BUILD"))
-						buildId = value;
-					else if (name.equals("MODEM"))
-						modem = value;
-					else if (name.equals("BOARD"))
-						board = value;
-					else if (name.equals("TYPE"))
-						type = value;
-					else if (name.equals("OPERATOR"))
-						operator = value;
-					else if (name.equals("DATA_READY")){
-						try{
-							dataReady = Integer.parseInt(value);
-						}catch (NumberFormatException e){
-							//default value is ready => 1
-							dataReady=1;
-						}
-					}else if (name.equals("DATA0")){
-						bMissingData0 = false;
-						data0 = value;
+				if (name.equals("EVENT"))
+					eventName = value;
+				else if (name.equals("ID"))
+					eventId = value;
+				else if (name.equals("SN"))
+					sn = value;
+				else if (name.equals("IMEI"))
+					imei = value;
+				else if (name.equals("DATE"))
+					date = value;
+				else if (name.equals("UPTIME"))
+					uptime = value;
+				else if (name.equals("BUILD"))
+					buildId = value;
+				else if (name.equals("MODEM"))
+					modem = value;
+				else if (name.equals("BOARD"))
+					board = value;
+				else if (name.equals("TYPE"))
+					type = value;
+				else if (name.equals("OPERATOR"))
+					operator = value;
+				else if (name.equals("DATA_READY")){
+					try{
+						dataReady = Integer.parseInt(value);
+					}catch (NumberFormatException e){
+						//default value is ready => 1
+						dataReady=1;
 					}
-					else if (name.equals("DATA1")){
-						bMissingData1 = false;
-						data1 = value;
-					}
-					else if (name.equals("DATA2")){
-						bMissingData2 = false;
-						data2 = value;
-					}
-					else if (name.equals("DATA3"))
-						data3 = value;
-					else if (name.equals("DATA4"))
-						data4 = value;
-					else if (name.equals("DATA5"))
-						data5 = value;
-					else if (name.equals("MODEMVERSIONUSED"))
-						modemVersionUsed = value;
-					else if (name.equals("PARSER")){
-						//ignoring this value but this field is expected
-					} else
-						Log.w("CrashFile: field name\"" + name + "\" not recognised");
+				}else if (name.equals("DATA0")){
+					bMissingData0 = false;
+					data0 = value;
 				}
-			} catch (NullPointerException e) {
-				Log.w("CrashFile: field format not recognised : " + field);
+				else if (name.equals("DATA1")){
+					bMissingData1 = false;
+					data1 = value;
+				}
+				else if (name.equals("DATA2")){
+					bMissingData2 = false;
+					data2 = value;
+				}
+				else if (name.equals("DATA3"))
+					data3 = value;
+				else if (name.equals("DATA4"))
+					data4 = value;
+				else if (name.equals("DATA5"))
+					data5 = value;
+				else if (name.equals("MODEMVERSIONUSED"))
+					modemVersionUsed = value;
+				else if (name.equals("PARSER")){
+					//ignoring this value but this field is expected
+				} else
+					Log.w("CrashFile: field name\"" + name + "\" not recognised");
 			}
 		}
 	}

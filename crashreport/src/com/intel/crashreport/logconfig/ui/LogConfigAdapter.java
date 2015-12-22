@@ -119,7 +119,7 @@ public class LogConfigAdapter extends BaseAdapter {
                 boolean isChecked) {
             buttonView.setEnabled(false);
             ConfigStatus mConfigStatus =
-                    mConfigManager.getConfigStatus((String) ((CheckBox) buttonView).getTag());
+                    mConfigManager.getConfigStatus((String) buttonView.getTag());
             if(null == mConfigStatus) {
                 return; /* No configuration to apply */
             }

@@ -111,12 +111,13 @@ public class IniFileParser {
 
 		@Override
 		public String toString() {
-			String retVal = SECTION_NAME_OPEN_BRACKET + mSectionName + SECTION_NAME_CLOSE_BRACKET + "\n";
+			StringBuffer retVal = new StringBuffer();
+			retVal.append(SECTION_NAME_OPEN_BRACKET + mSectionName + SECTION_NAME_CLOSE_BRACKET + "\n");
 
 			for (KVPair entry : mEntries) {
-				retVal += entry;
+				retVal.append(entry);
 			}
-			return retVal;
+			return retVal.toString();
 		}
 	}
 
@@ -191,7 +192,7 @@ public class IniFileParser {
 			fileReader = new FileReader(file);
 			reader = new BufferedReader(fileReader);
 			try {
-				String line = null;
+				String line;
 				do {
 					line = reader.readLine();
 					this.clasify(line);
@@ -229,7 +230,7 @@ public class IniFileParser {
 
 		line = line.trim();
 
-		if (line.length() == 0) {
+		if (line.isEmpty()) {
 			//empty line
 			return;
 		}
@@ -265,11 +266,11 @@ public class IniFileParser {
 
 	@Override
 	public String toString() {
-		String retVal = "";
+		StringBuffer retVal = new StringBuffer();
 		for (Section entry : mEntries) {
-			retVal += entry;
+			retVal.append(entry);
 		}
 
-		return retVal;
+		return retVal.toString();
 	}
 }

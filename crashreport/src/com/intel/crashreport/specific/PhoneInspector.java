@@ -178,10 +178,8 @@ public class PhoneInspector {
 	}
 
 	private void cleanUploadedLogs(String path) {
-		File[] files = null;
-
 		File logsDir = new File(path);
-		files = logsDir.listFiles();
+		File[] files = logsDir.listFiles();
 
 		if(files == null)
 			return;

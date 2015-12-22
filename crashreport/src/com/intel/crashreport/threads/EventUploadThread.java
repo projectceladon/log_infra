@@ -133,28 +133,27 @@ public class EventUploadThread implements Runnable {
 
 		CrashReport app = (CrashReport) this.context;
 		Build myBuild = app.getMyBuild();
-		boolean toContinue = true;
 		try {
 			eventDb.open();
 			this.connector.setupServerConnection();
-			int crashNumber = eventDb.getNewCrashNumber();
 			//upload Events
 			do {
 				crService.sendEvents(eventDb, this.connector, myBuild);
 				try {
-					if ((toContinue = eventDb.isThereEventToUpload()) == true) {
+					if (eventDb.isThereEventToUpload()) {
 						crService.updateEventsSummary(eventDb);
-						crashNumber += eventDb.getNewCrashNumber();
+					}
+					else {
+						break;
 					}
 				} catch (SQLException e) {
 					/* In case of Db access error, skip and go to events logs uploading process*/
 					Log.w(EventUploadThread.class.getSimpleName()+":uploadEvent : Can't check if there is event to upload : Fail to access DB", e);
-					toContinue = false;
+					break;
 				}
-			}while(toContinue);
+			} while(true);
 			//upload logs
 			app.setNeedToUpload(false);
-			String crashTypes[] = null;
 			if (prefs.isCrashLogsUploadEnable()) {
 				this.doCrashLogsUpload();
 			}
@@ -186,17 +185,18 @@ public class EventUploadThread implements Runnable {
 	}
 
 	private void closeServerConnection() {
-		try {
-			this.connector.closeServerConnection();
-		} catch (IOException e) {
-			Log.w(
-					EventUploadThread.class.getSimpleName() +
+		if (connector == null)
+			Log.w(EventUploadThread.class.getSimpleName() +
+					": close connection exception. null connector");
+		else {
+			try {
+				this.connector.closeServerConnection();
+			} catch (IOException e) {
+				Log.w(EventUploadThread.class.getSimpleName() +
 					": close connection exception", e);
-		} catch (NullPointerException e) {
-			Log.w(
-					EventUploadThread.class.getSimpleName() +
-					": close connection exception", e);
+			}
 		}
+
 		//finally, clean cursor if required
 		if (mCursor != null) {
 			if(!mCursor.isClosed()) {
@@ -277,7 +277,7 @@ public class EventUploadThread implements Runnable {
 			}
 			// Delete all file in crash directory
 			File data = new File(event.getCrashDir());
-			if (data != null && data.exists()) {
+			if (data.exists()) {
 				if (data.isDirectory()) {
 					File[] files = data.listFiles();
 					if(files != null) {

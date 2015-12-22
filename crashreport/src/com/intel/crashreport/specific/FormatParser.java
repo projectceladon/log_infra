@@ -137,7 +137,7 @@ public class FormatParser{
 						StringBuffer result) {
 		Matcher simpleMatcher;
 
-		if(line.isEmpty())
+		if(line == null || line.isEmpty())
 			return false;
 
 		simpleMatcher = criteria.matcher(line);
@@ -152,7 +152,7 @@ public class FormatParser{
 			return false;
 		}
 
-		if (line == "")
+		if (line == null || line.isEmpty())
 			return false;
 
 		result.append(line);
@@ -229,7 +229,7 @@ public class FormatParser{
 		StringBuffer data4StrBuffer = new StringBuffer ("");
 
 		String sFabricFile = fileGrepSearch(".*ipanic_fabric_recv_err.*", mEvent.getCrashDir());
-		if (sFabricFile == "") {
+		if (sFabricFile.isEmpty()) {
 			Log.w("File \"ipanic_fabric_recv_err\" not found in event dir\n");
 		}
 

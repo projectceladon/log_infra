@@ -129,9 +129,9 @@ public class GeneralEvent {
 	@Override
 	public String toString() {
 		if (getEventName().equals("UPTIME"))
-			return new String("Event: " + getEventId() + ":" + getEventName() + ":" + getUptime());
+			return "Event: " + getEventId() + ":" + getEventName() + ":" + getUptime();
 		else
-			return new String("Event: " + getEventId() + ":" + getEventName() + ":" + getType());
+			return "Event: " + getEventId() + ":" + getEventName() + ":" + getType();
 	}
 
 	public static String getDeviceIdFromSystem() {
@@ -156,7 +156,7 @@ public class GeneralEvent {
 	}
 
 	public static Date convertDate(String date) {
-		Date cDate = null;
+		Date cDate;
 		if (date != null) {
 			try {
 				EVENT_DF.setTimeZone(TimeZone.getTimeZone("GMT"));

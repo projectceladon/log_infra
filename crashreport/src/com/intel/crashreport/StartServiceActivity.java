@@ -114,19 +114,23 @@ public class StartServiceActivity extends Activity {
 		if (cancelButton != null)
 			cancelButton.setOnClickListener(new OnClickListener() {
 				public void onClick(View v) {
-					if (mService.isServiceUploading())
+					if (mService != null && mService.isServiceUploading())
 						mService.cancelDownload();
 				}
 			});
 		setTitle(getString(R.string.activity_name));
 		ActionBar actionBar = getActionBar();
-		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-		SpinnerAdapter eventFilterAdapter = ArrayAdapter.createFromResource(getActionBar().getThemedContext(), R.array.eventFilterText,
-	            R.layout.spinner_dropdown_item);
-		actionBar.setListNavigationCallbacks(eventFilterAdapter, eventFilterListener);
-		search = appPrefs.getFilterChoice();
-		actionBar.setSelectedNavigationItem(search.compareTo(EVENT_FILTER.ALL));
-		actionBar.setDisplayShowTitleEnabled(false);
+		if (actionBar != null) {
+			actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+			SpinnerAdapter eventFilterAdapter = ArrayAdapter.createFromResource(actionBar.getThemedContext(), R.array.eventFilterText,
+		            R.layout.spinner_dropdown_item);
+			actionBar.setListNavigationCallbacks(eventFilterAdapter, eventFilterListener);
+			search = appPrefs.getFilterChoice();
+			actionBar.setSelectedNavigationItem(search.compareTo(EVENT_FILTER.ALL));
+			actionBar.setDisplayShowTitleEnabled(false);
+		} else {
+			Log.e("Action bar not initialized!");
+		}
 		waitRequests = 0;
 
 		waitStub = (ViewStub) findViewById(R.id.waitStub);
@@ -497,7 +501,7 @@ public class StartServiceActivity extends Activity {
 	private BroadcastReceiver msgReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (intent.getAction().equals(ServiceToActivityMsg.askForUpload)) {
+			if (ServiceToActivityMsg.askForUpload.equals(intent.getAction())) {
 				switch(dialog_value){
 				case DIALOG_UNKNOWN_VALUE:
 					displayDialog(DIALOG_ASK_UPLOAD_ID);
@@ -521,34 +525,35 @@ public class StartServiceActivity extends Activity {
 					break;
 
 				}
-			} else if (intent.getAction().equals(ServiceToActivityMsg.updateLogTextView)) {
-				text.setText(mService.getLogger().getLog());
+			} else if (ServiceToActivityMsg.updateLogTextView.equals(intent.getAction())) {
+				if (mService != null)
+					text.setText(mService.getLogger().getLog());
 				updateSummary();
-			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadStarted)) {
+			} else if (ServiceToActivityMsg.uploadStarted.equals(intent.getAction())) {
 				Log.d("StartServiceActivity:msgReceiver: uploadStarted");
 				showPleaseWait();
 				cancelButton.setEnabled(true);
-			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadFinished)) {
+			} else if (ServiceToActivityMsg.uploadFinished.equals(intent.getAction())) {
 				Log.d("StartServiceActivity:msgReceiver: uploadFinish");
 				updateSummary();
 				hidePleaseWait();
 				cancelButton.setEnabled(false);
-			} else if (intent.getAction().equals(ServiceToActivityMsg.uploadProgressBar)) {
+			} else if (ServiceToActivityMsg.uploadProgressBar.equals(intent.getAction())) {
 				if (null != progressBar && progressBarDisplayable) {
 					progressBar.setProgress(intent.getIntExtra("progressValue", 0));
 				}
 			}
-			else if (intent.getAction().equals(ServiceToActivityMsg.showProgressBar)) {
+			else if (ServiceToActivityMsg.showProgressBar.equals(intent.getAction())) {
 				progressBarDisplayable = true;
 				if (null != progressBar)
 					progressBar.setVisibility(View.VISIBLE);
 			}
-			else if (intent.getAction().equals(ServiceToActivityMsg.hideProgressBar)) {
+			else if (ServiceToActivityMsg.hideProgressBar.equals(intent.getAction())) {
 				progressBarDisplayable = false;
 				if (null != progressBar)
 					progressBar.setVisibility(View.GONE);
 			}
-			else if (intent.getAction().equals(ServiceToActivityMsg.unbindActivity))
+			else if (ServiceToActivityMsg.unbindActivity.equals(intent.getAction()))
 				onKillService();
 		}
 	};

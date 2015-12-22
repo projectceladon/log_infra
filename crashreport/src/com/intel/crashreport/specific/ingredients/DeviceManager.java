@@ -51,7 +51,7 @@ public enum DeviceManager {
 	}
 
 	public boolean isModemUnknown(){
-		if (!IngredientManager.INSTANCE.IsIngredientEnabled()) {
+		if (!IngredientManager.INSTANCE.isIngredientEnabled()) {
 			return false;
 		}
 
