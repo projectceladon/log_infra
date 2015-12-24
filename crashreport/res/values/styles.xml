@@ -26,4 +26,15 @@
     <style name="CrashReportAppTheme" parent="@style/Theme.Intel">
         <item name="android:actionModeBackground">@color/intel_blue</item>
     </style>
+    <style name="DeviceInfoTitle">
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="DeviceInfoEntry">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingLeft">15dip</item>
+        <item name="android:paddingBottom">15dip</item>
+    </style>
 </resources>

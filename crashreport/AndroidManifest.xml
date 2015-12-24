@@ -73,6 +73,10 @@
 			android:label="@string/label" />
 
 		<activity
+			android:name=".specific.DeviceInfoActivity"
+			android:label="@string/label" />
+
+		<activity
 			android:name=".specific.CrashReportHome"
 			android:label="@string/label" >
 			<intent-filter>

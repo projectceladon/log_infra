@@ -73,6 +73,7 @@
     <string name="menu_aplogs">Send Logs</string>
     <string name="menu_bugzilla">Raise a BUG</string>
     <string name="menu_gcm_list">Messages</string>
+    <string name="menu_device_info">Device Info</string>
     <string name="activity_name"></string>
     <string name="start_service_activity_AskForUpload_title">Phone Doctor management</string>
 
@@ -153,6 +154,23 @@
     <string name="intel_email">\@intel.com</string>
     <string name="list_bugzilla">BUG History</string>
     <string name="list_bugzilla_title">Bug events created with the phone :</string>
+
+    <!-- Device Info part-->
+    <string name="label_device_build">Build information:</string>
+    <string name="label_device_hw">Device information:</string>
+    <string name="label_device_ingredients">Ingredients information:</string>
+    <string name="label_device_uniques">Unique ingredients:</string>
+    <string name="text_device_info_failure">Failed to retrieve details!</string>
+    <string name="label_field_deviceId">Device id</string>
+    <string name="label_field_imei">IMEI</string>
+    <string name="label_field_ssn">SSN</string>
+    <string name="label_field_gcmToken">GCM token</string>
+    <string name="label_field_spid">SPID</string>
+    <string name="label_field_buildId">Build id</string>
+    <string name="label_field_fingerPrint">Fingerprint</string>
+    <string name="label_field_kernelVersion">Kernel version</string>
+    <string name="label_field_userHostname">User hostname</string>
+    <string name="label_field_os">OS</string>
 
     <!-- Upload log part-->
     <string name="aplog_summary">Comment :</string>
