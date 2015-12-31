@@ -160,6 +160,8 @@
     <string name="label_device_hw">Device information:</string>
     <string name="label_device_ingredients">Ingredients information:</string>
     <string name="label_device_uniques">Unique ingredients:</string>
+    <string name="label_device_display">Display information:</string>
+    <string name="label_device_miscelaneous">Miscelaneous information:</string>
     <string name="text_device_info_failure">Failed to retrieve details!</string>
     <string name="label_field_deviceId">Device id</string>
     <string name="label_field_imei">IMEI</string>
@@ -171,6 +173,13 @@
     <string name="label_field_kernelVersion">Kernel version</string>
     <string name="label_field_userHostname">User hostname</string>
     <string name="label_field_os">OS</string>
+    <string name="label_field_display_width">Width</string>
+    <string name="label_field_display_height">Height</string>
+    <string name="label_field_GL_support">GL support</string>
+    <string name="label_field_GL_renderer">GL renderer</string>
+    <string name="label_field_GL_vendor">GL vendor</string>
+    <string name="label_field_GL_version">GL version</string>
+    <string name="label_field_GL_extensions">GL extensions</string>
 
     <!-- Upload log part-->
     <string name="aplog_summary">Comment :</string>

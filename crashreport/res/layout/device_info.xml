@@ -23,13 +23,24 @@
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
+        android:id="@+id/main_activity_window"
         android:padding="10dp" >
+
+        <FrameLayout
+            android:layout_width="1dp"
+            android:layout_height="1dp">
+            <view class="com.intel.crashreport.specific.DeviceInfoActivity$Surface"
+                android:id="@+id/surfaceView"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"/>
+        </FrameLayout>
 
         <TextView
             android:id="@+id/text_device_build"
@@ -59,11 +70,30 @@
             android:id="@+id/text_device_uniques"
             style="@style/DeviceInfoTitle"
             android:text="@string/label_device_uniques" />
-       <TextView
+        <TextView
             android:id="@+id/text_device_uniques_details"
             style="@style/DeviceInfoEntry"
             android:text="@string/text_device_info_failure" />
-
+        <TextView
+            android:id="@+id/text_device_display"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_display" />
+        <TextView
+            android:id="@+id/text_device_display_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+        <ExpandableListView
+            android:id="@+id/listGLExtensions"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" />
+        <TextView
+            android:id="@+id/text_device_miscelaneous"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_miscelaneous" />
+        <TextView
+            android:id="@+id/text_device_miscelaneous_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
     </LinearLayout>
 
 </ScrollView>
