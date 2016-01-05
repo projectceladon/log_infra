@@ -743,6 +743,8 @@ public class MainParser{
 
 	private boolean checkSignature(Map<String,String> aData){
 		String sTmp;
+		boolean bData0Found = false;
+		boolean bData2Found = false;
 
 		if (aData == null){
 			return false;
@@ -750,25 +752,21 @@ public class MainParser{
 		sTmp = aData.get("DATA0");
 		if (sTmp != null){
 			if (!sTmp.isEmpty()){
-				return true;
+				bData0Found = true;
 			}
 		}
 
-		sTmp = aData.get("DATA1");
-		if (sTmp != null){
-			if (!sTmp.isEmpty()){
-				return true;
-			}
-		}
+		//DATA1 is not relevant - so no check
 
 		sTmp = aData.get("DATA2");
 		if (sTmp != null){
 			if (!sTmp.isEmpty()){
-				return true;
+				bData2Found = true;
 			}
 		}
 
-		return false;
+		// Note : could be changed to OR if a less restrictive strategy is expected
+		return bData0Found && bData2Found;
 	}
 
 
@@ -777,6 +775,7 @@ public class MainParser{
 		boolean bFoundOnce = false;
 		Map<String,String> resultData = null;
 
+		// test panic_console first because it is the smallest file
 		String sIPanicFile = fileGrepSearch(".*panic_console.*", aFolder);
 		if (!sIPanicFile.isEmpty()){
 			bFoundOnce = true;
@@ -785,13 +784,14 @@ public class MainParser{
 
 		if (!checkSignature(resultData)){
 			resultData = null;
-			//2nd chance : use last_kmsg pattern
-			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
+			//2nd chance : use coredump.txt file
+			sIPanicFile = fileGrepSearch("coredump.*", aFolder);
 			if (!sIPanicFile.isEmpty()){
 				bFoundOnce = true;
 				resultData = ipanicByFile(sIPanicFile);
 			}
 		}
+
 		if (!checkSignature(resultData)){
 			resultData = null;
 			//3rd chance : use console-ramoops pattern
@@ -801,15 +801,18 @@ public class MainParser{
 				resultData = ipanicByFile(sIPanicFile);
 			}
 		}
-
 		if (!checkSignature(resultData)){
 			resultData = null;
-			//4th chance : use coredump.txt file
-			sIPanicFile = fileGrepSearch("coredump.*", aFolder);
+			//4th chance : use last_kmsg pattern
+			sIPanicFile = fileGrepSearch(".*last_kmsg.*", aFolder);
 			if (!sIPanicFile.isEmpty()){
 				bFoundOnce = true;
 				resultData = ipanicByFile(sIPanicFile);
 			}
+		}
+
+		if (!checkSignature(resultData)){
+			resultData = null;
 		}
 
 		if (resultData != null){
@@ -841,8 +844,10 @@ public class MainParser{
 			bResult &= appendToCrashfile("DATA2=" + sData2);
 			bResult &= appendToCrashfile("DATA3=" + sData3);
 
-
+		} else {
+			bResult &= appendToCrashfile("DATA0=insufficient data");
 		}
+
 		if (!bFoundOnce){
 			//4th chance, try header
 			String sHeaderFile = fileGrepSearch(".*ipanic_header.*", aFolder);
