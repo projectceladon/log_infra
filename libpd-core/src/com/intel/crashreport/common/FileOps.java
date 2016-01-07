@@ -284,6 +284,13 @@ public class FileOps {
 				continue;
 			}
 
+			// TODO: find reasonable method to check if the file is a symlink
+			if (f.getName().startsWith(
+				com.intel.crashreport.CrashLogs.NO_UPLOAD_PATTERN)) {
+				log.d("File " + f.getName() + " not processed.");
+				continue;
+			}
+
 			String source = f.getAbsolutePath();
 			String destination = source + ".gz";
 			if (compressFile(source, destination)) {

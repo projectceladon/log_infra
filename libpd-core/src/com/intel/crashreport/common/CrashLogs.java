@@ -46,6 +46,7 @@ public class CrashLogs {
 
 	private static final int BUFFER_SIZE = 1024;
 	private static final IEventLog log = Logger.getLog();
+	public static final String NO_UPLOAD_PATTERN = "noupload_";
 
 	/**
 	 * Compress a crashlog directory content and return it as a zipped file. If this zipped file
@@ -171,6 +172,11 @@ public class CrashLogs {
 		File fileInfo = null;
 		try {
 			for(int i=0; i < fileList.length; i++) {
+				if (fileList[i].getName().startsWith(NO_UPLOAD_PATTERN)) {
+					log.d("File " + fileList[i].getName() + " not added to " + crashLogsFile.getName());
+					continue;
+				}
+
 				log.d("Compress Adding: " + fileList[i].getName());
 
 				if (!(fileList[i].exists() && fileList[i].canRead() && (fileList[i].getName().length() < Integer.MAX_VALUE))){
