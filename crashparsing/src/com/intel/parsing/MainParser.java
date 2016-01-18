@@ -765,8 +765,8 @@ public class MainParser{
 			}
 		}
 
-		// Note : could be changed to OR if a less restrictive strategy is expected
-		return bData0Found && bData2Found;
+		//signature is considered valid when one of DATA0 or DATA2 is not empty
+		return bData0Found || bData2Found;
 	}
 
 
