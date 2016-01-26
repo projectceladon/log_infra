@@ -71,38 +71,7 @@ public class CrashReport extends Application {
 			privatePrefs.setVersion(version);
 
 			resetCrashLogsUploadTypes();
-			EventDB db = new EventDB(this.getApplicationContext());
-			try {
-				db.open();
-				db.deleteAllTypes();
-				db.close();
-			} catch (SQLException e) {
-				Log.w("CrashReport: update of critical crash db failed");
-			}
 		}
-
-		EventDB db = new EventDB(this.getApplicationContext());
-		try {
-			db.open();
-			if(db.isTypeListEmpty()) {
-				db.deleteAllCriticalEvents();
-
-				db.addTypes(new String[]{"IPANIC","FABRICERR","IPANIC_SWWDT","IPANIC_HWWDT","MEMERR","INSTERR","SRAMECCERR","HWWDTLOGERR","MSHUTDOWN","UIWDT","WDT"},1);
-
-				for (String type : getResources().getStringArray(R.array.reportCrashLogsTypeValues)) {
-					if (!db.isTypeInDb(type)) {
-						db.addType(type,0);
-					}
-				}
-
-				db.insertCricitalEvent("TOMBSTONE", "system_server", "", "", "", "", "");
-			}
-		} catch (SQLException e) {
-			Log.w("CrashReport: update of critical crash db failed");
-		}
-		db.close();
-
-
 	}
 
 	public boolean isCheckEventsServiceStarted(){

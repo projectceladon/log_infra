@@ -324,6 +324,14 @@ public class GeneralEvent {
 		mParsableEvent.setDataReady(dataReady);
 	}
 
+	public boolean isCritical() {
+		return mParsableEvent.isCritical();
+	}
+
+	public void setCritical(boolean value) {
+		mParsableEvent.setCritical(value);
+	}
+
 	public int getUploaded() {
 		return uploaded;
 	}

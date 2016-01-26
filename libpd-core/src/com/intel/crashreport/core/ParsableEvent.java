@@ -43,6 +43,7 @@ public class ParsableEvent {
 	protected String uptime = "";
 	protected String crashDir = "";
 	protected boolean dataReady = true;
+	protected boolean critical = false;
 	protected int iRowID;
 	protected String modemVersionUsed = "";
 
@@ -172,6 +173,14 @@ public class ParsableEvent {
 
 	public void setDataReady(boolean dataReady) {
 		this.dataReady = dataReady;
+	}
+
+	public boolean isCritical() {
+		return critical;
+	}
+
+	public void setCritical(boolean value) {
+		this.critical = value;
 	}
 
 	public int getiRowID() {

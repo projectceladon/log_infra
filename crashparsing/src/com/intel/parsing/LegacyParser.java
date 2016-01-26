@@ -92,6 +92,10 @@ public class LegacyParser implements EventParser {
 		if (!sValue.isEmpty()) {
 			aEvent.setData5(sValue);
 		}
+		sValue = aCrashfile.getValueByName("CRITICAL");
+		if (!sValue.isEmpty()) {
+			aEvent.setCritical(sValue.equals("YES"));
+		}
 		sValue = aCrashfile.getValueByName("MODEMVERSIONUSED");
 		if (!sValue.isEmpty()) {
 			aEvent.setModemVersionUsed(sValue);

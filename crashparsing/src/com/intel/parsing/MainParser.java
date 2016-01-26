@@ -32,6 +32,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +54,10 @@ public class MainParser{
 		"NORTHFUSEERR", "KERNELWDT", "KERNEHANG", "SCUWDT", "FABRICXML", "PLLLOCKERR",
 		"UNDEFL1ERR", "PUNITMBBTIMEOUT", "VOLTKERR", "VOLTSAIATKERR",
 		"LPEINTERR", "PSHINTERR", "FUSEINTERR", "IPC2ERR", "KWDTIPCERR" };
+	private final static ArrayList<String> criticalTypes = new ArrayList<String>(
+		Arrays.asList("IPANIC", "FABRICERR", "IPANIC_SWWDT", "IPANIC_HWWDT",
+		"HWWDTLOGERR", "MSHUTDOWN", "UIWDT", "WDT", "VMMTRAP", "VMM_UNHANDLED",
+		"SECPANIC"));
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
@@ -64,6 +69,7 @@ public class MainParser{
 	private Writer myOutput = null;
 	private int iDataReady = 1;
 	private String sOperator = "";
+	private boolean bCritical = false;
 
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
 			String aBuild, String aBoard, String aDate, String aImei){
@@ -297,6 +303,9 @@ public class MainParser{
 	private boolean finish_crashfile(String aFolder){
 		boolean bResult = true;
 
+		if (!bCritical)
+			bCritical = criticalTypes.contains(sTag.trim());
+		bResult &= appendToCrashfile("CRITICAL=" + (bCritical ? "YES" : "NO"));
 		//needed to identify legacy_parsing with ParserDirector
 		bResult &= appendToCrashfile("PARSER=LEGACY_PARSER");
 		bResult &= appendToCrashfile("_END");
@@ -1423,6 +1432,8 @@ public class MainParser{
 				}
 				bResult &= appendToCrashfile("DATA3=" + sFaultAddress);
 
+				if (sTag.equals("TOMBSTONE") && "system_server".equals(sProcess.trim()))
+					bCritical = true;
 			}
 			catch(Exception e) {
 				APLog.e( "tombstone : " + e);

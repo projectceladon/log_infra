@@ -23,11 +23,18 @@
 
 package com.intel.parsing;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import com.intel.crashreport.core.ParsableEvent;
 
 public class StandardParser implements EventParser {
 
+	private boolean mCritical;
 	private String mEventName;
 	private String mEventType;
 	ArrayList<StandardRule> mRulesList = null;
@@ -45,7 +52,54 @@ public class StandardParser implements EventParser {
 		for (StandardRule curRule : mRulesList) {
 			curRule.analyzeEvent(aEvent);
 		}
+		setCritical(aEvent);
 		return true;
+	}
+
+	public void setCritical(ParsableEvent aEvent) {
+		StringBuilder sb = new StringBuilder(255);
+		String terminator = String.format("%n");
+	        File file = new File(aEvent.getCrashDir(), "crashfile");
+		FileWriter fw = null;
+		BufferedReader br = null;
+
+		try {
+			br = new BufferedReader(new FileReader(file));
+			String line = br.readLine();
+			while (line != null) {
+				if (!line.startsWith("CRITICAL="))
+					sb.append(line + terminator);
+
+				line = br.readLine();
+			}
+		} catch (IOException e) {
+			APLog.e("error while reading file : " + e);
+		} finally {
+			if (br != null)
+				try {
+					br.close();
+				} catch (IOException e) {
+					APLog.e("error while closing file : " + e);
+				}
+		}
+
+		sb.insert(0, "CRITICAL=" + ((mCritical) ? "YES" : "NO") + terminator);
+
+		try {
+			fw = new FileWriter(file);
+			fw.write(sb.toString());
+		} catch (IOException e) {
+			APLog.e("error writing to file : " + e);
+		} finally {
+			if (fw != null)
+				try {
+					fw.close();
+				} catch (IOException e) {
+					APLog.e("error while closing file : " + e);
+				}
+		}
+
+		aEvent.setCritical(mCritical);
 	}
 
 	public boolean isEventEligible(ParsableEvent aEvent) {
@@ -57,6 +111,14 @@ public class StandardParser implements EventParser {
 
 	public void addRulle(StandardRule aRule){
 		mRulesList.add(aRule);
+	}
+
+	public boolean isCritical() {
+		return mCritical;
+	}
+
+	public void setCritical(boolean mCriticalClass) {
+		this.mCritical = mCriticalClass;
 	}
 
 	public String getEventName() {
