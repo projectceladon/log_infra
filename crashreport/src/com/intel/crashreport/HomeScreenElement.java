@@ -29,17 +29,20 @@ public class HomeScreenElement {
 	private String elementName;
 	private int elementImageResource;
 	private int elementPosition;
+	private boolean enabled;
 
 	public HomeScreenElement(int id, String name) {
 		this.elementID = id;
 		this.elementName = name;
 		this.elementImageResource = -1;
+		this.enabled = false;
 	}
 
-	public HomeScreenElement(int id, String name, int imageResource, int position) {
+	public HomeScreenElement(int id, String name, int imageResource, int position, boolean enabled) {
 		this(id, name);
 		this.elementImageResource = imageResource;
 		this.elementPosition = position;
+		this.enabled = enabled;
 	}
 
 	public int getElementID() {
@@ -56,5 +59,9 @@ public class HomeScreenElement {
 
 	public int getElementPosition() {
 		return this.elementPosition;
+	}
+
+	public boolean isEnabled() {
+		return this.enabled;
 	}
 }

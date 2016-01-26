@@ -49,6 +49,7 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		boolean state = this.getResources().getBoolean(R.bool.enable_gcm);
 		if(app.isUserBuild()) {
 			CheckBoxPreference wifiPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_connection_wifi_only_key));
 			PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
@@ -66,11 +67,13 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
 			checkGcm.setOnPreferenceChangeListener(gcmListener);
 			if(null == gcmEnabled)
 				gcmEnabled = checkGcm.isChecked();
+			checkGcm.setEnabled(state);
 		}
 
 		CheckBoxPreference checkGcmSound = (CheckBoxPreference)this.findPreference(getString(R.string.settings_gcm_sound_activation_key));
 		if(null != checkGcmSound) {
 			checkGcmSound.setOnPreferenceChangeListener(gcmSoundListener);
+			checkGcmSound.setEnabled(state);
 		}
 	}
 

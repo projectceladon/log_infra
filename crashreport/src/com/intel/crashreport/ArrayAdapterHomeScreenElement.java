@@ -25,6 +25,7 @@ package com.intel.crashreport;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.PorterDuff.Mode;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -60,8 +61,18 @@ public class ArrayAdapterHomeScreenElement extends ArrayAdapter<HomeScreenElemen
 
 		ImageView iv = (ImageView) convertView.findViewById(R.id.CrashReport_imageViewEntry1);
 		iv.setImageResource(data1.get(position).getElementImageResource());
+		if (!data1.get(position).isEnabled()) {
+			final int disabledColor = context.getResources().getColor(R.color.disabled_icon);
+			iv.setColorFilter(disabledColor, Mode.SRC_ATOP);
+			tv.setTextColor(disabledColor);
+			convertView.setEnabled(false);
+		}
 
 		return convertView;
+	}
+
+	public boolean isEnabled(int position) {
+		return data1.get(position).isEnabled();
 	}
 
 	public void add(HomeScreenElement album) {

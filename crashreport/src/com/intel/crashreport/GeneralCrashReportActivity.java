@@ -39,16 +39,19 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		boolean state = this.getResources().getBoolean(R.bool.enable_bugzilla);
 		addPreferencesFromResource(R.xml.menu);
 		setTitle(getString(R.string.activity_name));
 		app = (CrashReport)getApplicationContext();
 		EditTextPreference editLastName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_last_name_key));
 		if(null != editLastName) {
 			editLastName.setOnPreferenceChangeListener(listener);
+			editLastName.setEnabled(state);
 		}
 		EditTextPreference editFirstName = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_first_name_key));
 		if(null != editFirstName) {
 			editFirstName.setOnPreferenceChangeListener(listener);
+			editFirstName.setEnabled(state);
 		}
 		EditTextPreference editMail = (EditTextPreference)findPreference(getString(R.string.settings_bugzilla_user_email_key));
 
@@ -57,8 +60,8 @@ public class GeneralCrashReportActivity extends PreferenceActivity {
 				editMail.setText(app.getUserEmail());
 			else editMail.setText(getString(R.string.settings_bugzilla_user_email_value_default));
 			editMail.setOnPreferenceChangeListener(listener);
+			editMail.setEnabled(state);
 		}
-
 	}
 
 

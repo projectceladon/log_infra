@@ -46,10 +46,18 @@ public class CrashReportHome extends GeneralCrashReportHome {
 
 		CrashReport app = (CrashReport) getApplicationContext();
 		if(!app.isUserBuild())
-			mainMenuAdapter.add(new HomeScreenElement(R.id.button_logconfig, getString(R.string.button_logconfig_text), R.drawable.advanced_logs, 6));
-		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_aplogs, getString(R.string.menu_aplogs), R.drawable.upload_logs, 5));
-		mainMenuAdapter.add(new HomeScreenElement(R.id.button_list_gcm_messages, getString(R.string.menu_gcm_list), R.drawable.check_gcm, 3));
-		mainMenuAdapter.add(new HomeScreenElement(R.id.button_device_info, getString(R.string.menu_device_info), R.drawable.device_info, 7));
+			mainMenuAdapter.add(new HomeScreenElement(R.id.button_logconfig,
+				getString(R.string.button_logconfig_text), R.drawable.advanced_logs, 6,
+				getResources().getBoolean(R.bool.enable_logconfig)));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_aplogs,
+			getString(R.string.menu_aplogs), R.drawable.upload_logs, 5,
+			getResources().getBoolean(R.bool.enable_aplogs)));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_list_gcm_messages,
+			getString(R.string.menu_gcm_list), R.drawable.check_gcm, 3,
+			getResources().getBoolean(R.bool.enable_gcm)));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_device_info,
+			getString(R.string.menu_device_info), R.drawable.device_info, 7,
+			getResources().getBoolean(R.bool.enable_device_info)));
 	}
 
 	@Override

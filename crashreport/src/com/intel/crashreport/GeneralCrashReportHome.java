@@ -72,9 +72,15 @@ public class GeneralCrashReportHome extends Activity {
 		menuItems.clear();
 
 		mainMenuAdapter = new ArrayAdapterHomeScreenElement(this, R.layout.crashreport_element, menuItems);
-		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_events, getString(R.string.settings_button_report), R.drawable.check_events, 4));
-		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_bugzilla, getString(R.string.menu_bugzilla), R.drawable.report_bug, 1));
-		mainMenuAdapter.add(new HomeScreenElement(R.id.button_list_bugzilla, getString(R.string.list_bugzilla),R.drawable.bug_history, 2));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_events,
+			getString(R.string.settings_button_report), R.drawable.check_events, 4,
+			getResources().getBoolean(R.bool.enable_device_events)));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_report_bugzilla,
+			getString(R.string.menu_bugzilla), R.drawable.report_bug, 1,
+			getResources().getBoolean(R.bool.enable_bugzilla)));
+		mainMenuAdapter.add(new HomeScreenElement(R.id.button_list_bugzilla,
+			getString(R.string.list_bugzilla),R.drawable.bug_history, 2,
+			getResources().getBoolean(R.bool.enable_bugzilla)));
 
 		ListView listViewItems = (ListView) findViewById(R.id.CrashReport_listView1);
 		listViewItems.setAdapter(mainMenuAdapter);
