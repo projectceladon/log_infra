@@ -189,21 +189,29 @@ public class PhoneInspector {
 
 		try {
 			db.open();
+		}
+		catch(SQLException e){
+			Log.w("cleanUploadedLogs : can't open database",e);
+			return;
+		}
 
-			for (File c : files)
-				if (c.isDirectory()){
-					Matcher m = pattern.matcher(c.getName());
-					if (!m.find())
-						continue;
+		for (File c : files)
+			if (c.isDirectory()){
+				Matcher m = pattern.matcher(c.getName());
+				if (!m.find())
+					continue;
 
-					path = c.getAbsolutePath();
+				path = c.getAbsolutePath();
+
+				try {
+					int status = db.checkPathStatus(path);
 					//need to check if data is uploaded, otherwise skip
-					if (db.checkPathStatus(path) == 0)
+					if (status == 0)
 						continue;
 
 					// need to check that we delete only unreferenced files
 					// older than a specified time, and newer than current time
-					if (db.checkPathStatus(path) < 0) {
+					if (status < 0) {
 						Date fileModified = new Date(c.lastModified());
 						Date now = new Date();
 						// threshold set at 1 minute
@@ -221,12 +229,17 @@ public class PhoneInspector {
 					db.setEventLogCleaned(path);
 					FileOps.delete(c);
 					db.updateEventFolderPath(path, "");
-				}
 
+				}
+				catch(SQLException e){
+					Log.w("cleanUploadedLogs : issue while unreferencing: " + path,e);
+				}
+			}
+		try {
 			db.close();
 		}
 		catch(SQLException e){
-			Log.w("cleanUploadedLogs : can't use database",e);
+			Log.w("cleanUploadedLogs : problem while closing database",e);
 		}
 	}
 

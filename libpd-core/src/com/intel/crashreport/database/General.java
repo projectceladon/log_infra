@@ -115,8 +115,10 @@ public class General implements Closeable {
 
 		if (orderBy != null) orderBy += (orderDesc) ? " DESC" : " ASC";
 		cursor = mDb.query(true, table, fields, where, null, null, null, orderBy, limit);
-		if (cursor != null)
-			cursor.moveToFirst();
+		if (cursor != null && !cursor.moveToFirst()) {
+			cursor.close();
+			cursor = null;
+		}
 		return cursor;
 	}
 
