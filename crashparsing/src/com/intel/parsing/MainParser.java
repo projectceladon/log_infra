@@ -424,15 +424,32 @@ public class MainParser{
 		String sFileName="";
 		String sLine="";
 		String sVector="";
+		BufferedReaderClean bufCoreFile = null;
+		String sCoreDumpFile;
 
-		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
-		if (!sCoreDumpFile.isEmpty()) {
-			BufferedReaderClean bufCoreFile = null;
+		String sCoreDumpGZ = fileGrepSearch("coredump_.*txt\\.gz", aFolder);
+		FileInputStream f = null;
+		try {
+			// 1st try on zip pattern then normal
+			if (!sCoreDumpGZ.isEmpty()){
+				f = new FileInputStream(sCoreDumpGZ);
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				bufCoreFile = new BufferedReaderClean(new InputStreamReader(gzipInputStream));
+			}else{
+				sCoreDumpFile = fileGrepSearch("coredump_.*txt" , aFolder);
+				if (!sCoreDumpFile.isEmpty()){
+					bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
+				}
+			}
+		} catch(Exception e) {
+			silentClose(f);
+		}
+
+		if (bufCoreFile != null) {
 			try{
 				Pattern patternFileName = java.util.regex.Pattern.compile("Filename:.*");
 				Pattern patternLine = java.util.regex.Pattern.compile("Line number:.*");
 				Pattern patternVector = java.util.regex.Pattern.compile("Vector:.*");
-				bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
 				String sCurLine;
 				while ((sCurLine = bufCoreFile.readLine()) != null) {
 					String sTmp;
@@ -471,6 +488,7 @@ public class MainParser{
 			} finally {
 				if (bufCoreFile != null) {
 					bufCoreFile.close();
+					silentClose(f);
 				}
 			}
 		}else{

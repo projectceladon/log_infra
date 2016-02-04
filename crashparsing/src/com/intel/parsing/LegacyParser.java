@@ -36,6 +36,7 @@ public class LegacyParser implements EventParser {
 
 		try {
 			aCrashfile = new KeyValueFile(aEvent.getCrashDir() + "/crashfile");
+			updateEventDataByCrashfile(aCrashfile,aEvent);
 			sDate = aCrashfile.getValueByName("DATE");
 			sBoard = aCrashfile.getValueByName("BOARD");
 			sOperator = aCrashfile.getValueByName("OPERATOR");
@@ -46,13 +47,7 @@ public class LegacyParser implements EventParser {
 		if (aParser.execParsing() == 0) {
 			try {
 				aCrashfile = new KeyValueFile(aEvent.getCrashDir() + "/crashfile");
-				aEvent.setData0(aCrashfile.getValueByName("DATA0"));
-				aEvent.setData1(aCrashfile.getValueByName("DATA1"));
-				aEvent.setData2(aCrashfile.getValueByName("DATA2"));
-				aEvent.setData3(aCrashfile.getValueByName("DATA3"));
-				aEvent.setData4(aCrashfile.getValueByName("DATA4"));
-				aEvent.setData5(aCrashfile.getValueByName("DATA5"));
-				aEvent.setModemVersionUsed(aCrashfile.getValueByName("MODEMVERSIONUSED"));
+				updateEventDataByCrashfile(aCrashfile,aEvent);
 			} catch (FileNotFoundException e) {
 				return false;
 			}
@@ -67,5 +62,39 @@ public class LegacyParser implements EventParser {
 			return true;
 		}
 		return false;
+	}
+
+	private void updateEventDataByCrashfile(KeyValueFile aCrashfile, ParsableEvent aEvent ) {
+		String sValue;
+
+		//update only if a value is present in crashfile
+		sValue = aCrashfile.getValueByName("DATA0");
+		if (!sValue.isEmpty()) {
+			aEvent.setData0(sValue);
+		}
+		sValue = aCrashfile.getValueByName("DATA1");
+		if (!sValue.isEmpty()) {
+			aEvent.setData1(sValue);
+		}
+		sValue = aCrashfile.getValueByName("DATA2");
+		if (!sValue.isEmpty()) {
+			aEvent.setData2(sValue);
+		}
+		sValue = aCrashfile.getValueByName("DATA3");
+		if (!sValue.isEmpty()) {
+			aEvent.setData3(sValue);
+		}
+		sValue = aCrashfile.getValueByName("DATA4");
+		if (!sValue.isEmpty()) {
+			aEvent.setData4(sValue);
+		}
+		sValue = aCrashfile.getValueByName("DATA5");
+		if (!sValue.isEmpty()) {
+			aEvent.setData5(sValue);
+		}
+		sValue = aCrashfile.getValueByName("MODEMVERSIONUSED");
+		if (!sValue.isEmpty()) {
+			aEvent.setModemVersionUsed(sValue);
+		}
 	}
 }
