@@ -382,6 +382,8 @@ public class EventDB extends GeneralEventDB{
 			cursor.moveToFirst();
 			device = fillDeviceFromCursor(cursor);
 			cursor.close();
+		} else {
+			device = new Device();
 		}
 		return device;
 	}
