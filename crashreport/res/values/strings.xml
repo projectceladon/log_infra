@@ -203,4 +203,8 @@
     <string name="settings_gcm_sound_activation_title">GCM Notication sound</string>
     <string name="settings_gcm_sound_activation_summary">Enable sound for GCM notifications</string>
     <string name="settings_gcm_filter">GCM filter</string>
+
+    <!-- Disclaimer part -->
+    <string name="alert_disclaimer_accept">OK</string>
+    <string name="alert_disclaimer_text_error">Error while loading disclaimer</string>
 </resources>
