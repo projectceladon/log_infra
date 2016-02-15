@@ -59,6 +59,8 @@
 	<uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
 	<uses-permission android:name="android.permission.CHANGE_CONFIGURATION"></uses-permission>
 	<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
+	<uses-permission android:name="android.permission.WRITE_SETTINGS" />
+	<uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS" />
 
 	<application
 		android:icon="@drawable/icon"
@@ -197,6 +199,19 @@
         <activity android:name=".bugzilla.ui.common.UserInformationsActivity" />
         <activity android:name=".bugzilla.ui.common.ListBugzillaActivity" />
         <activity android:name=".specific.UploadAplogActivity" />
+
+        <activity
+            android:name=".DisclaimerActivity"
+            android:label="@string/app_name" >
+
+            <!-- Priority set lower than Google Wizard, so that the prompt would appear after it -->
+            <intent-filter android:priority="4">
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.DEVICE_INITIALIZATION_WIZARD" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
         <!-- Declare dedicated receivers to catch events from other applications -->
         <receiver android:name=".receivers.KratosSessionInfoReceiver" >
