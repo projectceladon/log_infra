@@ -301,11 +301,13 @@ public class FileOps {
 						Long.toString(f.length()) + " bytes) -> " +
 						f.getAbsolutePath() + ".gz";
 				File f2 =new File(destination);
-				if(f2.exists()) {
-					result +=  " (" + Long.toString(f2.length()) + " bytes)";
-					f.delete();
+				if (!f2.exists() || f2.length() == 0) {
+					log.e("Compression failed: " + result);
+					continue;
 				}
 
+				result += " (" + Long.toString(f2.length()) + " bytes)";
+				f.delete();
 				log.d("File compressed: " + result);
 			} else {
 				log.e("File could not be compressed: " + source);
@@ -355,7 +357,7 @@ public class FileOps {
 			out = new GZIPOutputStream(new FileOutputStream(destination));
 			in = new FileInputStream(source);
 
-			while ((length = in.read(buffer)) > 0)
+			while ((length = in.read(buffer)) != -1)
 				out.write(buffer, 0, length);
 
 			in.close();
