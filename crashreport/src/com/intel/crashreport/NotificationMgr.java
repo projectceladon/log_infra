@@ -248,6 +248,8 @@ public class NotificationMgr {
 	public void notifyCriticalEvent(int criticalEventNumber, int crashNumber){
 
 		ApplicationPreferences prefs = new ApplicationPreferences(context);
+		if (!context.getResources().getBoolean(R.bool.enable_crash_notification))
+			return;
 
 		CharSequence tickerText = "Critical events occured";
 		CharSequence contentText ;

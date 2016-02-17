@@ -41,7 +41,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceCategory;
-
+import android.view.View;
 
 public class CrashReportActivity extends GeneralCrashReportActivity {
 	private static Boolean gcmEnabled = null;
@@ -59,7 +59,15 @@ public class CrashReportActivity extends GeneralCrashReportActivity {
 		}
 		CheckBoxPreference crashNotificationPreference = (CheckBoxPreference)findPreference(getString(R.string.settings_all_crash_notification_key));
 		if(null != crashNotificationPreference) {
-			crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
+			if (this.getResources().getBoolean(R.bool.enable_crash_notification) == false) {
+				PreferenceCategory dataPreferences = (PreferenceCategory)findPreference(getString(R.string.settings_event_data_category_key));
+				if(dataPreferences != null) {
+					dataPreferences.removePreference(crashNotificationPreference);
+				}
+			}
+			else {
+				crashNotificationPreference.setOnPreferenceChangeListener(changeNotificationListener);
+			}
 		}
 
 		CheckBoxPreference checkGcm = (CheckBoxPreference)findPreference(getString(R.string.settings_gcm_activation_key));

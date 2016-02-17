@@ -31,4 +31,5 @@
     <bool name="enable_device_events">true</bool>
     <bool name="enable_aplogs">true</bool>
     <bool name="enable_device_info">true</bool>
+    <bool name="enable_crash_notification">true</bool>
 </resources>
