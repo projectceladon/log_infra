@@ -40,21 +40,17 @@ import com.intel.crashtool.util.HashGenerator;
  * name for down ward.
  *
  * @author mauretx
- *
  */
 public class Event implements Serializable {
 
 	private static final long serialVersionUID = -1516767267932884874L;
-	
-	private static final String PROTOCOL_VERSION = "3.13.5";
+	private static final String PROTOCOL_VERSION = "3.14.0";
 
 	/**
 	 * Origin exhaustive list
 	 * default value : GENE
 	 */
-	public enum Origin {
-		CLOTA, MPTA, GENE, ACS, EGG, MPM, CLA, PDN
-	}
+	public enum Origin {ACS, CLA, CLOTA, EGG, GENE, MPM, MPTA, PDN, PFT, SRC, STUB}
 	
 	public static final int UPLOADED_STATUS_INVALID = -1;
 	public static final int UPLOADED_STATUS_NOT_UPLOADED = 0;
@@ -109,6 +105,7 @@ public class Event implements Serializable {
 	private Uptime uptimeObj;
 	private Crashtype crashtype;
 	private String protocolVersion;
+	@Deprecated
 	private Campaign campaign;
 	private Modem modem;
 	
@@ -116,6 +113,7 @@ public class Event implements Serializable {
 	private String deviceLogFileURI;
 	private int uploaded;
 	private int logFileUploaded;
+	private TestCase testCase;
 
     public Event() {
 		super();
@@ -140,7 +138,7 @@ public class Event implements Serializable {
 			String data1, String data2, Date date, String buildId,
 			String deviceId, long uptime) {
 
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, null, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -167,7 +165,7 @@ public class Event implements Serializable {
 			String data4, String data5, Date date, String buildId,
 			String deviceId, String imei, long uptime) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, null, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -194,7 +192,7 @@ public class Event implements Serializable {
 			String data4, String data5, Date date,
 			String deviceId, String imei, long uptime, Build build) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, null, build, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -217,7 +215,7 @@ public class Event implements Serializable {
 			String data1, String data2, Date date, String buildId,
 			String deviceId, long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, null, null, null, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -244,7 +242,7 @@ public class Event implements Serializable {
 			String data5, Date date, String buildId, String deviceId,
 			long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, null, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -272,7 +270,7 @@ public class Event implements Serializable {
 			String data5, Date date, String buildId, String deviceId, String imei,
 			long uptime, File logFile) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, buildId, deviceId, imei, null, uptime, logFile, null, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -300,7 +298,7 @@ public class Event implements Serializable {
 			String data5, Date date, String deviceId, String imei,
 			long uptime, File logFile, Build build) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, null, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -328,7 +326,7 @@ public class Event implements Serializable {
 			String data5, Date date, String deviceId, String imei,
 			long uptime, File logFile, Build build, Event.Origin origin) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, origin, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, deviceId, imei, null, uptime, logFile, build, origin, null, UNKNOWN_ROWID, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 	/**
@@ -356,7 +354,7 @@ public class Event implements Serializable {
 			String data5, Date date,
 			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, null, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 
 
@@ -385,7 +383,7 @@ public class Event implements Serializable {
 			String data5, Date date,
 			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus) {
 
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, null, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 	
 	/**
@@ -414,7 +412,7 @@ public class Event implements Serializable {
 			String data1, String data2, String data3, String data4,
 			String data5, Date date,
 			long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus, String bootMode) {
-		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 	}
 	
 	/**
@@ -445,7 +443,7 @@ public class Event implements Serializable {
             String data1, String data2, String data3, String data4,
             String data5, Date date,
             long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus, String bootMode, Campaign campaign) {
-        this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, campaign, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+        this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, campaign, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
     }
     
     /**
@@ -475,7 +473,7 @@ public class Event implements Serializable {
     public Event(String eventId, String event, String type, String data0, String data1, String data2, String data3, String data4,
             String data5, Date date,
             long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus, String bootMode, Campaign campaign, Modem modem) {
-        this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, campaign, modem, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+        this( eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, campaign, modem, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
     }
     
     /**
@@ -505,7 +503,7 @@ public class Event implements Serializable {
     public Event(String eventId, String event, String type, String data0, String data1, String data2, String data3, String data4,
             String data5, Date date,
             long uptime, File logFile, Build build, Event.Origin origin, Device device, long rowId, String pdStatus, String bootMode, Modem modem, String deviceLogFileURI) {
-        this(eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, null, modem, deviceLogFileURI, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+        this(eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, bootMode, null, null, modem, deviceLogFileURI, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
     }
     
 	
@@ -528,14 +526,13 @@ public class Event implements Serializable {
 			String data1, String data2, String data3, String data4,
 			String data5, Date date,
 			String logFileURI, Build build, Device device) {
-		this(null, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, 0l, null, build, null, device, UNKNOWN_ROWID, null, null, logFileURI, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED);
+		this(null, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, 0l, null, build, null, device, UNKNOWN_ROWID, null, null, logFileURI, null, null, null, Event.UPLOADED_STATUS_NOT_UPLOADED, Event.LOGFILE_UPLOADED_STATUS_NOT_UPLOADED, null);
 		
 		// set automatically the eventId
 		this.setEventId(HashGenerator.getUniqueEventId(this));
 	}
 
 	/**
-	 * Constructor without deprecated fields, used by PhoneDoctor and MPTA, and CrashtoolUploader
 	 * @param eventId
 	 * @param event
 	 * @param type
@@ -565,6 +562,7 @@ public class Event implements Serializable {
 	 * @param uploaded
 	 * @param logFileUploaded
 	 */
+	@Deprecated
 	public Event(String eventId, String event, String type, String data0,
 			String data1, String data2, String data3, String data4,
 			String data5, Date date,
@@ -572,7 +570,42 @@ public class Event implements Serializable {
 			Device device, long rowId, String pdStatus, String bootMode, Modem modem, String deviceLogFileURI,
 			int uploaded, int logFileUploaded) {
 		this(eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, 
-				bootMode, null, null, modem, deviceLogFileURI, uploaded, logFileUploaded);
+				bootMode, null, null, modem, deviceLogFileURI, uploaded, logFileUploaded, null);
+	}
+	
+	/**
+	 * Constructor without deprecated fields, used by PhoneDoctor and MPTA, and CrashtoolUploaders
+	 * @param eventId
+	 * @param event
+	 * @param type
+	 * @param data0
+	 * @param data1
+	 * @param data2
+	 * @param data3
+	 * @param data4
+	 * @param data5
+	 * @param date
+	 * @param uptime
+	 * @param logFile
+	 * @param build
+	 * @param origin
+	 * @param device
+	 * @param rowId
+	 * @param pdStatus
+	 * @param bootMode
+	 * @param modem
+	 * @param deviceLogFileURI
+	 * @param uploaded
+	 * @param logFileUploaded
+	 */
+	public Event(String eventId, String event, String type, String data0,
+			String data1, String data2, String data3, String data4,
+			String data5, Date date,
+			long uptime, File logFile, Build build, Event.Origin origin, 
+			Device device, long rowId, String pdStatus, String bootMode, Modem modem, String deviceLogFileURI,
+			int uploaded, int logFileUploaded, TestCase testCase) {
+		this(eventId, event, type, data0, data1, data2, data3, data4, data5, date, null, null, null, null, uptime, logFile, build, origin, device, rowId, pdStatus, 
+				bootMode, null, null, modem, deviceLogFileURI, uploaded, logFileUploaded, testCase);
 	}
 	
 	
@@ -601,7 +634,7 @@ public class Event implements Serializable {
 			String data5, Date date, String buildId, String deviceId, String imei,
 			String testId, long uptime, File logFile, Build build, Event.Origin origin, 
 			Device device, long rowId, String pdStatus, String bootMode, String logFileURI, Campaign campaign, Modem modem, String deviceLogFileURI,
-			int uploaded, int logFileUploaded) {
+			int uploaded, int logFileUploaded, TestCase testCase) {
 		this.eventId = eventId;
 		this.event = event;
 		this.type = type;
@@ -643,6 +676,7 @@ public class Event implements Serializable {
 		// Upload status
 		this.uploaded = uploaded;
 		this.logFileUploaded = logFileUploaded;
+		this.testCase = testCase;
 	}
 	
 	public Long getId() {
@@ -1063,11 +1097,11 @@ public class Event implements Serializable {
 	public void setProtocolVersion(String protocolVersion) {
 		this.protocolVersion = protocolVersion;
 	}	
-
+	@Deprecated
 	public Campaign getCampaign() {
         return campaign;
     }
-
+	@Deprecated
     public void setCampaign(Campaign campaign) {
         this.campaign = campaign;
     }
@@ -1120,6 +1154,14 @@ public class Event implements Serializable {
 	public void setLogFileUploaded(int logFileUploaded) {
 		this.logFileUploaded = logFileUploaded;
 	}
+	
+	public TestCase getTestCase() {
+		return testCase;
+	}
+
+	public void setTestCase(TestCase testCase) {
+		this.testCase = testCase;
+	}
 
 	/**
      * convert a date to string with a pattern in parameter, null safe
@@ -1135,11 +1177,7 @@ public class Event implements Serializable {
            }
            return result;
     }
-
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "Event [id=" + id + ", eventId=" + eventId + ", event=" + event
@@ -1162,6 +1200,6 @@ public class Event implements Serializable {
 				+ protocolVersion + ", campaign=" + campaign + ", modem="
 				+ modem + ", deviceLogFileURI=" + deviceLogFileURI
 				+ ", uploaded=" + uploaded + ", logFileUploaded="
-				+ logFileUploaded + "]";
-	}	
+				+ logFileUploaded + ", testCase=" + testCase + "]";
+	}
 }

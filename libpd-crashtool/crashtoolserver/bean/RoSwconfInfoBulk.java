@@ -27,7 +27,7 @@ package com.intel.crashtoolserver.bean;
  * Bean that encapsulates RoSw information : telephony/Battery
  * @author glivon
  */
-public class RoSwconfInfoBulk {
+public class RoSwconfInfoBulk implements RoSwconfInfoBulkKey {
 	private static final String DEFAULT_VALUE = "";
 	
 	private String roSwconfInfoTelephony = DEFAULT_VALUE;
@@ -53,6 +53,7 @@ public class RoSwconfInfoBulk {
 	/**
 	 * @return the roSwconfInfotelephony
 	 */
+	@Override
 	public String getRoSwconfInfoTelephony() {
 		return roSwconfInfoTelephony;
 	}
@@ -60,6 +61,7 @@ public class RoSwconfInfoBulk {
 	/**
 	 * @param roSwconfInfotelephony the roSwconfInfotelephony to set
 	 */
+	@Override
 	public void setRoSwconfInfoTelephony(String roSwconfInfotelephony) {
 		this.roSwconfInfoTelephony = roSwconfInfotelephony;
 	}
@@ -67,6 +69,7 @@ public class RoSwconfInfoBulk {
 	/**
 	 * @return the roSwconfInfoBattery
 	 */
+	@Override
 	public String getRoSwconfInfoBattery() {
 		return roSwconfInfoBattery;
 	}
@@ -74,20 +77,11 @@ public class RoSwconfInfoBulk {
 	/**
 	 * @param roSwconfInfoBattery the roSwconfInfoBattery to set
 	 */
+	@Override
 	public void setRoSwconfInfoBattery(String roSwconfInfoBattery) {
 		this.roSwconfInfoBattery = roSwconfInfoBattery;
 	}
 
-	
-	/**
-	 * Is no roSwconfInfoBulk field filled
-	 * @return
-	 */
-	public boolean isEmpty() {
-		return (roSwconfInfoBattery == null || roSwconfInfoBattery.isEmpty()) 
-				&& (roSwconfInfoTelephony == null || roSwconfInfoTelephony.isEmpty());
-	}
-	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

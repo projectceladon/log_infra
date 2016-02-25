@@ -62,14 +62,15 @@ public class Device implements Serializable {
 	private Date lastUpdatedDate;
 	private String gcmToken;
 	private String spid;
-	private TracmorDevice tracmorDevice;
+	private DeviceTracker deviceTracker;
+	private String sku;
 	
 	/**
 	 * not use anymore 
 	 */
 	@Deprecated
 	public Device() {
-		this(null, null, null, null, null, null, null, null, null, null);
+		this(null, null, null, null, null, null, null, null, null, null, null);
 	}
 
 	/**
@@ -80,7 +81,7 @@ public class Device implements Serializable {
 	 */
 	@Deprecated
 	public Device(String deviceId, String imei) {
-		this(deviceId, imei, null, null, null, null, null, null, null, null);
+		this(deviceId, imei, null, null, null, null, null, null, null, null, null);
 	}
 
 
@@ -98,7 +99,7 @@ public class Device implements Serializable {
 	public Device(String deviceId, String imei, String pid, String owner, String location,
 			String tag, Date lastUpdatedDate) {
 
-		this(deviceId, imei, pid, owner, location, tag, lastUpdatedDate, null, null, null);
+		this(deviceId, imei, pid, owner, location, tag, lastUpdatedDate, null, null, null, null);
 	}
 	
 	/**
@@ -111,7 +112,7 @@ public class Device implements Serializable {
 	 * @param tag
 	 */
 	public Device(String deviceId, String imei, String ssn, String owner, String location, String tag) {
-		this(deviceId, imei, null, owner, location, tag, null, ssn, null, null);
+		this(deviceId, imei, null, owner, location, tag, null, ssn, null, null, null);
 	}
 
 	/**
@@ -121,7 +122,7 @@ public class Device implements Serializable {
 	 * @param ssn
 	 */
 	public Device(String deviceId, String imei, String ssn) {
-		this(deviceId, imei, null, null, null, null, null, ssn, null, null);
+		this(deviceId, imei, null, null, null, null, null, ssn, null, null, null);
 	}
 	
 	/**
@@ -133,9 +134,22 @@ public class Device implements Serializable {
 	 * @param spid
 	 */
 	public Device(String deviceId, String imei, String ssn, String gcmToken, String spid) {
-		this(deviceId, imei, null, null, null, null, null, ssn, gcmToken, spid);
+		this(deviceId, imei, null, null, null, null, null, ssn, gcmToken, spid, null);
 	}
 
+	/**
+	 * used By PD above 2.0
+	 * pid is not used but to avoid constructor conflicts, we had to add a field :/
+	 * @param deviceId
+	 * @param imei
+	 * @param ssn
+	 * @param gcmToken
+	 * @param spid
+	 */
+	public Device(String deviceId, String imei, String pid, String ssn, String gcmToken, String spid, String sku) {
+		this(deviceId, imei, pid, null, null, null, null, ssn, gcmToken, spid, sku);
+	}
+	
 	/**
 	 * Used by parser
 	 * @param deviceId
@@ -150,7 +164,7 @@ public class Device implements Serializable {
 	 * @param spid
 	 */
 	private Device(String deviceId, String imei, String pid, String owner, String location,
-			String tag, Date lastUpdatedDate, String ssn, String gcmToken, String spid) {
+			String tag, Date lastUpdatedDate, String ssn, String gcmToken, String spid, String sku) {
 
 		this.deviceId = deviceId;
 		this.imei = imei;
@@ -166,6 +180,7 @@ public class Device implements Serializable {
 		this.ssn = ssn;
 		this.gcmToken = gcmToken;
 		this.spid = spid;
+		this.sku = sku;
 	}
 
 	public String getSsn() {
@@ -293,14 +308,6 @@ public class Device implements Serializable {
 		this.id = id;
 	}
 	
-	public TracmorDevice getTracmorDevice() {
-		return tracmorDevice;
-	}
-
-	public void setTracmorDevice(TracmorDevice tracmorDevice) {
-		this.tracmorDevice = tracmorDevice;
-	}
-
 	public String getGcmToken() {
 		return gcmToken;
 	}
@@ -321,16 +328,29 @@ public class Device implements Serializable {
 		return hwType != null && !hwType.equals(HARDWARE_OTHER);
 	}
 	
-	@Override
+	public String getSku() {
+		return sku;
+	}
+
+	public void setSku(String sku) {
+		this.sku = sku;
+	}
+
+	
+	public DeviceTracker getDeviceTracker() {
+        return deviceTracker;
+    }
+
+    public void setDeviceTracker(DeviceTracker deviceTracker) {
+        this.deviceTracker = deviceTracker;
+    }
+
+    @Override
     public String toString() {
-        return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei
-                + ", pid=" + pid + ", hwType=" + hwType + ", hwTypeId="
-                + hwTypeId + ", platform=" + platform + ", ssn=" + ssn
-                + ", team=" + team + ", domain=" + domain + ", owner=" + owner
-                + ", location=" + location + ", tag=" + tag
-                + ", lastUpdatedDate=" + lastUpdatedDate + ", gcmToken="
-                + gcmToken + ", spid=" + spid + ", tracmorDevice="
-                + tracmorDevice + "]";
+        return "Device [id=" + id + ", deviceId=" + deviceId + ", imei=" + imei + ", pid=" + pid + ", hwType=" + hwType
+                + ", hwTypeId=" + hwTypeId + ", platform=" + platform + ", ssn=" + ssn + ", team=" + team + ", domain="
+                + domain + ", owner=" + owner + ", location=" + location + ", tag=" + tag + ", lastUpdatedDate="
+                + lastUpdatedDate + ", gcmToken=" + gcmToken + ", spid=" + spid + ", deviceTracker=" + deviceTracker
+                + ", sku=" + sku + "]";
     }
 }
-

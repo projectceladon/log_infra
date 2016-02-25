@@ -56,7 +56,7 @@ public class GeneralEventDB extends General {
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
 	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
 	protected static final String DATABASE_DEVICE_TABLE = "device";
-	protected static final int DATABASE_VERSION = 17;
+	protected static final int DATABASE_VERSION = 18;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -109,6 +109,7 @@ public class GeneralEventDB extends General {
 	public static final String KEY_UNIQUEKEY_COMPONENT = "uniqueKeyComponents";
 	public static final String KEY_MODEM_VERSION_USED = "modemVersionUsed";
 	public static final String KEY_EVENT_CLEANED = "eventCleaned";
+	public static final String KEY_TEST_CASE = "testCase";
 
 	private static final String DATABASE_CREATE =
 			"create table " + DATABASE_TABLE + " (" +
@@ -140,8 +141,10 @@ public class GeneralEventDB extends General {
 					KEY_ORIGIN + " text, " +
 					KEY_PDSTATUS + " text, " +
 					KEY_LOGS_SIZE + " integer, " +
-					KEY_EVENT_CLEANED + " integer, "+
-					KEY_CRITICAL+" integer );";
+					KEY_EVENT_CLEANED + " integer, " +
+					KEY_CRITICAL + " integer, " +
+					KEY_TEST_CASE + " text);";
+
 
 	private static final String DATABASE_BLACK_EVENTS_CREATE =
 			"create table " + DATABASE_BLACK_EVENTS_TABLE + " ("+
@@ -208,7 +211,7 @@ public class GeneralEventDB extends General {
 				KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME, KEY_UPLOAD,
 				KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY,
 				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE, KEY_EVENT_CLEANED,
-				KEY_CRITICAL};
+				KEY_CRITICAL, KEY_TEST_CASE};
 
 	public static final String[] eventsTableBaseColums = new String[] {KEY_ROWID, KEY_ID,
 				KEY_NAME, KEY_TYPE, KEY_DATA0, KEY_DATA1, KEY_DATA2,
@@ -249,7 +252,7 @@ public class GeneralEventDB extends General {
 			String deviceId, String imei, String uptime, String crashDir,
 			boolean bDataReady, String origin, String pdStatus, String variant,
 			String ingredients, String osBootMode, String uniqueKeyComponent,
-			String modemVersionUsed, boolean critical) {
+			String modemVersionUsed, boolean critical, String testCase) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = Utils.convertDateForDb(date);
 		if (eventName.isEmpty()) return -2;
@@ -291,6 +294,7 @@ public class GeneralEventDB extends General {
 		initialValues.put(KEY_UNIQUEKEY_COMPONENT, uniqueKeyComponent);
 		initialValues.put(KEY_MODEM_VERSION_USED, modemVersionUsed);
 		initialValues.put(KEY_CRITICAL, critical);
+		initialValues.put(KEY_TEST_CASE, testCase);
 
 		removeOldCrashdir(crashDir);
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
@@ -320,7 +324,8 @@ public class GeneralEventDB extends General {
 				event.getOsBootMode(),
 				event.getUniqueKeyComponent(),
 				event.getModemVersionUsed(),
-				event.isCritical());
+				event.isCritical(),
+				event.getTestCase());
 	}
 
 	public Cursor fetchLastNEvents(String sNlimit, EVENT_FILTER filter) {
@@ -400,6 +405,7 @@ public class GeneralEventDB extends General {
 		event.setPdStatus(cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS)));
 		event.setLogsSize(cursor.getInt(cursor.getColumnIndex(KEY_LOGS_SIZE)));
 		event.setCritical(cursor.getInt(cursor.getColumnIndex(KEY_CRITICAL))==1);
+		event.setTestCase(cursor.getString(cursor.getColumnIndex(KEY_TEST_CASE)));
 
 		return event;
 	}

@@ -25,7 +25,7 @@ package com.intel.crashtoolserver.bean;
 
 import java.io.Serializable;
 import java.util.Date;
-
+@Deprecated
 public class Campaign implements Serializable {
     
     private static final long serialVersionUID = 7568638016360537657L;

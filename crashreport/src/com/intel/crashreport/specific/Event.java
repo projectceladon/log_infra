@@ -26,9 +26,11 @@ package com.intel.crashreport.specific;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.Scanner;
 
 import android.content.Context;
+import android.os.SystemProperties;
 
 import com.intel.crashreport.core.GeneralEvent;
 import com.intel.crashreport.GenericParseFile;
@@ -40,11 +42,21 @@ import com.intel.crashtoolserver.bean.Device;
 import com.intel.phonedoctor.Constants;
 import com.intel.phonedoctor.utils.FileOps;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Event extends GeneralEvent{
 
 	private static final String UUID_FILE_PATH = Constants.LOGS_DIR + "/uuid.txt";
 	private static final String SPID_FILE_PATH = Constants.LOGS_DIR + "/spid.txt";
 	private static final String EVENTS_DIR = Constants.LOGS_DIR + "/events";
+
+	private static final String TC_UUID_PROPERTY_NAME = "persist.crashlogd.TC.uuid";
+	private static final String TC_NAME_PROPERTY_NAME = "persist.crashlogd.TC.name";
+	private static final String TC_DATE_DUT_PROPERTY_NAME = "persist.crashlogd.TC.date_dut";
+	private static final String TC_DATE_HOST_PROPERTY_NAME = "persist.crashlogd.TC.date_host";
+	private static final String TC_ENGINE_PROPERTY_NAME = "persist.crashlogd.TC.engine";
+	private static final String TC_ITER_PROPERTY_NAME = "persist.crashlogd.TC.iteration";
 
 	public Event() {
 		super();
@@ -113,10 +125,68 @@ public class Event extends GeneralEvent{
 			fillErrorEvent(histEvent, myBuild);
 		else if (histEvent.getEventName().equals("INFO"))
 			fillInfoEvent(histEvent, myBuild);
+                setTestCase(fillTestInfo(getCrashDir()));
 		//extra step : format data for specific event
 		new FormatParser(this).execFormat();
 
 		FileOps.compressFolderContent(getCrashDir());
+	}
+
+	private com.intel.crashtoolserver.bean.TestCase fillTestInfo(String path) {
+		String uuid = null, name = null, date_dut = null, date_host = null, engine = null;
+		String content;
+		int iter = 0;
+
+		File f = new File(path, "test_case.json");
+		if(!f.exists() || f.isDirectory()) {
+			return null;
+		}
+
+		try {
+			content = new Scanner(f).useDelimiter("\\Z").next();
+		} catch (FileNotFoundException e) {
+			Log.e("Problem loading latest test info: " + f + "\n" + e);
+			return null;
+		}
+
+		try {
+			JSONObject jsonObj= new JSONObject(content);
+
+			uuid = (jsonObj.has(TC_UUID_PROPERTY_NAME))
+				? (String)jsonObj.get(TC_UUID_PROPERTY_NAME) : null;
+			name = (jsonObj.has(TC_NAME_PROPERTY_NAME))
+				? (String)jsonObj.get(TC_NAME_PROPERTY_NAME) : null;
+			date_dut = (jsonObj.has(TC_DATE_DUT_PROPERTY_NAME))
+				? (String)jsonObj.get(TC_DATE_DUT_PROPERTY_NAME) : null;
+			date_host = (jsonObj.has(TC_DATE_HOST_PROPERTY_NAME))
+				? (String)jsonObj.get(TC_DATE_HOST_PROPERTY_NAME) : null;
+			engine = (jsonObj.has(TC_ENGINE_PROPERTY_NAME))
+				? (String)jsonObj.get(TC_ENGINE_PROPERTY_NAME) : null;
+			iter = Integer.parseInt((jsonObj.has(TC_ITER_PROPERTY_NAME))
+				? (String)jsonObj.get(TC_ITER_PROPERTY_NAME) : "0");
+		} catch (JSONException e) {
+			Log.e("Problem while loading latest test info: " + f + "\n" + e);
+		}
+
+		return new com.intel.crashtoolserver.bean.TestCase(uuid, name, iter, date_dut, date_host, engine);
+	}
+
+	public com.intel.crashtoolserver.bean.TestCase  fillCurrentTestInfo() {
+		String uuid = null, name = null, date_dut = null, date_host = null, engine = null;
+		int iter = 0;
+
+		try {
+			uuid = SystemProperties.get(TC_UUID_PROPERTY_NAME, null);
+			name = SystemProperties.get(TC_NAME_PROPERTY_NAME, null);
+			date_dut = SystemProperties.get(TC_DATE_DUT_PROPERTY_NAME, null);
+			date_host = SystemProperties.get(TC_DATE_HOST_PROPERTY_NAME, null);
+			engine = SystemProperties.get(TC_ENGINE_PROPERTY_NAME, null);
+			iter = Integer.parseInt(SystemProperties.get(TC_ITER_PROPERTY_NAME, "0"));
+		} catch (IllegalArgumentException e) {
+			Log.e("Problem while loading running test info:\n" + e);
+		}
+
+		return new com.intel.crashtoolserver.bean.TestCase(uuid, name, iter, date_dut, date_host, engine);
 	}
 
 	private void fillCrashEvent(HistoryEvent histevent, String myBuild, boolean isUserBuild) {

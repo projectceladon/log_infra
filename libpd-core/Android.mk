@@ -25,7 +25,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := libpd-core
 LOCAL_MODULE_TAGS := optional
-LOCAL_STATIC_JAVA_LIBRARIES := libpd-crashtool
+LOCAL_STATIC_JAVA_LIBRARIES := libpd-crashtool com.google.gson
 LOCAL_SRC_FILES := $(call all-subdir-java-files)
 
 include $(BUILD_STATIC_JAVA_LIBRARY)

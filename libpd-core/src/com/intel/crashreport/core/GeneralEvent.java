@@ -31,6 +31,9 @@ import java.util.Date;
 import java.util.Scanner;
 import java.util.TimeZone;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import com.intel.crashreport.common.Constants;
 import com.intel.crashreport.common.Utils;
 
@@ -77,6 +80,7 @@ public class GeneralEvent {
 	protected String origin = "";
 	protected String pdStatus = "";
 	protected int logsSize = 0;
+	protected String testCase = "";
 
 	public GeneralEvent() {
 		//default empty values
@@ -119,6 +123,7 @@ public class GeneralEvent {
 		origin = event.origin;
 		pdStatus = event.pdStatus;
 		logsSize = event.logsSize;
+		testCase = event.testCase;
 	}
 
 	public void readDeviceIdFromSystem() {
@@ -454,6 +459,20 @@ public class GeneralEvent {
 		mParsableEvent.setModemVersionUsed(modemVersionUsed);
 	}
 
+	public String getTestCase() {
+		return testCase;
+	}
+
+	public void setTestCase(String test) {
+		testCase = test;
+	}
+
+	public void setTestCase(com.intel.crashtoolserver.bean.TestCase test) {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		Gson gson = gsonBuilder.create();
+		testCase = gson.toJson(test);
+	}
+
 	public com.intel.crashtoolserver.bean.Event getEventForServer(Device device) {
 		return getEventForServer(device, null);
 	}
@@ -474,6 +493,13 @@ public class GeneralEvent {
 		sBuild.setUniqueKeyComponents(Utils.parseUniqueKey(this.uniqueKeyComponent));
 		sBuild.setOrganization(com.intel.crashtoolserver.bean.Build.ORGANIZATION_MCG);
 
+                com.intel.crashtoolserver.bean.TestCase tc = null;
+
+                if (testCase != null && !testCase.isEmpty()) {
+			Gson gson = new GsonBuilder().create();
+			tc = gson.fromJson(testCase, com.intel.crashtoolserver.bean.TestCase.class);
+                }
+
 		retEvent = new com.intel.crashtoolserver.bean.Event(getEventId(), getEventName(),
 				getType(), getData0(), getData1(), getData2(), getData3(),
 				getData4(), getData5(), date, convertUptime(getUptime()),
@@ -481,7 +507,7 @@ public class GeneralEvent {
 				com.intel.crashtoolserver.bean.Event.Origin.CLOTA, device,
 				getiRowID(), pdStatus, this.osBootMode,
 				new com.intel.crashtoolserver.bean.Modem(getModemVersionUsed()),
-				getCrashDir(), uploaded, logUploaded);
+				getCrashDir(), uploaded, logUploaded, tc);
 
 		return retEvent;
 	}

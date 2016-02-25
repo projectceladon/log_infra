@@ -27,28 +27,30 @@ public class Ingredients implements IngredientsKey {
     
     private static final String DEFAULT_VALUE = "";
 
+    private String bios = DEFAULT_VALUE; // varchar(92)
+    private String chaabi = DEFAULT_VALUE; // varchar(92)
+    private String cse = DEFAULT_VALUE; // varchar(92)
+    private String gop = DEFAULT_VALUE; // varchar(92)
+    private String ia32 = DEFAULT_VALUE; // varchar(92)
 	private String iafw = DEFAULT_VALUE; // varchar(92)
-	private String mia  = DEFAULT_VALUE; // varchar(92)
 	private String ifwi = DEFAULT_VALUE; // varchar(92)
-	private String ia32 = DEFAULT_VALUE; // varchar(92)
-	private String scu = DEFAULT_VALUE; // varchar(92)
-	private String scubs = DEFAULT_VALUE; // varchar(92)
-	private String punit = DEFAULT_VALUE; // varchar(92)
-	private String valhooks = DEFAULT_VALUE; // varchar(92)
-	private String chaabi = DEFAULT_VALUE; // varchar(92)
-	private String pmicNvm = DEFAULT_VALUE; // varchar(92)
-	private String uCode = DEFAULT_VALUE; // varchar(92)
-	private String pmic = DEFAULT_VALUE; // varchar(92)
-	private String bios = DEFAULT_VALUE; // varchar(92)
-	private String gop = DEFAULT_VALUE; // varchar(92)
-	private String sEC = DEFAULT_VALUE; // varchar(92)
-	private String mRC = DEFAULT_VALUE; // varchar(92)
-	private String pMC = DEFAULT_VALUE; // varchar(92)
+	private String ish = DEFAULT_VALUE; // varchar(92)
+	private String mia  = DEFAULT_VALUE; // varchar(92)
 	private String modem = DEFAULT_VALUE; // varchar(92)
 	private String modemExt = DEFAULT_VALUE; // varchar(92)
+	private String mRC = DEFAULT_VALUE; // varchar(92)
+	private String pMC = DEFAULT_VALUE; // varchar(92)
+	private String pmic = DEFAULT_VALUE; // varchar(92)
+	private String pmicNvm = DEFAULT_VALUE; // varchar(92)
+	private String punit = DEFAULT_VALUE; // varchar(92)
 	@Deprecated
 	private String roSwconfInfo = DEFAULT_VALUE; // varchar(92)
 	private RoSwconfInfoBulk roSwconfInfoBulk;
+	private String scu = DEFAULT_VALUE; // varchar(92)
+	private String scubs = DEFAULT_VALUE; // varchar(92)
+	private String sEC = DEFAULT_VALUE; // varchar(92)
+	private String uCode = DEFAULT_VALUE; // varchar(92)
+	private String valhooks = DEFAULT_VALUE; // varchar(92)
 	
 	public Ingredients() {
 	    
@@ -150,7 +152,8 @@ public class Ingredients implements IngredientsKey {
             String scu, String scubs, String punit, String valhooks,
             String chaabi, String pmicNvm, String uCode, String pmic,
             String bios, String gop, String sEC, String mRC, String pMC,
-            String modem, String modemExt, RoSwconfInfoBulk roSwConfinfoBulk) {
+            String modem, String modemExt, RoSwconfInfoBulk roSwConfinfoBulk,
+            String cse, String ish) {
         super();
         this.iafw = iafw;
         this.mia = mia;
@@ -172,8 +175,9 @@ public class Ingredients implements IngredientsKey {
         this.modem = modem;
         this.modemExt = modemExt;
         this.roSwconfInfoBulk = roSwConfinfoBulk;
+        this.cse = cse;
+        this.ish = ish;
     }
-
 
 
     public String getIafw() {
@@ -264,14 +268,6 @@ public class Ingredients implements IngredientsKey {
 		this.uCode = uCode;
 	}
 
-//	public String getpUnit() {
-//		return punit;
-//	}
-//
-//	public void setpUnit(String punit) {
-//		this.punit = punit;
-//	}
-
 	public String getPmic() {
 		return pmic;
 	}
@@ -349,11 +345,7 @@ public class Ingredients implements IngredientsKey {
 	public RoSwconfInfoBulk getRoSwconfInfoBulk() {
 		return roSwconfInfoBulk;
 	}
-
-	public void setRoSwconfInfoBulk(RoSwconfInfoBulk roSwconfInfoBulk) {
-		this.roSwconfInfoBulk = roSwconfInfoBulk;
-	}
-
+	
 	@Override
 	public String getRoSwconfInfoTelephony() {
     	if (roSwconfInfoBulk == null) {
@@ -386,20 +378,26 @@ public class Ingredients implements IngredientsKey {
 		roSwconfInfoBulk.setRoSwconfInfoBattery(roSwconfInfoBattery);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	public String getIsh() {
+		return ish;
+	}
+
+	public void setIsh(String ish) {
+		this.ish = ish;
+	}
+
+	public String getCse() {
+		return cse;
+	}
+
+	public void setCse(String cse) {
+		this.cse = cse;
+	}
+
 	@Override
 	public String toString() {
-		return "Ingredients [iafw=" + iafw + ", mia=" + mia + ", ifwi=" + ifwi
-				+ ", ia32=" + ia32 + ", scu=" + scu + ", scubs=" + scubs
-				+ ", punit=" + punit + ", valhooks=" + valhooks + ", chaabi="
-				+ chaabi + ", pmicNvm=" + pmicNvm + ", uCode=" + uCode
-				+ ", pmic=" + pmic + ", bios=" + bios + ", gop=" + gop
-				+ ", sEC=" + sEC + ", mRC=" + mRC + ", pMC=" + pMC + ", modem="
-				+ modem + ", modemExt=" + modemExt 
-				+ ", roSwconfInfo=" + roSwconfInfo 
-				+ ((roSwconfInfoBulk != null && !roSwconfInfoBulk.isEmpty()) ? ", roSwconfInfoBulk=" + roSwconfInfoBulk : "") 
-				+ "]";
+		return "Ingredients [bios=" + bios + ", chaabi=" + chaabi + ", cse=" + cse + ", gop=" + gop + ", ia32=" + ia32 + ", iafw=" + iafw + ", ifwi=" + ifwi + ", ish=" + ish + ", mia=" + mia
+				+ ", modem=" + modem + ", modemExt=" + modemExt + ", mRC=" + mRC + ", pMC=" + pMC + ", pmic=" + pmic + ", pmicNvm=" + pmicNvm + ", punit=" + punit + ", roSwconfInfo=" + roSwconfInfo
+				+ ", roSwconfInfoBulk=" + roSwconfInfoBulk + ", scu=" + scu + ", scubs=" + scubs + ", sEC=" + sEC + ", uCode=" + uCode + ", valhooks=" + valhooks + "]";
 	}
 }

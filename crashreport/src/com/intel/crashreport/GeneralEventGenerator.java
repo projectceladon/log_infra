@@ -72,6 +72,7 @@ public enum GeneralEventGenerator {
 				}
 				event.setDate(date);
 				event.setEventName(aEventData.getEventName());
+				event.setTestCase(event.fillCurrentTestInfo());
 				event.setType(aEventData.getType());
 				event.setData0(aEventData.getData0());
 				event.setData1(aEventData.getData1());
