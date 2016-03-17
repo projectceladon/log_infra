@@ -205,20 +205,13 @@ public class MainParser{
 					}
 				}
 
-				if (sTag.equals("APIMR")) {
+				if (sTag.equals("APIMR") || sTag.equals("APCOREDUMP")) {
 					if (!genericCrash(sOutput)){
 						closeOutput();
 						return -1;
 					}
 				}
 				//add generic parsing for unknown tag?
-
-				if (sTag.equals("APCOREDUMP")) {
-					if (!apcoredump(sOutput)){
-						closeOutput();
-						return -1;
-					}
-				}
 
 				if (sTag.equals("VMMTRAP")) {
 					if (!vmmtrap(sOutput)){
@@ -319,29 +312,6 @@ public class MainParser{
 				APLog.e( "chown system.log failed : " + e);
 				e.printStackTrace();
 			}
-		}
-		return bResult;
-	}
-
-	private boolean apcoredump(String aFolder){
-		boolean bResult = true;
-
-		String sCoreDumpFile = fileGrepSearch(".*.core", aFolder);
-		if (!sCoreDumpFile.isEmpty()){
-			int first, last, temp;
-			first = last = sCoreDumpFile.indexOf("_");
-
-			if (first != -1) {
-				while((temp = sCoreDumpFile.indexOf("_", last+1))!=-1)
-					last = temp;
-
-				if (first != last) {
-					bResult &= appendToCrashfile("DATA0=" + sCoreDumpFile.substring(first+1, last));
-				}
-			}
-		}else{
-			//using default parsing method
-			return genericCrash(aFolder);
 		}
 		return bResult;
 	}
