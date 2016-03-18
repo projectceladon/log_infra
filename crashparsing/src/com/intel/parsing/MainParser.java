@@ -57,7 +57,7 @@ public class MainParser{
 	private final static ArrayList<String> criticalTypes = new ArrayList<String>(
 		Arrays.asList("IPANIC", "FABRICERR", "IPANIC_SWWDT", "IPANIC_HWWDT",
 		"HWWDTLOGERR", "MSHUTDOWN", "UIWDT", "WDT", "VMMTRAP", "VMM_UNHANDLED",
-		"SECPANIC"));
+		"SECPANIC", "MPANIC"));
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
