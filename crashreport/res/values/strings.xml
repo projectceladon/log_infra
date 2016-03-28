@@ -95,7 +95,7 @@
     <string name="settings_event_data_types_title">Excluded crash data types</string>
     <string name="settings_event_data_types_dialog_title">Crash data types to exclude</string>
     <string name="settings_event_data_types_summary">List excluded crash data types from upload</string>
-    <string name="settings_event_data_types_value_default">APCOREDUMP,HPROF</string>
+    <string name="settings_event_data_types_value_default">HPROF</string>
 
     <string name="settings_connection_wifi_only_key">settings_connection_wifi_only</string>
     <string name="settings_connection_wifi_only_title">WiFi only</string>
