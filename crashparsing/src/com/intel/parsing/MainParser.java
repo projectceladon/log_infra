@@ -32,6 +32,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +54,10 @@ public class MainParser{
 		"NORTHFUSEERR", "KERNELWDT", "KERNEHANG", "SCUWDT", "FABRICXML", "PLLLOCKERR",
 		"UNDEFL1ERR", "PUNITMBBTIMEOUT", "VOLTKERR", "VOLTSAIATKERR",
 		"LPEINTERR", "PSHINTERR", "FUSEINTERR", "IPC2ERR", "KWDTIPCERR" };
+	private final static ArrayList<String> criticalTypes = new ArrayList<String>(
+		Arrays.asList("IPANIC", "FABRICERR", "IPANIC_SWWDT", "IPANIC_HWWDT",
+		"HWWDTLOGERR", "MSHUTDOWN", "UIWDT", "WDT", "VMMTRAP", "VMM_UNHANDLED",
+		"SECPANIC", "MPANIC", "SWWDT"));
 	private String sOutput = null;
 	private String sTag = "";
 	private String sCrashID = "";
@@ -64,6 +69,7 @@ public class MainParser{
 	private Writer myOutput = null;
 	private int iDataReady = 1;
 	private String sOperator = "";
+	private boolean bCritical = false;
 
 	public MainParser(String aOutput, String aTag, String aCrashID, String aUptime,
 			String aBuild, String aBoard, String aDate, String aImei){
@@ -199,20 +205,13 @@ public class MainParser{
 					}
 				}
 
-				if (sTag.equals("APIMR")) {
+				if (sTag.equals("APIMR") || sTag.equals("APCOREDUMP")) {
 					if (!genericCrash(sOutput)){
 						closeOutput();
 						return -1;
 					}
 				}
 				//add generic parsing for unknown tag?
-
-				if (sTag.equals("APCOREDUMP")) {
-					if (!apcoredump(sOutput)){
-						closeOutput();
-						return -1;
-					}
-				}
 
 				if (sTag.equals("VMMTRAP")) {
 					if (!vmmtrap(sOutput)){
@@ -297,6 +296,9 @@ public class MainParser{
 	private boolean finish_crashfile(String aFolder){
 		boolean bResult = true;
 
+		if (!bCritical)
+			bCritical = criticalTypes.contains(sTag.trim());
+		bResult &= appendToCrashfile("CRITICAL=" + (bCritical ? "YES" : "NO"));
 		//needed to identify legacy_parsing with ParserDirector
 		bResult &= appendToCrashfile("PARSER=LEGACY_PARSER");
 		bResult &= appendToCrashfile("_END");
@@ -310,29 +312,6 @@ public class MainParser{
 				APLog.e( "chown system.log failed : " + e);
 				e.printStackTrace();
 			}
-		}
-		return bResult;
-	}
-
-	private boolean apcoredump(String aFolder){
-		boolean bResult = true;
-
-		String sCoreDumpFile = fileGrepSearch(".*.core", aFolder);
-		if (!sCoreDumpFile.isEmpty()){
-			int first, last, temp;
-			first = last = sCoreDumpFile.indexOf("_");
-
-			if (first != -1) {
-				while((temp = sCoreDumpFile.indexOf("_", last+1))!=-1)
-					last = temp;
-
-				if (first != last) {
-					bResult &= appendToCrashfile("DATA0=" + sCoreDumpFile.substring(first+1, last));
-				}
-			}
-		}else{
-			//using default parsing method
-			return genericCrash(aFolder);
 		}
 		return bResult;
 	}
@@ -424,15 +403,32 @@ public class MainParser{
 		String sFileName="";
 		String sLine="";
 		String sVector="";
+		BufferedReaderClean bufCoreFile = null;
+		String sCoreDumpFile;
 
-		String sCoreDumpFile = fileGrepSearch("coredump_.*.txt", aFolder);
-		if (!sCoreDumpFile.isEmpty()) {
-			BufferedReaderClean bufCoreFile = null;
+		String sCoreDumpGZ = fileGrepSearch("coredump_.*txt\\.gz", aFolder);
+		FileInputStream f = null;
+		try {
+			// 1st try on zip pattern then normal
+			if (!sCoreDumpGZ.isEmpty()){
+				f = new FileInputStream(sCoreDumpGZ);
+				GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+				bufCoreFile = new BufferedReaderClean(new InputStreamReader(gzipInputStream));
+			}else{
+				sCoreDumpFile = fileGrepSearch("coredump_.*txt" , aFolder);
+				if (!sCoreDumpFile.isEmpty()){
+					bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
+				}
+			}
+		} catch(Exception e) {
+			silentClose(f);
+		}
+
+		if (bufCoreFile != null) {
 			try{
 				Pattern patternFileName = java.util.regex.Pattern.compile("Filename:.*");
 				Pattern patternLine = java.util.regex.Pattern.compile("Line number:.*");
 				Pattern patternVector = java.util.regex.Pattern.compile("Vector:.*");
-				bufCoreFile = new BufferedReaderClean(new FileReader(sCoreDumpFile));
 				String sCurLine;
 				while ((sCurLine = bufCoreFile.readLine()) != null) {
 					String sTmp;
@@ -471,6 +467,7 @@ public class MainParser{
 			} finally {
 				if (bufCoreFile != null) {
 					bufCoreFile.close();
+					silentClose(f);
 				}
 			}
 		}else{
@@ -1405,6 +1402,8 @@ public class MainParser{
 				}
 				bResult &= appendToCrashfile("DATA3=" + sFaultAddress);
 
+				if (sTag.equals("TOMBSTONE") && "system_server".equals(sProcess.trim()))
+					bCritical = true;
 			}
 			catch(Exception e) {
 				APLog.e( "tombstone : " + e);

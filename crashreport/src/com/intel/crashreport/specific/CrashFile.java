@@ -57,6 +57,7 @@ public class CrashFile {
 	private String board = "";
 	private int dataReady = 1;
 	private String operator="";
+	private boolean critical = false;
 	private String modemVersionUsed="";
 
 	private File crashFile;
@@ -128,6 +129,7 @@ public class CrashFile {
 			record.write("TYPE="+type+"_"+reason+"\n");
 			record.write("DATA_READY="+ dataReady+"\n");
 			record.write("OPERATOR="+ operator+"\n");
+			record.write("CRITICAL="+(critical ? "YES" : "NO")+"\n");
 			record.write("DATA0="+data0+"\n");
 			record.write("DATA1="+data1+"\n");
 			record.write("DATA2="+data2+"\n");
@@ -201,6 +203,8 @@ public class CrashFile {
 					type = value;
 				else if (name.equals("OPERATOR"))
 					operator = value;
+				else if (name.equals("CRITICAL"))
+					critical = value.equals("YES");
 				else if (name.equals("DATA_READY")){
 					try{
 						dataReady = Integer.parseInt(value);

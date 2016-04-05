@@ -1,4 +1,5 @@
 {
+    "critical" : "1",
     "description":"Parser for INSTERR",
     "event_name" : "CRASH",
     "event_type" : "INSTERR",

@@ -220,6 +220,8 @@ public class JsonBuilder implements ParserBuilder {
 				fillEventName(curReader, parserToFill);
 			} else if (sName.equals("event_type")) {
 				fillEventType(curReader, parserToFill);
+			} else if (sName.equals("critical")) {
+				fillCritical(curReader, parserToFill);
 			} else if (sName.equals("description")) {
 				// Ok but not stored inside parser object
 				curReader.skipValue();
@@ -250,6 +252,16 @@ public class JsonBuilder implements ParserBuilder {
 		if (curReader.peek() == JsonToken.STRING) {
 			String sValue = curReader.nextString();
 			parserToFill.setEventType(sValue);
+		} else {
+			APLog.v("empty");
+		}
+	}
+
+	private void fillCritical(JsonReader curReader, StandardParser parserToFill)
+			throws IOException {
+		if (curReader.peek() == JsonToken.STRING) {
+			String sValue = curReader.nextString();
+			parserToFill.setCritical(sValue.equals("1"));
 		} else {
 			APLog.v("empty");
 		}

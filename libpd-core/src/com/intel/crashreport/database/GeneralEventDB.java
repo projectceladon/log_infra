@@ -51,15 +51,12 @@ public class GeneralEventDB extends General {
 
 	private static final String DATABASE_NAME = "eventlogs.db";
 	protected static final String DATABASE_TABLE = "events";
-	protected static final String DATABASE_TYPE_TABLE = "events_type";
-	protected static final String DATABASE_CRITICAL_EVENTS_TABLE = "critical_events";
-	protected static final String DATABASE_CRITICAL_TABLE = "critical_events_type";
 	protected static final String DATABASE_BZ_TABLE = "bz_events";
 	protected static final String DATABASE_BLACK_EVENTS_TABLE = "black_events";
 	protected static final String DATABASE_RAIN_OF_CRASHES_TABLE = "rain_of_crashes";
 	protected static final String DATABASE_GCM_MESSAGES_TABLE = "gcm_messages";
 	protected static final String DATABASE_DEVICE_TABLE = "device";
-	protected static final int DATABASE_VERSION = 16;
+	protected static final int DATABASE_VERSION = 17;
 
 	public static final String KEY_ROWID = "_id";
 	public static final String KEY_ID = "eventId";
@@ -143,26 +140,8 @@ public class GeneralEventDB extends General {
 					KEY_ORIGIN + " text, " +
 					KEY_PDSTATUS + " text, " +
 					KEY_LOGS_SIZE + " integer, " +
-					KEY_EVENT_CLEANED + " integer);";
-
-	private static final String DATABASE_TYPE_CREATE =
-			"create table " + DATABASE_TYPE_TABLE + " ("+
-					KEY_TYPE + " text primary key, "+
+					KEY_EVENT_CLEANED + " integer, "+
 					KEY_CRITICAL+" integer );";
-
-	private static final String DATABASE_TYPE_EMPTY =
-			"delete from "+DATABASE_TYPE_TABLE+";";
-
-	private static final String DATABASE_CRITICAL_EVENTS_CREATE =
-			"create table " + DATABASE_CRITICAL_EVENTS_TABLE + " ("+
-					KEY_TYPE + " text not null, "+
-					KEY_DATA0 + " text not null, "+
-					KEY_DATA1 + " text, "+
-					KEY_DATA2 + " text, "+
-					KEY_DATA3 + " text, "+
-					KEY_DATA4 + " text, "+
-					KEY_DATA5 + " text, "+
-					"PRIMARY KEY ( "+KEY_TYPE+", "+KEY_DATA0+", "+KEY_DATA1+", "+KEY_DATA2+", "+KEY_DATA3+", "+KEY_DATA4+", "+KEY_DATA5+"));";
 
 	private static final String DATABASE_BLACK_EVENTS_CREATE =
 			"create table " + DATABASE_BLACK_EVENTS_TABLE + " ("+
@@ -184,17 +163,6 @@ public class GeneralEventDB extends General {
 					KEY_LAST_FIBONACCI + " integer, "+
 					KEY_NEXT_FIBONACCI + " integer, "+
 					"PRIMARY KEY ( "+KEY_TYPE+", "+KEY_DATA0+", "+KEY_DATA1+", "+KEY_DATA2+"));";
-
-	private static final String DATABASE_CRITICAL_EVENTS_EMPTY =
-			"delete from "+DATABASE_CRITICAL_EVENTS_TABLE+";";
-
-	public static final String SELECT_CRITICAL_EVENTS_QUERY = "select "+KEY_ID+" from "+DATABASE_TABLE+" e,"+DATABASE_CRITICAL_EVENTS_TABLE+" ce"
-			+" where ce."+KEY_TYPE+"=e."+KEY_TYPE+" and trim(e."+KEY_DATA0+")=ce."+KEY_DATA0+" and "
-			+"(ce."+KEY_DATA1+"='' or ce."+KEY_DATA1+"=trim(e."+KEY_DATA1+")) and "
-			+"(ce."+KEY_DATA2+"='' or ce."+KEY_DATA2+"=trim(e."+KEY_DATA2+")) and "
-			+"(ce."+KEY_DATA3+"='' or ce."+KEY_DATA3+"=trim(e."+KEY_DATA3+")) and "
-			+"(ce."+KEY_DATA4+"='' or ce."+KEY_DATA4+"=trim(e."+KEY_DATA4+")) and "
-			+"(ce."+KEY_DATA5+"='' or ce."+KEY_DATA5+"=trim(e."+KEY_DATA5+"))";
 
 	private static final String DATABASE_BZ_CREATE =
 			"create table " + DATABASE_BZ_TABLE + " (" +
@@ -239,7 +207,8 @@ public class GeneralEventDB extends General {
 				KEY_INGREDIENTS, KEY_OS_BOOT_MODE, KEY_UNIQUEKEY_COMPONENT,
 				KEY_MODEM_VERSION_USED, KEY_IMEI, KEY_UPTIME, KEY_UPLOAD,
 				KEY_CRASHDIR, KEY_UPLOADLOG, KEY_NOTIFIED, KEY_DATA_READY,
-				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE, KEY_EVENT_CLEANED};
+				KEY_ORIGIN, KEY_PDSTATUS, KEY_LOGS_SIZE, KEY_EVENT_CLEANED,
+				KEY_CRITICAL};
 
 	public static final String[] eventsTableBaseColums = new String[] {KEY_ROWID, KEY_ID,
 				KEY_NAME, KEY_TYPE, KEY_DATA0, KEY_DATA1, KEY_DATA2,
@@ -259,8 +228,6 @@ public class GeneralEventDB extends General {
 
 	public static final List<Table> tables = Arrays.asList(
 		new Table(DATABASE_TABLE, DATABASE_CREATE),
-		new Table(DATABASE_TYPE_TABLE, DATABASE_TYPE_CREATE),
-		new Table(DATABASE_CRITICAL_EVENTS_TABLE, DATABASE_CRITICAL_EVENTS_CREATE),
 		new Table(DATABASE_BLACK_EVENTS_TABLE, DATABASE_BLACK_EVENTS_CREATE),
 		new Table(DATABASE_RAIN_OF_CRASHES_TABLE, DATABASE_RAIN_CREATE),
 		new Table(DATABASE_BZ_TABLE, DATABASE_BZ_CREATE),
@@ -282,7 +249,7 @@ public class GeneralEventDB extends General {
 			String deviceId, String imei, String uptime, String crashDir,
 			boolean bDataReady, String origin, String pdStatus, String variant,
 			String ingredients, String osBootMode, String uniqueKeyComponent,
-			String modemVersionUsed) {
+			String modemVersionUsed, boolean critical) {
 		ContentValues initialValues = new ContentValues();
 		int eventDate = Utils.convertDateForDb(date);
 		if (eventName.isEmpty()) return -2;
@@ -323,6 +290,7 @@ public class GeneralEventDB extends General {
 		initialValues.put(KEY_OS_BOOT_MODE, osBootMode);
 		initialValues.put(KEY_UNIQUEKEY_COMPONENT, uniqueKeyComponent);
 		initialValues.put(KEY_MODEM_VERSION_USED, modemVersionUsed);
+		initialValues.put(KEY_CRITICAL, critical);
 
 		removeOldCrashdir(crashDir);
 		return mDb.insert(DATABASE_TABLE, null, initialValues);
@@ -351,7 +319,8 @@ public class GeneralEventDB extends General {
 				event.getIngredients(),
 				event.getOsBootMode(),
 				event.getUniqueKeyComponent(),
-				event.getModemVersionUsed());
+				event.getModemVersionUsed(),
+				event.isCritical());
 	}
 
 	public Cursor fetchLastNEvents(String sNlimit, EVENT_FILTER filter) {
@@ -430,6 +399,7 @@ public class GeneralEventDB extends General {
 		event.setOrigin(cursor.getString(cursor.getColumnIndex(KEY_ORIGIN)));
 		event.setPdStatus(cursor.getString(cursor.getColumnIndex(KEY_PDSTATUS)));
 		event.setLogsSize(cursor.getInt(cursor.getColumnIndex(KEY_LOGS_SIZE)));
+		event.setCritical(cursor.getInt(cursor.getColumnIndex(KEY_CRITICAL))==1);
 
 		return event;
 	}
@@ -571,39 +541,12 @@ public class GeneralEventDB extends General {
 		return mDb.update(DATABASE_TABLE, args, KEY_ID + "='" + eventId + "'", null) > 0;
 	}
 
-	public long addType(String type,int critical) {
-		ContentValues initialValues = new ContentValues();
-
-		initialValues.put(KEY_TYPE, type);
-		initialValues.put(KEY_CRITICAL, critical);
-
-		return mDb.insert(DATABASE_TYPE_TABLE, null, initialValues);
-	}
-
-	public void addTypes(String[] types, int critical){
-		for(String type : types){
-			addType(type, critical);
-		}
-	}
-
-	public boolean isTypeListEmpty() throws SQLException {
-		return !isTypeInDatabase(null);
-	}
-
 	private int getNumberFromWhereQuery(String where) {
 		return getEntriesCount(DATABASE_TABLE, where);
 	}
 
 	public boolean updateEventToNotified(String eventId) {
 		return updateEventField(eventId, KEY_UPLOAD, "1");
-	}
-
-	private boolean isTypeInDatabase(String where) {
-		return ((getEntriesCount(DATABASE_TYPE_TABLE, where) > 0) ? true : false);
-	}
-
-	public boolean isTypeInDb(String type){
-		return isTypeInDatabase(KEY_TYPE + "='" + type + "'");
 	}
 
 	/**
@@ -613,13 +556,8 @@ public class GeneralEventDB extends General {
 	 * @throws SQLException
 	 */
 	public Cursor fetchNotNotifiedEvents(boolean critical) throws SQLException {
-		String whereQuery = KEY_NOTIFIED+"='0' and "+ "("
-				+ KEY_TYPE + " in (select " + KEY_TYPE
-				+ " from " + DATABASE_TYPE_TABLE
-				+ " where " + KEY_CRITICAL + "="
-				+ (critical?"1":"0")+")" + (critical?" or":" and")
-				+ " ("+KEY_ID + (critical?"":" not")
-				+ " in (" + SELECT_CRITICAL_EVENTS_QUERY + " )))";
+		String whereQuery = KEY_NOTIFIED+"='0' and "
+			+ KEY_CRITICAL + ((critical) ? "=1" : "<>1");
 		return fetchEventFromWhereQuery(whereQuery);
 	}
 
@@ -633,17 +571,10 @@ public class GeneralEventDB extends General {
 	public boolean isThereEventToNotify(boolean bAllCrashes) throws SQLException {
 
 		String where = KEY_NOTIFIED+"='0' and (";
-		if (bAllCrashes){
-			//all events related to known event_type are used
-			where += KEY_NAME+"='CRASH'";
-		}else{
-			//critical only
-			where += KEY_TYPE + " in (select " + KEY_TYPE
-					+ " from " + DATABASE_TYPE_TABLE
-					+ " where " + KEY_CRITICAL + "=1)";
 
-		}
-		where += " or (" + KEY_ID + " in (" + SELECT_CRITICAL_EVENTS_QUERY + " )))";
+		//all events related to known event_type are used
+		where += ((bAllCrashes) ? KEY_NAME+"='CRASH' or " : "")
+			+ KEY_CRITICAL + "=1)";
 		return isEventInDatabase(where);
 	}
 
@@ -654,13 +585,8 @@ public class GeneralEventDB extends General {
 	 * @return uncritical crashes number or critical events number
 	 */
 	public int getEventsToNotifyNumber(boolean crash) {
-		String where = KEY_NOTIFIED + "='0' and " + "("
-				+ KEY_TYPE + " in (select " + KEY_TYPE
-				+ " from " + DATABASE_TYPE_TABLE + " where "
-				+ KEY_CRITICAL + "=" + (crash ? "0" : "1") + ")"
-				+ (crash ? " and" : " or") + " (" + KEY_ID + " "
-				+ (crash?"not ":"") + "in ("
-				+ SELECT_CRITICAL_EVENTS_QUERY + " )))";
+		String where = KEY_NOTIFIED + "='0' and "
+			+ KEY_CRITICAL + ((!crash) ? "=1" : "<>1");
 
 		return getEntriesCount(DATABASE_TABLE, where);
 	}
@@ -674,36 +600,8 @@ public class GeneralEventDB extends General {
 	}
 
 	public int getNumberEventByCriticty(boolean bCritical){
-		String where = KEY_TYPE + ((bCritical) ? "" : " not") + " in (select " + KEY_TYPE
-				+ " from " + DATABASE_TYPE_TABLE
-				+ " where " + KEY_CRITICAL + "=1) " + ((bCritical) ? "or" : "and")
-				+ " (" + KEY_ID +  ((bCritical) ? "" : " not") + " in ("
-				+ SELECT_CRITICAL_EVENTS_QUERY + " ))";
-
-		return getNumberFromWhereQuery(where);
-	}
-
-	public void deleteAllTypes(){
-		mDb.execSQL(DATABASE_TYPE_EMPTY);
-	}
-
-	public long insertCricitalEvent(String type, String data0, String data1,
-			String data2, String data3, String data4, String data5){
-		ContentValues initialValues = new ContentValues();
-
-		initialValues.put(KEY_TYPE, type);
-		initialValues.put(KEY_DATA0, data0);
-		initialValues.put(KEY_DATA1, data1);
-		initialValues.put(KEY_DATA2, data2);
-		initialValues.put(KEY_DATA3, data3);
-		initialValues.put(KEY_DATA4, data4);
-		initialValues.put(KEY_DATA5, data5);
-
-		return mDb.insert(DATABASE_CRITICAL_EVENTS_TABLE, null, initialValues);
-	}
-
-	public void deleteAllCriticalEvents(){
-		mDb.execSQL(DATABASE_CRITICAL_EVENTS_EMPTY);
+		return getEntriesCount(DATABASE_TABLE,
+			KEY_CRITICAL + ((bCritical) ? "=1" : "<>1"));
 	}
 
 	public boolean updateEventDataReady(String eventId) {
