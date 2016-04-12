@@ -67,6 +67,7 @@ public class GetCrashToolEvent implements ISubCommand {
 	private int execGetCrashToolEvent() throws IOException {
 		String sCrashID = "";
 		String sCacheDir = "";
+		File cacheDir = null;
 		Object output = null;
 
 		ArrayList<OptionData> mySubOptions = myOptions.getSubOptions();
@@ -79,27 +80,29 @@ public class GetCrashToolEvent implements ISubCommand {
 			}
 		}
 
+		if (sCacheDir != null && !sCacheDir.isEmpty()) {
+			cacheDir = new File(sCacheDir);
+			if (!cacheDir.exists()) {
+				throw new IOException("Supplied path does not exist");
+			}
+		}
+
 		DBManager aDB = new DBManager();
 		if (!aDB.isOpened()){
 			throw new IOException("Database not opened!");
 		}
 
-		if (sCacheDir != null && !sCacheDir.isEmpty()) {
-			File cacheDir = new File(sCacheDir);
-			if ((cacheDir == null) || !cacheDir.exists()) {
-				throw new IOException("Supplied path does not exist");
-			}
-
+		if (cacheDir != null) {
 			output = aDB.getFileInfo(sCrashID, cacheDir);
 		}
 		else {
 			output = aDB.getEvent(sCrashID);
 		}
 
-		if (output == null)
-			return 0;
+		if (output != null)
+			aDB.printToJsonFormat(output);
 
-		aDB.printToJsonFormat(output);
+		aDB.close();
 		return 0;
 	}
 
