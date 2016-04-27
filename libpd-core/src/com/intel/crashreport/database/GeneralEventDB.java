@@ -1058,4 +1058,21 @@ public class GeneralEventDB extends General {
 	public boolean setEventLogCleaned( String eventPath ) {
 		return updateEventsOnLogPaths(eventPath, KEY_EVENT_CLEANED, "");
 	}
+
+	public String getLogDirByEventId(String eventId) {
+		Cursor cursor = selectEntries(DATABASE_TABLE, new String[] {KEY_CRASHDIR},
+				KEY_ID + "='" + eventId + "'");
+		String crashDir = "";
+
+		if (cursor != null) {
+			try {
+				crashDir = cursor.getString(cursor.getColumnIndex(KEY_CRASHDIR));
+			} catch (SQLException e) {
+				crashDir = "";
+			}
+			cursor.close();
+		}
+
+		return crashDir;
+	}
 }

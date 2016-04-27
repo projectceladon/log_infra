@@ -148,6 +148,8 @@
         -->
         <service android:name="com.intel.crashreport.specific.GCMIntentService" />
 
+        <service android:name="com.intel.crashreport.specific.UpdateEventService" />
+
 		<service android:name=".CrashReportService"/>
 
 		<service android:name=".specific.PhoneInspectorService"/>

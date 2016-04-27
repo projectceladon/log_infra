@@ -25,14 +25,12 @@ package com.intel.crashreport.specific;
 
 import android.content.Context;
 import android.content.Intent;
-import android.database.SQLException;
 import android.os.DropBoxManager;
 import android.widget.Toast;
 
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportRequest;
 import com.intel.crashreport.CrashReportService;
-import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.GeneralNotificationReceiver;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.core.GcmMessage;
@@ -98,33 +96,12 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			if(!app.isCheckEventsServiceStarted())
 				context.startService(new Intent(context, CheckEventsService.class));
 		} else if (CRASHLOGS_COPY_FINISHED_INTENT.equals(intent.getAction())){
-			CrashReport app = (CrashReport)context.getApplicationContext();
 			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
 			if (intent.hasExtra(EVENT_ID_EXTRA)) {
 				String eventId = intent.getStringExtra(EVENT_ID_EXTRA);
-				EventDB db = new EventDB(context);
-				boolean isPresent = false;
-				try {
-					db.open();
-					if (db.isEventInDb(eventId)) {
 
-						if (!db.eventDataAreReady(eventId)) {
-							isPresent = true;
-							db.updateEventDataReady(eventId);
-						}
-					}
-				} catch (SQLException e) {
-					Log.w("NotificationReceiver: Fail to access DB", e);
-				}
-				db.close();
-				if(isPresent) {
-					if(!app.isServiceStarted())
-						context.startService(new Intent(context, CrashReportService.class));
-					else
-						app.setNeedToUpload(true);
-				}
-				Intent aIntent = new Intent(context, PhoneInspectorService.class);
-				aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
+				Intent aIntent = new Intent(context, UpdateEventService.class);
+				aIntent.putExtra(UpdateEventService.EVENT_ID, eventId);
 				context.startService(aIntent);
 			}
 		} else if (DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED.equals(intent.getAction())) {
