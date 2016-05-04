@@ -40,6 +40,7 @@ import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.Log;
+import com.intel.crashreport.R;
 import com.intel.phonedoctor.Constants;
 import com.intel.crashreport.specific.ingredients.IngredientManager;
 
@@ -79,6 +80,7 @@ public enum PDStatus {
 	private static final String CONSOLE_RAMOOPS_FILE_PATTERN = "console-ramoops";
 	private static final String OFFLINE_SCU_FILE_PATTERN = "offline_scu_log";
 	private static final String FABRIC_ERROR_FILE_PATTERN = "ipanic_fabric_err";
+	private static int WifiLogSize = 10 * 1024 * 1024;
 
 	private static final String [] FABRIC_ERROR_TYPE = {"MEMERR",
 		"INSTERR",
@@ -361,7 +363,7 @@ public enum PDStatus {
 			public String computeValue() {
 				String result = "x";
 				if(event.getCrashDir() != null){
-					if(!event.getCrashDir().isEmpty() && (event.getLogsSize() >= Constants.WIFI_LOGS_SIZE))
+					if(!event.getCrashDir().isEmpty() && (event.getLogsSize() >= WifiLogSize))
 						result = "B";
 					else result = "0";
 				}
@@ -751,6 +753,8 @@ public enum PDStatus {
 	public void setContext(Context ctx) {
 		context = ctx;
 		STATUS_LABEL.setCurrentContext(context);
+		// Maximum crashlogs size to upload over 3G
+		WifiLogSize = ctx.getResources().getInteger(R.integer.wifi_log_size) * 1024 * 1024;
 	}
 
 	public void setHistoryEventCorrupted(boolean corrupted) {

@@ -43,6 +43,7 @@ import com.intel.crashreport.CrashReportService.ServiceHandler;
 import com.intel.crashreport.CrashReportService.ServiceMsg;
 import com.intel.crashreport.Log;
 import com.intel.crashreport.NotificationMgr;
+import com.intel.crashreport.R;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.database.EventDB;
 import com.intel.crashreport.specific.Event;
@@ -62,6 +63,7 @@ public class EventUploadThread implements Runnable {
 
 	private boolean needsWifi;
 	private boolean newLogsToUpload;
+	private int wifiLogSize;
 	private Thread runningThread;
 	private Cursor mCursor;
 
@@ -83,6 +85,9 @@ public class EventUploadThread implements Runnable {
 		this.connector = new Connector(
 				this.context,
 				this.serviceHandler);
+		// Maximum crashlogs size to upload over 3G
+		this.wifiLogSize = context.getResources().getInteger(R.integer.wifi_log_size)
+			 * 1024 * 1024;
 	}
 
 	public boolean needsWifi() {
@@ -301,7 +306,7 @@ public class EventUploadThread implements Runnable {
 					event.getEventId());
 			if (crashLogs != null) {
 				boolean wifiAvailable = this.connector.getWifiConnectionAvailability();
-				boolean logsAreTooBig = crashLogs.length() >= Constants.WIFI_LOGS_SIZE;
+				boolean logsAreTooBig = crashLogs.length() >= wifiLogSize;
 				if(logsAreTooBig && !wifiAvailable) {
 					this.needsWifi = true;
 				} else {

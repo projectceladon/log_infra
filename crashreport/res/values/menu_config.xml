@@ -32,4 +32,6 @@
     <bool name="enable_aplogs">true</bool>
     <bool name="enable_device_info">true</bool>
     <bool name="enable_crash_notification">true</bool>
+
+    <integer name="wifi_log_size">10</integer>
 </resources>
