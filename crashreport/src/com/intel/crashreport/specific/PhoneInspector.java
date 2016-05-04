@@ -298,7 +298,7 @@ public class PhoneInspector {
 					Log.w("Could not create cleanup file: " + filename);
 				}
 			}
-		} while (!isFreeSpaceAvailable(logsPath, targetedFreeSpace));
+		} while (!isFreeSpaceAvailable(logsPath, targetedFreeSpace, false));
 		cursor.close();
 		db.close();
 	}
@@ -309,18 +309,19 @@ public class PhoneInspector {
 	 * @return boolean indicating whether or not cleanup was required.
 	 */
 	public boolean manageFreeSpace(String logsPath) {
-		if (isFreeSpaceAvailable(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE1))
+		if (isFreeSpaceAvailable(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE1, true))
 			return false;
 
 		cleanUploadedLogs(logsPath);
 
-		if (!isFreeSpaceAvailable(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE2))
+		if (!isFreeSpaceAvailable(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE2, false))
 			cleanOldLogs(logsPath, Constants.LOGS_CRITICAL_SIZE_STAGE2);
 
                 return true;
 	}
 
-	private static Boolean isFreeSpaceAvailable(String absolutePath, int trigger) {
+	private static Boolean isFreeSpaceAvailable(String absolutePath, int trigger,
+		boolean aggressive) {
 		StatFs path;
                 long availablePortion;
 		try {
@@ -345,15 +346,17 @@ public class PhoneInspector {
 		availablePortion = (availablePortion > 100 || availablePortion < 0)
 			? 100 : availablePortion;
 
+		long freeSpace = (path.getAvailableBlocksLong() * 100) / path.getBlockCountLong();
 		long fullSpace = path.getBlockCountLong() * path.getBlockSize();
 		long usedSpace = FileOps.getPathSize(absolutePath);
                 long threshold = 100 - trigger;
 
 		long stopSpace = fullSpace * availablePortion * threshold / 10000;
 
-		if (usedSpace < stopSpace)
-			return true;
+		if (usedSpace >= stopSpace ||
+			(aggressive && freeSpace <= trigger))
+			return false;
 
-		return false;
+		return true;
 	}
 }

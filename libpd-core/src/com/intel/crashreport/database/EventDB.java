@@ -286,7 +286,7 @@ public class EventDB extends GeneralEventDB{
 				KEY_CRASHDIR + " = '" + sPath + "'");
 
 		if (cursor == null)
-			return 0;
+			return -1;
 
 		ret = cursor.getInt(cursor.getColumnIndex(KEY_UPLOADLOG));
 		cursor.close();
