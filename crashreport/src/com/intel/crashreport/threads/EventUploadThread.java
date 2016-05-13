@@ -65,7 +65,6 @@ public class EventUploadThread implements Runnable {
 	private boolean newLogsToUpload;
 	private int wifiLogSize;
 	private Thread runningThread;
-	private Cursor mCursor;
 
 	public EventUploadThread(
 			Context context,
@@ -79,7 +78,6 @@ public class EventUploadThread implements Runnable {
 		this.eventDb = eventDb;
 		this.needsWifi = false;
 		this.notificationManager = new NotificationMgr(context);
-		this.newLogsToUpload = false;
 		this.crService = aCrService;
 		// We assume that connector has already been setup
 		this.connector = new Connector(
@@ -201,24 +199,14 @@ public class EventUploadThread implements Runnable {
 					": close connection exception", e);
 			}
 		}
-
-		//finally, clean cursor if required
-		if (mCursor != null) {
-			if(!mCursor.isClosed()) {
-				mCursor.close();
-			}
-		}
 	}
 
 	private void doCrashLogsUpload() throws InterruptedException, ProtocolException {
 		String[] crashTypes = prefs.getCrashLogsUploadTypes();
 		CrashReport app = (CrashReport) this.context;
-		mCursor = eventDb.fetchNotUploadedLogs(crashTypes);
-		Event event;
-		File crashLogs;
+		Cursor cursor = null;
 
 		Build myBuild = app.getMyBuild();
-		FileInfo fileInfo;
 		Thread theRunningThread = this.getRunningThread();
 		if(null == theRunningThread) {
 			Log.e(
@@ -227,35 +215,72 @@ public class EventUploadThread implements Runnable {
 			return;
 		}
 		int crashNumber = this.eventDb.getNewCrashNumber();
+		boolean wifiAvailable = false;
+		boolean requiresWifi = prefs.isWifiOnlyForEventData();
+		boolean cancelNotify = false;
 
-		if ((mCursor != null) && (mCursor.getCount() != 0)) {
-			boolean wifiAvailable = this.connector.getWifiConnectionAvailability();
-			boolean requiresWifi = prefs.isWifiOnlyForEventData();
+		do {
+			this.needsWifi = false;
+
+			if(!eventDb.isThereEventToUpload(crashTypes))
+				break;
+
+			cursor = eventDb.fetchNotUploadedLogs(crashTypes);
+			if (cursor == null) {
+				break;
+			}
+
+			if (cursor.getCount() == 0) {
+				break;
+			}
+
+			crashNumber = eventDb.getNewCrashNumber();
+			wifiAvailable = this.connector.getWifiConnectionAvailability();
+			boolean canUploadWithoutWifi = eventDb.isThereLogToUploadWithoutWifi(crashTypes);
+
 			if (requiresWifi && !wifiAvailable) {
-				this.notificationManager.notifyEventDataWifiOnly(mCursor.getCount());
+				this.notificationManager.notifyEventDataWifiOnly(cursor.getCount());
+				cancelNotify = false;
+				break;
 			} else {
 				this.notificationManager.notifyUploadingLogs(
-						mCursor.getCount(),
+						cursor.getCount(),
 						crashNumber);
-				boolean processNext = true;
-				while (!mCursor.isAfterLast() && processNext) {
-					if (theRunningThread.isInterrupted())
-						throw new InterruptedException();
-					processNext = this.processNextEvent(myBuild, theRunningThread);
+				cancelNotify = true;
+			}
+
+			if(!canUploadWithoutWifi && !wifiAvailable) {
+				//need to stop try to upload something
+				break;
+			}
+
+			while (!cursor.isAfterLast()) {
+				if (theRunningThread.isInterrupted()) {
+					cursor.close();
+					throw new InterruptedException();
 				}
-				this.notificationManager.cancelNotifUploadingLogs();
+
+				if (processNextEvent(myBuild, theRunningThread, cursor))
+					break;
 			}
-			//should be done at the end of check upload process
-			if(eventDb.isThereLogToUploadWithWifi(crashTypes) && !wifiAvailable) {
-				this.needsWifi = true;
-				this.notificationManager.notifyConnectWifiOrMpta();
-			}
-			if (mCursor != null)
-				mCursor.close();
-			Log.i(
-					EventUploadThread.class.getSimpleName() +
-					":uploadEvent : Upload files finished");
+
+			if (!cursor.isClosed())
+				cursor.close();
+		} while (true);
+		if (cancelNotify)
+			this.notificationManager.cancelNotifUploadingLogs();
+
+		//should be done at the end of check upload process
+		if(eventDb.isThereLogToUploadWithWifi(crashTypes) && !wifiAvailable) {
+			this.needsWifi = true;
+			this.notificationManager.notifyConnectWifiOrMpta();
 		}
+		if (cursor != null && !cursor.isClosed())
+			cursor.close();
+
+		Log.i(
+				EventUploadThread.class.getSimpleName() +
+				":uploadEvent : Upload files finished");
 	}
 
 	private void updateEventData(EventDB eventDB, Event event, File crashLogs) {
@@ -296,9 +321,9 @@ public class EventUploadThread implements Runnable {
 		}
 	}
 
-	private boolean processNextEvent(Build myBuild, Thread theRunningThread)
+	private boolean processNextEvent(Build myBuild, Thread theRunningThread, Cursor cursor)
 			throws InterruptedException, ProtocolException {
-		Event event = new Event(eventDb.fillEventFromCursor(mCursor));
+		Event event = new Event(eventDb.fillEventFromCursor(cursor));
 		if (PhoneInspector.getInstance(this.context).isUploadableLog(event.getEventId())){
 			File crashLogs = CrashLogs.getCrashLogsFile(
 					context,
@@ -337,6 +362,7 @@ public class EventUploadThread implements Runnable {
 								EventUploadThread.class.getSimpleName() +
 								":uploadEvent : Fail upload of " +
 								crashLogs.getAbsolutePath());
+						cursor.close();
 						throw new ProtocolException();
 					}
 				}
@@ -350,47 +376,23 @@ public class EventUploadThread implements Runnable {
 		} else {
 			Log.w(EventUploadThread.class.getSimpleName()+":uploadEvent : too much log failure for "+event);
 		}
-		mCursor.moveToNext();
-		this.newLogsToUpload = false;
+		cursor.moveToNext();
+		boolean newLogsToUpload = false;
 		if(eventDb.isThereEventToUpload()) {
-			mCursor.close();
+			cursor.close();
 			crService.updateEventsSummary(eventDb);
 			crService.sendEvents(
 					eventDb,
 					this.connector,
 					myBuild);
-			this.newLogsToUpload = true;
+			newLogsToUpload = true;
 		}
 		if(crService.getApp().getNeedToUpload()) {
 			crService.getApp().setNeedToUpload(false);
-			this.newLogsToUpload = true;
+			newLogsToUpload = true;
 		}
-		if(this.newLogsToUpload || mCursor.isAfterLast()) {
-			this.needsWifi = false;
-			if(!mCursor.isClosed())
-				mCursor.close();
-			String[] crashTypes = prefs.getCrashLogsUploadTypes();
-			if(eventDb.isThereEventToUpload(crashTypes)) {
-				mCursor = eventDb.fetchNotUploadedLogs(crashTypes);
-				if ((mCursor != null) && (mCursor.getCount() != 0)) {
-					int crashNumber = eventDb.getNewCrashNumber();
-					boolean wifiAvailable = this.connector.getWifiConnectionAvailability();
-					boolean canUploadWithoutWifi = eventDb.isThereLogToUploadWithoutWifi(crashTypes);
-					this.notificationManager.notifyUploadingLogs(
-							mCursor.getCount(),
-							crashNumber);
-					if(!canUploadWithoutWifi && !wifiAvailable) {
-						//need to stop try to upload something
-						return false;
-					}
-				} else {
-					return false;
-				}
-			} else {
-				return false;
-			}
-		}
-		return true;
+
+		return newLogsToUpload;
 	}
 
 
