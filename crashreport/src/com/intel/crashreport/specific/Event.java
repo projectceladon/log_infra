@@ -166,6 +166,8 @@ public class Event extends GeneralEvent{
 				? (String)jsonObj.get(TC_ITER_PROPERTY_NAME) : "0");
 		} catch (JSONException e) {
 			Log.e("Problem while loading latest test info: " + f + "\n" + e);
+		} catch (NumberFormatException e) {
+			Log.d("Could not parse iteration: " + e);
 		}
 
 		return new com.intel.crashtoolserver.bean.TestCase(uuid, name, iter, date_dut, date_host, engine);
