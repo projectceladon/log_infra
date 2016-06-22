@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.os.UserHandle;
 public class NetworkStateReceiver extends BroadcastReceiver {
 
 
@@ -63,7 +64,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
 				pm.setComponentEnabledSetting(new ComponentName(contextASync, NetworkStateReceiver.class), PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
 				CrashReport app = (CrashReport)contextASync.getApplicationContext();
 				if(!app.isServiceStarted())
-					contextASync.startService(new Intent(contextASync, CrashReportService.class));
+					contextASync.startServiceAsUser(new Intent(contextASync, CrashReportService.class), UserHandle.CURRENT);
 			}else{
 				Log.d("NetworkStateReceiver: connection not available");
 			}

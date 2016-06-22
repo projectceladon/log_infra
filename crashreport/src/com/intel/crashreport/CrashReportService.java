@@ -45,6 +45,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import com.intel.crashreport.StartServiceActivity.ServiceToActivityMsg;
 import com.intel.crashreport.specific.Build;
 import com.intel.crashreport.specific.Event;
@@ -110,7 +111,7 @@ public class CrashReportService extends Service {
 			app.setServiceStarted(false);
 			if(app.isActivityBounded()) {
 				Intent hideDialog = new Intent(ServiceToActivityMsg.unbindActivity);
-				getApplicationContext().sendBroadcast(hideDialog);
+				getApplicationContext().sendBroadcastAsUser(hideDialog, UserHandle.CURRENT);
 			}
 		}
 		app.setUploadService(null);
@@ -134,7 +135,7 @@ public class CrashReportService extends Service {
 		app.setServiceStarted(false);
 		if(app.isActivityBounded()) {
 			Intent hideDialog = new Intent(ServiceToActivityMsg.unbindActivity);
-			getApplicationContext().sendBroadcast(hideDialog);
+			getApplicationContext().sendBroadcastAsUser(hideDialog, UserHandle.CURRENT);
 		}
 		app.setUploadService(null);
 		if(handlerThread != null) {
@@ -289,7 +290,7 @@ public class CrashReportService extends Service {
 						serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 					else {
 						Intent askForUploadIntent = new Intent(ServiceToActivityMsg.askForUpload);
-						getApplicationContext().sendBroadcast(askForUploadIntent);
+						getApplicationContext().sendBroadcastAsUser(askForUploadIntent, UserHandle.CURRENT);
 					}
 				}
 			} else {
@@ -357,14 +358,14 @@ public class CrashReportService extends Service {
 	private void uploadProgressStart() {
 		if (app.isActivityBounded()) {
 			Intent uploadStartedIntent = new Intent(ServiceToActivityMsg.uploadStarted);
-			getApplicationContext().sendBroadcast(uploadStartedIntent);
+			getApplicationContext().sendBroadcastAsUser(uploadStartedIntent, UserHandle.CURRENT);
 		}
 	}
 
 	private void uploadProgressStop() {
 		if (app.isActivityBounded()) {
 			Intent uploadFinishedIntent = new Intent(ServiceToActivityMsg.uploadFinished);
-			getApplicationContext().sendBroadcast(uploadFinishedIntent);
+			getApplicationContext().sendBroadcastAsUser(uploadFinishedIntent, UserHandle.CURRENT);
 		}
 	}
 
@@ -372,21 +373,21 @@ public class CrashReportService extends Service {
 		if (app.isActivityBounded()) {
 			Intent intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
 			intent.putExtra("progressValue", value);
-			getApplicationContext().sendBroadcast(intent);
+			getApplicationContext().sendBroadcastAsUser(intent, UserHandle.CURRENT);
 		}
 	}
 
 	public void hideProgressBar() {
 		if (app.isActivityBounded()) {
 			Intent intent = new Intent(ServiceToActivityMsg.hideProgressBar);
-			getApplicationContext().sendBroadcast(intent);
+			getApplicationContext().sendBroadcastAsUser(intent, UserHandle.CURRENT);
 		}
 	}
 
 	public void showProgressBar() {
 		if (app.isActivityBounded()) {
 			Intent intent = new Intent(ServiceToActivityMsg.showProgressBar);
-			getApplicationContext().sendBroadcast(intent);
+			getApplicationContext().sendBroadcastAsUser(intent, UserHandle.CURRENT);
 		}
 	}
 
@@ -509,7 +510,7 @@ public class CrashReportService extends Service {
 		logger.addMsg(msg);
 		if (app.isActivityBounded()) {
 			Intent updateLogIntent = new Intent(ServiceToActivityMsg.updateLogTextView);
-			getApplicationContext().sendBroadcast(updateLogIntent);
+			getApplicationContext().sendBroadcastAsUser(updateLogIntent, UserHandle.CURRENT);
 		}
 	}
 

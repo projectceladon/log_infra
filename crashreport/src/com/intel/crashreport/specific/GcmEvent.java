@@ -30,6 +30,7 @@ import android.database.SQLException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.UserHandle;
 import android.widget.Toast;
 
 import com.google.android.gcm.GCMRegistrar;
@@ -179,7 +180,7 @@ public enum GcmEvent {
 			try {
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(data));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				context.startActivity(intent);
+				context.startActivityAsUser(intent, UserHandle.CURRENT);
 			}
 			catch (ActivityNotFoundException e) {
 				Log.w("CrashReport:takeGcmAction: bad url format:" + data);
@@ -193,7 +194,7 @@ public enum GcmEvent {
 				{
 					// start the activity
 					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					context.startActivity(intent);
+					context.startActivityAsUser(intent, UserHandle.CURRENT);
 				}
 				else
 				{
@@ -202,7 +203,7 @@ public enum GcmEvent {
 					intent = new Intent(Intent.ACTION_VIEW);
 					intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					intent.setData(Uri.parse("market://details?id=" + data));
-					context.startActivity(intent);
+					context.startActivityAsUser(intent, UserHandle.CURRENT);
 				}
 			}
 			catch (ActivityNotFoundException e) {
@@ -217,7 +218,7 @@ public enum GcmEvent {
 			if(mpmIntent != null) {
 				Log.d("[GCM] Broadcasting intent: " + mpmIntent);
 				// Start the activity
-				context.sendBroadcast(mpmIntent);
+				context.sendBroadcastAsUser(mpmIntent, UserHandle.CURRENT);
 			} else {
 				// Otherwise display a text for the end user.
 				Toast.makeText(

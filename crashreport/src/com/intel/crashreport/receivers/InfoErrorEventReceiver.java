@@ -29,6 +29,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.util.Log;
 
 /**
@@ -54,7 +55,7 @@ public class InfoErrorEventReceiver extends BroadcastReceiver {
             Bundle mExtras = intent.getExtras();
             if (mExtras != null)
                 mEventReceiverService.putExtras(mExtras);
-            context.startService(mEventReceiverService);
+            context.startServiceAsUser(mEventReceiverService, UserHandle.CURRENT);
         }
     }
 

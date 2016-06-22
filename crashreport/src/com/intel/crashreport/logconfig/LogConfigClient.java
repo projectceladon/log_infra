@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.util.Log;
 
 import com.intel.crashreport.logconfig.bean.FSLogSetting;
@@ -255,6 +256,6 @@ public class LogConfigClient {
             }
         }
         if (mContext != null)
-            mContext.sendBroadcast(mIntent);
+            mContext.sendBroadcastAsUser(mIntent, UserHandle.CURRENT);
     }
 }

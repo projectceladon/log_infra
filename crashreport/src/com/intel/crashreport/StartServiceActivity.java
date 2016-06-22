@@ -45,6 +45,7 @@ import android.database.SQLException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.UserHandle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewStub;
@@ -318,7 +319,7 @@ public class StartServiceActivity extends Activity {
 	private void startService() {
 		Intent crashReportStartServiceIntent = new Intent(this, CrashReportService.class);
 		crashReportStartServiceIntent.putExtra("fromActivity", true);
-		app.getApplicationContext().startService(crashReportStartServiceIntent);
+		app.getApplicationContext().startServiceAsUser(crashReportStartServiceIntent, UserHandle.CURRENT);
 	}
 
 	private void doBindService() {

@@ -30,6 +30,7 @@ import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -128,7 +129,7 @@ public class GeneralCrashReportHome extends Activity {
 			case (R.id.button_report_events):
 				intent = new Intent("com.intel.crashreport.intent.START_SERVICE");
 				intent.putExtra("com.intel.crashreport.extra.fromOutside", true);
-				startActivity(intent);
+				startActivityAsUser(intent, UserHandle.CURRENT);
 			break;
 			case (R.id.button_report_bugzilla):
 					ApplicationPreferences appPrefs = new ApplicationPreferences(getApplicationContext());
@@ -145,18 +146,18 @@ public class GeneralCrashReportHome extends Activity {
 					if(!app.getUserEmail().isEmpty() && !app.getUserFirstName().isEmpty() && !app.getUserLastName().isEmpty()) {
 						intent = new Intent(getApplicationContext(), BugzillaMainActivity.class);
 						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
-						startActivity(intent);
+						startActivityAsUser(intent, UserHandle.CURRENT);
 					}
 					else {
 						intent = new Intent(getApplicationContext(), UserInformationsActivity.class);
 						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", false);
-						startActivity(intent);
+						startActivityAsUser(intent, UserHandle.CURRENT);
 					}
 
 			break;
 			case (R.id.button_list_bugzilla):
 					intent = new Intent(getApplicationContext(), ListBugzillaActivity.class);
-					startActivity(intent);
+					startActivityAsUser(intent, UserHandle.CURRENT);
 			break;
 			default:
 		}
@@ -188,7 +189,7 @@ public class GeneralCrashReportHome extends Activity {
 	public void startCrashReport() {
 		Intent intent = new Intent(getApplicationContext(), CrashReportActivity.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(intent);
+		startActivityAsUser(intent, UserHandle.CURRENT);
 	}
 
 	public static class AboutDialog extends DialogFragment {

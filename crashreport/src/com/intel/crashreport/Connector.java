@@ -65,6 +65,7 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Handler;
+import android.os.UserHandle;
 import android.preference.PreferenceManager;
 
 import com.intel.crashreport.CrashReportService.ServiceMsg;
@@ -690,7 +691,7 @@ public class Connector {
 					Intent intent = new Intent(ServiceToActivityMsg.uploadProgressBar);
 
 					intent.putExtra("progressValue", (int) ((readBytes*100)/fileSize));
-					mCtx.sendBroadcast(intent);
+					mCtx.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 				}
 				if (t == null || t.isInterrupted()) {
 					throw new InterruptedException();

@@ -26,6 +26,7 @@ package com.intel.crashreport.specific;
 import android.content.Context;
 import android.content.Intent;
 import android.os.DropBoxManager;
+import android.os.UserHandle;
 import android.widget.Toast;
 
 import com.intel.crashreport.CrashReport;
@@ -61,14 +62,14 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 				CrashReport app = (CrashReport)context.getApplicationContext();
 				app.addRequest(new CrashReportRequest());
 				if(!app.isCheckEventsServiceStarted())
-					context.startService(new Intent(context, CheckEventsService.class));
+					context.startServiceAsUser(new Intent(context, CheckEventsService.class), UserHandle.CURRENT);
 			}
 
 			@Override
 			public void startUpload(Context context) {
 				CrashReport app = (CrashReport)context.getApplicationContext();
 				if(!app.isServiceStarted())
-					context.startService(new Intent(context, CrashReportService.class));
+					context.startServiceAsUser(new Intent(context, CrashReportService.class), UserHandle.CURRENT);
 			}
 
 		};
@@ -85,7 +86,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			//Add type to intent and send it
 				Intent aIntent = new Intent(context, PhoneInspectorService.class);
 				aIntent.putExtra(EXTRA_TYPE, BOOT_COMPLETED);
-				context.startService(aIntent);
+				context.startServiceAsUser(aIntent, UserHandle.CURRENT);
 		} else if (START_CRASHREPORT_SERVICE.equals(intent.getAction())) {
 			Log.d("NotificationReceiver: startCrashReportService");
 			iStartCrashReport.startUpload(context);
@@ -94,7 +95,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			Log.d("NotificationReceiver: relaunchCheckEventsService");
 			app.setServiceRelaunched(false);
 			if(!app.isCheckEventsServiceStarted())
-				context.startService(new Intent(context, CheckEventsService.class));
+				context.startServiceAsUser(new Intent(context, CheckEventsService.class), UserHandle.CURRENT);
 		} else if (CRASHLOGS_COPY_FINISHED_INTENT.equals(intent.getAction())){
 			Log.d("NotificationReceiver: crashLogsCopyFinishedIntent");
 			if (intent.hasExtra(EVENT_ID_EXTRA)) {
@@ -102,7 +103,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 
 				Intent aIntent = new Intent(context, UpdateEventService.class);
 				aIntent.putExtra(UpdateEventService.EVENT_ID, eventId);
-				context.startService(aIntent);
+				context.startServiceAsUser(aIntent, UserHandle.CURRENT);
 			}
 		} else if (DropBoxManager.ACTION_DROPBOX_ENTRY_ADDED.equals(intent.getAction())) {
 			Log.d("NotificationReceiver: dropBoxEntryAddedIntent");
@@ -113,7 +114,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 			aIntent.putExtra(DropBoxManager.EXTRA_TAG, intent.getStringExtra(DropBoxManager.EXTRA_TAG));
 			aIntent.putExtra(DropBoxManager.EXTRA_TIME, intent.getLongExtra(DropBoxManager.EXTRA_TIME, 0));
 
-			context.startService(aIntent);
+			context.startServiceAsUser(aIntent, UserHandle.CURRENT);
 		}else if (GeneralNotificationReceiver.GCM_MARK_AS_READ.equals(intent.getAction())) {
 			int rowId = -1;
 			// Check whether a row id has been supplied
@@ -138,7 +139,7 @@ public class NotificationReceiver extends GeneralNotificationReceiver {
 		} else if (Intent.ACTION_DEVICE_STORAGE_LOW.equals(intent.getAction())) {
 			Intent aIntent = new Intent(context, PhoneInspectorService.class);
 			aIntent.putExtra(EXTRA_TYPE, MANAGE_FREE_SPACE);
-			context.startService(aIntent);
+			context.startServiceAsUser(aIntent, UserHandle.CURRENT);
 		} else {
 			super.onReceive(context, intent);
 		}

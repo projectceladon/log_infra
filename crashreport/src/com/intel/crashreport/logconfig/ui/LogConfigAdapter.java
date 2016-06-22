@@ -28,6 +28,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.UserHandle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -110,7 +111,7 @@ public class LogConfigAdapter extends BaseAdapter {
                     LogConfigDisplaySettingsActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("com.intel.crashreport.logconfig.config", (String) v.getTag());
-            v.getContext().startActivity(intent);
+            v.getContext().startActivityAsUser(intent, UserHandle.CURRENT);
         }
     };
 

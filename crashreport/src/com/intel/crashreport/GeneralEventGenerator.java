@@ -34,6 +34,7 @@ import java.util.TimeZone;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.UserHandle;
 import android.telephony.TelephonyManager;
 
 import com.intel.crashreport.bugzilla.BZFile;
@@ -114,7 +115,7 @@ public enum GeneralEventGenerator {
 				db.close();
 				if (toNotify) {
 					Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
-					mContext.sendBroadcast(intent);
+					mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 				}
 			} catch (Exception e) {
 				Log.w("generateEvent: Exception : ", e);

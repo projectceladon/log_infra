@@ -27,6 +27,7 @@ import android.app.IntentService;
 import android.database.SQLException;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.UserHandle;
 
 import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.CrashReportService;
@@ -69,7 +70,7 @@ public class UpdateEventService extends IntentService {
 			db.close();
 			if(isPresent) {
 				if(!app.isServiceStarted())
-					startService(new Intent(this, CrashReportService.class));
+					startServiceAsUser(new Intent(this, CrashReportService.class), UserHandle.CURRENT);
 				else
 					app.setNeedToUpload(true);
 			}
@@ -78,6 +79,6 @@ public class UpdateEventService extends IntentService {
 		Intent aIntent = new Intent(this, PhoneInspectorService.class);
 		aIntent.putExtra(NotificationReceiver.EXTRA_TYPE,
 			NotificationReceiver.MANAGE_FREE_SPACE);
-		startService(aIntent);
+		startServiceAsUser(aIntent, UserHandle.CURRENT);
 	}
 }

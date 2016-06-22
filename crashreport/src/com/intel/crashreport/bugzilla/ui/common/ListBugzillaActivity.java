@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.widget.ListView;
 
 import com.intel.crashreport.*;
@@ -66,7 +67,7 @@ public class ListBugzillaActivity extends Activity {
 		if(!app.isServiceStarted()) {
 			Intent crashReportStartServiceIntent = new Intent(app.getApplicationContext(), CrashReportService.class);
 			crashReportStartServiceIntent.putExtra("fromActivity", false);
-			app.getApplicationContext().startService(crashReportStartServiceIntent);
+			app.getApplicationContext().startServiceAsUser(crashReportStartServiceIntent, UserHandle.CURRENT);
 		}
 	}
 

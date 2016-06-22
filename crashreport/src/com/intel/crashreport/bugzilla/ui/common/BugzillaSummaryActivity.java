@@ -34,6 +34,7 @@ import com.intel.crashreport.specific.CrashReportHome;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -94,7 +95,7 @@ public class BugzillaSummaryActivity extends Activity {
 						}
 					}
 					intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-					startActivity(intent);
+					startActivityAsUser(intent, UserHandle.CURRENT);
 				}
 
 			});
@@ -249,13 +250,13 @@ public class BugzillaSummaryActivity extends Activity {
 		if (!fromGallery) {
 			Intent intent = new Intent(getApplicationContext(), CrashReportHome.class);
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
+			startActivityAsUser(intent, UserHandle.CURRENT);
 		}
 		else {
 			Intent startMain = new Intent(Intent.ACTION_MAIN);
 			startMain.addCategory(Intent.CATEGORY_HOME);
 			startMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(startMain);
+			startActivityAsUser(startMain, UserHandle.CURRENT);
 		}
 	}
 

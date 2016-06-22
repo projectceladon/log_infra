@@ -35,6 +35,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.UserHandle;
 
 import com.intel.crashreport.ApplicationPreferences;
 import com.intel.crashreport.CrashReport;
@@ -296,7 +297,7 @@ public class CheckEventsService extends Service {
 			}
 			if (db.isThereEventToUpload()){
 				if(!app.isServiceStarted())
-					context.startService(new Intent(context, CrashReportService.class));
+					context.startServiceAsUser(new Intent(context, CrashReportService.class), UserHandle.CURRENT);
 			}
 			histFile.close();
 			db.close();
@@ -401,7 +402,7 @@ public class CheckEventsService extends Service {
 
 			if (isPresent) {
 				Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
-				context.sendBroadcast(intent);
+				context.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 			}
 
 		}
@@ -425,7 +426,7 @@ public class CheckEventsService extends Service {
 				Log.e("RelaunchServiceTask:sleep failed");
 			}
 			Intent intent = new Intent("com.intel.crashreport.intent.RELAUNCH_SERVICE");
-			context.sendBroadcast(intent);
+			context.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 		}
 	}
 

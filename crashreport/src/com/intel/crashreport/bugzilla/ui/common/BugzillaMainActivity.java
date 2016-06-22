@@ -33,6 +33,7 @@ import com.intel.crashreport.specific.CrashReportHome;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
 import android.app.Activity;
@@ -179,7 +180,7 @@ public class BugzillaMainActivity extends Activity {
 						Intent intent = new Intent(getApplicationContext(), BugzillaSummaryActivity.class);
 						intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", fromGallery);
 						finish();
-						startActivity(intent);
+						startActivityAsUser(intent, UserHandle.CURRENT);
 					} else {
 						Toast.makeText(getApplicationContext(), "Some informations are not filled, please fill them before report your bug.", Toast.LENGTH_LONG).show();
 					}
@@ -377,7 +378,7 @@ public class BugzillaMainActivity extends Activity {
 		if (app.getUserEmail().isEmpty() || app.getUserFirstName().isEmpty() || app.getUserLastName().isEmpty()) {
 			finish();
 			Intent intent = new Intent(getApplicationContext(),UserInformationsActivity.class);
-			startActivity(intent);
+			startActivityAsUser(intent, UserHandle.CURRENT);
 		}
 		else {
 			Intent intent = getIntent();
@@ -397,13 +398,13 @@ public class BugzillaMainActivity extends Activity {
 		if (!fromGallery) {
 			Intent intent = new Intent(getApplicationContext(), CrashReportHome.class);
 			intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			startActivity(intent);
+			startActivityAsUser(intent, UserHandle.CURRENT);
 		}
 		else {
 			Intent startMain = new Intent(Intent.ACTION_MAIN);
 			startMain.addCategory(Intent.CATEGORY_HOME);
 			startMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(startMain);
+			startActivityAsUser(startMain, UserHandle.CURRENT);
 		}
 
 	}

@@ -27,6 +27,7 @@ import com.intel.crashreport.CrashReport;
 import com.intel.crashreport.R;
 
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -125,7 +126,7 @@ public class UserInformationsActivity extends Activity {
 				app.setUserLastName(strLastName);
 				Intent intent = new Intent(getApplicationContext(),BugzillaMainActivity.class);
 				intent.putExtra("com.intel.crashreport.bugzilla.fromgallery", fromGallery);
-				startActivity(intent);
+				startActivityAsUser(intent, UserHandle.CURRENT);
 			}
 			else Toast.makeText(getApplicationContext(), "Wrong email address.", Toast.LENGTH_LONG).show();
 		}

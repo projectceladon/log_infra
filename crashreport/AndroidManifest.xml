@@ -60,6 +60,17 @@
 	<uses-permission android:name="android.permission.CHANGE_CONFIGURATION"></uses-permission>
 	<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
 
+	<protected-broadcast android:name="com.intel.crashreport.askForUpload" />
+	<protected-broadcast android:name="com.intel.crashreport.updateLogTextView" />
+	<protected-broadcast android:name="com.intel.crashreport.uploadStarted" />
+	<protected-broadcast android:name="com.intel.crashreport.uploadFinished" />
+	<protected-broadcast android:name="com.intel.crashreport.uploadProgressBarView" />
+	<protected-broadcast android:name="com.intel.crashreport.showProgressBarView" />
+	<protected-broadcast android:name="com.intel.crashreport.hideProgressBarView" />
+	<protected-broadcast android:name="com.intel.crashreport.unbindActivity" />
+	<protected-broadcast android:name="com.intel.crashreport.intent.CRASH_NOTIFY" />
+	<protected-broadcast android:name="com.intel.crashreport.intent.CRASH_LOGS_COPY_FINISHED" />
+
 	<application
 		android:icon="@drawable/icon"
 		android:label="@string/app_name"

@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.UserHandle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -86,7 +87,7 @@ public class UploadAplogActivity extends Activity{
 		CharSequence[] monitorArray = { "Thermal"};
 		Intent iCollect = new Intent(COLLECT_ACTION);
 		iCollect.putExtra(COLLECT_LIST_EXTRA, monitorArray);
-		sendBroadcast(iCollect);
+		sendBroadcastAsUser(iCollect, UserHandle.CURRENT);
 		//step2 : create INFO ExtraData
 		CustomizableEventData mEvent = EventGenerator.INSTANCE.getEmptyInfoEvent();
 		mEvent.setType("EXTRA_REPORT");
@@ -94,7 +95,7 @@ public class UploadAplogActivity extends Activity{
 		GeneralEventGenerator.INSTANCE.generateEvent(mEvent);
 		//step 3 : request for upload to phone monitor
 		Intent iUpload = new Intent(UPLOAD_ACTION);
-		sendBroadcast(iUpload);
+		sendBroadcastAsUser(iUpload, UserHandle.CURRENT);
 	}
 
 	private class AplogListener implements  View.OnClickListener {
