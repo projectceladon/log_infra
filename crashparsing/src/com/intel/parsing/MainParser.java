@@ -1292,7 +1292,14 @@ public class MainParser{
 			String sCurLine;
 			BufferedReaderClean bufTombstoneFile = null;
 			try {
-				bufTombstoneFile = new BufferedReaderClean(new FileReader(sTombstoneFile));
+				int offset = sTombstoneFile.lastIndexOf(".");
+				if (offset > 0 && "gz".equals(sTombstoneFile.substring(offset + 1))) {
+					FileInputStream f = new FileInputStream(sTombstoneFile);
+					GZIPInputStream gzipInputStream = new GZIPInputStream(f);
+					bufTombstoneFile = new BufferedReaderClean(new InputStreamReader (gzipInputStream));
+				} else {
+					bufTombstoneFile = new BufferedReaderClean(new FileReader(sTombstoneFile));
+				}
 				while ((sCurLine = bufTombstoneFile.readLine()) != null) {
 					String sTmp;
 					if (!bProcessFound){
