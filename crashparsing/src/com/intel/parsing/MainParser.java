@@ -1815,7 +1815,20 @@ public class MainParser{
 			} else {
 				sData1 = sBeforeAt;
 			}
-			bResult &= appendToCrashfile("DATA1=" + (nativ?"app_native_crash":"") + filterAdressesPattern(sData1));
+			if (nativ) {
+				bResult &= appendToCrashfile("DATA1=app_native_crash" + filterAdressesPattern(sData1));
+			}
+			else {
+				String str = filterAdressesPattern(sData1);
+				String strPattern = "android.os.TransactionTooLargeException: data parcel size";
+				if (str.trim().startsWith(strPattern)) {
+					String strPattern2 = "android.os.TransactionTooLargeException";
+					bResult &= appendToCrashfile("DATA1=" + strPattern2);
+					bResult &= appendToCrashfile("DATA3=" + str.trim().substring(strPattern2.length() + 2));
+				} else {
+					bResult &= appendToCrashfile("DATA1=" + str);
+				}
+			}
 			bResult &= appendToCrashfile("DATA2=" + filterAdressesPattern(sStack.toString()));
 		}catch (Exception e) {
 			APLog.e( "extractJavaCrashData : " + e);
