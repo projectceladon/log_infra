@@ -69,8 +69,8 @@ public class DisclaimerActivity extends Activity {
         super.onDestroy();
 
         //resume rotation
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
     }
 
     public void onCreate(Bundle savedInstanceState) {
@@ -94,7 +94,7 @@ public class DisclaimerActivity extends Activity {
             });
         }
 
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
     private void closeActivity(boolean skipGoogleSetup) {
