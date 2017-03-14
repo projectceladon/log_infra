@@ -36,7 +36,7 @@ include $(CLEAR_VARS)
 LOCAL_PACKAGE_NAME := CrashReport
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := intel
-LOCAL_PRIVILEGED_MODULE := true
+LOCAL_PRIVILEGED_MODULE := false
 LOCAL_PROGUARD_ENABLED := disabled
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 LOCAL_STATIC_JAVA_LIBRARIES := libgcmforpd libpd-intelcommons com.google.gson crashparsing libpd-crashtool libpd-core
