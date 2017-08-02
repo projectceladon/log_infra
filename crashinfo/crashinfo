@@ -20,7 +20,7 @@
 # such intellectual property rights must be express and approved by
 # Intel in writing.
 
-base=/system/vendor
+base=/system
 export CLASSPATH=$base/framework/crashinfo.jar
 trap "" HUP
 
