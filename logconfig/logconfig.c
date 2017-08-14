@@ -273,7 +273,7 @@ void apply_logconfig(int socket) {
   return;
 }
 
-int main(int argc, char *argv[]) {
+int main() {
   int socket = open_socket();
   apply_logconfig(socket);
   return 0;
