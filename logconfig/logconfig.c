@@ -28,6 +28,7 @@
 #include <cutils/properties.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <unistd.h>
 
 #define SERVICE_NAME "logconfig"
 
