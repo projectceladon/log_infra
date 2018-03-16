@@ -138,7 +138,7 @@ public class Event extends GeneralEvent{
 		int iter = 0;
 
 		File f = new File(path, "test_case.json");
-		if(!f.exists() || f.isDirectory()) {
+		if(!f.exists() || f.isDirectory() || (f.length() == 0)) {
 			return null;
 		}
 
