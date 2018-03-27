@@ -44,6 +44,7 @@ LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, res)
 LOCAL_RESOURCE_DIR += $(addprefix $(LOCAL_PATH)/, ../libpd-intelcommons/res)
 LOCAL_AAPT_FLAGS := --auto-add-overlay
 LOCAL_CERTIFICATE := platform
+LOCAL_PRIVATE_PLATFORM_APIS := true
 include $(BUILD_PACKAGE)
 
 include $(CLEAR_VARS)
