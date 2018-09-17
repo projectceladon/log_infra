@@ -223,13 +223,13 @@ public enum PDStatus {
 		CRASHLOGD_RUN (PDSTATUS_TIME.UPLOAD_TIME, 1, new PDStatusInterface(){
 
 			/**
-			 * @brief Check if crashlogger daemon is still running or not with the help of init.svc.crashlogd value.
+			 * @brief Check if crashlogger daemon is still running or not with the help of init.svc.vendor.crashlogd value.
 			 * @return String : 1 crashlogd is running, C else, x at the database insertion time.
 			 */
 			@Override
 			public String computeValue() {
 				String result;
-				result = SystemProperties.get("init.svc.crashlogd","x");
+				result = SystemProperties.get("init.svc.vendor.crashlogd","x");
 				if(result.equals("running"))
 					result = "1";
 				else if (!result.equals("x"))
@@ -239,13 +239,13 @@ public enum PDStatus {
 		}),
 		APKLOGFS_RUN (PDSTATUS_TIME.BOTH_TIME, 1, new PDStatusInterface() {
 			/**
-			 * @brief Check if apklogfs is running or not with the help of init.svc.apk_logfs value.
+			 * @brief Check if apklogfs is running or not with the help of init.svc.vendor.apk_logfs value.
 			 * @return String : 1 apklogfs is running, A else.
 			 **/
 			@Override
 			public String computeValue() {
 				String result;
-				result = SystemProperties.get("init.svc.apk_logfs","x");
+				result = SystemProperties.get("init.svc.vendor.apk_logfs","x");
 				if(result.equals("running"))
 					result = "1";
 				else if (!result.equals("x"))
