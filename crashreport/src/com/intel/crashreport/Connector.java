@@ -44,6 +44,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Timer;
@@ -234,7 +235,7 @@ public class Connector {
 		InputStream caInput = mCtx.getResources().openRawResource(R.raw.crashtool);
 
 		try {
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			CertificateFactory cf = CertificateFactory.getInstance("X.509", "BC");
 			Certificate ca = cf.generateCertificate(caInput);
 
 			String keyStoreType = KeyStore.getDefaultType();
@@ -259,6 +260,8 @@ public class Connector {
 		} catch (KeyManagementException e) {
 			Log.d("Connector: Could not set up socket - " + e);
 		} catch (IOException e) {
+			Log.d("Connector: Could not set up socket - " + e);
+		} catch (NoSuchProviderException e) {
 			Log.d("Connector: Could not set up socket - " + e);
 		} finally {
 			try {
