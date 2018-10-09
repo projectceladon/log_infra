@@ -117,6 +117,8 @@ public enum GeneralEventGenerator {
 					Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
 					mContext.sendBroadcastAsUser(intent, UserHandle.CURRENT);
 				}
+				Intent DBIntent = new Intent("com.intel.crashreport.database_changed");
+				mContext.sendBroadcastAsUser(DBIntent, UserHandle.CURRENT);
 			} catch (Exception e) {
 				Log.w("generateEvent: Exception : ", e);
 				bResult = false;

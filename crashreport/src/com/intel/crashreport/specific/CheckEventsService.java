@@ -264,6 +264,8 @@ public class CheckEventsService extends Service {
 											}
 										}
 										Log.d(from+": Event successfully added to DB, " + event.toString());
+										Intent DBIntent = new Intent("com.intel.crashreport.database_changed");
+										context.sendBroadcastAsUser(DBIntent, UserHandle.CURRENT);
 										//for MPANIC, ingredients manager is in charge of setting dataready field
 										if (!event.isDataReady() && !(!hasModemExt && event.getType().contains("MPANIC"))) {
 											Long lDelay = (long) Constants.CRASH_POSTPONE_DELAY*1000;
@@ -403,6 +405,8 @@ public class CheckEventsService extends Service {
 			if (isPresent) {
 				Intent intent = new Intent("com.intel.crashreport.intent.START_CRASHREPORT");
 				context.sendBroadcastAsUser(intent, UserHandle.CURRENT);
+				Intent DBIntent = new Intent("com.intel.crashreport.database_changed");
+				context.sendBroadcastAsUser(DBIntent, UserHandle.CURRENT);
 			}
 
 		}

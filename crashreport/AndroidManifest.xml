@@ -72,6 +72,7 @@
 	<protected-broadcast android:name="com.intel.crashreport.unbindActivity" />
 	<protected-broadcast android:name="com.intel.crashreport.intent.CRASH_NOTIFY" />
 	<protected-broadcast android:name="com.intel.crashreport.intent.CRASH_LOGS_COPY_FINISHED" />
+	<protected-broadcast android:name="com.intel.crashreport.database_changed" />
 
 	<application
 		android:icon="@drawable/icon"

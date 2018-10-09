@@ -259,6 +259,16 @@ public class StartServiceActivity extends Activity {
 		}
 	}
 
+	private BroadcastReceiver dbReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Log.e("dbRecevier action:"+intent.getAction());
+			if (ServiceToActivityMsg.databaseChanged.equals(intent.getAction())) {
+				updateSummary();
+			}
+		}
+	};
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -294,6 +304,8 @@ public class StartServiceActivity extends Activity {
 			app.setActivity(this);
 		instanceStateSaved = false;
 		updateSummary();
+		IntentFilter filter = new IntentFilter("com.intel.crashreport.database_changed");
+		getApplicationContext().registerReceiver(dbReceiver, filter);
 	}
 
 	@Override
@@ -302,6 +314,7 @@ public class StartServiceActivity extends Activity {
 		doUnbindService();
 		cancelButton.setEnabled(false);
 		hidePleaseWait();
+		getApplicationContext().unregisterReceiver(dbReceiver);
 		super.onPause();
 	}
 
@@ -623,6 +636,7 @@ public class StartServiceActivity extends Activity {
 		public static final String showProgressBar = "com.intel.crashreport.showProgressBarView";
 		public static final String hideProgressBar = "com.intel.crashreport.hideProgressBarView";
 		public static final String unbindActivity = "com.intel.crashreport.unbindActivity";
+		public static final String databaseChanged = "com.intel.crashreport.database_changed";
 	}
 
 	public void onKillService() {
