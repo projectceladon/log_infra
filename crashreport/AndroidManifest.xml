@@ -84,15 +84,18 @@
 
 		<activity
 			android:name=".specific.CrashReportActivity"
-			android:label="@string/label" />
+			android:label="@string/label"
+			android:parentActivityName=".specific.CrashReportHome" />
 
 		<activity
 			android:name=".specific.DeviceInfoActivity"
-			android:label="@string/label" />
+			android:label="@string/label"
+			android:parentActivityName=".specific.CrashReportHome" />
 
 		<activity
 			android:name=".specific.CrashReportHome"
-			android:label="@string/label" >
+			android:label="@string/label"
+			android:launchMode="singleTask" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -169,7 +172,8 @@
 		<service android:name=".specific.PhoneInspectorService"/>
 
 		<activity android:name="StartServiceActivity"
-		    android:launchMode="singleTop">
+		    android:launchMode="singleTop"
+			android:parentActivityName=".specific.CrashReportHome" >
 			<intent-filter>
 				<action android:name="com.intel.crashreport.intent.START_SERVICE"></action>
 				<category android:name="android.intent.category.DEFAULT"></category>
@@ -181,7 +185,9 @@
 		<activity android:name="NotifyEventActivity"/>
 
 		<!-- LogConfig -->
-		<activity android:name=".logconfig.ui.LogConfigHomeActivity"/>
+		<activity android:name=".logconfig.ui.LogConfigHomeActivity"
+				  android:parentActivityName=".specific.CrashReportHome" />
+
 		<activity android:name=".logconfig.ui.LogConfigDisplaySettingsActivity"/>
 
 		<receiver android:name=".logconfig.BootConfigServiceReceiver">
@@ -193,7 +199,8 @@
 		<service android:name=".logconfig.ConfigService" />
 
 
-        <activity android:name=".bugzilla.ui.common.BugzillaMainActivity" >
+        <activity android:name=".bugzilla.ui.common.BugzillaMainActivity"
+				  android:parentActivityName=".specific.CrashReportHome" >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -207,10 +214,17 @@
                 <data android:mimeType="image/png" />
             </intent-filter>
         </activity>
-        <activity android:name=".bugzilla.ui.common.BugzillaSummaryActivity" />
-        <activity android:name=".bugzilla.ui.common.UserInformationsActivity" />
-        <activity android:name=".bugzilla.ui.common.ListBugzillaActivity" />
-        <activity android:name=".specific.UploadAplogActivity" />
+        <activity android:name=".bugzilla.ui.common.BugzillaSummaryActivity"
+				  android:parentActivityName=".specific.CrashReportHome" />
+
+        <activity android:name=".bugzilla.ui.common.UserInformationsActivity"
+				  android:parentActivityName=".specific.CrashReportHome" />
+
+        <activity android:name=".bugzilla.ui.common.ListBugzillaActivity"
+				  android:parentActivityName=".specific.CrashReportHome" />
+
+        <activity android:name=".specific.UploadAplogActivity"
+				  android:parentActivityName=".specific.CrashReportHome" />
 
         <activity
             android:name=".DisclaimerActivity"
@@ -242,7 +256,8 @@
         <service android:name=".receivers.EventReceiverService" />
 
         <activity android:name="com.intel.crashreport.specific.ListGcmMessagesActivity"
-		    android:launchMode="singleTop" />
+		    android:launchMode="singleTop"
+			android:parentActivityName=".specific.CrashReportHome" />
 
     </application>
 </manifest>
