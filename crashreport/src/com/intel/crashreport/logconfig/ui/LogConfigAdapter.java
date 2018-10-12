@@ -29,6 +29,7 @@ import java.util.List;
 import android.content.Context;
 import android.content.Intent;
 import android.os.UserHandle;
+import android.os.SystemProperties;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -38,6 +39,7 @@ import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.intel.crashreport.R;
 import com.intel.crashreport.logconfig.ConfigManager;
@@ -48,6 +50,7 @@ public class LogConfigAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater;
     private ConfigManager mConfigManager;
+    private Context mCtx;
 
     static class ViewHolder {
         CheckBox configEnabled;
@@ -57,6 +60,7 @@ public class LogConfigAdapter extends BaseAdapter {
     public LogConfigAdapter(Context context) {
         mConfigManager = ConfigManager.getInstance(context);
         mInflater = LayoutInflater.from(context);
+        mCtx = context;
     }
 
     public int getCount() {
@@ -118,6 +122,14 @@ public class LogConfigAdapter extends BaseAdapter {
     OnCheckedChangeListener configStatusSwitchListener = new OnCheckedChangeListener() {
         public void onCheckedChanged(CompoundButton buttonView,
                 boolean isChecked) {
+            String logConfigProp = SystemProperties.get("intel.logconfig.available", "");
+            if(!logConfigProp.equals("1")) {
+                final Toast toast = Toast.makeText(mCtx,
+                    "Property not available, don't allow to change.", Toast.LENGTH_SHORT);
+                toast.show();
+                buttonView.setChecked(!isChecked);
+                return;
+            }
             buttonView.setEnabled(false);
             ConfigStatus mConfigStatus =
                     mConfigManager.getConfigStatus((String) buttonView.getTag());
