@@ -69,8 +69,8 @@ public class PhoneInspector {
 	 * Crashlog daemon mode property : this property is read by crashlog daemon
 	 * allowing to modify its behavior
 	 */
-	private static final String FULL_DROPBOX_PROP = "persist.sys.crashlogd.mode";
-	private static final String DATA_QUOTA_PROP = "persist.crashlogd.data_quota";
+	private static final String FULL_DROPBOX_PROP = "persist.vendor.sys.crashlogd.mode";
+	private static final String DATA_QUOTA_PROP = "persist.vendor.crashlogd.data_quota";
 
 	/**
 	 * Values that can be taken by Crashlog daemon FULL_DROPBOX_PROP property

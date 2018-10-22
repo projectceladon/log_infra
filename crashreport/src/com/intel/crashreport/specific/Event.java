@@ -51,12 +51,12 @@ public class Event extends GeneralEvent{
 	private static final String SPID_FILE_PATH = Constants.LOGS_DIR + "/spid.txt";
 	private static final String EVENTS_DIR = Constants.LOGS_DIR + "/events";
 
-	private static final String TC_UUID_PROPERTY_NAME = "persist.crashlogd.TC.uuid";
-	private static final String TC_NAME_PROPERTY_NAME = "persist.crashlogd.TC.name";
-	private static final String TC_DATE_DUT_PROPERTY_NAME = "persist.crashlogd.TC.date_dut";
-	private static final String TC_DATE_HOST_PROPERTY_NAME = "persist.crashlogd.TC.date_host";
-	private static final String TC_ENGINE_PROPERTY_NAME = "persist.crashlogd.TC.engine";
-	private static final String TC_ITER_PROPERTY_NAME = "persist.crashlogd.TC.iteration";
+	private static final String TC_UUID_PROPERTY_NAME = "persist.vendor.crashlogd.TC.uuid";
+	private static final String TC_NAME_PROPERTY_NAME = "persist.vendor.crashlogd.TC.name";
+	private static final String TC_DATE_DUT_PROPERTY_NAME = "persist.vendor.crashlogd.TC.date_dut";
+	private static final String TC_DATE_HOST_PROPERTY_NAME = "persist.vendor.crashlogd.TC.date_host";
+	private static final String TC_ENGINE_PROPERTY_NAME = "persist.vendor.crashlogd.TC.engine";
+	private static final String TC_ITER_PROPERTY_NAME = "persist.vendor.crashlogd.TC.iteration";
 
 	public Event() {
 		super();

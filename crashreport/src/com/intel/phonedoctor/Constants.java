@@ -38,7 +38,7 @@ public class Constants {
     /**
      * Base folder for all logs and DnT specific files
      */
-    public static final String LOGS_DIR = SystemProperties.get("persist.crashlogd.root", "/logs");
+    public static final String LOGS_DIR = SystemProperties.get("persist.vendor.crashlogd.root", "/logs");
 
     /**
      * Folder used by EventGenerator to store event data folders

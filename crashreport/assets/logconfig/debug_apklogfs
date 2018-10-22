@@ -5,7 +5,7 @@
         {
             "type":"prop",
             "data": {
-                "name":"persist.service.apklogfs.enable",
+                "name":"persist.vendor.service.apklogfs.enable",
                 "value":"1"
             }
         }
@@ -14,7 +14,7 @@
         {
             "type":"prop",
             "data": {
-                "name":"persist.service.apklogfs.enable",
+                "name":"persist.vendor.service.apklogfs.enable",
                 "value": "0"
             }
         }

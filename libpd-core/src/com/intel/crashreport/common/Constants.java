@@ -32,6 +32,6 @@ public class Constants {
 	public static final int BEGIN_FIBONACCI = 13;
 	public static final int BEGIN_FIBONACCI_BEFORE = 8;
 
-	public static final String LOGS_DIR = SystemProperties.get("persist.crashlogd.root", "/logs");
+	public static final String LOGS_DIR = SystemProperties.get("persist.vendor.crashlogd.root", "/logs");
 	public static final String PRODUCT_PROPERTY_NAME = "ro.build.product";
 }

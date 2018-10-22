@@ -38,7 +38,7 @@ import android.os.SystemProperties;
 
 public class Status implements ISubCommand {
 
-	public static final String PATH_LOGS = SystemProperties.get("persist.crashlogd.root", "/logs") + "/";
+	public static final String PATH_LOGS = SystemProperties.get("persist.vendor.crashlogd.root", "/logs") + "/";
 	public static final String PATH_SD_LOGS = "/mnt/sdcard/logs";
 	String[] myArgs;
 	Options myOptions;

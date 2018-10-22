@@ -174,8 +174,8 @@ public class CrashReportService extends Service {
 		public void run() {
 			prefs = new ApplicationPreferences(getApplicationContext());
 			String uploadState = prefs.getUploadState();
-			if ( SystemProperties.get("persist.crashreport.disabled", "0").equals("1")) {
-				Log.d(MODULE+": Property persist.crashreport.disabled set to 1");
+			if ( SystemProperties.get("persist.vendor.crashreport.disabled", "0").equals("1")) {
+				Log.d(MODULE+": Property persist.vendor.crashreport.disabled set to 1");
 				serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 			}
 			else{
@@ -275,9 +275,9 @@ public class CrashReportService extends Service {
 	private Runnable askForUpload = new Runnable() {
 		public void run() {
 			if (app.isActivityBounded()) {
-				if( SystemProperties.get("persist.crashreport.disabled", "0").equals("1") ) {
-					sendMsgToActivity("Warning : Background Upload is disabled due to property persist.crashreport.disabled set to 1");
-					Log.d(MODULE+": Property persist.crashreport.disabled set to 1");
+				if( SystemProperties.get("persist.vendor.crashreport.disabled", "0").equals("1") ) {
+					sendMsgToActivity("Warning : Background Upload is disabled due to property persist.vendor.crashreport.disabled set to 1");
+					Log.d(MODULE+": Property persist.vendor.crashreport.disabled set to 1");
 					serviceHandler.sendEmptyMessage(ServiceMsg.uploadDisabled);
 				} else {
 					ApplicationPreferences prefs = new ApplicationPreferences(getApplicationContext());

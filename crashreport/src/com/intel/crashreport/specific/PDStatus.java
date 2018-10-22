@@ -60,7 +60,7 @@ import org.json.JSONException;
   * Check if there is enough space available on the /logs partition.
   * Check if the PhoneDoctor database is available.
   * Check if a sdcard is present on the device and if it is available.
-  * Test the value of the persist.core.enabled property.
+  * Test the value of the persist.vendor.core.enabled property.
   * Check if the history_event file is not corrupted.
   * Check if logs have to be upload or not.
   * Check if logs have to be upload only over a Wifi connection.
@@ -165,7 +165,7 @@ public enum PDStatus {
 						if(result.equals("1"))
 							result = checkFile(event, FABRIC_ERROR_FILE_PATTERN);
 						if(result.equals("1") &&
-								SystemProperties.get("persist.fwlog.enable", "0").equals("1"))
+								SystemProperties.get("persist.vendor.fwlog.enable", "0").equals("1"))
 							result = checkFile(event, OFFLINE_SCU_FILE_PATTERN);
 					}
 				}
@@ -314,13 +314,13 @@ public enum PDStatus {
 		}),
 		CORE_ENABLED (PDSTATUS_TIME.INSERTION_TIME, 1, new PDStatusInterface(){
 			/**
-			 * @brief Test the value of the persist.core.enabled property.
+			 * @brief Test the value of the persist.vendor.core.enabled property.
 			 * @return String : 1 or P (property set to 0), depends on the value of the property.
 			 */
 			@Override
 			public String computeValue() {
 				String result;
-				result = SystemProperties.get("persist.core.enabled", "x");
+				result = SystemProperties.get("persist.vendor.core.enabled", "x");
 				if(!result.equals("1"))
 					result = "P";
 				return result;

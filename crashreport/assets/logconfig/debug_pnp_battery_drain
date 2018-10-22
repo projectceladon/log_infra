@@ -5,14 +5,14 @@
         {
             "type":"prop",
             "data": {
-                "name":"log.tag.PowerManagerService",
+                "name":"vendor.log.tag.PowerManagerService",
                 "value":"DEBUG"
             }
         },
         {
             "type":"prop",
             "data": {
-                "name":"persist.service.profile.enable",
+                "name":"persist.vendor.service.profile.enable",
                 "value":"2"
             }
         }
@@ -21,14 +21,14 @@
         {
             "type":"prop",
             "data": {
-                "name":"log.tag.PowerManagerService",
+                "name":"vendor.log.tag.PowerManagerService",
                 "value":"NONE"
             }
         },
         {
             "type":"prop",
             "data": {
-                "name":"persist.service.profile.enable",
+                "name":"persist.vendor.service.profile.enable",
                 "value":"0"
             }
         }

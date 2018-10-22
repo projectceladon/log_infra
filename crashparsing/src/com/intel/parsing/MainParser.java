@@ -45,7 +45,7 @@ import android.os.SystemProperties;
 
 public class MainParser{
 
-	public static final String PATH_LOGS = SystemProperties.get("persist.crashlogd.root", "/logs");
+	public static final String PATH_LOGS = SystemProperties.get("persist.vendor.crashlogd.root", "/logs");
 	public static final String PATH_UUID = PATH_LOGS + "/uuid.txt";
 
 	private final static String[] LEGACY_BOARD_FABRIC = {"redhookbay","victoriabay"};
