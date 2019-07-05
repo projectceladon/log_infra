@@ -124,30 +124,4 @@
         <item name="android:background">@drawable/spinner_ab_intel</item>
     </style>
 
-
-
-
-
-  <!-- style name="ImageButtonTheme.Intel" parent="android:Widget.Holo.Light.ImageButton">
-	  <item name="android:background">@drawable/btn_default_holo_light</item>
-  </style>
-
-  <style name="RatingBarTheme.Intel" parent="android:Widget.Holo.Light.RatingBar">
-      <item name="android:progressDrawable">@drawable/ratingbar_full_holo_light</item>
-      <item name="android:indeterminateDrawable">@drawable/ratingbar_full_holo_light</item>
-  </style>
-
-  <style name="RatingBarBigTheme.Intel" parent="android:Widget.Holo.Light.RatingBar.Indicator">
-      <item name="android:progressDrawable">@drawable/ratingbar_holo_light</item>
-      <item name="android:indeterminateDrawable">@drawable/ratingbar_holo_light</item>
-  </style>
-
-  <style name="RatingBarSmallTheme.Intel" parent="android:Widget.Holo.Light.RatingBar.Small">
-      <item name="android:progressDrawable">@drawable/ratingbar_small_holo_light</item>
-      <item name="android:indeterminateDrawable">@drawable/ratingbar_small_holo_light</item>
-  </style>
-
-  <style name="ToggleTheme.Intel" parent="android:Widget.Holo.Light.Button.Toggle">
-      <item name="android:background">@drawable/btn_toggle_holo_light</item>
-  </style -->
 </resources>

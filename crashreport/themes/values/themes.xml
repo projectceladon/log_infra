@@ -70,21 +70,5 @@
         <!-- item name="android:switchStyle">@style/Widget.Intel.CompoundButton.Switch</item -->
 
 
-
-
-
-<!-- item name="checkBoxPreferenceStyle">@android:style/Preference.Holo.CheckBoxPreference</item>
-<item name="switchPreferenceStyle">@android:style/Preference.Holo.SwitchPreference</item>
-<item name="yesNoPreferenceStyle">@android:style/Preference.Holo.DialogPreference.YesNoPreference</item -->
-
-<!--
-        <item name="android:imageButtonStyle">@style/ImageButtonTheme.Intel</item>
-        <item name="android:ratingBarStyle">@style/RatingBarTheme.Intel</item>
-        <item name="android:ratingBarStyleIndicator">@style/RatingBarBigTheme.Intel</item>
-        <item name="android:ratingBarStyleSmall">@style/RatingBarSmallTheme.Intel</item>
-        <item name="android:buttonStyleToggle">@style/ToggleTheme.Intel</item>
-        <item name="android:fastScrollThumbDrawable">@drawable/fastscroll_thumb_holo</item>
--->
-
     </style>
 </resources>
