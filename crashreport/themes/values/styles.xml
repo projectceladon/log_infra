@@ -1,127 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    INTEL CONFIDENTIAL
+<!-- Copyright (C) 2019 Intel Corporation
 
-    Copyright (C) 2012-2013, Intel Corporation. All Rights Reserved.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
-    The source code contained or described herein and all documents related to the source code
-    ("Material") are owned by Intel Corporation or its suppliers or licensors. Title to the Material
-    remains with Intel Corporation or its suppliers and licensors. The Material contains trade
-    secrets and proprietary and confidential information of Intel or its suppliers and licensors.
-    The Material is protected by worldwide copyright and trade secret laws and treaty provisions.
-    No part of the Material may be used, copied, reproduced, modified, published, uploaded, posted,
-    transmitted, distributed, or disclosed in any way without Intel’s prior express written
-    permission.
+      http://www.apache.org/licenses/LICENSE-2.0
 
-    No license under any patent, copyright, trade secret or other intellectual property right is
-    granted to or conferred upon you by disclosure or delivery of the Materials, either expressly,
-    by implication, inducement, estoppel or otherwise. Any license under such intellectual property
-    rights must be express and approved by Intel in writing.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Generated with http://android-holo-colors.com -->
 
-    <style name="Widget.Intel.ActionBar" parent="android:Widget.Holo.Light.ActionBar.Solid.Inverse">
+    <style name="Widget.ActionBar" parent="android:Widget.Holo.Light.ActionBar.Solid.Inverse">
         <item name="android:background">@drawable/action_bar</item>
         <item name="android:backgroundStacked">@drawable/ab_stacked_solid_light_holo</item>
         <item name="android:backgroundSplit">@drawable/ab_bottom_solid_light_holo</item>
-        <item name="android:indeterminateProgressStyle">@style/Widget.Intel.ProgressBar</item>
-        <item name="android:progressBarStyle">@style/Widget.Intel.ProgressBar.Horizontal</item>
+        <item name="android:indeterminateProgressStyle">@style/Widget.ProgressBar</item>
+        <item name="android:progressBarStyle">@style/Widget.ProgressBar.Horizontal</item>
     </style>
 
-    <style name="Widget.Intel.ActionBar.TabView" parent="@android:style/Widget.Holo.Light.ActionBar.TabView">
-        <!-- item name="android:background">@drawable/tab_indicator_intel</item -->
+    <style name="Widget.ActionBar.TabView" parent="@android:style/Widget.Holo.Light.ActionBar.TabView">
+        <!-- item name="android:background">@drawable/tab_indicator</item -->
     </style>
 
-    <style name="Widget.Intel.AutoCompleteTextView" parent="android:Widget.Holo.Light.AutoCompleteTextView">
-        <item name="android:dropDownSelector">@drawable/list_selector_intel</item>
-        <item name="android:background">@drawable/edit_text_intel</item>
+    <style name="Widget.AutoCompleteTextView" parent="android:Widget.Holo.Light.AutoCompleteTextView">
+        <item name="android:dropDownSelector">@drawable/list_selector</item>
+        <item name="android:background">@drawable/edit_text</item>
     </style>
 
-    <style name="Widget.Intel.Button" parent="android:Widget.Holo.Light.Button">
-        <item name="android:background">@drawable/btn_blue_intel</item>
+    <style name="Widget.Button" parent="android:Widget.Holo.Light.Button">
+        <item name="android:background">@drawable/btn_blue</item>
         <item name="android:textColor">@color/primary_text_holo_light</item>
     </style>
 
-    <style name="Widget.Intel.Button.Gray" parent="android:Widget.Holo.Light.Button">
-        <item name="android:background">@drawable/btn_gray_intel</item>
+    <style name="Widget.Button.Gray" parent="android:Widget.Holo.Light.Button">
+        <item name="android:background">@drawable/btn_gray</item>
     </style>
 
-    <style name="Widget.Intel.Button.Red" parent="Widget.Intel.Button">
-        <item name="android:background">@drawable/btn_red_intel</item>
+    <style name="Widget.Button.Red" parent="Widget.Button">
+        <item name="android:background">@drawable/btn_red</item>
     </style>
 
-    <style name="Widget.Intel.Button.Small" parent="android:Widget.Holo.Light.Button.Small">
-        <item name="android:background">@drawable/btn_blue_intel</item>
+    <style name="Widget.Button.Small" parent="android:Widget.Holo.Light.Button.Small">
+        <item name="android:background">@drawable/btn_blue</item>
         <item name="android:textColor">@color/primary_text_holo_light</item>
     </style>
 
-    <style name="Widget.Intel.Button.Small.Gray" parent="android:Widget.Holo.Light.Button.Small">
-        <item name="android:background">@drawable/btn_gray_intel</item>
+    <style name="Widget.Button.Small.Gray" parent="android:Widget.Holo.Light.Button.Small">
+        <item name="android:background">@drawable/btn_gray</item>
     </style>
 
-    <style name="Widget.Intel.Button.Small.Red" parent="Widget.Intel.Button.Small">
-        <item name="android:background">@drawable/btn_red_intel</item>
+    <style name="Widget.Button.Small.Red" parent="Widget.Button.Small">
+        <item name="android:background">@drawable/btn_red</item>
     </style>
 
-    <style name="Widget.Intel.CompoundButton.CheckBox" parent="android:Widget.Holo.Light.CompoundButton.CheckBox">
+    <style name="Widget.CompoundButton.CheckBox" parent="android:Widget.Holo.Light.CompoundButton.CheckBox">
         <item name="android:button">?android:attr/listChoiceIndicatorMultiple</item>
     </style>
 
-    <style name="Widget.Intel.CompoundButton.RadioButton" parent="android:Widget.Holo.Light.CompoundButton.RadioButton">
+    <style name="Widget.CompoundButton.RadioButton" parent="android:Widget.Holo.Light.CompoundButton.RadioButton">
         <item name="android:button">?android:attr/listChoiceIndicatorSingle</item>
     </style>
 
-    <style name="Widget.Intel.ExpandableListView" parent="android:Widget.Holo.Light.ExpandableListView">
-        <item name="android:groupIndicator">@drawable/expander_group_intel</item>
+    <style name="Widget.ExpandableListView" parent="android:Widget.Holo.Light.ExpandableListView">
+        <item name="android:groupIndicator">@drawable/expander_group</item>
     </style>
 
-    <style name="Widget.Intel.ListPopupWindow" parent="android:Widget.Holo.Light.ListPopupWindow">
-        <item name="android:dropDownSelector">@drawable/list_selector_intel</item>
+    <style name="Widget.ListPopupWindow" parent="android:Widget.Holo.Light.ListPopupWindow">
+        <item name="android:dropDownSelector">@drawable/list_selector</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar" parent="android:Widget.Holo.Light.ProgressBar">
-        <item name="android:indeterminateDrawable">@drawable/progress_medium_intel</item>
+    <style name="Widget.ProgressBar" parent="android:Widget.Holo.Light.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/progress_medium</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar.Horizontal" parent="android:Widget.Holo.Light.ProgressBar.Horizontal">
-        <item name="android:progressDrawable">@drawable/progress_horizontal_intel</item>
-        <item name="android:indeterminateDrawable">@drawable/progress_indeterminate_horizontal_intel</item>
+    <style name="Widget.ProgressBar.Horizontal" parent="android:Widget.Holo.Light.ProgressBar.Horizontal">
+        <item name="android:progressDrawable">@drawable/progress_horizontal</item>
+        <item name="android:indeterminateDrawable">@drawable/progress_indeterminate_horizontal</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar.Large" parent="android:Widget.Holo.Light.ProgressBar.Large">
-        <item name="android:indeterminateDrawable">@drawable/progress_large_intel</item>
+    <style name="Widget.ProgressBar.Large" parent="android:Widget.Holo.Light.ProgressBar.Large">
+        <item name="android:indeterminateDrawable">@drawable/progress_large</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar.Small" parent="android:Widget.Holo.Light.ProgressBar.Small">
-        <item name="android:indeterminateDrawable">@drawable/progress_small_intel</item>
+    <style name="Widget.ProgressBar.Small" parent="android:Widget.Holo.Light.ProgressBar.Small">
+        <item name="android:indeterminateDrawable">@drawable/progress_small</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar.Inverse" parent="Widget.Intel.ProgressBar">
-        <item name="android:indeterminateDrawable">@drawable/progress_medium_intel_inverse</item>
+    <style name="Widget.ProgressBar.Inverse" parent="Widget.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/progress_medium_inverse</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar.Large.Inverse" parent="Widget.Intel.ProgressBar.Large">
-        <item name="android:indeterminateDrawable">@drawable/progress_medium_intel_inverse</item>
+    <style name="Widget.ProgressBar.Large.Inverse" parent="Widget.ProgressBar.Large">
+        <item name="android:indeterminateDrawable">@drawable/progress_medium_inverse</item>
     </style>
 
-    <style name="Widget.Intel.ProgressBar.Small.Inverse" parent="Widget.Intel.ProgressBar.Small">
-        <item name="android:indeterminateDrawable">@drawable/progress_medium_intel_inverse</item>
+    <style name="Widget.ProgressBar.Small.Inverse" parent="Widget.ProgressBar.Small">
+        <item name="android:indeterminateDrawable">@drawable/progress_medium_inverse</item>
     </style>
 
-    <style name="Widget.Intel.SeekBar" parent="android:Widget.Holo.Light.SeekBar">
-        <item name="android:progressDrawable">@drawable/scrubber_progress_horizontal_intel</item>
-        <item name="android:indeterminateDrawable">@drawable/scrubber_progress_horizontal_intel</item>
-        <item name="android:thumb">@drawable/scrubber_control_selector_intel</item>
+    <style name="Widget.SeekBar" parent="android:Widget.Holo.Light.SeekBar">
+        <item name="android:progressDrawable">@drawable/scrubber_progress_horizontal</item>
+        <item name="android:indeterminateDrawable">@drawable/scrubber_progress_horizontal</item>
+        <item name="android:thumb">@drawable/scrubber_control_selector</item>
     </style>
 
-    <style name="Widget.Intel.Spinner" parent="android:Widget.Holo.Light.Spinner">
-        <item name="android:background">@drawable/spinner_background_intel</item>
-        <item name="android:dropDownSelector">@drawable/list_selector_intel</item>
+    <style name="Widget.Spinner" parent="android:Widget.Holo.Light.Spinner">
+        <item name="android:background">@drawable/spinner_background</item>
+        <item name="android:dropDownSelector">@drawable/list_selector</item>
     </style>
 
-    <style name="Widget.Intel.Spinner.DropDown.ActionBar" parent="Widget.Intel.Spinner">
-        <item name="android:background">@drawable/spinner_ab_intel</item>
+    <style name="Widget.Spinner.DropDown.ActionBar" parent="Widget.Spinner">
+        <item name="android:background">@drawable/spinner_ab</item>
     </style>
 
 </resources>

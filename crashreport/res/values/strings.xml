@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- INTEL CONFIDENTIAL
-     Copyright 2015 Intel Corporation
+<!-- Copyright (C) 2019 Intel Corporation
 
-     The source code contained or described herein and all documents
-     related to the source code ("Material") are owned by Intel
-     Corporation or its suppliers or licensors. Title to the Material
-     remains with Intel Corporation or its suppliers and
-     licensors. The Material contains trade secrets and proprietary
-     and confidential information of Intel or its suppliers and
-     licensors. The Material is protected by worldwide copyright and
-     trade secret laws and treaty provisions. No part of the Material
-     may be used, copied, reproduced, modified, published, uploaded,
-     posted, transmitted, distributed, or disclosed in any way without
-     Intel's prior express written permission.
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
 
-     No license under any patent, copyright, trade secret or other
-     intellectual property right is granted to or conferred upon you
-     by disclosure or delivery of the Materials, either expressly, by
-     implication, inducement, estoppel or otherwise. Any license under
-     such intellectual property rights must be express and approved by
-     Intel in writing.
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 -->
 
 <resources>
 <!-- App settings -->
-    <string name="app_name">Intel&#174; Phone Doctor</string>
+    <string name="app_name">Phone Doctor</string>
     <string name="app_version">2.0</string>
 
     <!-- Private settings -->
 
     <!-- Server address -->
     <string name="settings_private_app_server_host_key">settings_private_app_server_host</string>
-    <string name="settings_private_app_server_host_value">clota.intel.com</string>
+    <string name="settings_private_app_server_host_value">server</string>
 
     <!-- Server port -->
     <string name="settings_private_app_server_port_key">settings_private_app_server_port</string>
@@ -64,7 +57,7 @@
     <string name="menu_grid">Grid</string>
     <string name="menu_list">List</string>
     <string name="menu_about">About</string>
-    <string name="label">Intel&#174; Phone Doctor</string>
+    <string name="label">Phone Doctor</string>
     <string name="settings_button_report">Device Events</string>
     <string name="about_title">Phone Doctor Informations</string>
     <string name="button_logconfig_text">Log Profiles</string>
@@ -120,9 +113,9 @@
     <string name="settings_bugzilla_user_first_name_value_default"></string>
 
     <string name="settings_bugzilla_user_email_key">settings_bugzilla_user_email</string>
-    <string name="settings_bugzilla_user_email_title">Intel email</string>
-    <string name="settings_bugzilla_user_email_summary">Intel user email</string>
-    <string name="settings_bugzilla_user_email_value_default">\@intel.com</string>
+    <string name="settings_bugzilla_user_email_title">Email</string>
+    <string name="settings_bugzilla_user_email_summary">User email</string>
+    <string name="settings_bugzilla_user_email_value_default"></string>
 
     <string name="settings_communication_category_title">Communication</string>
     <string name="settings_gcm_activation_key">settings_gcm_activation</string>
@@ -150,8 +143,8 @@
     <string name="user_informations_lastname">User last name :</string>
     <string name="user_informations_email">Email :</string>
     <string name="user_informations_button">Save personnal informations</string>
-    <string name="enter_intel_email">Enter your intel email.</string>
-    <string name="intel_email">\@intel.com</string>
+    <string name="enter_email">Enter your email.</string>
+    <string name="email_address"></string>
     <string name="list_bugzilla">BUG History</string>
     <string name="list_bugzilla_title">Bug events created with the phone :</string>
 
