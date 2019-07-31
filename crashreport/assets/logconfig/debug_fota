@@ -1,0 +1,22 @@
+{
+    "description":"FOTA logs",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.Fota",
+                "value":"DEBUG"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.Fota",
+                "value":"RELEASE"
+            }
+        }
+    ]
+}

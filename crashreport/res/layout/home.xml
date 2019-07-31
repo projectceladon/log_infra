@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/button_report_events"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings_button_report" />
+
+    <Button
+        android:id="@+id/button_report_aplogs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_aplogs" />
+
+    <Button
+        android:id="@+id/button_logconfig"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/button_logconfig_text" />
+
+    <Button
+        android:id="@+id/button_list_bugzilla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/list_bugzilla" />
+
+    <Button
+        android:id="@+id/button_report_bugzilla"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_bugzilla"
+        android:textSize="24sp"/>
+
+    <Button
+        android:id="@+id/button_list_gcm_messages"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_gcm_list" />
+
+    <Button
+        android:id="@+id/button_device_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/menu_device_info" />
+
+
+</LinearLayout>

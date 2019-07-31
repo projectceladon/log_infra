@@ -1,0 +1,36 @@
+{
+    "description":"Battery drain profiler",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"vendor.log.tag.PowerManagerService",
+                "value":"DEBUG"
+            }
+        },
+        {
+            "type":"prop",
+            "data": {
+                "name":"persist.vendor.service.profile.enable",
+                "value":"2"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"vendor.log.tag.PowerManagerService",
+                "value":"NONE"
+            }
+        },
+        {
+            "type":"prop",
+            "data": {
+                "name":"persist.vendor.service.profile.enable",
+                "value":"0"
+            }
+        }
+    ]
+}

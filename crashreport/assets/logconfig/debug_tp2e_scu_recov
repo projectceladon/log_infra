@@ -1,0 +1,24 @@
+{
+    "description":"Recoverable Fabric Error",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/kernel/debug/tp2e/events/tp2e/tp2e_scu_recov_event/enable",
+                "value":"1",
+                "append":"false"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/kernel/debug/tp2e/events/tp2e/tp2e_scu_recov_event/enable",
+                "value":"0",
+                "append":"false"
+            }
+        }
+    ]
+}

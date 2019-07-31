@@ -1,0 +1,24 @@
+{
+    "description":"PnP Disable S3",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/module/intel_soc_pmu/parameters/enable_s3",
+                "value":"0",
+                "append":"false"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"file",
+            "data": {
+                "path":"/sys/module/intel_soc_pmu/parameters/enable_s3",
+                "value":"1",
+                "append":"false"
+            }
+        }
+    ]
+}

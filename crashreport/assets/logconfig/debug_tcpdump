@@ -1,0 +1,22 @@
+{
+    "description":"Dump network traffic to file",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.wifi.dump",
+                "value":"ON"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.wifi.dump",
+                "value":"OFF"
+            }
+        }
+    ]
+}

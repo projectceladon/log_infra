@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<resources>
+<!-- App settings -->
+    <string name="app_name">Phone Doctor</string>
+    <string name="app_version">2.0</string>
+
+    <!-- Private settings -->
+
+    <!-- Server address -->
+    <string name="settings_private_app_server_host_key">settings_private_app_server_host</string>
+    <string name="settings_private_app_server_host_value">server</string>
+
+    <!-- Server port -->
+    <string name="settings_private_app_server_port_key">settings_private_app_server_port</string>
+    <string name="settings_private_app_server_port_value">4101</string>
+
+    <!-- Bugzilla test mode -->
+    <string name="settings_private_bugzilla_test_mode_key">settings_private_bugzilla_test_mode</string>
+    <string name="settings_private_bugzilla_test_mode_value">false</string>
+
+    <!-- GCM token id -->
+    <string name="settings_private_app_gcm_token_key">settings_private_app_gcm_token</string>
+
+    <!-- Build -->
+    <string name="settings_private_app_build_key">settings_private_app_build</string>
+
+    <!-- Event filter choice -->
+    <string name="settings_private_app_event_filter_key">settings_private_app_event_filter</string>
+
+
+<!-- UI values -->
+    <string name="upload_state_item_index">upload_state_item_index</string>
+    <string name="alert_dialog_ok">OK</string>
+    <string name="alert_dialog_cancel">Cancel</string>
+    <string name="alert_dialog_yes">Yes</string>
+    <string name="alert_dialog_no">No</string>
+    <string name="alert_dialog_upload_save">"Always report ?"</string>
+    <string name="start_service_activity_cancel_report">Cancel Report</string>
+    <string name="start_service_activity_please_wait">Please wait</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_grid">Grid</string>
+    <string name="menu_list">List</string>
+    <string name="menu_about">About</string>
+    <string name="label">Phone Doctor</string>
+    <string name="settings_button_report">Device Events</string>
+    <string name="about_title">Phone Doctor Informations</string>
+    <string name="button_logconfig_text">Log Profiles</string>
+    <string name="button_submit_log_config_text">Disable all logs configurations</string>
+    <string name="persistant_text">Configuration persistant</string>
+    <string name="menu_aplogs">Send Logs</string>
+    <string name="menu_bugzilla">Raise a BUG</string>
+    <string name="menu_gcm_list">Messages</string>
+    <string name="menu_device_info">Device Info</string>
+    <string name="activity_name"></string>
+    <string name="start_service_activity_AskForUpload_title">Phone Doctor management</string>
+
+    <!-- Settings Activity -->
+    <string name="settings_event_report_management_key">settings_event_report_management</string>
+    <string name="settings_event_report_management_title">Report Management</string>
+    <string name="settings_event_report_management_summary">How application react to new events</string>
+    <string name="settings_event_report_management_value_default">uploadImmediately</string>
+
+    <string name="settings_event_data_category_title">Event data</string>
+    <string name="settings_event_data_category_key">settings_event_data</string>
+
+    <string name="settings_event_data_enable_key">settings_event_data_enable</string>
+    <string name="settings_event_data_enable_title">Event data report</string>
+    <string name="settings_event_data_enable_summary">Enable event data files to be uploaded</string>
+    <string name="settings_event_data_enable_value_default">true</string>
+
+    <string name="settings_event_data_types_key">settings_event_data_types</string>
+    <string name="settings_event_data_types_title">Excluded crash data types</string>
+    <string name="settings_event_data_types_dialog_title">Crash data types to exclude</string>
+    <string name="settings_event_data_types_summary">List excluded crash data types from upload</string>
+    <string name="settings_event_data_types_value_default">HPROF</string>
+
+    <string name="settings_connection_wifi_only_key">settings_connection_wifi_only</string>
+    <string name="settings_connection_wifi_only_title">WiFi only</string>
+    <string name="settings_connection_wifi_only_summary">Upload event data files through WiFi only</string>
+    <string name="settings_connection_wifi_only_value_default">false</string>
+
+    <string name="settings_all_crash_notification_key">settings_all_crash_notification</string>
+    <string name="settings_all_crash_notification_title">All crash notification</string>
+    <string name="settings_all_crash_notification_summary">Display persistent notification for all crashes</string>
+    <string name="settings_all_crash_notification_value_default">false</string>
+
+    <string name="settings_bugzilla_category_title">Bugzilla report settings</string>
+
+    <string name="settings_bugzilla_user_last_name_key">settings_bugzilla_user_last_name</string>
+    <string name="settings_bugzilla_user_last_name_title">Last Name</string>
+    <string name="settings_bugzilla_user_last_name_summary">User last name</string>
+    <string name="settings_bugzilla_user_last_name_value_default"></string>
+
+    <string name="settings_bugzilla_user_first_name_key">settings_bugzilla_user_first_name</string>
+    <string name="settings_bugzilla_user_first_name_title">First name</string>
+    <string name="settings_bugzilla_user_first_name_summary">User first name</string>
+    <string name="settings_bugzilla_user_first_name_value_default"></string>
+
+    <string name="settings_bugzilla_user_email_key">settings_bugzilla_user_email</string>
+    <string name="settings_bugzilla_user_email_title">Email</string>
+    <string name="settings_bugzilla_user_email_summary">User email</string>
+    <string name="settings_bugzilla_user_email_value_default"></string>
+
+    <string name="settings_communication_category_title">Communication</string>
+    <string name="settings_gcm_activation_key">settings_gcm_activation</string>
+    <string name="settings_gcm_activation_title">GCM Messaging</string>
+    <string name="settings_gcm_activation_summary">Activate the GCM Messaging system</string>
+    <string name="settings_gcm_activation_value_default">true</string>
+
+
+    <!-- Bugzilla part-->
+    <string name="reporting_state_item">-1</string>
+    <string name="warning_report_a_bug_start">Bug reporting is still progress. \nPlease retry after a few seconds. \n This check will automatically be bypassed after 3 tries, with possible impact on the previously reported issue.</string>
+    <string name="title_activity_bugzilla_main">BugzillaMainActivity</string>
+    <string name="bugzilla_title">Summary :</string>
+    <string name="bugzilla_summary">Description :</string>
+    <string name="bugzilla_apply">Report</string>
+    <string name="bugzilla_screenshot">Attach screen capture(s)</string>
+    <string name="bugzilla_send">Send report</string>
+    <string name="bugzilla_edit">Edit report</string>
+    <string name="title_activity_bugzilla_summary">BugzillaSummaryActivity</string>
+    <string name="bugzilla_type">Type:</string>
+    <string name="bugzilla_severity">Severity:</string>
+    <string name="bugzilla_time">When:</string>
+    <string name="bugzilla_component">Component:</string>
+    <string name="user_informations_firstname">User first name :</string>
+    <string name="user_informations_lastname">User last name :</string>
+    <string name="user_informations_email">Email :</string>
+    <string name="user_informations_button">Save personnal informations</string>
+    <string name="enter_email">Enter your email.</string>
+    <string name="email_address"></string>
+    <string name="list_bugzilla">BUG History</string>
+    <string name="list_bugzilla_title">Bug events created with the phone :</string>
+
+    <!-- Device Info part-->
+    <string name="label_device_build">Build information:</string>
+    <string name="label_device_hw">Device information:</string>
+    <string name="label_device_ingredients">Ingredients information:</string>
+    <string name="label_device_uniques">Unique ingredients:</string>
+    <string name="label_device_display">Display information:</string>
+    <string name="label_device_miscelaneous">Miscelaneous information:</string>
+    <string name="text_device_info_failure">Failed to retrieve details!</string>
+    <string name="label_field_deviceId">Device id</string>
+    <string name="label_field_imei">IMEI</string>
+    <string name="label_field_ssn">SSN</string>
+    <string name="label_field_gcmToken">GCM token</string>
+    <string name="label_field_spid">SPID</string>
+    <string name="label_field_buildId">Build id</string>
+    <string name="label_field_fingerPrint">Fingerprint</string>
+    <string name="label_field_kernelVersion">Kernel version</string>
+    <string name="label_field_userHostname">User hostname</string>
+    <string name="label_field_os">OS</string>
+    <string name="label_field_display_width">Width</string>
+    <string name="label_field_display_height">Height</string>
+    <string name="label_field_GL_support">GL support</string>
+    <string name="label_field_GL_renderer">GL renderer</string>
+    <string name="label_field_GL_vendor">GL vendor</string>
+    <string name="label_field_GL_version">GL version</string>
+    <string name="label_field_GL_extensions">GL extensions</string>
+
+    <!-- Upload log part-->
+    <string name="aplog_summary">Comment :</string>
+    <string name="upload_log_button">Upload</string>
+    <string name="upload_log_ALL">All logs</string>
+    <string name="upload_log_DEFAULT">Default number of logs</string>
+    <string name="select_upload">Number of log to upload :</string>
+    <string name="extra_data_upload">Extra data to report :</string>
+    <string name="extra_data_thermal">include thermal report</string>
+
+    <!-- GCM part -->
+    <string name="gcm_list_title">GCM messages</string>
+    <string name="gcm_list_ok">Take action</string>
+    <string name="gcm_mark_all_as_read">Mark all as read</string>
+    <string name="gcm_filter">Filter GCM messages:</string>
+    <string name="gcm_filter_non_read">Display non read messages only</string>
+    <string name="gcm_filter_all">Show all</string>
+    <string name="settings_gcm_notification_sound">Enable sound for GCM notifications</string>
+    <string name="settings_gcm_notification_default_value">true</string>
+    <string name="settings_gcm_sound_activation_key">settings_gcm_sound_activation</string>
+    <string name="settings_gcm_sound_activation_title">GCM Notication sound</string>
+    <string name="settings_gcm_sound_activation_summary">Enable sound for GCM notifications</string>
+    <string name="settings_gcm_filter">GCM filter</string>
+
+    <!-- Disclaimer part -->
+    <string name="alert_disclaimer_accept">OK</string>
+    <string name="alert_disclaimer_text_error">Error while loading disclaimer</string>
+</resources>

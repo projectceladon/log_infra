@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+ <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
+
+     <LinearLayout
+       xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="0dip"
+       android:layout_weight="3"
+       android:orientation="vertical"
+       android:paddingLeft="5dp"
+       android:paddingRight="5dp" >
+
+     <TextView
+         android:id="@+id/lastNameView"
+         style="@style/BugzillaFont"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/user_informations_lastname" />
+
+     <EditText
+         android:id="@+id/lastNameText"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:inputType="text|textNoSuggestions"
+         android:lines="1"
+         android:textCursorDrawable="@null"
+         android:paddingLeft="1dp"
+         android:paddingRight="1dp" >
+
+         <requestFocus />
+     </EditText>
+
+     <TextView
+         android:id="@+id/firstNameView"
+         style="@style/BugzillaFontPadTop5"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/user_informations_firstname" />
+
+     <EditText
+         android:id="@+id/firstNameText"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:inputType="text|textNoSuggestions"
+         android:lines="1"
+         android:textCursorDrawable="@null"
+         android:paddingLeft="1dp"
+         android:paddingRight="1dp" >
+
+     </EditText>
+
+     <TextView
+         android:id="@+id/mailView"
+         style="@style/BugzillaFontPadTop5"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/user_informations_email" />
+
+     <EditText
+         android:id="@+id/mailText"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:hint="@string/enter_email"
+         android:inputType="textEmailAddress|textNoSuggestions"
+         android:lines="1"
+         android:text="@string/email_address"
+         android:textCursorDrawable="@null"
+         android:paddingLeft="1dp"
+         android:paddingRight="1dp" />
+
+    </LinearLayout>
+
+     <Button
+         android:id="@+id/infosSaveButton"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:text="@string/user_informations_button" />
+
+</LinearLayout>
+

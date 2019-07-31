@@ -1,0 +1,67 @@
+{
+    "description":"Parser for CHAABIWDT",
+    "event_name" : "CRASH",
+    "event_type" : "CHAABIWDT",
+    "rules": [
+        {
+            "id":"1",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW20:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA0"
+        },
+        {
+            "id":"2",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW21:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA1"
+        },
+        {
+            "id":"3",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW22:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA2"
+        },
+        {
+            "id":"4",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW23:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA3"
+        },
+        {
+            "id":"5",
+            "parsing_method":"textsearch",
+            "input_type":"file",
+            "input_value":"ipanic_fabric_err",
+            "matching_pattern":"DW24:",
+            "pattern_options": [
+                "full_line",
+                "prefix_search"
+                ],
+            "output_type":"DATA4"
+        }
+    ]
+}

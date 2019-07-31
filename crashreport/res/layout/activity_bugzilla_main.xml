@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+ <ScrollView
+        android:id="@+id/scrollView1"
+        android:layout_width="match_parent"
+        android:layout_height="0dip"
+        android:layout_weight="4">
+
+   <LinearLayout
+       xmlns:android="http://schemas.android.com/apk/res/android"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:orientation="vertical"
+       android:scrollbarStyle="outsideOverlay"
+       android:scrollbars="vertical"
+       android:paddingLeft="5dp"
+       android:paddingRight="5dp" >
+
+    <TextView
+        android:id="@+id/bz_title_view"
+        style="@style/BugzillaFont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/bugzilla_title" />
+
+    <EditText
+        android:id="@+id/bz_title_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:autoText="false"
+        android:inputType="text|textCapSentences"
+        android:maxLength="255"
+        android:lines="1"
+        android:maxLines="1"
+        android:textCursorDrawable="@null"
+        android:paddingRight="1dp"
+        android:paddingLeft="1dp" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/bz_type_view"
+        style="@style/BugzillaFontPadTop15"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_type" />
+
+    <Spinner
+        android:id="@+id/bz_type_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
+
+    <TextView
+        android:id="@+id/bz_severity_view"
+        style="@style/BugzillaFont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_severity" />
+
+    <Spinner
+        android:id="@+id/bz_severity_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
+
+    <TextView
+        android:id="@+id/bz_component_view"
+        style="@style/BugzillaFont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_component" />
+
+    <Spinner
+        android:id="@+id/bz_component_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:ems="10" />
+
+    <TextView
+        android:id="@+id/bz_summary_view"
+        style="@style/BugzillaFontPadTop15"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_summary" />
+
+    <EditText
+        android:id="@+id/bz_summary_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:autoText="false"
+        android:gravity="left|top"
+        android:maxLength="255"
+        android:inputType="textMultiLine|textCapSentences"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
+        android:textCursorDrawable="@null" />
+
+    <TextView
+        android:id="@+id/bz_time_view"
+        style="@style/BugzillaFont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:text="@string/bugzilla_time" />
+
+    <Spinner
+        android:id="@+id/bz_time_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" />
+
+    <RadioGroup android:layout_width="fill_parent"
+        android:layout_height="wrap_content" android:orientation="vertical"
+        android:id="@+id/bz_radiogroup_upload">
+
+    <TextView
+        android:id="@+id/bz_textViewSelect"
+        style="@style/BugzillaFontPadTop15"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/select_upload" />
+
+    <RadioButton
+        android:id="@+id/bz_radioButtonDefault"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="true"
+        android:text="@string/upload_log_DEFAULT" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <RadioButton
+        android:id="@+id/bz_radioButtonAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        android:text="@string/upload_log_ALL" />
+    </RadioGroup>
+
+     <CheckBox
+         android:id="@+id/bz_screenshot_box"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_alignParentLeft="true"
+         android:layout_alignParentRight="true"
+         android:layout_marginTop="15dp"
+         android:text="@string/bugzilla_screenshot" />
+
+     <Gallery
+         android:id="@+id/bz_select_screenshot"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:spacing="20dip" />
+
+</LinearLayout>
+</ScrollView>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/bz_apply_button"
+        style="@style/BugzillaFont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="end|center"
+        android:text="@string/bugzilla_apply" />
+
+</LinearLayout>
+</LinearLayout>

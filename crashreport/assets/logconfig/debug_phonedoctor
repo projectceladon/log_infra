@@ -1,0 +1,21 @@
+{
+    "description":"Debug Framework Integration",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.PhoneDoctor",
+                "value":"DEBUG"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"log.tag.PhoneDoctor",
+                "value":"RELEASE"}
+        }
+    ]
+}

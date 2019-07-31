@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<resources>
+    <string-array name="uploadStateMenuText">
+		<item>Ask before reporting</item>
+		<item>Always report</item>
+		<item>Postpone report</item>
+		<item>Never report</item>
+	</string-array>
+	<string-array name="uploadStateMenuValues">
+		<item>askForUpload</item>
+		<item>uploadImmediately</item>
+		<item>uploadReported</item>
+		<item>uploadDisabled</item>
+	</string-array>
+
+	<string-array name="uploadStateDialogText">
+		<item>Now</item>
+		<item>Postpone</item>
+		<item>Never</item>
+	</string-array>
+
+	<string-array name="reportCrashLogsTypeText">
+		<item>JAVACRASH</item>
+		<item>HPROF !!! 64 MB !!!</item>
+		<item>TOMBSTONE</item>
+		<item>APCOREDUMP !!! 20 MB !!!</item>
+		<item>ANR</item>
+		<item>MPANIC</item>
+		<item>APIMR</item>
+		<item>MRESET</item>
+		<item>WDT</item>
+		<item>IPANIC</item>
+		<item>FABRICERR</item>
+		<item>IPANIC_SWWDT</item>
+		<item>IPANIC_HWWDT</item>
+		<item>MEMERR</item>
+		<item>INSTERR</item>
+		<item>SRAMECCERR</item>
+		<item>HWWDTLOGERR</item>
+                <item>MSHUTDOWN</item>
+                <item>UIWDT</item>
+	</string-array>
+
+	<string-array name="reportCrashLogsTypeValues">
+		<item>JAVACRASH</item>
+		<item>HPROF</item>
+		<item>TOMBSTONE</item>
+		<item>APCOREDUMP</item>
+		<item>ANR</item>
+		<item>MPANIC</item>
+		<item>APIMR</item>
+		<item>MRESET</item>
+		<item>WDT</item>
+		<item>IPANIC</item>
+		<item>FABRICERR</item>
+		<item>IPANIC_SWWDT</item>
+		<item>IPANIC_HWWDT</item>
+		<item>MEMERR</item>
+		<item>INSTERR</item>
+		<item>SRAMECCERR</item>
+		<item>HWWDTLOGERR</item>
+		<item>MSHUTDOWN</item>
+		<item>UIWDT</item>
+
+	</string-array>
+
+	<string-array name="reportBugzillaTypeValues">
+		<item>Phone hang/freeze/reboot</item>
+		<item>Application restart</item>
+		<item>Preloaded Apps</item>
+		<item>Downloaded Apps</item>
+		<item>Experience UI-UX</item>
+		<item>Battery Drain</item>
+		<item>Call drop</item>
+		<item>3G Data loss</item>
+		<item>WiFi connectivity</item>
+		<item>Bluetooth</item>
+		<item>Audio Quality</item>
+		<item>Camera Quality</item>
+		<item>Google Mobile Services (GMS)</item>
+		<item>PC Connectivity (USB, Sync)</item>
+		<item>FOTA</item>
+		<item>HW Issue</item>
+		<item>Other</item>
+	</string-array>
+
+	<string-array name="reportBugzillaBplogTypeValues">
+		<item>Call drop</item>
+		<item>3G Data loss</item>
+	</string-array>
+
+	<string-array name="reportBugzillaSeverityValues">
+		<item>low</item>
+		<item>medium</item>
+		<item>high</item>
+		<item>critical</item>
+		<item>enhancement</item>
+	</string-array>
+
+	<string-array name="reportBugzillaComponentValues">
+		<item>_User_Trials</item>
+		<item>_Triage_general</item>
+	</string-array>
+
+	<string-array name="reportBugzillaComponentText">
+		<item>_User_Trials (DSP Testers)</item>
+		<item>_Triage_general</item>
+	</string-array>
+
+	<string-array name="reportBugzillaTimeValues">
+	    <item>seconds</item>
+		<item>minutes</item>
+		<item>half an hour</item>
+		<item>hour</item>
+		<item>day</item>
+		<item>week</item>
+		<item>month</item>
+		<item>year</item>
+	</string-array>
+
+	<string-array name="eventFilterText">
+	    <item>All events</item>
+		<item>All events excepted STATS</item>
+		<item>CRASH only</item>
+	</string-array>
+
+
+	<string-array name="gcmFilter">
+	    <item>Unread messages</item>
+		<item>All messages</item>
+	</string-array>
+
+</resources>

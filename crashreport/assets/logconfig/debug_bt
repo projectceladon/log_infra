@@ -1,0 +1,22 @@
+{
+    "description":"BlueTooth logs",
+    "type" : "normal",
+    "config": [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.bt",
+                "value":"ON"
+            }
+        }
+    ],
+    "rollBackConfig" : [
+        {
+            "type":"prop",
+            "data": {
+                "name":"dev.log.cws.bt",
+                "value":"OFF"
+            }
+        }
+    ]
+}

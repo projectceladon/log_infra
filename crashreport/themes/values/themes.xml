@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Generated with http://android-holo-colors.com -->
+    <style name="Theme.Theme1" parent="android:Theme.Holo.Light.DarkActionBar">
+        <item name="android:actionBarItemBackground">@drawable/item_background</item>
+        <item name="android:actionBarStyle">@style/Widget.ActionBar</item>
+        <item name="android:actionBarTabStyle">@style/Widget.ActionBar.TabView</item>
+        <!-- item name="android:actionBarWidgetTheme">@android:style/Theme.Holo</item -->
+        <item name="android:actionDropDownStyle">@style/Widget.Spinner.DropDown.ActionBar</item>
+        <item name="android:actionModeBackground">@drawable/cab_background_top</item>
+        <item name="android:actionModeSplitBackground">@drawable/cab_background_bottom</item>
+
+        <item name="android:activatedBackgroundIndicator">@drawable/activated_background</item>
+
+        <item name="android:autoCompleteTextViewStyle">@style/Widget.AutoCompleteTextView</item>
+
+        <item name="android:buttonStyle">@style/Widget.Button</item>
+        <item name="android:buttonStyleSmall">@style/Widget.Button.Small</item>
+
+        <item name="android:checkboxStyle">@style/Widget.CompoundButton.CheckBox</item>
+
+        <item name="android:dropDownListViewStyle">@android:style/Widget.Holo.Light.ListView.DropDown</item>
+        <item name="android:dropDownSpinnerStyle">@style/Widget.Spinner</item>
+
+        <item name="android:editTextBackground">@drawable/edit_text</item>
+
+        <item name="android:expandableListViewStyle">@style/Widget.ExpandableListView</item>
+
+        <!-- item name="android:homeAsUpIndicator">@android:drawable/ic_ab_back_holo_light</item -->
+
+        <item name="android:listChoiceBackgroundIndicator">@drawable/list_selector</item>
+        <item name="android:listChoiceIndicatorSingle">@drawable/btn_radio</item>
+        <item name="android:listChoiceIndicatorMultiple">@drawable/btn_check</item>
+
+        <item name="android:popupMenuStyle">@style/Widget.ListPopupWindow</item>
+
+        <item name="android:progressBarStyle">@style/Widget.ProgressBar</item>
+        <!-- item name="android:progressBarStyleHorizontal">@style/Widget.ProgressBar.Horizontal</item -->
+        <item name="android:progressBarStyleLarge">@style/Widget.ProgressBar.Large</item>
+        <item name="android:progressBarStyleSmall">@style/Widget.ProgressBar.Small</item>
+        <item name="android:progressBarStyleInverse">@style/Widget.ProgressBar.Inverse</item>
+        <item name="android:progressBarStyleLargeInverse">@style/Widget.ProgressBar.Large.Inverse</item>
+        <item name="android:progressBarStyleSmallInverse">@style/Widget.ProgressBar.Small.Inverse</item>
+
+        <item name="android:radioButtonStyle">@style/Widget.CompoundButton.RadioButton</item>
+
+        <item name="android:seekBarStyle">@style/Widget.SeekBar</item>
+
+        <item name="android:selectableItemBackground">@drawable/item_background</item>
+
+        <!-- item name="android:switchStyle">@style/Widget.CompoundButton.Switch</item -->
+
+
+    </style>
+</resources>

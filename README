@@ -1,0 +1,51 @@
+Phone Doctor
+============
+
+Overview
+--------
+
+Phone doctor is an Android application to collect these data in order to upload them into an crash server over the air, raise bugs to server for the crashes or errors.
+
+Dependencies
+------------
+crashprasing, libpd-crashtool, libpd-core, com.google.gson, libgcmforpd
+
+
+Contributors
+------------
+Commit message was not upstreamed due to the confidential information in this project.
+Confidential information was removed and upstreamed as a whole project.
+
+list the contributors for the previous commits:
+Henry Tieman
+Zhang Jun
+Christophe Guerard
+Zhang Dongxing
+Tony Goubert
+Marie-Celine Dubut
+Jeremy Rocher
+Vidoine Charles-EdouardX
+Yannick MOREL
+Laurent FERT
+Imougar, JacquesX
+Benoit, NicolasX
+Vincent Tinelli
+Leon Ma
+Jacques Imougar
+Seb Haezebrouck
+Thiry, JeanX
+Seb Haezebrouck
+Lecat, AurelienX
+Sebbane, AdrienX
+Berthe, AbdoulayeX
+Nicolae Natea
+
+License
+-------
+
+Licensed under the Apache License, Version 2.0 (the "License");
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+
+
+

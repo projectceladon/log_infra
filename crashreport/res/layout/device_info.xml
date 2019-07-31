@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2019 Intel Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/main_activity_window"
+        android:padding="10dp" >
+
+        <FrameLayout
+            android:layout_width="1dp"
+            android:layout_height="1dp">
+            <view class="com.intel.crashreport.specific.DeviceInfoActivity$Surface"
+                android:id="@+id/surfaceView"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"/>
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/text_device_build"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_build" />
+        <TextView
+            android:id="@+id/text_device_build_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+        <TextView
+            android:id="@+id/text_device_hw"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_hw" />
+        <TextView
+            android:id="@+id/text_device_hw_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+        <TextView
+            android:id="@+id/text_device_ingredients"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_ingredients" />
+        <TextView
+            android:id="@+id/text_device_ingredients_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+        <TextView
+            android:id="@+id/text_device_uniques"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_uniques" />
+        <TextView
+            android:id="@+id/text_device_uniques_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+        <TextView
+            android:id="@+id/text_device_display"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_display" />
+        <TextView
+            android:id="@+id/text_device_display_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+        <ExpandableListView
+            android:id="@+id/listGLExtensions"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent" />
+        <TextView
+            android:id="@+id/text_device_miscelaneous"
+            style="@style/DeviceInfoTitle"
+            android:text="@string/label_device_miscelaneous" />
+        <TextView
+            android:id="@+id/text_device_miscelaneous_details"
+            style="@style/DeviceInfoEntry"
+            android:text="@string/text_device_info_failure" />
+    </LinearLayout>
+
+</ScrollView>
