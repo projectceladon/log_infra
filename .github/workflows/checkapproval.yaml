@@ -1,0 +1,28 @@
+name: Run checkapproval tasks
+
+on:
+  pull_request:
+    types: [ opened, submitted, edited, synchronize, reopened]
+    branches: '**'
+
+env:
+  PROJECTCELADON_PR_EVENT:  ${{ github.event.action }}
+  PROJECTCELADON_PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
+  TOKEN: checkapproval
+  WEBHOOK_URL: ${{ secrets.JENKINS_WEB_HOOK }}${{ TOKEN }}
+
+jobs: 
+  trigger-jenkins-with-prinfo:
+    runs-on: self-hosted
+
+    steps:
+      - name: Trigger checkApproval Jenkins Build with PR Information
+        run: |-
+              curl --location --request POST  ${{ env.WEBHOOK_URL }}   \
+                      --header 'Content-Type: application/json' \
+                      --data-raw '{
+                        "action": ${{ env.PROJECTCELADON_PR_EVENT }} ,
+                        "pull_request": {
+                          "html_url": ${{ env.PROJECTCELADON_PR_URL }}
+                        }
+                      }'
