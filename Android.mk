@@ -23,6 +23,8 @@ LOCAL_MODULE_OWNER := intel
 
 
 
+
+
 LOCAL_REQUIRED_MODULES :=  \
     CrashReport \
     crashinfo-cmd \
