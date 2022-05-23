@@ -9,7 +9,7 @@ env:
   PROJECTCELADON_PR_EVENT:  ${{ github.event.action }}
   PROJECTCELADON_PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
   TOKEN: checkapproval
-  WEBHOOK_URL: ${{ secrets.JENKINS_WEB_HOOK }}${{ TOKEN }}
+  WEBHOOK_URL: ${{ secrets.JENKINS_WEB_HOOK }}${{ env.TOKEN }}
 
 jobs: 
   trigger-jenkins-with-prinfo:
