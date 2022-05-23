@@ -21,6 +21,8 @@ LOCAL_MODULE := crash_package
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := intel
 
+
+
 LOCAL_REQUIRED_MODULES :=  \
     CrashReport \
     crashinfo-cmd \
