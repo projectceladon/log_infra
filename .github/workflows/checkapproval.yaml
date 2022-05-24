@@ -1,7 +1,4 @@
-# This is a basic workflow to showcase the use of Reusable Workflows
-
 name: check approval
-
 on:
   pull_request:
     types: [ opened, submitted, edited, synchronize, reopened]
@@ -16,7 +13,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
-      - name: Run a one-line script
+      - name: Checking out Repository
 
   TriggerJenkins:
     uses: projectceladon/celadonworkflows/.github/workflows/checkapproval.yml@main
