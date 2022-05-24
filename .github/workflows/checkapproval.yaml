@@ -7,12 +7,14 @@ env:
   PROJECTCELADON_PR_EVENT:  ${{ github.event.action }}
   PROJECTCELADON_PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
   TOKEN: checkapproval
-jobs: 
+jobs:
   trigger-jenkins-with-prinfo:
     runs-on: self-hosted
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
       - name: Trigger checkApproval Jenkins Build with PR Information
-        uses: projectceladon/celadonworkflows/tree/main/.github/workflows@main
+        uses: projectceladon/celadonworkflows/tree/main/.github/workflows/checkapproval.yml@main
         with:
           PR_EVENT: ${{ env.PROJECTCELADON_PR_EVENT }}
           PR_URL: ${{ env.PROJECTCELADON_PR_URL }}
