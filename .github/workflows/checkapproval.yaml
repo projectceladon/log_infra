@@ -14,10 +14,3 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Checking out Repository
-
-  TriggerJenkins:
-    uses: projectceladon/celadonworkflows/.github/workflows/checkapproval.yml@main
-    with:
-          PR_EVENT: ${{ env.PROJECTCELADON_PR_EVENT }}
-          PR_URL: ${{ env.PROJECTCELADON_PR_URL }}
-          TOKEN: ${{ env.TOKEN }}
