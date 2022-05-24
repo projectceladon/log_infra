@@ -23,6 +23,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
+
 #define SERVICE_NAME "logconfig"
 
 #ifdef LOG_TAG
