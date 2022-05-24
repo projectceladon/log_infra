@@ -17,6 +17,8 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
+
+
 LOCAL_MODULE := crash_package
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := intel
