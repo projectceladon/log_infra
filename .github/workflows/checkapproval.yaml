@@ -9,8 +9,10 @@ env:
   TOKEN: checkapproval
 
 jobs:
-  CheckoutRepo:
+  trigger-jenkins-with-prinfo:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v2
-      - name: Checking out Repository
+      - name: Checkout repository
+        uses: actions/checkout@v2  
+    
+
