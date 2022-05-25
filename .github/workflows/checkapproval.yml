@@ -16,6 +16,6 @@ jobs:
     uses: projectceladon/celadonworkflows/.github/workflows/checkapproval.yml@main
     with:
       PR_EVENT: ${{ github.event.action }}
-      PR_URL: https://github.com/projectceladon/manifest/pull/246
+      PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
       TOKEN: checkapproval
     secrets: inherit
