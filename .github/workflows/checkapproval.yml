@@ -15,7 +15,7 @@ jobs:
   trigger-jenkins-with-prinfo:
     uses: projectceladon/celadonworkflows/.github/workflows/checkapproval.yml@main
     with:
-      PR_EVENT: opened
+      PR_EVENT: ${{ github.event.action }}
       PR_URL: https://github.com/projectceladon/manifest/pull/246
       TOKEN: checkapproval
     secrets: inherit
