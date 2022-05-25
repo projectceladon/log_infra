@@ -14,12 +14,14 @@ jobs:
       steps:
        - name: Checkout repository
          uses: actions/checkout@v2 
-  TriggerJenkinsJob:
-    uses: projectceladon/celadonworkflows/.github/workflows/checkapproval.yml@main
-    with:
-          PR_EVENT: ${{ github.event.action }}
-          PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
-          TOKEN: checkapproval
+       - name: echo Variables 
+         run: echo "$github.event.action action, pr_url $https://github.com/${{github.repository}}/pull/${{ github.event.number }} "
+#   TriggerJenkinsJob:
+#     uses: projectceladon/celadonworkflows/.github/workflows/checkapproval.yml@main
+#     with:
+#           PR_EVENT: ${{ github.event.action }}
+#           PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
+#           TOKEN: checkapproval
 
 
     
