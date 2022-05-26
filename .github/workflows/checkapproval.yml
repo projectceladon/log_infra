@@ -21,4 +21,5 @@ jobs:
     secrets: inherit
   CheckLint:
     uses: projectceladon/celadonworkflows/.github/workflows/checklint.yaml@main
-    secrets: inherit
+    secrets: 
+      GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
