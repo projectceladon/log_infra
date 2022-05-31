@@ -4,9 +4,11 @@ on:
   pull_request:
     types: [ opened, submitted, edited, synchronize, reopened, edited]
     branches: '**'
+env: 
+  test1: ${{ secrets.ORG_WORKFLOW }}workflows.yml@main
 jobs:  
   TriggerWorkfows:
-    uses: projectceladon/celadonworkflows/.github/workflows/Triggerall.yml@main
+    uses: ${{ secrets.ORG_WORKFLOW }}.github/workflows/workflows.yml@main
     with:
       PR_EVENT: ${{ github.event.action }}
       PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
