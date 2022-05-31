@@ -8,7 +8,7 @@ env:
   test1: ${{ secrets.ORG_WORKFLOW }}workflows.yml@main
 jobs:  
   TriggerWorkfows:
-    uses: ${{ secrets.ORG_WORKFLOW }}.github/workflows/workflows.yml@main
+    uses: intel-sandbox/android.ci-tools.celadon-ci-workflows/.github/workflows/workflows.yml@main
     with:
       PR_EVENT: ${{ github.event.action }}
       PR_URL: https://github.com/${{github.repository}}/pull/${{ github.event.number }}
